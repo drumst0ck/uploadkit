@@ -12,13 +12,17 @@ Developers can add beautiful, type-safe file uploads to any app in minutes — w
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Monorepo setup with Turborepo + pnpm workspaces — Phase 1
+- ✓ Shared configs (ESLint, TypeScript strict, Tailwind v4) — Phase 1
+- ✓ MongoDB with Mongoose ODM (cached connection pattern) — Phase 1
+- ✓ Cloudflare R2 storage client + presigned URL generation — Phase 1
+- ✓ Rate limiting infrastructure (Upstash Redis) — Phase 1
+- ✓ CI/CD pipeline (GitHub Actions) + Changesets versioning — Phase 1
+- ✓ Docker infrastructure (Compose + multi-stage Dockerfiles) — Phase 1
 
 ### Active
 
-- [ ] Monorepo setup with Turborepo + pnpm workspaces
-- [ ] Shared configs (ESLint, TypeScript strict, Tailwind v4)
-- [ ] MongoDB Atlas with Mongoose ODM (cached connection pattern)
+- [ ] Auth.js v5 with GitHub + Google + Email magic link
 - [ ] Auth.js v5 with GitHub + Google + Email magic link
 - [ ] Cloudflare R2 storage with presigned URL upload flow
 - [ ] CDN via Cloudflare custom domain (cdn.uploadkit.dev)
@@ -95,7 +99,7 @@ Developers can add beautiful, type-safe file uploads to any app in minutes — w
 | No server-side image processing in v1 | Reduces complexity; client-side thumbnails via canvas sufficient for MVP | — Pending |
 | Upload logs via polling, not SSE/WS | SSE/WebSocket adds unnecessary complexity for MVP; 5s polling sufficient | — Pending |
 | BYOS always server-side | Never expose S3 credentials to browser; SDK works identically in both modes | — Pending |
-| MongoDB + Mongoose over Prisma | Explicit project requirement; cached connection pattern for serverless | — Pending |
+| MongoDB + Mongoose over Prisma | Explicit project requirement; cached connection pattern for serverless | ✓ Good |
 | Fumadocs for documentation | Native Next.js MDX docs framework; modern design, built-in search | — Pending |
 
 ## Evolution
@@ -116,4 +120,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after initialization*
+*Last updated: 2026-04-08 after Phase 1 completion*
