@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@sentry/nextjs": "latest",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",

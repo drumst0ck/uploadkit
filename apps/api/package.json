@@ -10,9 +10,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "latest",
+    "@aws-sdk/s3-request-presigner": "latest",
+    "@sentry/nextjs": "latest",
+    "@upstash/ratelimit": "latest",
+    "@upstash/redis": "latest",
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "zod": "latest"
   },
   "devDependencies": {
     "@types/react": "latest",
