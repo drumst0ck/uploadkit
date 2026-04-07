@@ -11,8 +11,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **INFRA-01**: Turborepo + pnpm workspaces monorepo with apps/ and packages/ structure
 - [x] **INFRA-02**: Shared configs package (ESLint, TypeScript strict, Tailwind v4)
-- [ ] **INFRA-03**: MongoDB Atlas connection with Mongoose ODM and cached connection pattern for serverless
-- [ ] **INFRA-04**: All Mongoose models implemented (User, Account, Project, ApiKey, File, FileRouter, Subscription, UsageRecord)
+- [x] **INFRA-03**: MongoDB Atlas connection with Mongoose ODM and cached connection pattern for serverless
+- [x] **INFRA-04**: All Mongoose models implemented (User, Account, Project, ApiKey, File, FileRouter, Subscription, UsageRecord)
 - [ ] **INFRA-05**: Cloudflare R2 bucket configured with CORS policy (explicit AllowedHeaders), lifecycle rules, and custom CDN domain
 - [ ] **INFRA-06**: Upstash Redis rate limiting on all API endpoints
 - [ ] **INFRA-07**: Sentry error monitoring integrated across apps
@@ -195,8 +195,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
-| INFRA-03 | Phase 1 | Pending |
-| INFRA-04 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Complete |
+| INFRA-04 | Phase 1 | Complete |
 | INFRA-05 | Phase 1 | Pending |
 | INFRA-06 | Phase 1 | Pending |
 | INFRA-07 | Phase 1 | Pending |
