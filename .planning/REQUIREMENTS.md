@@ -193,13 +193,115 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Populated during roadmap creation) | | |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| INFRA-05 | Phase 1 | Pending |
+| INFRA-06 | Phase 1 | Pending |
+| INFRA-07 | Phase 1 | Pending |
+| INFRA-08 | Phase 10 | Pending |
+| INFRA-09 | Phase 10 | Pending |
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Pending |
+| UPLD-01 | Phase 3 | Pending |
+| UPLD-02 | Phase 3 | Pending |
+| UPLD-03 | Phase 3 | Pending |
+| UPLD-04 | Phase 3 | Pending |
+| UPLD-05 | Phase 3 | Pending |
+| UPLD-06 | Phase 3 | Pending |
+| UPLD-07 | Phase 3 | Pending |
+| UPLD-08 | Phase 3 | Pending |
+| UPLD-09 | Phase 3 | Pending |
+| API-01 | Phase 3 | Pending |
+| API-02 | Phase 3 | Pending |
+| API-03 | Phase 3 | Pending |
+| API-04 | Phase 3 | Pending |
+| API-05 | Phase 3 | Pending |
+| API-06 | Phase 3 | Pending |
+| API-07 | Phase 3 | Pending |
+| API-08 | Phase 3 | Pending |
+| SDK-01 | Phase 4 | Pending |
+| SDK-02 | Phase 4 | Pending |
+| SDK-03 | Phase 4 | Pending |
+| SDK-04 | Phase 4 | Pending |
+| SDK-05 | Phase 4 | Pending |
+| SDK-06 | Phase 4 | Pending |
+| NEXT-01 | Phase 4 | Pending |
+| NEXT-02 | Phase 4 | Pending |
+| NEXT-03 | Phase 4 | Pending |
+| NEXT-04 | Phase 4 | Pending |
+| NEXT-05 | Phase 4 | Pending |
+| REACT-01 | Phase 5 | Pending |
+| REACT-02 | Phase 5 | Pending |
+| REACT-03 | Phase 5 | Pending |
+| REACT-04 | Phase 5 | Pending |
+| REACT-05 | Phase 5 | Pending |
+| REACT-06 | Phase 5 | Pending |
+| REACT-07 | Phase 5 | Pending |
+| REACT-08 | Phase 5 | Pending |
+| REACT-09 | Phase 5 | Pending |
+| REACT-10 | Phase 5 | Pending |
+| REACT-11 | Phase 5 | Pending |
+| REACT-12 | Phase 5 | Pending |
+| REACT-13 | Phase 5 | Pending |
+| DASH-01 | Phase 6 | Pending |
+| DASH-02 | Phase 6 | Pending |
+| DASH-03 | Phase 6 | Pending |
+| DASH-04 | Phase 6 | Pending |
+| DASH-05 | Phase 6 | Pending |
+| DASH-06 | Phase 6 | Pending |
+| DASH-07 | Phase 6 | Pending |
+| DASH-08 | Phase 6 | Pending |
+| DASH-09 | Phase 6 | Pending |
+| DASH-10 | Phase 6 | Pending |
+| DASH-11 | Phase 6 | Pending |
+| DASH-12 | Phase 6 | Pending |
+| DASH-13 | Phase 6 | Pending |
+| DASH-14 | Phase 6 | Pending |
+| BILL-01 | Phase 7 | Pending |
+| BILL-02 | Phase 7 | Pending |
+| BILL-03 | Phase 7 | Pending |
+| BILL-04 | Phase 7 | Pending |
+| BILL-05 | Phase 7 | Pending |
+| BILL-06 | Phase 7 | Pending |
+| EMAIL-01 | Phase 7 | Pending |
+| EMAIL-02 | Phase 7 | Pending |
+| EMAIL-03 | Phase 7 | Pending |
+| LAND-01 | Phase 8 | Pending |
+| LAND-02 | Phase 8 | Pending |
+| LAND-03 | Phase 8 | Pending |
+| LAND-04 | Phase 8 | Pending |
+| LAND-05 | Phase 8 | Pending |
+| LAND-06 | Phase 8 | Pending |
+| LAND-07 | Phase 8 | Pending |
+| LAND-08 | Phase 8 | Pending |
+| LAND-09 | Phase 8 | Pending |
+| LAND-10 | Phase 8 | Pending |
+| PRICE-01 | Phase 8 | Pending |
+| PRICE-02 | Phase 8 | Pending |
+| PRICE-03 | Phase 8 | Pending |
+| PRICE-04 | Phase 8 | Pending |
+| DOCS-01 | Phase 9 | Pending |
+| DOCS-02 | Phase 9 | Pending |
+| DOCS-03 | Phase 9 | Pending |
+| DOCS-04 | Phase 9 | Pending |
+| DOCS-05 | Phase 9 | Pending |
+| DOCS-06 | Phase 9 | Pending |
+| DOCS-07 | Phase 9 | Pending |
+| DOCS-08 | Phase 9 | Pending |
+| DOCS-09 | Phase 9 | Pending |
+| DOCS-10 | Phase 9 | Pending |
 
 **Coverage:**
-- v1 requirements: 82 total
-- Mapped to phases: 0
-- Unmapped: 82 (pending roadmap)
+- v1 requirements: 101 total
+- Mapped to phases: 101
+- Unmapped: 0
+
+Note: The file previously stated 82 total requirements. Actual count from enumerated IDs is 101.
 
 ---
 *Requirements defined: 2026-04-07*
-*Last updated: 2026-04-07 after initial definition*
+*Last updated: 2026-04-07 after roadmap creation — traceability populated*
