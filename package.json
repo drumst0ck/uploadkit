@@ -9,12 +9,14 @@
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "seed": "tsx scripts/seed.ts",
+    "verify-r2": "tsx scripts/verify-r2.ts",
     "format": "prettier --write ."
   },
   "devDependencies": {
     "@changesets/cli": "latest",
     "@vitest/coverage-v8": "latest",
     "prettier": "latest",
+    "tsx": "latest",
     "turbo": "latest",
     "typescript": "latest",
     "vitest": "latest"
