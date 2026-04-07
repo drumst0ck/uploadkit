@@ -1,0 +1,12 @@
+{
+  "name": "@uploadkit/config",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./eslint": "./eslint/index.js",
+    "./typescript/base": "./typescript/tsconfig.base.json",
+    "./typescript/nextjs": "./typescript/tsconfig.nextjs.json",
+    "./typescript/library": "./typescript/tsconfig.library.json",
+    "./tailwind/base.css": "./tailwind/base.css"
+  }
+}

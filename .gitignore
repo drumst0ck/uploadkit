@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+.next
+.turbo
+coverage
+
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# TypeScript build info
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode
+.idea
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

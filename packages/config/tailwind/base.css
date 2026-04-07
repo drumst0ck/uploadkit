@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #0a0a0b;
+  --color-surface-elevated: #141416;
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-accent: #6366f1;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", monospace;
+}

@@ -1,0 +1,22 @@
+{
+  "name": "uploadkit",
+  "private": true,
+  "packageManager": "pnpm@10.26.2",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "seed": "tsx scripts/seed.ts",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@changesets/cli": "latest",
+    "@vitest/coverage-v8": "latest",
+    "prettier": "latest",
+    "turbo": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
