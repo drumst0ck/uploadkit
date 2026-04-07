@@ -1,0 +1,28 @@
+{
+  "name": "@uploadkit/docs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack --port 3003",
+    "build": "next build",
+    "start": "next start --port 3003",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "fumadocs-ui": "latest",
+    "fumadocs-mdx": "latest",
+    "fumadocs-core": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@uploadkit/config": "workspace:*",
+    "tailwindcss": "latest",
+    "@tailwindcss/postcss": "latest",
+    "typescript": "latest"
+  }
+}

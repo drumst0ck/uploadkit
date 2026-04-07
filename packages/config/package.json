@@ -8,5 +8,8 @@
     "./typescript/nextjs": "./typescript/tsconfig.nextjs.json",
     "./typescript/library": "./typescript/tsconfig.library.json",
     "./tailwind/base.css": "./tailwind/base.css"
+  },
+  "dependencies": {
+    "tailwindcss": "latest"
   }
 }

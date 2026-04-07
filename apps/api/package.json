@@ -1,0 +1,25 @@
+{
+  "name": "@uploadkit/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack --port 3002",
+    "build": "next build",
+    "start": "next start --port 3002",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@uploadkit/config": "workspace:*",
+    "tailwindcss": "latest",
+    "@tailwindcss/postcss": "latest",
+    "typescript": "latest"
+  }
+}
