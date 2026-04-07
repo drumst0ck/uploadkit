@@ -33,7 +33,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   3. Cloudflare R2 bucket is reachable and a presigned PUT URL request returns 200 (CORS headers present and correct)
   4. GitHub Actions CI run completes green on a clean push (lint, type-check, build pass)
   5. Changesets version command produces correct changelog and bumps package versions
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 
 ### Phase 2: Authentication
 **Goal**: Users can create accounts and sign in via three providers, with sessions that survive browser refresh, unblocking all dashboard and API work
@@ -44,7 +49,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   2. User can sign up and log in with a Google account and land on the dashboard
   3. User can sign in via email magic link (receives email, clicks link, arrives authenticated)
   4. User who closes and reopens the browser remains logged in without re-authenticating
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 
 ### Phase 3: Upload Flow & REST API
 **Goal**: Developers can upload files end-to-end through the presigned URL pipeline (including multipart, abort, retry) and perform all file/project/key operations via authenticated REST endpoints
@@ -56,7 +66,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   3. An in-progress upload aborted via AbortController does not create an orphaned R2 object (cleanup job confirms)
   4. `GET /api/v1/files` returns a paginated list of files; `DELETE /api/v1/files/:key` removes the file from R2 and the database
   5. `GET /api/v1/logs?since=timestamp` returns upload events for the polling interval; rate-limited endpoints return 429 with a Stripe-style error message when quota exceeded
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 
 ### Phase 4: SDK Core & Next.js Adapter
 **Goal**: `@uploadkit/core` and `@uploadkit/next` are published-ready packages that work in both managed and BYOS modes, giving Next.js developers a typed file router pattern
@@ -67,7 +82,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   2. Switching to BYOS mode (developer-provided S3 credentials) requires zero frontend changes; all credential usage is server-side only
   3. A Next.js App Router project can define a `fileRouter`, call `createUploadKitHandler`, and receive a fully typed `AppFileRouter` type inferred on the client
   4. `pnpm build` produces tree-shakeable ESM + CJS output with zero external runtime dependencies in `@uploadkit/core`
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 
 ### Phase 5: SDK React Components
 **Goal**: `@uploadkit/react` delivers premium, accessible upload components that work out of the box with CSS variables theming and dark mode, matching Vercel/Supabase visual quality
@@ -79,7 +99,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   3. `<UploadModal>` opens with scale+opacity animation, closes on ESC or click-outside, and has no accessibility violations (focus trap, aria-modal, reduced-motion respected)
   4. Setting `--uk-primary` CSS variable overrides the accent color across all components; `prefers-color-scheme: dark` and the explicit override both apply dark mode correctly
   5. All interactive components pass WCAG 2.1 AA contrast check and show visible `:focus-visible` rings
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 **UI hint**: yes
 
 ### Phase 6: Dashboard
@@ -92,7 +117,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   3. The file browser DataTable shows uploaded files with preview thumbnails, supports search and filter, and bulk-deletes selected files
   4. The upload logs page auto-refreshes every 5 seconds (polling) and shows new events without a full page reload
   5. Pressing cmd+k opens the command palette; navigating with arrow keys and Enter routes to the selected page; sidebar collapses on mobile
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 **UI hint**: yes
 
 ### Phase 7: Billing & Email
@@ -105,7 +135,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   3. A user exceeding their tier's upload limit receives a 429 response with a clear error before the upload is allowed to proceed
   4. Overage usage is reported to Stripe Meters API (not legacy UsageRecord) and appears on the next invoice
   5. New users receive a welcome email; users at 80% usage receive an alert email; failed payments trigger a payment-failed email — all via Resend
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 
 ### Phase 8: Landing & Pricing Pages
 **Goal**: The public landing page and pricing page are live, visually competitive with Vercel/Linear, fully responsive, SEO-ready, and convert visitors to signups
@@ -116,7 +151,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   2. The interactive code demo tab switches between Next.js, React, and API examples and shows a live component preview (UploadButton/Dropzone/Modal) with dark/light toggle
   3. The pricing page shows all four tiers with a monthly/yearly toggle that recalculates prices (20% annual discount); the overage pricing section is visible below the tier table
   4. The page scores 90+ on Lighthouse for Performance, Accessibility, and SEO on both mobile and desktop
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 **UI hint**: yes
 
 ### Phase 9: Documentation
@@ -128,7 +168,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   2. The built-in Fumadocs search returns relevant results for queries like "BYOS", "fileRouter", "onUploadComplete", and "presigned URL"
   3. Every public SDK method and component prop in @uploadkit/core, @uploadkit/react, and @uploadkit/next has a corresponding reference entry with types and example
   4. The "Migration from UploadThing" guide exists and covers the key API differences
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 
 ### Phase 10: Testing, Publishing & Launch
 **Goal**: The full SDK is published to npm with correct versions and changelogs; the codebase has Vitest unit coverage on critical paths and Playwright E2E tests on the upload and auth flows; the project is launch-ready
@@ -139,7 +184,12 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
   2. Vitest unit tests cover upload flow (request, multipart, retry, abort), BYOS presigned URL generation, tier limit enforcement, and Stripe webhook handlers — all green
   3. Playwright E2E tests cover: sign up via GitHub OAuth → create project → upload a file via dashboard → verify file appears in file browser → delete file
   4. GitHub Actions CI run on main passes lint, type-check, unit tests, and build in under 5 minutes
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 
 ## Progress
 
@@ -150,7 +200,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Monorepo & Infrastructure | 0/? | Not started | - |
+| 1. Monorepo & Infrastructure | 0/4 | Planning complete | - |
 | 2. Authentication | 0/? | Not started | - |
 | 3. Upload Flow & REST API | 0/? | Not started | - |
 | 4. SDK Core & Next.js Adapter | 0/? | Not started | - |
