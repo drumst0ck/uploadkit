@@ -1,0 +1,5 @@
+{
+  "extends": "@uploadkit/config/typescript/library",
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
