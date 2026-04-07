@@ -37,7 +37,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 Plans:
 - [x] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
 - [x] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
+- [x] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
 - [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 
 ### Phase 2: Authentication
@@ -52,7 +52,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 - [x] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
+- [x] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
 - [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
 - [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
 
@@ -68,7 +68,7 @@ Plans:
   5. `GET /api/v1/logs?since=timestamp` returns upload events for the polling interval; rate-limited endpoints return 429 with a Stripe-style error message when quota exceeded
 **Plans**: 4 plans
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
+- [x] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
 - [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
 - [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
 - [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
@@ -200,7 +200,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Monorepo & Infrastructure | 2/4 | In Progress|  |
+| 1. Monorepo & Infrastructure | 3/4 | In Progress|  |
 | 2. Authentication | 0/? | Not started | - |
 | 3. Upload Flow & REST API | 0/? | Not started | - |
 | 4. SDK Core & Next.js Adapter | 0/? | Not started | - |
