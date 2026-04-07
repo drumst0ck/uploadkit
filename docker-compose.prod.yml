@@ -1,0 +1,61 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "3002:3000"
+    env_file: .env
+    depends_on:
+      - mongodb
+      - redis
+    labels:
+      - "coolify.domain=api.uploadkit.dev"
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    ports:
+      - "3001:3000"
+    env_file: .env
+    depends_on:
+      - mongodb
+      - redis
+      - api
+    labels:
+      - "coolify.domain=app.uploadkit.dev"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    env_file: .env
+    labels:
+      - "coolify.domain=uploadkit.dev"
+
+  docs:
+    build:
+      context: .
+      dockerfile: apps/docs/Dockerfile
+    ports:
+      - "3003:3000"
+    env_file: .env
+    labels:
+      - "coolify.domain=docs.uploadkit.dev"
+
+  mongodb:
+    image: mongo:8
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  mongodb_data:
