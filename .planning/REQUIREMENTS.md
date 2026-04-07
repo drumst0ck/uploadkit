@@ -16,8 +16,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **INFRA-05**: Cloudflare R2 bucket configured with CORS policy (explicit AllowedHeaders), lifecycle rules, and custom CDN domain
 - [x] **INFRA-06**: Upstash Redis rate limiting on all API endpoints
 - [x] **INFRA-07**: Sentry error monitoring integrated across apps
-- [ ] **INFRA-08**: GitHub Actions CI/CD pipeline (lint, test, build, npm publish)
-- [ ] **INFRA-09**: Changesets for SDK versioning with automated npm publish
+- [x] **INFRA-08**: GitHub Actions CI/CD pipeline (lint, test, build, npm publish)
+- [x] **INFRA-09**: Changesets for SDK versioning with automated npm publish
 
 ### Authentication
 
@@ -200,8 +200,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-05 | Phase 1 | Complete |
 | INFRA-06 | Phase 1 | Complete |
 | INFRA-07 | Phase 1 | Complete |
-| INFRA-08 | Phase 10 | Pending |
-| INFRA-09 | Phase 10 | Pending |
+| INFRA-08 | Phase 10 | Complete |
+| INFRA-09 | Phase 10 | Complete |
 | AUTH-01 | Phase 2 | Pending |
 | AUTH-02 | Phase 2 | Pending |
 | AUTH-03 | Phase 2 | Pending |
