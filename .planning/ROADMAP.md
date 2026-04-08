@@ -117,7 +117,7 @@ Plans:
 Plans:
 - [x] 06-01-PLAN.md — shadcn/ui init in packages/ui, dashboard deps, layout shell (sidebar, header, breadcrumbs, providers)
 - [x] 06-02-PLAN.md — Overview page (metric cards, upload chart, recent files) + project CRUD with slug routing
-- [ ] 06-03-PLAN.md — File browser DataTable + API keys management + file routes configuration
+- [x] 06-03-PLAN.md — File browser DataTable + API keys management + file routes configuration
 - [ ] 06-04-PLAN.md — Upload logs with polling + usage page with charts + billing shell + settings
 - [ ] 06-05-PLAN.md — Command palette (cmd+k) + project settings + visual verification checkpoint
 **UI hint**: yes
@@ -202,7 +202,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 3. Upload Flow & REST API | 4/4 | Complete   | 2026-04-08 |
 | 4. SDK Core & Next.js Adapter | 2/2 | Complete   | 2026-04-08 |
 | 5. SDK React Components | 4/4 | Complete   | 2026-04-08 |
-| 6. Dashboard | 2/5 | In Progress|  |
+| 6. Dashboard | 3/5 | In Progress|  |
 | 7. Billing & Email | 0/? | Not started | - |
 | 8. Landing & Pricing Pages | 0/? | Not started | - |
 | 9. Documentation | 0/? | Not started | - |

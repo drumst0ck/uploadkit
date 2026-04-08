@@ -87,9 +87,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DASH-01**: Auth.js v5 login/register (GitHub, Google, magic link)
 - [x] **DASH-02**: Overview page with 4 metric cards (storage, bandwidth, uploads today, total files) + 30-day upload chart + recent files table
 - [x] **DASH-03**: Project CRUD with slug-based routing
-- [ ] **DASH-04**: File browser with DataTable (preview, name, size, type, date, actions), filters, search, pagination, bulk delete
-- [ ] **DASH-05**: API Keys page (masked display uk_live_xxx...xxx, copy, create, revoke with confirmation)
-- [ ] **DASH-06**: File Routes configuration UI per project
+- [x] **DASH-04**: File browser with DataTable (preview, name, size, type, date, actions), filters, search, pagination, bulk delete
+- [x] **DASH-05**: API Keys page (masked display uk_live_xxx...xxx, copy, create, revoke with confirmation)
+- [x] **DASH-06**: File Routes configuration UI per project
 - [ ] **DASH-07**: Upload logs page with polling (5s interval), filter by date/status/route
 - [ ] **DASH-08**: Usage page with progress bars (% of tier limit), historical chart, breakdown by project
 - [ ] **DASH-09**: Billing page (current plan card, upgrade button, Stripe Billing Portal link, invoice history)
@@ -250,9 +250,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-01 | Phase 6 | Complete |
 | DASH-02 | Phase 6 | Complete |
 | DASH-03 | Phase 6 | Complete |
-| DASH-04 | Phase 6 | Pending |
-| DASH-05 | Phase 6 | Pending |
-| DASH-06 | Phase 6 | Pending |
+| DASH-04 | Phase 6 | Complete |
+| DASH-05 | Phase 6 | Complete |
+| DASH-06 | Phase 6 | Complete |
 | DASH-07 | Phase 6 | Pending |
 | DASH-08 | Phase 6 | Pending |
 | DASH-09 | Phase 6 | Pending |
