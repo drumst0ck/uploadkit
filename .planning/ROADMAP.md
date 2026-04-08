@@ -68,7 +68,7 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — API foundation: package deps, withApiKey wrapper, error serializer, Zod schemas, model patches
 - [x] 03-02-PLAN.md — Upload pipeline: presigned URL request, complete, multipart init/complete/abort
-- [ ] 03-03-PLAN.md — REST CRUD: files, projects, API keys, file routers, usage endpoints
+- [x] 03-03-PLAN.md — REST CRUD: files, projects, API keys, file routers, usage endpoints
 - [ ] 03-04-PLAN.md — Upload logs polling endpoint and orphaned upload cleanup cron job
 
 ### Phase 4: SDK Core & Next.js Adapter

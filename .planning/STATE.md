@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-upload-flow-rest-api 03-02-PLAN.md
-last_updated: "2026-04-08T12:56:21.890Z"
+stopped_at: Completed 03-upload-flow-rest-api 03-03-PLAN.md
+last_updated: "2026-04-08T13:02:14.434Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 ## Current Position
 
 Phase: 03 (upload-flow-rest-api) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-04-08
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-authentication P02 | 2m | 2 tasks | 4 files |
 | Phase 03-upload-flow-rest-api P01 | 15m | 3 tasks | 13 files |
 | Phase 03-upload-flow-rest-api P02 | 3m | 2 tasks | 5 files |
+| Phase 03-upload-flow-rest-api P03 | 4m | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase 03-upload-flow-rest-api]: effectiveMaxSize = Math.min(fileRouter.maxFileSize, TIER_LIMITS[tier].maxFileSizeBytes) enforces the more restrictive of route-level and tier-level file size limits
 - [Phase 03-upload-flow-rest-api]: R2 HEAD catches both 403 and 404 from S3ServiceException..statusCode — R2 returns 403 for missing objects when bucket has restricted GetObject policy (Pitfall 4)
 - [Phase 03-upload-flow-rest-api]: Optional metadata uses conditional spread ...(metadata !== undefined ? { metadata } : {}) to satisfy exactOptionalPropertyTypes: true throughout upload routes
+- [Phase 03-upload-flow-rest-api]: mongoose added as direct dep to apps/api for Types.ObjectId in cursor pagination and route-level ObjectId validation
+- [Phase 03-upload-flow-rest-api]: API key full plaintext returned only at POST creation, SHA256 hash stored in DB — implements T-03-15 info disclosure mitigation
+- [Phase 03-upload-flow-rest-api]: File DELETE: R2 hard delete then MongoDB soft-delete with atomic negative $inc on storageUsed prevents double-decrement on retry (T-03-16)
 
 ### Pending Todos
 
@@ -105,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T12:56:21.888Z
-Stopped at: Completed 03-upload-flow-rest-api 03-02-PLAN.md
+Last session: 2026-04-08T13:02:14.432Z
+Stopped at: Completed 03-upload-flow-rest-api 03-03-PLAN.md
 Resume file: None
