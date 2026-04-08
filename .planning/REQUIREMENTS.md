@@ -94,7 +94,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DASH-08**: Usage page with progress bars (% of tier limit), historical chart, breakdown by project
 - [x] **DASH-09**: Billing page (current plan card, upgrade button, Stripe Billing Portal link, invoice history)
 - [x] **DASH-10**: Settings page (profile, notifications, delete account)
-- [ ] **DASH-11**: Command palette (cmd+k) for navigation
+- [x] **DASH-11**: Command palette (cmd+k) for navigation
 - [x] **DASH-12**: Sidebar layout (collapsible), header with breadcrumbs/search/avatar
 - [x] **DASH-13**: Dark mode by default with toggle, responsive design
 - [x] **DASH-14**: Vercel/Linear/Supabase-inspired visual design with shadcn/ui
@@ -257,7 +257,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-08 | Phase 6 | Complete |
 | DASH-09 | Phase 6 | Complete |
 | DASH-10 | Phase 6 | Complete |
-| DASH-11 | Phase 6 | Pending |
+| DASH-11 | Phase 6 | Complete |
 | DASH-12 | Phase 6 | Complete |
 | DASH-13 | Phase 6 | Complete |
 | DASH-14 | Phase 6 | Complete |

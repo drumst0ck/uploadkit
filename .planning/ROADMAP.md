@@ -15,7 +15,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - [x] **Phase 3: Upload Flow & REST API** - Presigned URL pipeline, multipart, abort/retry, full file/project/key REST API (completed 2026-04-08)
 - [x] **Phase 4: SDK Core & Next.js Adapter** - @uploadkit/core factory, BYOS mode, @uploadkit/next file router pattern (completed 2026-04-08)
 - [x] **Phase 5: SDK React Components** - UploadButton, Dropzone, Modal, FileList, FilePreview, hook, theming, a11y (completed 2026-04-08)
-- [ ] **Phase 6: Dashboard** - Auth shell, project/file/key management, upload logs, usage, command palette
+- [x] **Phase 6: Dashboard** - Auth shell, project/file/key management, upload logs, usage, command palette (completed 2026-04-08)
 - [ ] **Phase 7: Billing & Email** - Stripe Checkout, Billing Portal, metered overages, Resend transactional emails
 - [ ] **Phase 8: Landing & Pricing Pages** - Hero, code demo, feature grid, competitor table, pricing page
 - [ ] **Phase 9: Documentation** - Fumadocs site, quickstart, SDK reference, API reference, guides
@@ -119,7 +119,7 @@ Plans:
 - [x] 06-02-PLAN.md — Overview page (metric cards, upload chart, recent files) + project CRUD with slug routing
 - [x] 06-03-PLAN.md — File browser DataTable + API keys management + file routes configuration
 - [x] 06-04-PLAN.md — Upload logs with polling + usage page with charts + billing shell + settings
-- [ ] 06-05-PLAN.md — Command palette (cmd+k) + project settings + visual verification checkpoint
+- [x] 06-05-PLAN.md — Command palette (cmd+k) + project settings + visual verification checkpoint
 **UI hint**: yes
 
 ### Phase 7: Billing & Email
@@ -202,7 +202,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 3. Upload Flow & REST API | 4/4 | Complete   | 2026-04-08 |
 | 4. SDK Core & Next.js Adapter | 2/2 | Complete   | 2026-04-08 |
 | 5. SDK React Components | 4/4 | Complete   | 2026-04-08 |
-| 6. Dashboard | 3/5 | In Progress|  |
+| 6. Dashboard | 5/5 | Complete   | 2026-04-08 |
 | 7. Billing & Email | 0/? | Not started | - |
 | 8. Landing & Pricing Pages | 0/? | Not started | - |
 | 9. Documentation | 0/? | Not started | - |
