@@ -134,10 +134,10 @@ Plans:
   5. New users receive a welcome email; users at 80% usage receive an alert email; failed payments trigger a payment-failed email — all via Resend
 **Plans**: 4 plans
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
-- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
+- [ ] 07-01-PLAN.md — Stripe client singletons, Checkout + Portal endpoints, billing page, setup script
+- [ ] 07-02-PLAN.md — Stripe webhook handler, Meters API integration, soft tier limit enforcement
+- [ ] 07-03-PLAN.md — packages/emails workspace package with React Email templates (welcome, usage alert, invoice)
+- [ ] 07-04-PLAN.md — Wire email triggers: welcome on signup, usage alerts on threshold, invoice emails on webhooks
 
 ### Phase 8: Landing & Pricing Pages
 **Goal**: The public landing page and pricing page are live, visually competitive with Vercel/Linear, fully responsive, SEO-ready, and convert visitors to signups
