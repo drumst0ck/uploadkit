@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@uploadkit/react": "workspace:*",
     "@uploadkit/shared": "workspace:*",
     "@uploadkit/ui": "workspace:*",
     "next": "latest",

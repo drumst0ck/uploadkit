@@ -248,6 +248,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@uploadkit/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       '@uploadkit/shared':
         specifier: workspace:*
         version: link:../../packages/shared
