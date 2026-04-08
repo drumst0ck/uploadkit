@@ -82,7 +82,7 @@ Plans:
   4. `pnpm build` produces tree-shakeable ESM + CJS output with zero external runtime dependencies in `@uploadkit/core`
 **Plans**: 2 plans
 Plans:
-- [ ] 04-01-PLAN.md — @uploadkit/core: createUploadKit factory, upload (single+multipart), XHR progress, retry, listFiles, deleteFile
+- [x] 04-01-PLAN.md — @uploadkit/core: createUploadKit factory, upload (single+multipart), XHR progress, retry, listFiles, deleteFile
 - [ ] 04-02-PLAN.md — @uploadkit/next: createUploadKitHandler, FileRouter types, middleware, BYOS presigned URLs, generateReactHelpers stub
 
 ### Phase 5: SDK React Components
@@ -199,7 +199,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 1. Monorepo & Infrastructure | 4/4 | Complete   | 2026-04-07 |
 | 2. Authentication | 2/2 | Complete   | 2026-04-08 |
 | 3. Upload Flow & REST API | 4/4 | Complete   | 2026-04-08 |
-| 4. SDK Core & Next.js Adapter | 0/? | Not started | - |
+| 4. SDK Core & Next.js Adapter | 1/2 | In Progress|  |
 | 5. SDK React Components | 0/? | Not started | - |
 | 6. Dashboard | 0/? | Not started | - |
 | 7. Billing & Email | 0/? | Not started | - |

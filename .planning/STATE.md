@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-04-08T14:00:36.855Z"
-last_activity: 2026-04-08 -- Phase 4 planning complete
+stopped_at: Completed 04-sdk-core-next-js-adapter 04-01-PLAN.md
+last_updated: "2026-04-08T14:09:33.040Z"
+last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 3
   total_plans: 12
-  completed_plans: 10
-  percent: 83
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Developers can add beautiful, type-safe file uploads to any app in minutes — with a generous free tier, no vendor lock-in (BYOS), and premium components out of the box.
-**Current focus:** Phase 03 — upload-flow-rest-api
+**Current focus:** Phase 04 — sdk-core-next-js-adapter
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
+Phase: 04 (sdk-core-next-js-adapter) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-04-08 -- Phase 4 planning complete
+Last activity: 2026-04-08
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-upload-flow-rest-api P02 | 3m | 2 tasks | 5 files |
 | Phase 03-upload-flow-rest-api P03 | 4m | 2 tasks | 10 files |
 | Phase 03-upload-flow-rest-api P04 | 3m | 2 tasks | 6 files |
+| Phase 04-sdk-core-next-js-adapter P01 | 20m | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,9 @@ Recent decisions affecting current work:
 - [Phase 03-upload-flow-rest-api]: File DELETE: R2 hard delete then MongoDB soft-delete with atomic negative $inc on storageUsed prevents double-decrement on retry (T-03-16)
 - [Phase 03-upload-flow-rest-api]: Cleanup accepts both x-cron-secret header and Authorization: Bearer for Vercel Cron compatibility
 - [Phase 03-upload-flow-rest-api]: QStash DLQ only sets webhookFailedAt timestamp — no destructive action; signing key check skipped in dev with console.warn
+- [Phase 04-sdk-core-next-js-adapter]: DOM lib added to packages/core/tsconfig.json — core uses browser globals (File, AbortSignal, XHR) so ES2022 alone is insufficient
+- [Phase 04-sdk-core-next-js-adapter]: @uploadkit/shared bundled into dist (not in tsup external[]) — gives SDK consumers zero transitive runtime deps
+- [Phase 04-sdk-core-next-js-adapter]: UploadKitClient stores apiKey in private class field (#apiKey) to prevent key enumeration (T-04-05)
 
 ### Pending Todos
 
@@ -113,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T13:43:13.923Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-sdk-core-next-js-adapter/04-CONTEXT.md
+Last session: 2026-04-08T14:09:33.037Z
+Stopped at: Completed 04-sdk-core-next-js-adapter 04-01-PLAN.md
+Resume file: None

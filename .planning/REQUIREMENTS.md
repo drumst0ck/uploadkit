@@ -51,12 +51,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### SDK Core (@uploadkit/core)
 
-- [ ] **SDK-01**: createUploadKit factory with API key config (managed mode)
-- [ ] **SDK-02**: Programmatic upload with file, route, metadata, onProgress callback
-- [ ] **SDK-03**: Multipart upload handling transparent to consumer
-- [ ] **SDK-04**: listFiles and deleteFile methods
+- [x] **SDK-01**: createUploadKit factory with API key config (managed mode)
+- [x] **SDK-02**: Programmatic upload with file, route, metadata, onProgress callback
+- [x] **SDK-03**: Multipart upload handling transparent to consumer
+- [x] **SDK-04**: listFiles and deleteFile methods
 - [ ] **SDK-05**: BYOS mode — identical SDK API, server-side presigned URL generation with developer's S3/R2 credentials
-- [ ] **SDK-06**: Zero external dependencies, tree-shakeable ESM + CJS output via tsup
+- [x] **SDK-06**: Zero external dependencies, tree-shakeable ESM + CJS output via tsup
 
 ### SDK Next.js (@uploadkit/next)
 
@@ -223,12 +223,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-06 | Phase 3 | Complete |
 | API-07 | Phase 3 | Complete |
 | API-08 | Phase 3 | Complete |
-| SDK-01 | Phase 4 | Pending |
-| SDK-02 | Phase 4 | Pending |
-| SDK-03 | Phase 4 | Pending |
-| SDK-04 | Phase 4 | Pending |
+| SDK-01 | Phase 4 | Complete |
+| SDK-02 | Phase 4 | Complete |
+| SDK-03 | Phase 4 | Complete |
+| SDK-04 | Phase 4 | Complete |
 | SDK-05 | Phase 4 | Pending |
-| SDK-06 | Phase 4 | Pending |
+| SDK-06 | Phase 4 | Complete |
 | NEXT-01 | Phase 4 | Pending |
 | NEXT-02 | Phase 4 | Pending |
 | NEXT-03 | Phase 4 | Pending |
