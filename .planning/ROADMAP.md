@@ -167,7 +167,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 - [x] 09-01-PLAN.md — Fumadocs site setup, MDX pipeline, sidebar hierarchy, search
-- [ ] 09-02-PLAN.md — Getting Started (quickstart, Next.js, React, API-only) + Core Concepts
+- [x] 09-02-PLAN.md — Getting Started (quickstart, Next.js, React, API-only) + Core Concepts
 - [ ] 09-03-PLAN.md — SDK Reference (@uploadkit/core, @uploadkit/react, @uploadkit/next)
 - [ ] 09-04-PLAN.md — REST API Reference, Guides (incl. migration from UploadThing), Dashboard docs
 
@@ -204,5 +204,5 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 6. Dashboard | 5/5 | Complete   | 2026-04-08 |
 | 7. Billing & Email | 4/4 | Complete   | 2026-04-08 |
 | 8. Landing & Pricing Pages | 3/3 | Complete   | 2026-04-08 |
-| 9. Documentation | 1/4 | In Progress|  |
+| 9. Documentation | 2/4 | In Progress|  |
 | 10. Testing, Publishing & Launch | 0/? | Not started | - |
