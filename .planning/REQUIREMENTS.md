@@ -134,8 +134,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Billing & Payments
 
-- [ ] **BILL-01**: Stripe Checkout for Pro/Team subscription creation
-- [ ] **BILL-02**: Stripe Billing Portal for plan management (upgrade, downgrade, cancel)
+- [x] **BILL-01**: Stripe Checkout for Pro/Team subscription creation
+- [x] **BILL-02**: Stripe Billing Portal for plan management (upgrade, downgrade, cancel)
 - [ ] **BILL-03**: Stripe webhook handling (checkout.session.completed, subscription.updated/deleted, invoice.paid/failed)
 - [ ] **BILL-04**: Metered overage billing via Stripe Meters API (storage, bandwidth, uploads)
 - [ ] **BILL-05**: Usage tracking with MongoDB atomic $inc counters per user per period
@@ -261,8 +261,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-12 | Phase 6 | Complete |
 | DASH-13 | Phase 6 | Complete |
 | DASH-14 | Phase 6 | Complete |
-| BILL-01 | Phase 7 | Pending |
-| BILL-02 | Phase 7 | Pending |
+| BILL-01 | Phase 7 | Complete |
+| BILL-02 | Phase 7 | Complete |
 | BILL-03 | Phase 7 | Pending |
 | BILL-04 | Phase 7 | Pending |
 | BILL-05 | Phase 7 | Pending |

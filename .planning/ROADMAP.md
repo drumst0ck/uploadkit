@@ -134,7 +134,7 @@ Plans:
   5. New users receive a welcome email; users at 80% usage receive an alert email; failed payments trigger a payment-failed email — all via Resend
 **Plans**: 4 plans
 Plans:
-- [ ] 07-01-PLAN.md — Stripe client singletons, Checkout + Portal endpoints, billing page, setup script
+- [x] 07-01-PLAN.md — Stripe client singletons, Checkout + Portal endpoints, billing page, setup script
 - [ ] 07-02-PLAN.md — Stripe webhook handler, Meters API integration, soft tier limit enforcement
 - [ ] 07-03-PLAN.md — packages/emails workspace package with React Email templates (welcome, usage alert, invoice)
 - [ ] 07-04-PLAN.md — Wire email triggers: welcome on signup, usage alerts on threshold, invoice emails on webhooks
@@ -203,7 +203,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 4. SDK Core & Next.js Adapter | 2/2 | Complete   | 2026-04-08 |
 | 5. SDK React Components | 4/4 | Complete   | 2026-04-08 |
 | 6. Dashboard | 5/5 | Complete   | 2026-04-08 |
-| 7. Billing & Email | 0/? | Not started | - |
+| 7. Billing & Email | 1/4 | In Progress|  |
 | 8. Landing & Pricing Pages | 0/? | Not started | - |
 | 9. Documentation | 0/? | Not started | - |
 | 10. Testing, Publishing & Launch | 0/? | Not started | - |
