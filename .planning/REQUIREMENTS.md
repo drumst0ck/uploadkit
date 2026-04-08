@@ -110,14 +110,14 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **LAND-07**: Footer with links (Docs, GitHub, Twitter, Discord, Status)
 - [x] **LAND-08**: Motion animations (entrance stagger, hover effects, scroll-triggered)
 - [x] **LAND-09**: Responsive (375px, 768px, 1024px, 1440px) + dark mode
-- [ ] **LAND-10**: SEO (metadata, OG images, structured data)
+- [x] **LAND-10**: SEO (metadata, OG images, structured data)
 
 ### Pricing Page
 
-- [ ] **PRICE-01**: Pricing table with monthly/yearly toggle (20% annual discount)
-- [ ] **PRICE-02**: Four tiers: Free, Pro ($15/mo), Team ($35/mo), Enterprise (contact)
-- [ ] **PRICE-03**: Feature comparison matrix with all tier differences
-- [ ] **PRICE-04**: Overage pricing section ($0.02/GB storage, $0.01/GB BW, $0.001/upload)
+- [x] **PRICE-01**: Pricing table with monthly/yearly toggle (20% annual discount)
+- [x] **PRICE-02**: Four tiers: Free, Pro ($15/mo), Team ($35/mo), Enterprise (contact)
+- [x] **PRICE-03**: Feature comparison matrix with all tier differences
+- [x] **PRICE-04**: Overage pricing section ($0.02/GB storage, $0.01/GB BW, $0.001/upload)
 
 ### Documentation
 
@@ -279,11 +279,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LAND-07 | Phase 8 | Complete |
 | LAND-08 | Phase 8 | Complete |
 | LAND-09 | Phase 8 | Complete |
-| LAND-10 | Phase 8 | Pending |
-| PRICE-01 | Phase 8 | Pending |
-| PRICE-02 | Phase 8 | Pending |
-| PRICE-03 | Phase 8 | Pending |
-| PRICE-04 | Phase 8 | Pending |
+| LAND-10 | Phase 8 | Complete |
+| PRICE-01 | Phase 8 | Complete |
+| PRICE-02 | Phase 8 | Complete |
+| PRICE-03 | Phase 8 | Complete |
+| PRICE-04 | Phase 8 | Complete |
 | DOCS-01 | Phase 9 | Pending |
 | DOCS-02 | Phase 9 | Pending |
 | DOCS-03 | Phase 9 | Pending |

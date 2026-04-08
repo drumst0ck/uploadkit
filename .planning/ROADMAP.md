@@ -17,7 +17,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - [x] **Phase 5: SDK React Components** - UploadButton, Dropzone, Modal, FileList, FilePreview, hook, theming, a11y (completed 2026-04-08)
 - [x] **Phase 6: Dashboard** - Auth shell, project/file/key management, upload logs, usage, command palette (completed 2026-04-08)
 - [x] **Phase 7: Billing & Email** - Stripe Checkout, Billing Portal, metered overages, Resend transactional emails (completed 2026-04-08)
-- [ ] **Phase 8: Landing & Pricing Pages** - Hero, code demo, feature grid, competitor table, pricing page
+- [x] **Phase 8: Landing & Pricing Pages** - Hero, code demo, feature grid, competitor table, pricing page (completed 2026-04-08)
 - [ ] **Phase 9: Documentation** - Fumadocs site, quickstart, SDK reference, API reference, guides
 - [ ] **Phase 10: Testing, Publishing & Launch** - Vitest unit tests, Playwright E2E, npm publish, launch readiness
 
@@ -152,7 +152,7 @@ Plans:
 Plans:
 - [x] 08-01-PLAN.md — Web app foundation: fonts (Satoshi+Inter), dark theme, Shiki singleton, tier data utils, navbar, hero section
 - [x] 08-02-PLAN.md — Landing page sections: code demo, features grid, comparison table, component showcase, pricing preview, footer, scroll animations
-- [ ] 08-03-PLAN.md — Pricing page: monthly/yearly toggle, 4 tier cards, feature comparison matrix, overage pricing, SEO metadata + OG images
+- [x] 08-03-PLAN.md — Pricing page: monthly/yearly toggle, 4 tier cards, feature comparison matrix, overage pricing, SEO metadata + OG images
 **UI hint**: yes
 
 ### Phase 9: Documentation
@@ -203,6 +203,6 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 5. SDK React Components | 4/4 | Complete   | 2026-04-08 |
 | 6. Dashboard | 5/5 | Complete   | 2026-04-08 |
 | 7. Billing & Email | 4/4 | Complete   | 2026-04-08 |
-| 8. Landing & Pricing Pages | 2/3 | In Progress|  |
+| 8. Landing & Pricing Pages | 3/3 | Complete   | 2026-04-08 |
 | 9. Documentation | 0/? | Not started | - |
 | 10. Testing, Publishing & Launch | 0/? | Not started | - |
