@@ -10,6 +10,8 @@ export { UploadButton } from './components/upload-button';
 export type { UploadButtonProps } from './components/upload-button';
 export { UploadDropzone } from './components/upload-dropzone';
 export type { UploadDropzoneProps } from './components/upload-dropzone';
+export { UploadModal } from './components/upload-modal';
+export type { UploadModalProps } from './components/upload-modal';
 
 // Hooks (exported for advanced consumers who want to build custom UI)
 export { useDragState } from './hooks/use-drag-state';
