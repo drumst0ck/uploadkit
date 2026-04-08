@@ -80,12 +80,10 @@ Plans:
   2. Switching to BYOS mode (developer-provided S3 credentials) requires zero frontend changes; all credential usage is server-side only
   3. A Next.js App Router project can define a `fileRouter`, call `createUploadKitHandler`, and receive a fully typed `AppFileRouter` type inferred on the client
   4. `pnpm build` produces tree-shakeable ESM + CJS output with zero external runtime dependencies in `@uploadkit/core`
-**Plans**: 4 plans
+**Plans**: 2 plans
 Plans:
-- [x] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [x] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
-- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
+- [ ] 04-01-PLAN.md — @uploadkit/core: createUploadKit factory, upload (single+multipart), XHR progress, retry, listFiles, deleteFile
+- [ ] 04-02-PLAN.md — @uploadkit/next: createUploadKitHandler, FileRouter types, middleware, BYOS presigned URLs, generateReactHelpers stub
 
 ### Phase 5: SDK React Components
 **Goal**: `@uploadkit/react` delivers premium, accessible upload components that work out of the box with CSS variables theming and dark mode, matching Vercel/Supabase visual quality
