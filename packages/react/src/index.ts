@@ -12,10 +12,15 @@ export { UploadDropzone } from './components/upload-dropzone';
 export type { UploadDropzoneProps } from './components/upload-dropzone';
 export { UploadModal } from './components/upload-modal';
 export type { UploadModalProps } from './components/upload-modal';
+export { FileList } from './components/file-list';
+export type { FileListProps } from './components/file-list';
+export { FilePreview } from './components/file-preview';
+export type { FilePreviewProps } from './components/file-preview';
 
 // Hooks (exported for advanced consumers who want to build custom UI)
 export { useDragState } from './hooks/use-drag-state';
 export { useAutoDismiss } from './hooks/use-auto-dismiss';
+export { useThumbnail } from './hooks/use-thumbnail';
 
 // Types re-exported from core for convenience
 export type { UploadResult, UploadKitConfig } from '@uploadkit/core';
