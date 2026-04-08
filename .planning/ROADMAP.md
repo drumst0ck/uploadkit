@@ -97,10 +97,10 @@ Plans:
   5. All interactive components pass WCAG 2.1 AA contrast check and show visible `:focus-visible` rings
 **Plans**: 4 plans
 Plans:
-- [x] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
-- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
+- [ ] 05-01-PLAN.md — Provider context, useUploadKit hook, styles.css theming, build config
+- [ ] 05-02-PLAN.md — UploadButton with states/variants, UploadDropzone with drag-and-drop
+- [ ] 05-03-PLAN.md — UploadModal (native dialog), FileList, FilePreview with canvas thumbnails
+- [ ] 05-04-PLAN.md — generateReactHelpers factory, accessibility audit, final exports
 **UI hint**: yes
 
 ### Phase 6: Dashboard
@@ -178,7 +178,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `pnpm publish` (via Changesets) publishes `@uploadkit/core`, `@uploadkit/react`, and `@uploadkit/next` to npm with correct semver and CHANGELOG.md entries
   2. Vitest unit tests cover upload flow (request, multipart, retry, abort), BYOS presigned URL generation, tier limit enforcement, and Stripe webhook handlers — all green
-  3. Playwright E2E tests cover: sign up via GitHub OAuth → create project → upload a file via dashboard → verify file appears in file browser → delete file
+  3. Playwright E2E tests cover: sign up via GitHub OAuth -> create project -> upload a file via dashboard -> verify file appears in file browser -> delete file
   4. GitHub Actions CI run on main passes lint, type-check, unit tests, and build in under 5 minutes
 **Plans**: 4 plans
 Plans:
@@ -190,7 +190,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7, so it can be worked on in parallel with Phases 6-7 if desired. Phase 9 (Docs) can begin after Phase 4 in parallel with Phases 5-7.
 
@@ -200,7 +200,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 2. Authentication | 2/2 | Complete   | 2026-04-08 |
 | 3. Upload Flow & REST API | 4/4 | Complete   | 2026-04-08 |
 | 4. SDK Core & Next.js Adapter | 2/2 | Complete   | 2026-04-08 |
-| 5. SDK React Components | 0/? | Not started | - |
+| 5. SDK React Components | 0/4 | Planned | - |
 | 6. Dashboard | 0/? | Not started | - |
 | 7. Billing & Email | 0/? | Not started | - |
 | 8. Landing & Pricing Pages | 0/? | Not started | - |
