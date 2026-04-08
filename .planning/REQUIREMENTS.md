@@ -143,9 +143,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Email
 
-- [ ] **EMAIL-01**: Welcome email on signup (Resend + React Email)
-- [ ] **EMAIL-02**: Usage alert emails at 80% and 100% of tier limits
-- [ ] **EMAIL-03**: Invoice/payment emails (paid, failed)
+- [x] **EMAIL-01**: Welcome email on signup (Resend + React Email)
+- [x] **EMAIL-02**: Usage alert emails at 80% and 100% of tier limits
+- [x] **EMAIL-03**: Invoice/payment emails (paid, failed)
 
 ## v2 Requirements
 
@@ -267,9 +267,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BILL-04 | Phase 7 | Complete |
 | BILL-05 | Phase 7 | Complete |
 | BILL-06 | Phase 7 | Complete |
-| EMAIL-01 | Phase 7 | Pending |
-| EMAIL-02 | Phase 7 | Pending |
-| EMAIL-03 | Phase 7 | Pending |
+| EMAIL-01 | Phase 7 | Complete |
+| EMAIL-02 | Phase 7 | Complete |
+| EMAIL-03 | Phase 7 | Complete |
 | LAND-01 | Phase 8 | Pending |
 | LAND-02 | Phase 8 | Pending |
 | LAND-03 | Phase 8 | Pending |
