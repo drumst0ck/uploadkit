@@ -2,14 +2,22 @@ export const runtime = 'nodejs';
 
 import { HeadObjectCommand, S3ServiceException } from '@aws-sdk/client-s3';
 import { type NextRequest, NextResponse } from 'next/server';
-import { connectDB, File, FileRouter, UsageRecord, Subscription } from '@uploadkit/db';
-import { NotFoundError } from '@uploadkit/shared';
+import { connectDB, File, FileRouter, UsageRecord, Subscription, User } from '@uploadkit/db';
+import { NotFoundError, TIER_LIMITS } from '@uploadkit/shared';
 import { withApiKey } from '@/lib/with-api-key';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 import { UploadCompleteSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 import { enqueueWebhook } from '@/lib/qstash';
 import { sendMeterEvent, METER_STORAGE, METER_UPLOADS } from '@/lib/stripe-meters';
+import { sendUsageAlertEmail } from '@uploadkit/emails';
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
+}
 
 async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiContext) {
   try {
@@ -80,11 +88,93 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
 
     // 5. Atomic usage increment — upsert for current month period (D-05 step 4)
     const period = new Date().toISOString().slice(0, 7); // YYYY-MM
-    await UsageRecord.findOneAndUpdate(
+    const newRecord = await UsageRecord.findOneAndUpdate(
       { userId: ctx.project.userId, period },
       { $inc: { storageUsed: file.size, uploads: 1 } },
       { upsert: true, new: true },
     );
+
+    // EMAIL-02: Usage alert emails at 80%/100% threshold crossing (D-08)
+    // prevPercent < threshold && newPercent >= threshold ensures one-shot firing (Pitfall 5).
+    // All email sends are void (fire-and-forget) — failure must not block upload response.
+    if (newRecord) {
+      const tierLimits = TIER_LIMITS[ctx.tier];
+      const upgradeUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.uploadkit.dev'}/dashboard/billing`;
+
+      // Storage threshold check
+      const prevStorageUsed = newRecord.storageUsed - file.size;
+      const storageLimit = tierLimits.maxStorageBytes;
+      if (storageLimit !== Infinity) {
+        const prevStoragePercent = prevStorageUsed / storageLimit;
+        const newStoragePercent = newRecord.storageUsed / storageLimit;
+
+        if (prevStoragePercent < 0.8 && newStoragePercent >= 0.8) {
+          const user = await User.findById(ctx.project.userId);
+          if (user?.email) {
+            void sendUsageAlertEmail(user.email, {
+              userName: user.name ?? 'there',
+              usagePercent: 80,
+              dimension: 'storage',
+              currentUsage: formatBytes(newRecord.storageUsed),
+              limit: formatBytes(storageLimit),
+              tier: ctx.tier,
+              upgradeUrl,
+            });
+          }
+        }
+        if (prevStoragePercent < 1.0 && newStoragePercent >= 1.0) {
+          const user = await User.findById(ctx.project.userId);
+          if (user?.email) {
+            void sendUsageAlertEmail(user.email, {
+              userName: user.name ?? 'there',
+              usagePercent: 100,
+              dimension: 'storage',
+              currentUsage: formatBytes(newRecord.storageUsed),
+              limit: formatBytes(storageLimit),
+              tier: ctx.tier,
+              upgradeUrl,
+            });
+          }
+        }
+      }
+
+      // Upload count threshold check
+      const prevUploads = newRecord.uploads - 1;
+      const uploadLimit = tierLimits.maxUploadsPerMonth;
+      if (uploadLimit !== Infinity) {
+        const prevUploadPercent = prevUploads / uploadLimit;
+        const newUploadPercent = newRecord.uploads / uploadLimit;
+
+        if (prevUploadPercent < 0.8 && newUploadPercent >= 0.8) {
+          const user = await User.findById(ctx.project.userId);
+          if (user?.email) {
+            void sendUsageAlertEmail(user.email, {
+              userName: user.name ?? 'there',
+              usagePercent: 80,
+              dimension: 'uploads',
+              currentUsage: `${newRecord.uploads.toLocaleString()} uploads`,
+              limit: `${uploadLimit.toLocaleString()} uploads`,
+              tier: ctx.tier,
+              upgradeUrl,
+            });
+          }
+        }
+        if (prevUploadPercent < 1.0 && newUploadPercent >= 1.0) {
+          const user = await User.findById(ctx.project.userId);
+          if (user?.email) {
+            void sendUsageAlertEmail(user.email, {
+              userName: user.name ?? 'there',
+              usagePercent: 100,
+              dimension: 'uploads',
+              currentUsage: `${newRecord.uploads.toLocaleString()} uploads`,
+              limit: `${uploadLimit.toLocaleString()} uploads`,
+              tier: ctx.tier,
+              upgradeUrl,
+            });
+          }
+        }
+      }
+    }
 
     // 6. Fire Stripe MeterEvents for paid users (BILL-04, D-03)
     // Pitfall 2: Skip entirely for FREE tier — no stripeCustomerId to bill against.

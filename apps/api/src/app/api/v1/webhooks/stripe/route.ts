@@ -5,6 +5,7 @@ export const runtime = 'nodejs';
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, Subscription } from '@uploadkit/db';
 import { stripe } from '@/lib/stripe';
+import { sendInvoiceEmail } from '@uploadkit/emails';
 
 // Map Stripe subscription status strings to our SubscriptionStatus enum
 function mapStripeStatus(
@@ -182,6 +183,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           { $set: { status: 'ACTIVE' } },
         );
 
+        // EMAIL-03: Payment received email (fire-and-forget, T-07-16)
+        // Customer email retrieved from Stripe API (authenticated), not from webhook payload.
+        const paidCustomer = await stripe.customers.retrieve(customerId);
+        if (paidCustomer && !paidCustomer.deleted) {
+          const paidEmail = paidCustomer.email;
+          if (typeof paidEmail === 'string') {
+            void sendInvoiceEmail(paidEmail, {
+              userName: paidCustomer.name ?? 'there',
+              type: 'paid',
+              amount: `$${(invoice.amount_paid / 100).toFixed(2)}`,
+              ...(invoice.hosted_invoice_url ? { invoiceUrl: invoice.hosted_invoice_url } : {}),
+              date: new Date(invoice.created * 1000).toLocaleDateString('en-US'),
+            });
+          }
+        }
+
         console.info(`[stripe-webhook] invoice.paid: customerId=${customerId}`);
         break;
       }
@@ -195,6 +212,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           { stripeCustomerId: customerId },
           { $set: { status: 'PAST_DUE' } },
         );
+
+        // EMAIL-03: Payment failed email (fire-and-forget, T-07-16)
+        // Customer email retrieved from Stripe API (authenticated), not from webhook payload.
+        const failedCustomer = await stripe.customers.retrieve(customerId);
+        if (failedCustomer && !failedCustomer.deleted) {
+          const failedEmail = failedCustomer.email;
+          if (typeof failedEmail === 'string') {
+            void sendInvoiceEmail(failedEmail, {
+              userName: failedCustomer.name ?? 'there',
+              type: 'failed',
+              amount: `$${(invoice.amount_due / 100).toFixed(2)}`,
+              ...(invoice.hosted_invoice_url ? { invoiceUrl: invoice.hosted_invoice_url } : {}),
+              date: new Date(invoice.created * 1000).toLocaleDateString('en-US'),
+            });
+          }
+        }
 
         console.error(`[stripe-webhook] invoice.payment_failed: customerId=${customerId}`);
         break;
