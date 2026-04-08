@@ -18,7 +18,9 @@ export function generateReactHelpers<TRouter extends FileRouter>(): {
   UploadDropzone: React.ComponentType<{ route: keyof TRouter & string; [key: string]: unknown }>;
   UploadModal: React.ComponentType<{ route: keyof TRouter & string; [key: string]: unknown }>;
   useUploadKit: (route: keyof TRouter & string) => {
-    upload: (file: File) => Promise<void>;
+    // file: Blob is used here instead of File to avoid requiring the DOM lib
+    // in the library tsconfig. @uploadkit/react replaces this stub with the real type.
+    upload: (file: { name: string; size: number; type: string }) => Promise<void>;
     progress: number;
     isUploading: boolean;
     error: Error | null;
