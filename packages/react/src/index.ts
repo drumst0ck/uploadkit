@@ -17,6 +17,9 @@ export type { FileListProps } from './components/file-list';
 export { FilePreview } from './components/file-preview';
 export type { FilePreviewProps } from './components/file-preview';
 
+// Helpers
+export { generateReactHelpers } from './helpers';
+
 // Hooks (exported for advanced consumers who want to build custom UI)
 export { useDragState } from './hooks/use-drag-state';
 export { useAutoDismiss } from './hooks/use-auto-dismiss';

@@ -30,6 +30,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@uploadkit/config": "workspace:*",
+    "@uploadkit/next": "workspace:*",
     "tsup": "latest",
     "typescript": "latest"
   }

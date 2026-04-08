@@ -343,6 +343,9 @@ importers:
       '@uploadkit/config':
         specifier: workspace:*
         version: link:../config
+      '@uploadkit/next':
+        specifier: workspace:*
+        version: link:../next
       tsup:
         specifier: latest
         version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@6.0.2)
