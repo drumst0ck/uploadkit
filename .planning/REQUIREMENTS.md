@@ -55,16 +55,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SDK-02**: Programmatic upload with file, route, metadata, onProgress callback
 - [x] **SDK-03**: Multipart upload handling transparent to consumer
 - [x] **SDK-04**: listFiles and deleteFile methods
-- [ ] **SDK-05**: BYOS mode — identical SDK API, server-side presigned URL generation with developer's S3/R2 credentials
+- [x] **SDK-05**: BYOS mode — identical SDK API, server-side presigned URL generation with developer's S3/R2 credentials
 - [x] **SDK-06**: Zero external dependencies, tree-shakeable ESM + CJS output via tsup
 
 ### SDK Next.js (@uploadkit/next)
 
-- [ ] **NEXT-01**: createUploadKitHandler that produces GET/POST route handlers
-- [ ] **NEXT-02**: File Router pattern with typed routes (allowedTypes, maxFileSize, maxFileCount, middleware, onUploadComplete)
-- [ ] **NEXT-03**: Middleware function receives request, returns metadata attached to upload
-- [ ] **NEXT-04**: End-to-end TypeScript inference from fileRouter definition to client components
-- [ ] **NEXT-05**: BYOS configuration — same handler, developer's S3/R2 credentials via env vars
+- [x] **NEXT-01**: createUploadKitHandler that produces GET/POST route handlers
+- [x] **NEXT-02**: File Router pattern with typed routes (allowedTypes, maxFileSize, maxFileCount, middleware, onUploadComplete)
+- [x] **NEXT-03**: Middleware function receives request, returns metadata attached to upload
+- [x] **NEXT-04**: End-to-end TypeScript inference from fileRouter definition to client components
+- [x] **NEXT-05**: BYOS configuration — same handler, developer's S3/R2 credentials via env vars
 
 ### SDK React (@uploadkit/react)
 
@@ -227,13 +227,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SDK-02 | Phase 4 | Complete |
 | SDK-03 | Phase 4 | Complete |
 | SDK-04 | Phase 4 | Complete |
-| SDK-05 | Phase 4 | Pending |
+| SDK-05 | Phase 4 | Complete |
 | SDK-06 | Phase 4 | Complete |
-| NEXT-01 | Phase 4 | Pending |
-| NEXT-02 | Phase 4 | Pending |
-| NEXT-03 | Phase 4 | Pending |
-| NEXT-04 | Phase 4 | Pending |
-| NEXT-05 | Phase 4 | Pending |
+| NEXT-01 | Phase 4 | Complete |
+| NEXT-02 | Phase 4 | Complete |
+| NEXT-03 | Phase 4 | Complete |
+| NEXT-04 | Phase 4 | Complete |
+| NEXT-05 | Phase 4 | Complete |
 | REACT-01 | Phase 5 | Pending |
 | REACT-02 | Phase 5 | Pending |
 | REACT-03 | Phase 5 | Pending |

@@ -13,7 +13,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - [x] **Phase 1: Monorepo & Infrastructure** - Turborepo monorepo, R2, MongoDB, Redis, Sentry, CI/CD, Changesets (completed 2026-04-07)
 - [x] **Phase 2: Authentication** - Auth.js v5 with GitHub, Google, and magic link; persistent sessions (completed 2026-04-08)
 - [x] **Phase 3: Upload Flow & REST API** - Presigned URL pipeline, multipart, abort/retry, full file/project/key REST API (completed 2026-04-08)
-- [ ] **Phase 4: SDK Core & Next.js Adapter** - @uploadkit/core factory, BYOS mode, @uploadkit/next file router pattern
+- [x] **Phase 4: SDK Core & Next.js Adapter** - @uploadkit/core factory, BYOS mode, @uploadkit/next file router pattern (completed 2026-04-08)
 - [ ] **Phase 5: SDK React Components** - UploadButton, Dropzone, Modal, FileList, FilePreview, hook, theming, a11y
 - [ ] **Phase 6: Dashboard** - Auth shell, project/file/key management, upload logs, usage, command palette
 - [ ] **Phase 7: Billing & Email** - Stripe Checkout, Billing Portal, metered overages, Resend transactional emails
@@ -83,7 +83,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 04-01-PLAN.md — @uploadkit/core: createUploadKit factory, upload (single+multipart), XHR progress, retry, listFiles, deleteFile
-- [ ] 04-02-PLAN.md — @uploadkit/next: createUploadKitHandler, FileRouter types, middleware, BYOS presigned URLs, generateReactHelpers stub
+- [x] 04-02-PLAN.md — @uploadkit/next: createUploadKitHandler, FileRouter types, middleware, BYOS presigned URLs, generateReactHelpers stub
 
 ### Phase 5: SDK React Components
 **Goal**: `@uploadkit/react` delivers premium, accessible upload components that work out of the box with CSS variables theming and dark mode, matching Vercel/Supabase visual quality
@@ -199,7 +199,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 1. Monorepo & Infrastructure | 4/4 | Complete   | 2026-04-07 |
 | 2. Authentication | 2/2 | Complete   | 2026-04-08 |
 | 3. Upload Flow & REST API | 4/4 | Complete   | 2026-04-08 |
-| 4. SDK Core & Next.js Adapter | 1/2 | In Progress|  |
+| 4. SDK Core & Next.js Adapter | 2/2 | Complete   | 2026-04-08 |
 | 5. SDK React Components | 0/? | Not started | - |
 | 6. Dashboard | 0/? | Not started | - |
 | 7. Billing & Email | 0/? | Not started | - |
