@@ -113,12 +113,13 @@ Plans:
   3. The file browser DataTable shows uploaded files with preview thumbnails, supports search and filter, and bulk-deletes selected files
   4. The upload logs page auto-refreshes every 5 seconds (polling) and shows new events without a full page reload
   5. Pressing cmd+k opens the command palette; navigating with arrow keys and Enter routes to the selected page; sidebar collapses on mobile
-**Plans**: 4 plans
+**Plans**: 5 plans
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
-- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
+- [ ] 06-01-PLAN.md — shadcn/ui init in packages/ui, dashboard deps, layout shell (sidebar, header, breadcrumbs, providers)
+- [ ] 06-02-PLAN.md — Overview page (metric cards, upload chart, recent files) + project CRUD with slug routing
+- [ ] 06-03-PLAN.md — File browser DataTable + API keys management + file routes configuration
+- [ ] 06-04-PLAN.md — Upload logs with polling + usage page with charts + billing shell + settings
+- [ ] 06-05-PLAN.md — Command palette (cmd+k) + project settings + visual verification checkpoint
 **UI hint**: yes
 
 ### Phase 7: Billing & Email
