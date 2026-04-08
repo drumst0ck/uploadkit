@@ -370,6 +370,19 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
           </div>
         )}
 
+        {/* Screen-reader live region — announces upload counts and status changes */}
+        {files.length > 0 && (
+          <span className="uk-sr-only" aria-live="polite" aria-atomic="true">
+            {(() => {
+              const uploading = files.filter((f) => f.status === 'uploading').length;
+              const complete = files.filter((f) => f.status === 'success').length;
+              if (uploading > 0) return `${uploading} file${uploading !== 1 ? 's' : ''} uploading, ${complete} complete`;
+              if (complete === files.length) return `${complete} file${complete !== 1 ? 's' : ''} uploaded successfully`;
+              return '';
+            })()}
+          </span>
+        )}
+
         {/* Hidden file input for click-to-browse */}
         <input
           ref={inputRef}

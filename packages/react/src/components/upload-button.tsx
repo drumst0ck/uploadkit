@@ -145,6 +145,16 @@ export const UploadButton = forwardRef<HTMLButtonElement, UploadButtonProps>(
 
     const ariaLabel = isUploading ? `Uploading ${progress}%` : 'Upload file';
 
+    // Compose a screen-reader announcement string for the current upload state
+    const srAnnouncement =
+      status === 'uploading'
+        ? `${progress}% uploaded`
+        : status === 'success'
+          ? 'Upload complete'
+          : status === 'error'
+            ? 'Upload failed'
+            : '';
+
     return (
       <>
         <style>{`@keyframes uk-spin{to{transform:rotate(360deg)}}`}</style>
@@ -165,6 +175,15 @@ export const UploadButton = forwardRef<HTMLButtonElement, UploadButtonProps>(
             </>
           )}
         </button>
+
+        {/* Screen-reader live region — announces upload progress and status changes */}
+        <span
+          className="uk-sr-only"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {srAnnouncement}
+        </span>
 
         {isUploading && (
           <div className="uk-progress-wrap" style={{ marginTop: '6px' }}>
