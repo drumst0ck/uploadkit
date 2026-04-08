@@ -49,12 +49,10 @@ Plans:
   2. User can sign up and log in with a Google account and land on the dashboard
   3. User can sign in via email magic link (receives email, clicks link, arrives authenticated)
   4. User who closes and reopens the browser remains logged in without re-authenticating
-**Plans**: 4 plans
+**Plans**: 2 plans
 Plans:
-- [x] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [x] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [x] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
-- [x] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
+- [ ] 02-01-PLAN.md — Auth.js v5 backend: providers, database sessions, proxy route protection, auto-create default project
+- [ ] 02-02-PLAN.md — Login page UI, protected dashboard layout, overview page, end-to-end verification
 
 ### Phase 3: Upload Flow & REST API
 **Goal**: Developers can upload files end-to-end through the presigned URL pipeline (including multipart, abort, retry) and perform all file/project/key operations via authenticated REST endpoints
@@ -201,7 +199,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Monorepo & Infrastructure | 4/4 | Complete   | 2026-04-07 |
-| 2. Authentication | 0/? | Not started | - |
+| 2. Authentication | 0/2 | Planning complete | - |
 | 3. Upload Flow & REST API | 0/? | Not started | - |
 | 4. SDK Core & Next.js Adapter | 0/? | Not started | - |
 | 5. SDK React Components | 0/? | Not started | - |
