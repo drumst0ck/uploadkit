@@ -4,7 +4,7 @@ import type { Tier, SubscriptionStatus } from '@uploadkit/shared';
 
 export interface ISubscription extends Document {
   userId: Types.ObjectId;
-  stripeCustomerId: string;
+  stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   stripePriceId?: string;
   tier: Tier;
@@ -19,7 +19,7 @@ export interface ISubscription extends Document {
 const subscriptionSchema = new Schema<ISubscription>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-    stripeCustomerId: { type: String, required: true, unique: true },
+    stripeCustomerId: { type: String, sparse: true, unique: true },
     stripeSubscriptionId: { type: String, sparse: true, unique: true },
     stripePriceId: { type: String },
     tier: {

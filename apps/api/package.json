@@ -24,16 +24,17 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "stripe": "^22.0.1",
     "zod": "latest"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "latest",
     "@types/bcryptjs": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@uploadkit/config": "workspace:*",
     "@vitest/coverage-v8": "latest",
     "tailwindcss": "latest",
-    "@tailwindcss/postcss": "latest",
     "typescript": "latest",
     "vitest": "latest"
   }
