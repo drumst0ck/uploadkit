@@ -169,7 +169,7 @@ Plans:
 - [x] 09-01-PLAN.md — Fumadocs site setup, MDX pipeline, sidebar hierarchy, search
 - [x] 09-02-PLAN.md — Getting Started (quickstart, Next.js, React, API-only) + Core Concepts
 - [x] 09-03-PLAN.md — SDK Reference (@uploadkit/core, @uploadkit/react, @uploadkit/next)
-- [ ] 09-04-PLAN.md — REST API Reference, Guides (incl. migration from UploadThing), Dashboard docs
+- [x] 09-04-PLAN.md — REST API Reference, Guides (incl. migration from UploadThing), Dashboard docs
 
 ### Phase 10: Testing, Publishing & Launch
 **Goal**: The full SDK is published to npm with correct versions and changelogs; the codebase has Vitest unit coverage on critical paths and Playwright E2E tests on the upload and auth flows; the project is launch-ready

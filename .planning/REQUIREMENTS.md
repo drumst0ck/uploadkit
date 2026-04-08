@@ -128,9 +128,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DOCS-05**: SDK reference — @uploadkit/core (config, upload, delete, API reference)
 - [x] **DOCS-06**: SDK reference — @uploadkit/react (all components, hook, theming, API reference)
 - [x] **DOCS-07**: SDK reference — @uploadkit/next (handler, file router, middleware, type safety)
-- [ ] **DOCS-08**: API reference (REST endpoints, auth, errors, webhooks)
-- [ ] **DOCS-09**: Guides (image upload, avatar upload, document upload, multipart, custom styling, migration from UploadThing)
-- [ ] **DOCS-10**: Dashboard documentation (overview, projects, files, API keys, billing)
+- [x] **DOCS-08**: API reference (REST endpoints, auth, errors, webhooks)
+- [x] **DOCS-09**: Guides (image upload, avatar upload, document upload, multipart, custom styling, migration from UploadThing)
+- [x] **DOCS-10**: Dashboard documentation (overview, projects, files, API keys, billing)
 
 ### Billing & Payments
 
@@ -291,9 +291,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCS-05 | Phase 9 | Complete |
 | DOCS-06 | Phase 9 | Complete |
 | DOCS-07 | Phase 9 | Complete |
-| DOCS-08 | Phase 9 | Pending |
-| DOCS-09 | Phase 9 | Pending |
-| DOCS-10 | Phase 9 | Pending |
+| DOCS-08 | Phase 9 | Complete |
+| DOCS-09 | Phase 9 | Complete |
+| DOCS-10 | Phase 9 | Complete |
 
 **Coverage:**
 - v1 requirements: 101 total
