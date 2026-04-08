@@ -121,7 +121,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Documentation
 
-- [ ] **DOCS-01**: Fumadocs site with MDX, built-in search, modern design
+- [x] **DOCS-01**: Fumadocs site with MDX, built-in search, modern design
 - [ ] **DOCS-02**: Quickstart guide (5-minute setup: install, file router, provider, component)
 - [ ] **DOCS-03**: Getting started guides per framework (Next.js App Router, React/Vite, API-only)
 - [ ] **DOCS-04**: Core concepts (file routes, presigned URLs, BYOS, security)
@@ -284,7 +284,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRICE-02 | Phase 8 | Complete |
 | PRICE-03 | Phase 8 | Complete |
 | PRICE-04 | Phase 8 | Complete |
-| DOCS-01 | Phase 9 | Pending |
+| DOCS-01 | Phase 9 | Complete |
 | DOCS-02 | Phase 9 | Pending |
 | DOCS-03 | Phase 9 | Pending |
 | DOCS-04 | Phase 9 | Pending |
