@@ -6,6 +6,7 @@ export interface IFileRouter extends Document {
   maxFileSize: number;
   maxFileCount: number;
   allowedTypes: string[];
+  webhookUrl?: string; // Developer callback URL for onUploadComplete
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +18,7 @@ const fileRouterSchema = new Schema<IFileRouter>(
     maxFileSize: { type: Number, default: 4194304 }, // 4 MB
     maxFileCount: { type: Number, default: 1 },
     allowedTypes: [{ type: String }],
+    webhookUrl: { type: String },
   },
   { timestamps: true },
 );

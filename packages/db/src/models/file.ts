@@ -9,6 +9,7 @@ export interface IFile extends Document {
   type: string;
   url: string;
   status: FileStatus;
+  uploadId?: string; // R2 multipart upload ID (set during multipart init, cleared on complete)
   metadata?: Record<string, unknown>;
   projectId: Types.ObjectId;
   uploadedBy?: string;
@@ -29,6 +30,7 @@ const fileSchema = new Schema<IFile>(
       enum: FILE_STATUSES,
       default: 'UPLOADING',
     },
+    uploadId: { type: String },
     metadata: { type: Schema.Types.Mixed },
     projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
     uploadedBy: { type: String },
