@@ -61,18 +61,27 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     }
 
     // 5. Check storage quota against current period usage
+    // BILL-06 / D-04: FREE tier is hard-blocked; paid tiers are soft-limited (overage billed via Stripe Meters).
     const period = new Date().toISOString().slice(0, 7); // YYYY-MM
     const record = await UsageRecord.findOne({
       userId: ctx.project.userId,
       period,
     });
     if ((record?.storageUsed ?? 0) + fileSize > TIER_LIMITS[ctx.tier].maxStorageBytes) {
-      return serializeError(new TierLimitError('storage'));
+      if (ctx.tier === 'FREE') {
+        // Hard block: FREE users cannot exceed their quota
+        return serializeError(new TierLimitError('storage'));
+      }
+      // Soft limit: paid users pass through; overage is billed via Stripe Meters in /upload/complete
     }
 
     // 6. Check upload count quota
+    // Same soft limit pattern: FREE = hard block, paid = allow through with overage billing.
     if ((record?.uploads ?? 0) >= TIER_LIMITS[ctx.tier].maxUploadsPerMonth) {
-      return serializeError(new TierLimitError('monthly uploads'));
+      if (ctx.tier === 'FREE') {
+        return serializeError(new TierLimitError('monthly uploads'));
+      }
+      // Soft limit: paid users pass through
     }
 
     // 7. Generate R2 key: {projectId}/{routeSlug}/{nanoid}/{fileName}

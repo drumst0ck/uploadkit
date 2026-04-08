@@ -2,13 +2,14 @@ export const runtime = 'nodejs';
 
 import { HeadObjectCommand, S3ServiceException } from '@aws-sdk/client-s3';
 import { type NextRequest, NextResponse } from 'next/server';
-import { connectDB, File, FileRouter, UsageRecord } from '@uploadkit/db';
+import { connectDB, File, FileRouter, UsageRecord, Subscription } from '@uploadkit/db';
 import { NotFoundError } from '@uploadkit/shared';
 import { withApiKey } from '@/lib/with-api-key';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 import { UploadCompleteSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 import { enqueueWebhook } from '@/lib/qstash';
+import { sendMeterEvent, METER_STORAGE, METER_UPLOADS } from '@/lib/stripe-meters';
 
 async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiContext) {
   try {
@@ -85,7 +86,29 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       { upsert: true, new: true },
     );
 
-    // 6. Enqueue webhook (D-05 step 3, D-09) — fire-and-forget
+    // 6. Fire Stripe MeterEvents for paid users (BILL-04, D-03)
+    // Pitfall 2: Skip entirely for FREE tier — no stripeCustomerId to bill against.
+    // identifier = file._id prevents double-counting on retries (T-07-07).
+    // Use void + try/catch inside helper — meter failures must not block the response.
+    if (ctx.tier !== 'FREE') {
+      const subscription = await Subscription.findOne({ userId: ctx.project.userId });
+      if (subscription?.stripeCustomerId && subscription.status === 'ACTIVE') {
+        void sendMeterEvent(
+          METER_STORAGE,
+          file.size,
+          subscription.stripeCustomerId,
+          `storage_${file._id.toString()}`,
+        );
+        void sendMeterEvent(
+          METER_UPLOADS,
+          1,
+          subscription.stripeCustomerId,
+          `upload_${file._id.toString()}`,
+        );
+      }
+    }
+
+    // 7. Enqueue webhook (D-05 step 3, D-09) — fire-and-forget
     // Extract routeSlug from the key pattern: {projectId}/{routeSlug}/{nanoid}/{fileName}
     const routeSlugPart = file.key.split('/')[1];
     const fileRouter = routeSlugPart
@@ -110,7 +133,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       });
     }
 
-    // 7. Return complete file metadata
+    // 8. Return complete file metadata
     return NextResponse.json({
       file: {
         id: updatedFile._id,
