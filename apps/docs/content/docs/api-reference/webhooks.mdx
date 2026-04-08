@@ -1,0 +1,144 @@
+---
+title: Webhooks
+description: Receive notifications when uploads complete — payload shape, signature verification, and retry behavior.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+UploadKit fires a webhook after each successful upload. Webhooks are delivered via [QStash](https://upstash.com/docs/qstash/overall/getstarted), giving you reliable delivery with automatic retries and dead-letter queue support.
+
+## Configuring Webhook URLs
+
+Set a webhook URL per file route in the dashboard under **File Routes**, or pass `webhookUrl` when creating a file route via the API:
+
+```json
+{
+  "slug": "imageUploader",
+  "webhookUrl": "https://yourapp.com/api/webhooks/uploadkit"
+}
+```
+
+The URL must be publicly accessible over HTTPS. Localhost URLs are not supported in production — use a tunnel (e.g., `ngrok`) during development.
+
+## The `onUploadComplete` Event
+
+UploadKit fires one event type: `onUploadComplete`. It is sent after:
+
+1. The client calls `POST /api/v1/upload/complete` (or the SDK confirms the upload)
+2. UploadKit verifies the file exists in R2
+3. The file record is marked `UPLOADED` in the database
+
+**Webhook payload:**
+
+```json
+{
+  "event": "onUploadComplete",
+  "file": {
+    "id": "file_abc123",
+    "key": "uploads/abc123/photo.jpg",
+    "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
+    "fileName": "photo.jpg",
+    "fileSize": 1048576,
+    "contentType": "image/jpeg",
+    "status": "UPLOADED",
+    "createdAt": "2026-04-08T12:00:00.000Z"
+  },
+  "metadata": {
+    "userId": "user_123",
+    "category": "avatar"
+  }
+}
+```
+
+The `metadata` field contains whatever was passed to the `metadata` field of the upload request — use it to correlate uploads with your application's data.
+
+## Verifying Webhook Signatures
+
+QStash signs every delivery with a `Upstash-Signature` header. You should verify this signature to ensure the request is genuine.
+
+Install the QStash SDK:
+
+```bash
+npm install @upstash/qstash
+```
+
+Verify in your webhook handler:
+
+```typescript title="app/api/webhooks/uploadkit/route.ts"
+import { Receiver } from '@upstash/qstash';
+
+const receiver = new Receiver({
+  currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY!,
+  nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY!,
+});
+
+export async function POST(request: Request) {
+  const body = await request.text();
+  const signature = request.headers.get('Upstash-Signature') ?? '';
+
+  const isValid = await receiver.verify({
+    signature,
+    body,
+    url: 'https://yourapp.com/api/webhooks/uploadkit',
+  });
+
+  if (!isValid) {
+    return new Response('Invalid signature', { status: 401 });
+  }
+
+  const payload = JSON.parse(body);
+  const { file, metadata } = payload;
+
+  // Save to your database
+  await db.files.create({ url: file.url, userId: metadata.userId });
+
+  return new Response('OK', { status: 200 });
+}
+```
+
+<Callout type="warn">
+  Always verify the signature before processing webhook data. An unverified endpoint accepts requests from anyone.
+</Callout>
+
+The signing keys are available in your [Upstash console](https://console.upstash.com/qstash) under **Signing Keys**.
+
+## Retry Behavior
+
+QStash retries failed deliveries (non-2xx responses, timeouts, DNS failures) with exponential backoff:
+
+| Attempt | Delay |
+|---------|-------|
+| 1st retry | 1 minute |
+| 2nd retry | 5 minutes |
+| 3rd retry | 30 minutes |
+
+After 3 retries, the message is moved to the **Dead Letter Queue (DLQ)**.
+
+## Dead Letter Queue
+
+Messages in the DLQ are available in the Upstash console under **QStash → DLQ**. From there you can:
+
+- Inspect the failed payload and headers
+- Re-deliver the message to your endpoint
+- Delete the message
+
+UploadKit does not automatically process the DLQ — you must handle re-delivery via the Upstash console or API.
+
+## Responding to Webhooks
+
+Your endpoint must respond with an HTTP `2xx` status within **30 seconds**. For long-running processing (e.g., image analysis, database writes that depend on external services), respond immediately and process asynchronously:
+
+```typescript
+export async function POST(request: Request) {
+  // Verify signature first
+  // ...
+
+  const payload = await request.json();
+
+  // Queue background job — do not await
+  queue.add('process-upload', payload);
+
+  // Respond immediately
+  return new Response('OK', { status: 200 });
+}
+```

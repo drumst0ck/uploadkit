@@ -1,0 +1,123 @@
+---
+title: REST API Overview
+description: UploadKit REST API — base URL, authentication, response format, rate limiting, and pagination.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The UploadKit REST API gives backend developers and non-JavaScript consumers direct access to the upload flow, file management, project administration, and webhook configuration — all without the SDK.
+
+## Base URL
+
+```
+https://api.uploadkit.dev/api/v1
+```
+
+All requests must be made over HTTPS. HTTP requests are rejected.
+
+## Authentication
+
+Every request requires an API key passed in the `x-api-key` header:
+
+```bash
+curl https://api.uploadkit.dev/api/v1/files \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+```
+
+API keys come in two forms:
+
+| Prefix | Purpose |
+|--------|---------|
+| `uk_live_` | Production — creates real files, counts against quota |
+| `uk_test_` | Test mode — isolated sandbox, no quota impact |
+
+See [Authentication](/docs/api-reference/authentication) for full details on key types and security.
+
+## Response Format
+
+All responses are JSON. Successful responses return the requested resource directly:
+
+```json
+{
+  "id": "abc123",
+  "key": "uploads/abc123/photo.jpg",
+  "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
+  "status": "UPLOADED"
+}
+```
+
+Error responses always have the shape:
+
+```json
+{
+  "error": {
+    "code": "FILE_TOO_LARGE",
+    "message": "File size 6291456 bytes exceeds the 4194304 byte limit",
+    "suggestion": "Upgrade your plan at app.uploadkit.dev/billing"
+  }
+}
+```
+
+See [Error Codes](/docs/api-reference/errors) for the complete list.
+
+## Rate Limiting
+
+The API uses a **sliding window** rate limiter backed by Upstash Redis. Limits are per API key:
+
+| Tier | Requests per minute |
+|------|-------------------|
+| Free | 60 |
+| Pro | 300 |
+| Team | 1000 |
+| Enterprise | Custom |
+
+When the limit is exceeded, the API returns `429 Too Many Requests` with these headers:
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests allowed per window |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `Retry-After` | Seconds until the window resets |
+
+```bash
+HTTP/1.1 429 Too Many Requests
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 0
+Retry-After: 23
+```
+
+## Pagination
+
+List endpoints use **cursor-based pagination** for consistent results even when records are added or deleted between requests.
+
+**Query parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | number | 20 | Number of results per page (max 100) |
+| `cursor` | string | — | Opaque cursor from the previous response |
+
+**Response shape:**
+
+```json
+{
+  "items": [...],
+  "nextCursor": "eyJpZCI6ImFiYzEyMyJ9",
+  "hasMore": true
+}
+```
+
+Pass `nextCursor` as `cursor` on the next request to get the following page. When `hasMore` is `false`, you have reached the last page.
+
+## Endpoints
+
+| Resource | Description |
+|---------|-------------|
+| [Upload](/docs/api-reference/upload) | Request presigned URLs, confirm uploads, multipart operations |
+| [Files](/docs/api-reference/files) | List, inspect, update metadata, delete files |
+| [Projects](/docs/api-reference/projects) | Create and manage projects |
+| [Webhooks](/docs/api-reference/webhooks) | Webhook delivery, verification, and retry behavior |
+
+<Callout type="info">
+  Looking for the SDK? The [Next.js guide](/docs/getting-started/nextjs) and [React SDK reference](/docs/sdk/react) cover the SDK upload flow that most apps should use.
+</Callout>

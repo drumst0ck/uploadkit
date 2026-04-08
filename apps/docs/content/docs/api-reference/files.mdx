@@ -1,0 +1,171 @@
+---
+title: Files Endpoints
+description: List, inspect, update metadata, and delete files via the REST API.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The files endpoints let you query and manage files stored in UploadKit. All endpoints are scoped to the project associated with your API key.
+
+## File Object
+
+All endpoints return the same file object shape:
+
+```json
+{
+  "id": "file_abc123",
+  "key": "uploads/abc123/photo.jpg",
+  "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
+  "fileName": "photo.jpg",
+  "fileSize": 1048576,
+  "contentType": "image/jpeg",
+  "status": "UPLOADED",
+  "metadata": { "userId": "user_123" },
+  "createdAt": "2026-04-08T12:00:00.000Z",
+  "updatedAt": "2026-04-08T12:00:05.000Z"
+}
+```
+
+**Status values:**
+
+| Status | Description |
+|--------|-------------|
+| `UPLOADING` | Presigned URL issued, PUT not yet confirmed |
+| `UPLOADED` | File confirmed and available at CDN URL |
+| `FAILED` | Upload confirmation failed (R2 object not found) |
+| `DELETED` | File deleted from storage (soft-deleted record) |
+
+---
+
+## GET /api/v1/files
+
+List files in the current project, ordered by creation date descending.
+
+**Query parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | number | 20 | Results per page (max 100) |
+| `cursor` | string | — | Pagination cursor from previous response |
+
+**curl example:**
+
+```bash
+curl "https://api.uploadkit.dev/api/v1/files?limit=20" \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+```
+
+**Response:**
+
+```json
+{
+  "items": [
+    {
+      "id": "file_abc123",
+      "key": "uploads/abc123/photo.jpg",
+      "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
+      "fileName": "photo.jpg",
+      "fileSize": 1048576,
+      "contentType": "image/jpeg",
+      "status": "UPLOADED",
+      "createdAt": "2026-04-08T12:00:00.000Z"
+    }
+  ],
+  "nextCursor": "eyJpZCI6ImZpbGVfYWJjMTIzIn0",
+  "hasMore": true
+}
+```
+
+To paginate, pass the `nextCursor` value as `cursor` on the next request:
+
+```bash
+curl "https://api.uploadkit.dev/api/v1/files?cursor=eyJpZCI6ImZpbGVfYWJjMTIzIn0" \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+```
+
+---
+
+## GET /api/v1/files/:key
+
+Retrieve a single file by its storage key.
+
+**Path parameters:**
+
+| Parameter | Description |
+|-----------|-------------|
+| `key` | URL-encoded file key (e.g., `uploads%2Fabc123%2Fphoto.jpg`) |
+
+**curl example:**
+
+```bash
+curl "https://api.uploadkit.dev/api/v1/files/uploads%2Fabc123%2Fphoto.jpg" \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+```
+
+**Response:** The file object as described above.
+
+**Error cases:**
+
+| Code | Cause |
+|------|-------|
+| `NOT_FOUND` | No file with that key exists in the current project |
+
+---
+
+## PATCH /api/v1/files/:key
+
+Update a file's metadata. Metadata is merged — existing keys not present in the request are preserved.
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `metadata` | object | Yes | Key-value pairs to merge into the file's metadata |
+
+**curl example:**
+
+```bash
+curl -X PATCH "https://api.uploadkit.dev/api/v1/files/uploads%2Fabc123%2Fphoto.jpg" \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": {
+      "category": "avatar",
+      "approved": true
+    }
+  }'
+```
+
+**Response:** The updated file object.
+
+---
+
+## DELETE /api/v1/files/:key
+
+Permanently delete a file from storage and mark its record as deleted in the database.
+
+<Callout type="warn">
+  Deletion is permanent. The file is removed from Cloudflare R2 and the CDN URL stops resolving immediately.
+</Callout>
+
+**curl example:**
+
+```bash
+curl -X DELETE "https://api.uploadkit.dev/api/v1/files/uploads%2Fabc123%2Fphoto.jpg" \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+```
+
+**Response:**
+
+```json
+{ "deleted": true }
+```
+
+Deletion also decrements the project's storage usage counter, reflected on the next usage report.
+
+**Error cases:**
+
+| Code | Cause |
+|------|-------|
+| `NOT_FOUND` | File does not exist or already deleted |
+| `UNAUTHORIZED` | API key does not belong to the file's project |

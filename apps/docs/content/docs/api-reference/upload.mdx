@@ -1,0 +1,228 @@
+---
+title: Upload Endpoints
+description: Request presigned URLs, confirm uploads, and manage multipart uploads via the REST API.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The upload flow is a two-step process: **request** a presigned URL, then **confirm** after the client uploads directly to storage. Files over 10 MB use the multipart endpoints automatically when using the SDK, but you can drive the multipart flow manually via these endpoints.
+
+## POST /api/v1/upload/request
+
+Request a presigned URL for a single-file upload.
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fileName` | string | Yes | Original file name (e.g., `photo.jpg`) |
+| `fileSize` | number | Yes | File size in bytes |
+| `contentType` | string | Yes | MIME type (e.g., `image/jpeg`) |
+| `routeSlug` | string | Yes | File route slug defined in your file router |
+| `metadata` | object | No | Arbitrary key-value pairs forwarded to `onUploadComplete` |
+
+**Response:**
+
+```json
+{
+  "fileId": "file_abc123",
+  "uploadUrl": "https://your-bucket.r2.cloudflarestorage.com/uploads/abc123/photo.jpg?X-Amz-Signature=...",
+  "key": "uploads/abc123/photo.jpg",
+  "cdnUrl": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg"
+}
+```
+
+**curl example:**
+
+```bash
+curl -X POST https://api.uploadkit.dev/api/v1/upload/request \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fileName": "photo.jpg",
+    "fileSize": 1048576,
+    "contentType": "image/jpeg",
+    "routeSlug": "imageUploader",
+    "metadata": { "userId": "user_123" }
+  }'
+```
+
+After receiving the `uploadUrl`, the client performs a `PUT` directly to that URL:
+
+```bash
+curl -X PUT "<uploadUrl>" \
+  -H "Content-Type: image/jpeg" \
+  --data-binary @photo.jpg
+```
+
+**Error cases:**
+
+| Code | Cause |
+|------|-------|
+| `UNAUTHORIZED` | Invalid or missing API key |
+| `FILE_TOO_LARGE` | `fileSize` exceeds route or tier limit |
+| `FILE_TYPE_NOT_ALLOWED` | `contentType` not in route's `allowedTypes` |
+| `TIER_LIMIT_EXCEEDED` | Monthly upload quota reached |
+| `NOT_FOUND` | `routeSlug` does not exist in your project |
+
+---
+
+## POST /api/v1/upload/complete
+
+Notify the API that the client-side PUT to the presigned URL has finished. This triggers verification against R2 and fires the `onUploadComplete` webhook.
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fileId` | string | Yes | `fileId` returned from `/upload/request` |
+| `metadata` | object | No | Optional metadata update (merges with existing) |
+
+**Response:**
+
+```json
+{
+  "id": "file_abc123",
+  "key": "uploads/abc123/photo.jpg",
+  "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
+  "fileName": "photo.jpg",
+  "fileSize": 1048576,
+  "contentType": "image/jpeg",
+  "status": "UPLOADED",
+  "createdAt": "2026-04-08T12:00:00.000Z"
+}
+```
+
+**curl example:**
+
+```bash
+curl -X POST https://api.uploadkit.dev/api/v1/upload/complete \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fileId": "file_abc123"
+  }'
+```
+
+**Error cases:**
+
+| Code | Cause |
+|------|-------|
+| `UPLOAD_NOT_FOUND` | `fileId` does not exist or belongs to another project |
+| `UPLOAD_NOT_VERIFIED` | R2 object not found — the PUT may have failed |
+
+---
+
+## POST /api/v1/upload/multipart/init
+
+Initialize a multipart upload for files over 10 MB. Returns presigned URLs for each chunk.
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fileName` | string | Yes | Original file name |
+| `fileSize` | number | Yes | Total file size in bytes |
+| `contentType` | string | Yes | MIME type |
+| `routeSlug` | string | Yes | File route slug |
+| `metadata` | object | No | Forwarded to `onUploadComplete` |
+
+**Response:**
+
+```json
+{
+  "fileId": "file_abc123",
+  "uploadId": "mpu_xyz789",
+  "key": "uploads/abc123/large-video.mp4",
+  "parts": [
+    { "partNumber": 1, "uploadUrl": "https://...?partNumber=1&uploadId=mpu_xyz789&..." },
+    { "partNumber": 2, "uploadUrl": "https://...?partNumber=2&uploadId=mpu_xyz789&..." },
+    { "partNumber": 3, "uploadUrl": "https://...?partNumber=3&uploadId=mpu_xyz789&..." }
+  ]
+}
+```
+
+Each part URL is for a `PUT` request with a chunk of the file. Chunks must be at least 5 MB except the last part.
+
+**curl example:**
+
+```bash
+curl -X POST https://api.uploadkit.dev/api/v1/upload/multipart/init \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fileName": "large-video.mp4",
+    "fileSize": 104857600,
+    "contentType": "video/mp4",
+    "routeSlug": "videoUploader"
+  }'
+```
+
+---
+
+## POST /api/v1/upload/multipart/complete
+
+Signal that all parts have been uploaded. R2 assembles the parts into the final object.
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fileId` | string | Yes | `fileId` from `/multipart/init` |
+| `uploadId` | string | Yes | `uploadId` from `/multipart/init` |
+| `parts` | array | Yes | Array of `{ partNumber, etag }` — ETags from each part PUT response |
+| `metadata` | object | No | Optional metadata update |
+
+**curl example:**
+
+```bash
+curl -X POST https://api.uploadkit.dev/api/v1/upload/multipart/complete \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fileId": "file_abc123",
+    "uploadId": "mpu_xyz789",
+    "parts": [
+      { "partNumber": 1, "etag": "\"etag-value-1\"" },
+      { "partNumber": 2, "etag": "\"etag-value-2\"" },
+      { "partNumber": 3, "etag": "\"etag-value-3\"" }
+    ]
+  }'
+```
+
+The response is the same file object returned by `/upload/complete`.
+
+---
+
+## POST /api/v1/upload/multipart/abort
+
+Abort an in-progress multipart upload and clean up all uploaded parts.
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `fileId` | string | Yes | `fileId` from `/multipart/init` |
+| `uploadId` | string | Yes | `uploadId` from `/multipart/init` |
+
+**curl example:**
+
+```bash
+curl -X POST https://api.uploadkit.dev/api/v1/upload/multipart/abort \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fileId": "file_abc123",
+    "uploadId": "mpu_xyz789"
+  }'
+```
+
+**Response:**
+
+```json
+{ "aborted": true }
+```
+
+<Callout type="info">
+  When using the `@uploadkit/core` or `@uploadkit/react` SDK, multipart uploads are handled automatically for files over 10 MB. You do not need to call these endpoints manually.
+</Callout>

@@ -1,0 +1,146 @@
+---
+title: Projects Endpoints
+description: Create, list, update, and delete projects via the REST API.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Projects are the top-level resource in UploadKit. Each project has its own API keys, file routes, files, and usage quotas. All file operations are scoped to a project via the API key used.
+
+## Project Object
+
+```json
+{
+  "id": "proj_abc123",
+  "name": "My Application",
+  "slug": "my-application",
+  "createdAt": "2026-04-08T12:00:00.000Z",
+  "updatedAt": "2026-04-08T12:00:00.000Z"
+}
+```
+
+---
+
+## GET /api/v1/projects
+
+List all projects belonging to the authenticated account.
+
+**curl example:**
+
+```bash
+curl https://api.uploadkit.dev/api/v1/projects \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+```
+
+**Response:**
+
+```json
+{
+  "items": [
+    {
+      "id": "proj_abc123",
+      "name": "My Application",
+      "slug": "my-application",
+      "createdAt": "2026-04-08T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## POST /api/v1/projects
+
+Create a new project.
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Human-readable project name (max 100 characters) |
+
+**curl example:**
+
+```bash
+curl -X POST https://api.uploadkit.dev/api/v1/projects \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My New Application"
+  }'
+```
+
+**Response:** The created project object with HTTP `201 Created`.
+
+**Error cases:**
+
+| Code | Cause |
+|------|-------|
+| `TIER_LIMIT_EXCEEDED` | Project limit for your tier has been reached |
+
+Project limits by tier:
+
+| Tier | Max projects |
+|------|-------------|
+| Free | 2 |
+| Pro | 10 |
+| Team | 50 |
+| Enterprise | Unlimited |
+
+---
+
+## PATCH /api/v1/projects/:id
+
+Update a project's name.
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | No | New project name |
+
+**curl example:**
+
+```bash
+curl -X PATCH https://api.uploadkit.dev/api/v1/projects/proj_abc123 \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Renamed Application"
+  }'
+```
+
+**Response:** The updated project object.
+
+---
+
+## DELETE /api/v1/projects/:id
+
+Delete a project and all of its resources.
+
+<Callout type="warn">
+  **Cascading deletion.** Deleting a project permanently removes all associated files (from R2 and the database), API keys, file routes, and usage records. This action cannot be undone.
+</Callout>
+
+**curl example:**
+
+```bash
+curl -X DELETE https://api.uploadkit.dev/api/v1/projects/proj_abc123 \
+  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+```
+
+**Response:**
+
+```json
+{ "deleted": true }
+```
+
+**Error cases:**
+
+| Code | Cause |
+|------|-------|
+| `NOT_FOUND` | Project does not exist or belongs to a different account |
+
+<Callout type="info">
+  You can also manage projects from the [Projects](/docs/dashboard/projects) section of the dashboard.
+</Callout>
