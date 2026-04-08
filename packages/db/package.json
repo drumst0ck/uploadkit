@@ -2,14 +2,14 @@
   "name": "@uploadkit/db",
   "version": "0.1.0",
   "private": true,
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     }
   },
   "files": [
@@ -27,6 +27,7 @@
   "devDependencies": {
     "@types/node": "^25.5.2",
     "@uploadkit/config": "workspace:*",
+    "mongodb": "^7.1.1",
     "tsup": "^8.5.1",
     "typescript": "latest",
     "vitest": "latest"

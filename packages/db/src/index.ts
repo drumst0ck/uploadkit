@@ -1,4 +1,5 @@
 export { connectDB } from './connection';
+export { getAuthMongoClient } from './auth-client';
 export { User } from './models/user';
 export { Account } from './models/account';
 export { Project } from './models/project';

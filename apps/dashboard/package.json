@@ -10,18 +10,25 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@auth/mongodb-adapter": "^3.11.1",
     "@sentry/nextjs": "latest",
+    "@uploadkit/db": "workspace:*",
+    "@uploadkit/shared": "workspace:*",
+    "@uploadkit/ui": "workspace:*",
+    "nanoid": "^5.1.7",
     "next": "latest",
+    "next-auth": "5.0.0-beta.30",
+    "nodemailer": "^8.0.5",
     "react": "latest",
     "react-dom": "latest",
-    "@uploadkit/ui": "workspace:*"
+    "resend": "^6.10.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@uploadkit/config": "workspace:*",
     "tailwindcss": "latest",
-    "@tailwindcss/postcss": "latest",
     "typescript": "latest"
   }
 }
