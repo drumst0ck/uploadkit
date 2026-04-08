@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 8 context gathered
-last_updated: "2026-04-08T22:20:18.545Z"
-last_activity: 2026-04-08 -- Phase 8 planning complete
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-04-08T22:26:47.252Z"
+last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 7
   total_plans: 28
-  completed_plans: 25
-  percent: 89
+  completed_plans: 26
+  percent: 93
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Developers can add beautiful, type-safe file uploads to any app in minutes — with a generous free tier, no vendor lock-in (BYOS), and premium components out of the box.
-**Current focus:** Phase 07 — billing-email
+**Current focus:** Phase 08 — landing-pricing-pages
 
 ## Current Position
 
-Phase: 8
-Plan: Not started
+Phase: 08 (landing-pricing-pages) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-04-08 -- Phase 8 planning complete
+Last activity: 2026-04-08
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -82,6 +82,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07-billing-email P02 | 3min | 2 tasks | 4 files |
 | Phase 07-billing-email P03 | 3m | 1 tasks | 8 files |
 | Phase 07-billing-email P04 | 5m | 2 tasks | 5 files |
+| Phase 08-landing-pricing-pages P01 | 4m | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,9 @@ Recent decisions affecting current work:
 - [Phase 07-billing-email]: Used @react-email/render (not react-email package) for render function — react-email v5 is a CLI-only tool; render ships in @react-email/render
 - [Phase 07-billing-email]: Threshold crossing uses prevPercent < threshold && newPercent >= threshold for one-shot email firing per billing period
 - [Phase 07-billing-email]: Invoice email customer data retrieved from Stripe API (authenticated), never from webhook payload (T-07-16)
+- [Phase 08-landing-pricing-pages]: Satoshi fonts downloaded as woff2 from Fontshare zip bundle — extracted to apps/web/src/fonts/
+- [Phase 08-landing-pricing-pages]: Shiki singleton: module-level Promise reused across all server renders — zero cost for repeated highlight() calls
+- [Phase 08-landing-pricing-pages]: CSS :target trick for mobile nav — zero client JS, href=#mobile-menu toggles display via :target pseudo-class
 
 ### Pending Todos
 
@@ -174,6 +178,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T22:04:07.285Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-landing-pricing-pages/08-CONTEXT.md
+Last session: 2026-04-08T22:26:47.248Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None
