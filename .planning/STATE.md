@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-04-08T11:07:57.985Z"
-last_activity: 2026-04-08 -- Phase 2 planning complete
+stopped_at: Completed 02-authentication/02-01-PLAN.md
+last_updated: "2026-04-08T11:18:25.411Z"
+last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
-  percent: 67
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Developers can add beautiful, type-safe file uploads to any app in minutes — with a generous free tier, no vendor lock-in (BYOS), and premium components out of the box.
-**Current focus:** Phase 01 — monorepo-infrastructure
+**Current focus:** Phase 02 — authentication
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 02 (authentication) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-04-08 -- Phase 2 planning complete
+Last activity: 2026-04-08
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-monorepo-infrastructure P02 | 5m | 2 tasks | 25 files |
 | Phase 01-monorepo-infrastructure P03 | 8m | 2 tasks | 9 files |
 | Phase 01-monorepo-infrastructure P04 | 2m | 2 tasks | 10 files |
+| Phase 02-authentication P01 | 7m | 3 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Recent decisions affecting current work:
 - [Phase 01-monorepo-infrastructure]: Sentry helper gated on SENTRY_DSN env var — full instrumentation via wizard when DSN is available
 - [Phase 01-monorepo-infrastructure]: Dockerfiles copy only package.json manifests in deps stage to maximize Docker layer cache before full source COPY
 - [Phase 01-monorepo-infrastructure]: Changeset ignore list includes all 8 private packages; only @uploadkit/core, @uploadkit/react, @uploadkit/next are publishable to npm
+- [Phase 02-authentication]: Auth.js v5 async lazy factory: NextAuth(async () => config) ensures connectDB() runs before adapter on every cold start
+- [Phase 02-authentication]: packages/db and packages/shared package.json exports corrected from index.cjs to index.js to match actual tsup CJS output filename
+- [Phase 02-authentication]: declaration: false in dashboard tsconfig.json — Next.js apps don't need .d.ts emit; avoids non-portable AppRouteHandlerFn type error from next-auth internals
 
 ### Pending Todos
 
@@ -90,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T00:17:46.260Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-authentication/02-CONTEXT.md
+Last session: 2026-04-08T11:18:25.408Z
+Stopped at: Completed 02-authentication/02-01-PLAN.md
+Resume file: None

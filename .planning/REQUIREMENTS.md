@@ -21,10 +21,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can sign up and log in with GitHub OAuth
-- [ ] **AUTH-02**: User can sign up and log in with Google OAuth
-- [ ] **AUTH-03**: User can sign up and log in with email magic link
-- [ ] **AUTH-04**: User session persists across browser refresh (Auth.js v5)
+- [x] **AUTH-01**: User can sign up and log in with GitHub OAuth
+- [x] **AUTH-02**: User can sign up and log in with Google OAuth
+- [x] **AUTH-03**: User can sign up and log in with email magic link
+- [x] **AUTH-04**: User session persists across browser refresh (Auth.js v5)
 
 ### Upload Flow
 
@@ -202,10 +202,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-07 | Phase 1 | Complete |
 | INFRA-08 | Phase 10 | Complete |
 | INFRA-09 | Phase 10 | Complete |
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Complete |
+| AUTH-03 | Phase 2 | Complete |
+| AUTH-04 | Phase 2 | Complete |
 | UPLD-01 | Phase 3 | Pending |
 | UPLD-02 | Phase 3 | Pending |
 | UPLD-03 | Phase 3 | Pending |

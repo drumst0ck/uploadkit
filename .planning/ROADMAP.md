@@ -51,7 +51,7 @@ Plans:
   4. User who closes and reopens the browser remains logged in without re-authenticating
 **Plans**: 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — Auth.js v5 backend: providers, database sessions, proxy route protection, auto-create default project
+- [x] 02-01-PLAN.md — Auth.js v5 backend: providers, database sessions, proxy route protection, auto-create default project
 - [ ] 02-02-PLAN.md — Login page UI, protected dashboard layout, overview page, end-to-end verification
 
 ### Phase 3: Upload Flow & REST API
