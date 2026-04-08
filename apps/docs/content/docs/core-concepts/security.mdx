@@ -1,0 +1,140 @@
+---
+title: Security
+description: How UploadKit protects your uploads with API keys, validation, and rate limiting.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## API key authentication
+
+Every request to the UploadKit API must include a valid API key in the `x-api-key` header. UploadKit issues two types of keys:
+
+| Prefix | Environment | Use case |
+|--------|-------------|----------|
+| `uk_live_` | Production | Real uploads, charges, storage |
+| `uk_test_` | Development/testing | Safe to use in CI, rate limits still apply |
+
+**How keys are stored:**
+
+API keys are hashed with SHA-256 before being stored in the database. Only the SHA-256 hash of the key is persisted — UploadKit cannot recover or display a key after creation. If you lose a key, delete it and create a new one.
+
+The key prefix (`uk_live_` + first few characters) is stored alongside the hash for display in the dashboard — you can identify which key is which without exposing the full key value.
+
+<Callout type="warn">
+  Treat API keys like passwords. Rotate them immediately if you suspect exposure. You can create multiple keys per project — use separate keys for different services so you can revoke them independently.
+</Callout>
+
+## File validation
+
+File type and size are validated **twice**: once when the presigned URL is issued, and again when the upload is confirmed.
+
+### At presign time (server-side)
+
+When a client requests a presigned URL, UploadKit's API checks:
+
+1. **File type** — Is `contentType` in the route's `allowedTypes` list? Wildcards like `image/*` are expanded against the provided MIME type.
+2. **File size** — Is `fileSize` ≤ `min(route.maxFileSize, tier.maxFileSizeBytes)`? The more restrictive of your route configuration and your subscription tier applies.
+3. **Route exists** — Does the `routeSlug` match a configured route for this project?
+4. **Middleware** — Did your route's `middleware()` function return without throwing?
+
+### At completion time (server-side)
+
+After the client PUTs the file and calls `/upload/complete`, UploadKit verifies the upload:
+
+1. **R2/S3 HEAD request** — Confirms the file actually exists in storage
+2. **ContentType match** — The stored object's content type must match the presign declaration
+3. **Size match** — The actual object size must match `fileSize` from the presign request
+
+If either check fails, the file is marked `failed` and not counted against your quota.
+
+## Presigned URL security
+
+Presigned URLs include the following parameters locked into the cryptographic signature:
+
+| Locked parameter | Why it matters |
+|-----------------|----------------|
+| `Content-Type` | Prevents MIME type spoofing — a client cannot upload an `.exe` while claiming `image/jpeg` |
+| `Content-Length` | Prevents quota bypass — a client cannot upload more bytes than declared |
+| Expiry (1 hour) | Limits the window for URL leakage to cause harm |
+| Object key | URL is scoped to a single storage path — cannot be reused for a different file |
+| Bucket | Cannot be redirected to a different storage bucket |
+
+The `Content-Type` and `Content-Length` locking is enforced at the **storage layer** (R2/S3), not by UploadKit's servers. Even if UploadKit's API were bypassed, the storage provider would reject requests with mismatched parameters.
+
+## Rate limiting
+
+UploadKit uses a **sliding window** rate limiter backed by Upstash Redis. Limits are applied per API key:
+
+| Endpoint group | Window | Limit |
+|---------------|--------|-------|
+| Upload request (`POST /upload/request`) | 1 minute | 60 req/min (Free), 300 req/min (Pro+) |
+| Upload complete (`POST /upload/complete`) | 1 minute | 60 req/min (Free), 300 req/min (Pro+) |
+| Files CRUD | 1 minute | 120 req/min |
+| All other endpoints | 1 minute | 240 req/min |
+
+Rate limit headers are returned on every response:
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+X-RateLimit-Reset: 1712488920
+```
+
+When the limit is exceeded, UploadKit returns `429 Too Many Requests`. The client SDK automatically retries with exponential backoff up to `maxRetries` attempts.
+
+## Tier limits
+
+In addition to per-request rate limits, each subscription tier enforces cumulative storage and bandwidth limits per billing period:
+
+| Limit | Free | Pro | Team | Enterprise |
+|-------|------|-----|------|------------|
+| Storage | 5 GB | 50 GB | 200 GB | Custom |
+| Bandwidth | 10 GB | 100 GB | 500 GB | Custom |
+| Monthly uploads | 1,000 | 10,000 | 50,000 | Custom |
+| Max file size | 100 MB | 500 MB | 2 GB | Custom |
+
+Exceeding a storage or bandwidth limit on the **Free** plan blocks further uploads until the next billing period. On **Pro** and above, usage is metered and billed as overage — uploads continue uninterrupted.
+
+## BYOS credential safety
+
+When using [Bring Your Own Storage](/docs/core-concepts/byos), your S3/R2 credentials live in server-side environment variables and are never exposed to the browser:
+
+```
+Server environment                          Browser
+─────────────────────                       ──────────────────────
+AWS_ACCESS_KEY_ID    ─┐                     No credentials visible
+AWS_SECRET_ACCESS_KEY ┤→ Generate presigned URL → send URL to browser
+R2_BUCKET_NAME       ─┘                     (URL is time-limited, single-object scoped)
+```
+
+The `storage` config in `createUploadKitHandler` is processed at request time on your server. It is bundled with your server code, not your client bundle — Next.js App Router ensures server-only code never reaches the browser.
+
+<Callout type="warn">
+  Never put storage credentials in `NEXT_PUBLIC_` environment variables. Variables prefixed with `NEXT_PUBLIC_` are included in the browser bundle. Use plain `PROCESS.ENV.VARIABLE` (server-side) or a secrets manager for credentials.
+</Callout>
+
+## Best practices
+
+**API key security:**
+- Use `uk_test_` keys in development and CI — they never create real storage or charges
+- Create one key per service (e.g. separate keys for your Next.js app and your data pipeline)
+- Store keys in environment variables, not source code
+- Rotate keys quarterly or immediately after any potential exposure
+
+**Environment variables:**
+- `UPLOADKIT_API_KEY` — server-side only; never prefix with `NEXT_PUBLIC_`
+- `NEXT_PUBLIC_UPLOADKIT_API_KEY` — safe to expose; used only by `UploadKitProvider` in the client
+
+**BYOS credentials:**
+- All storage credentials are server-side only
+- Follow the principle of least privilege: grant only `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject`, and `s3:AbortMultipartUpload` — nothing more
+- Use separate IAM users or service accounts per environment
+
+**Middleware:**
+- Always authenticate requests in `middleware()` — throw on unauthorized
+- Never trust client-supplied metadata for authorization decisions
+- Return only the data you need in middleware — it flows to `onUploadComplete` and is logged
+
+**File validation:**
+- Rely on `allowedTypes` for server-side MIME enforcement — don't do client-side-only validation
+- Set `maxFileSize` explicitly on every route — the default is your tier's maximum

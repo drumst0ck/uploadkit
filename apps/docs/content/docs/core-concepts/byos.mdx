@@ -1,0 +1,197 @@
+---
+title: Bring Your Own Storage (BYOS)
+description: Use your own S3 or R2 bucket with zero frontend changes. No vendor lock-in.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+## What is BYOS?
+
+BYOS (Bring Your Own Storage) lets you use the UploadKit SDK, components, and API while storing files in **your own** S3-compatible bucket. No vendor lock-in.
+
+In managed mode (the default), files go to UploadKit's Cloudflare R2-backed storage. In BYOS mode, they go to your bucket — but the developer experience is identical. The same `UploadButton`, `UploadDropzone`, `useUploadKit`, and REST API endpoints work in both modes. Your frontend code never changes.
+
+## Setup
+
+Configure BYOS in `createUploadKitHandler` by passing a `storage` object with your bucket credentials:
+
+<Tabs items={['Cloudflare R2', 'AWS S3', 'MinIO']}>
+  <Tab value="Cloudflare R2">
+    ```typescript title="app/api/uploadkit/route.ts"
+    import { createUploadKitHandler } from '@uploadkit/next';
+    import type { FileRouter } from '@uploadkit/next';
+
+    const router = {
+      imageUploader: {
+        maxFileSize: '4MB',
+        allowedTypes: ['image/*'],
+        onUploadComplete: async ({ file }) => {
+          console.log('Stored in your R2 bucket:', file.url);
+        },
+      },
+    } satisfies FileRouter;
+
+    export const { GET, POST } = createUploadKitHandler({
+      router,
+      storage: {
+        endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        region: 'auto',
+        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+        bucket: process.env.R2_BUCKET_NAME!,
+      },
+    });
+    ```
+
+    ```bash title=".env.local"
+    R2_ACCOUNT_ID=your_cloudflare_account_id
+    R2_ACCESS_KEY_ID=your_r2_access_key_id
+    R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
+    R2_BUCKET_NAME=your-bucket-name
+    ```
+
+    Get your R2 credentials from the Cloudflare dashboard → R2 → Manage API Tokens.
+  </Tab>
+  <Tab value="AWS S3">
+    ```typescript title="app/api/uploadkit/route.ts"
+    import { createUploadKitHandler } from '@uploadkit/next';
+    import type { FileRouter } from '@uploadkit/next';
+
+    const router = {
+      documentUploader: {
+        maxFileSize: '16MB',
+        allowedTypes: ['application/pdf'],
+      },
+    } satisfies FileRouter;
+
+    export const { GET, POST } = createUploadKitHandler({
+      router,
+      storage: {
+        region: process.env.AWS_REGION!,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        bucket: process.env.AWS_S3_BUCKET!,
+      },
+    });
+    ```
+
+    ```bash title=".env.local"
+    AWS_REGION=us-east-1
+    AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+    AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    AWS_S3_BUCKET=my-upload-bucket
+    ```
+
+    Create an IAM user with `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject`, and `s3:AbortMultipartUpload` permissions on your bucket.
+  </Tab>
+  <Tab value="MinIO">
+    ```typescript title="app/api/uploadkit/route.ts"
+    import { createUploadKitHandler } from '@uploadkit/next';
+    import type { FileRouter } from '@uploadkit/next';
+
+    const router = {
+      fileUploader: {
+        maxFileSize: '50MB',
+        allowedTypes: ['*/*'],
+      },
+    } satisfies FileRouter;
+
+    export const { GET, POST } = createUploadKitHandler({
+      router,
+      storage: {
+        endpoint: process.env.MINIO_ENDPOINT!, // e.g. "http://localhost:9000"
+        region: 'us-east-1', // MinIO requires a region value, even though it's self-hosted
+        accessKeyId: process.env.MINIO_ACCESS_KEY!,
+        secretAccessKey: process.env.MINIO_SECRET_KEY!,
+        bucket: process.env.MINIO_BUCKET!,
+      },
+    });
+    ```
+
+    ```bash title=".env.local"
+    MINIO_ENDPOINT=http://localhost:9000
+    MINIO_ACCESS_KEY=minioadmin
+    MINIO_SECRET_KEY=minioadmin
+    MINIO_BUCKET=uploads
+    ```
+  </Tab>
+</Tabs>
+
+## Supported providers
+
+Any S3-compatible object storage works with BYOS:
+
+| Provider | `endpoint` | `region` |
+|----------|-----------|---------|
+| Cloudflare R2 | `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` | `auto` |
+| AWS S3 | _(omit — uses AWS default)_ | `us-east-1` (or your region) |
+| DigitalOcean Spaces | `https://<region>.digitaloceanspaces.com` | `<region>` (e.g. `nyc3`) |
+| MinIO | `http://your-minio-host:9000` | any string (e.g. `us-east-1`) |
+| Wasabi | `https://s3.wasabisys.com` | `us-east-1` |
+| Backblaze B2 | `https://s3.us-west-004.backblazeb2.com` | `us-west-004` |
+
+The `endpoint` field is only required when using non-AWS providers. For standard AWS S3, omit it and the SDK uses the default regional endpoint.
+
+## Zero frontend changes
+
+The `storage` configuration lives entirely in your server-side file router handler. Your React components and the REST API surface are completely unchanged:
+
+```tsx
+// This code is identical in managed mode and BYOS mode
+<UploadDropzone
+  route="imageUploader"
+  onUploadComplete={(files) => {
+    // files[0].url points to YOUR bucket, not UploadKit's managed storage
+    saveToDatabase(files[0].url);
+  }}
+/>
+```
+
+The only difference is where files end up — in your bucket, using your credentials.
+
+## Security model
+
+BYOS credentials **never touch the browser**. Here's why that's safe:
+
+1. Your storage credentials (`accessKeyId`, `secretAccessKey`) live in server-side environment variables
+2. When a client requests an upload, your server uses those credentials to generate a presigned PUT URL
+3. The presigned URL is time-limited (1 hour), scoped to a single object key, and signed by your credentials
+4. The client uses the presigned URL to upload — it never sees your credentials
+
+```
+Browser                     Your server                     Your S3 bucket
+  │                              │                                │
+  │  "Upload imageUploader" ────►│                                │
+  │                              │ Uses your credentials         │
+  │                              │ to generate presigned URL ───►│
+  │  ◄── presigned URL ──────────│                                │
+  │                              │                                │
+  │  PUT file ───────────────────┼───────────────────────────────►│
+  │  (using presigned URL)       │                                │
+  │                              │                                │
+  │  "Done" ─────────────────────►│                               │
+```
+
+<Callout type="warn">
+  Never pass `accessKeyId` or `secretAccessKey` to the client. The `storage` config belongs in server-side code only — never in a client component or a `NEXT_PUBLIC_` environment variable.
+</Callout>
+
+## Managed vs BYOS: when to use which
+
+| | Managed (default) | BYOS |
+|--|------------------|------|
+| **Setup time** | Zero — works out of the box | ~10 minutes bucket config |
+| **Storage location** | UploadKit's Cloudflare R2 | Your own bucket |
+| **Credential management** | UploadKit handles it | You manage IAM/API keys |
+| **Data sovereignty** | Shared infrastructure | Full control |
+| **Compliance (HIPAA, GDPR)** | Check UploadKit DPA | Your existing compliance |
+| **CDN** | Included (Cloudflare) | Configure separately |
+| **Cost** | Included in UploadKit tier | Your provider's storage rates |
+| **Vendor lock-in** | Tied to UploadKit storage | Switch providers freely |
+
+**Use managed when:** you want zero infrastructure overhead, you're comfortable with shared storage, and you're on the Free or Pro tier.
+
+**Use BYOS when:** you need data sovereignty, have existing storage infrastructure, are subject to compliance requirements, or want to avoid UploadKit storage costs for high-volume use.
+
+See the [Security page](/docs/core-concepts/security) for details on how UploadKit protects your storage credentials and validates uploads in BYOS mode.

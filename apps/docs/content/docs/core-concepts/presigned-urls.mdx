@@ -1,0 +1,160 @@
+---
+title: How Uploads Work
+description: UploadKit uses presigned URLs for direct-to-storage uploads — your server never proxies file bytes.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## The presigned URL flow
+
+Every upload in UploadKit follows this five-step flow. Your server validates and authorizes the upload, but never touches the file bytes:
+
+```
+1. Client ──► Your server         Request presigned URL
+              (validate, authorize, generate URL)
+
+2. Your server ──► Storage        CreatePresignedPost / PutObject
+              (URL expires in 1 hour)
+
+3. Your server ──► Client         Return presigned URL + fileId
+
+4. Client ──► Storage             PUT file directly (no server proxy)
+              (client uploads to R2/S3 using the URL)
+
+5. Client ──► Your server         POST /upload/complete
+              (server verifies, records metadata, fires webhook)
+```
+
+This architecture has three major advantages:
+
+1. **No server bottleneck** — File bytes travel directly from browser to R2/S3. Your server only handles lightweight JSON requests, not gigabytes of file data.
+2. **No egress cost** — Files never transit through your server, so you don't pay egress bandwidth twice.
+3. **Scalability** — Your API can handle thousands of concurrent uploads because it never blocks on I/O waiting for file bytes.
+
+## Why presigned URLs?
+
+### Traditional proxy upload (bad)
+
+```
+Client ──► Your server (reads entire file, re-uploads to S3) ──► S3
+```
+
+Problems:
+- Your server must hold the entire file in memory or stream it
+- Bandwidth doubles: once from client to server, once from server to S3
+- A 100MB video upload blocks your server thread for seconds
+- Vertical scaling is the only option
+
+### Presigned URL upload (good)
+
+```
+Client ──► Your server (generates URL, ~1ms) ──► Client ──► S3 directly
+```
+
+Benefits:
+- Server request is a fast JSON operation, not file I/O
+- Network hops are minimized: client → CDN edge → R2
+- File size doesn't affect your server's resource usage
+- Horizontal scaling is trivial
+
+## Multipart uploads
+
+Files larger than 10 MB are automatically uploaded in parts. UploadKit handles this transparently — you don't need to change any code.
+
+**How it works:**
+
+1. File is split into 5 MB chunks (configurable floor: 5 MB minimum per AWS/R2 spec)
+2. Each chunk gets its own presigned URL from the multipart initiation
+3. Chunks are uploaded in parallel (up to 4 concurrent parts by default)
+4. `onProgress` fires after each part completes, giving accurate progress even for large files
+5. Final `CompleteMultipartUpload` call assembles the parts atomically
+
+**What you see as a developer:**
+
+```typescript
+const result = await client.upload({
+  file,               // Could be 500 MB — handled automatically
+  route: 'videoUploader',
+  onProgress: (pct) => setProgress(pct), // 0–100, fires per-chunk
+});
+// result.url — CDN URL for the complete file
+```
+
+Multipart is triggered automatically when `file.size > 10_000_000`. Small files use the standard single-PUT flow.
+
+## Retry and abort
+
+### Automatic retry
+
+Upload failures are automatically retried with exponential backoff. Configure the maximum number of retries in `UploadKitClient`:
+
+```typescript
+import { UploadKitClient } from '@uploadkit/core';
+
+const client = new UploadKitClient({
+  apiKey: process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!,
+  maxRetries: 3, // default: 3; set to 0 to disable
+});
+```
+
+Retry behavior:
+- Attempt 1: immediate
+- Attempt 2: 1 second delay
+- Attempt 3: 2 second delay
+- Attempt 4: 4 second delay (if maxRetries = 3)
+- After all retries exhausted: throws `UploadError`
+
+### Aborting uploads
+
+Pass an `AbortController` signal to cancel an in-progress upload:
+
+```typescript
+const controller = new AbortController();
+
+// Start the upload
+const uploadPromise = client.upload({
+  file,
+  route: 'videoUploader',
+  signal: controller.signal,
+  onProgress: setProgress,
+});
+
+// Cancel it (e.g. when user clicks "Cancel")
+cancelButton.addEventListener('click', () => {
+  controller.abort();
+});
+
+try {
+  const result = await uploadPromise;
+} catch (error) {
+  if (error.name === 'AbortError') {
+    console.log('Upload cancelled by user');
+  }
+}
+```
+
+For multipart uploads, aborting also calls `AbortMultipartUpload` on the storage provider to clean up the incomplete parts and avoid storage charges.
+
+## Security
+
+Presigned URLs have several security properties built into their signature:
+
+### ContentType locking
+
+When UploadKit generates a presigned URL, it includes the `Content-Type` the client declared in the signature. If the client tries to upload a file with a different content type, the storage provider returns a 403 and the upload fails.
+
+This prevents **MIME type spoofing** — a client cannot upload an `.exe` file while claiming it's an `image/jpeg`.
+
+### ContentLength locking
+
+The `Content-Length` is also locked into the signature. The client cannot upload a file larger than what was declared when requesting the URL, even if your route's `maxFileSize` would technically allow a larger file.
+
+This prevents **quota bypass** — a client cannot request a URL for a 1 MB file, then upload 1 GB.
+
+### URL expiry
+
+Presigned URLs expire after **1 hour**. After expiry, the URL is rejected by the storage provider regardless of the signature. This limits the window during which a leaked URL could be exploited.
+
+<Callout>
+  ContentType and ContentLength locking are enforced at the storage layer, not by UploadKit's servers. Even if UploadKit's API were bypassed, the storage provider would reject mismatched uploads.
+</Callout>

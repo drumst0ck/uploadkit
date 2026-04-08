@@ -1,0 +1,170 @@
+---
+title: File Routes
+description: File routes define what files your app accepts, with type-safe configuration and server-side middleware.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## What are file routes?
+
+Think of file routes like API routes, but for file uploads. Instead of defining what JSON your endpoint accepts, you define what files your app accepts — their types, size limits, and any server-side logic that runs when a file is uploaded.
+
+Each key in a file router is a named route (like `imageUploader` or `documentUploader`). React components and the core client reference routes by name, so TypeScript catches mismatches at compile time — not at runtime.
+
+```
+Browser                    Your server                    Storage
+  │                              │                           │
+  │  "I want to upload           │                           │
+  │   to imageUploader"  ──────► │ validate route config     │
+  │                              │ run middleware()          │
+  │  ◄── presigned URL ──────────│ generate presigned URL    │
+  │                              │                           │
+  │  PUT file directly ──────────┼──────────────────────────►│
+  │                              │                           │
+  │  "Upload done" ──────────────►│ run onUploadComplete()   │
+```
+
+## Defining routes
+
+A file router is a plain object whose values conform to `RouteConfig`. Use `satisfies FileRouter` to preserve the literal route name strings — this is what enables end-to-end type safety.
+
+```typescript title="app/api/uploadkit/route.ts"
+import { createUploadKitHandler } from '@uploadkit/next';
+import type { FileRouter } from '@uploadkit/next';
+
+const router = {
+  imageUploader: {
+    maxFileSize: '4MB',       // string with unit: '512KB', '4MB', '100MB'
+    maxFileCount: 1,          // max files per request (default: 1)
+    allowedTypes: ['image/*'], // MIME type patterns — glob-style
+  },
+
+  documentUploader: {
+    maxFileSize: '16MB',
+    maxFileCount: 5,
+    allowedTypes: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
+  },
+
+  videoUploader: {
+    maxFileSize: 524288000, // 500 MB as bytes — both string and number are valid
+    allowedTypes: ['video/mp4', 'video/webm', 'video/quicktime'],
+  },
+} satisfies FileRouter;
+
+export const { GET, POST } = createUploadKitHandler({ router });
+```
+
+### Route config options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `maxFileSize` | `string \| number` | tier limit | Maximum file size. String units: `KB`, `MB`, `GB`. Number is bytes. The more restrictive of this value and your tier limit applies. |
+| `maxFileCount` | `number` | `1` | How many files can be uploaded in a single request. |
+| `allowedTypes` | `string[]` | `['*/*']` | Accepted MIME types. Supports glob-style patterns like `image/*` or exact types like `application/pdf`. |
+| `middleware` | `(ctx) => TMiddleware` | — | Async function that runs server-side before the upload is authorized. Throw to reject. Return value is passed to `onUploadComplete`. |
+| `onUploadComplete` | `(args) => void` | — | Async callback that runs server-side after the file is stored in R2/S3. |
+
+## Middleware
+
+Middleware runs on **your server** before the presigned URL is issued. It receives the incoming request and can:
+
+- **Authenticate** the request (verify session, API key, JWT)
+- **Authorize** the upload (check permissions, subscription tier)
+- **Attach metadata** that flows to `onUploadComplete`
+- **Reject** unauthorized uploads by throwing an error
+
+```typescript
+const router = {
+  documentUploader: {
+    maxFileSize: '16MB',
+    allowedTypes: ['application/pdf'],
+
+    middleware: async ({ req }) => {
+      // Extract auth token from the request headers
+      const token = req.headers.get('authorization')?.replace('Bearer ', '');
+      if (!token) throw new Error('Unauthorized');
+
+      // Verify and decode the token
+      const user = await verifyToken(token);
+      if (!user) throw new Error('Invalid token');
+
+      // Check subscription tier
+      if (user.plan === 'free' && (await getUserStorageUsed(user.id)) > 5 * 1024 * 1024 * 1024) {
+        throw new Error('Storage limit reached — upgrade to Pro');
+      }
+
+      // Return value becomes `metadata` in onUploadComplete
+      return { userId: user.id, plan: user.plan, orgId: user.orgId };
+    },
+
+    onUploadComplete: async ({ file, metadata }) => {
+      // metadata is typed as { userId: string; plan: string; orgId: string }
+      console.log(`User ${metadata.userId} uploaded ${file.name}`);
+    },
+  },
+} satisfies FileRouter;
+```
+
+<Callout type="warn">
+  Middleware throws are surfaced to the client as a 403 response. Never include sensitive information in the error message — the client can read it.
+</Callout>
+
+## onUploadComplete callback
+
+`onUploadComplete` runs **server-side** after the file has been stored. It receives the complete file record and the metadata your middleware returned.
+
+```typescript
+onUploadComplete: async ({ file, metadata }) => {
+  // file: full UploadResult from the API
+  console.log(file.id);        // "file_01J9KXYZ..."
+  console.log(file.key);       // "uploads/abc123/report.pdf"
+  console.log(file.name);      // "report.pdf"
+  console.log(file.size);      // 1048576 (bytes)
+  console.log(file.type);      // "application/pdf"
+  console.log(file.url);       // "https://cdn.uploadkit.dev/..."
+  console.log(file.status);    // "complete"
+  console.log(file.createdAt); // "2026-04-07T12:00:00Z"
+
+  // metadata: whatever your middleware returned
+  console.log(metadata.userId); // "user_abc"
+
+  // Typical usage: save to your database
+  await db.document.create({
+    data: {
+      userId: metadata.userId,
+      fileKey: file.key,
+      fileUrl: file.url,
+      name: file.name,
+      size: file.size,
+    },
+  });
+},
+```
+
+## Dashboard-defined routes
+
+For React/Vite apps without a Next.js backend, you can define file routes in the **UploadKit Dashboard** instead of in code. Navigate to your project → **File Routes** → **New Route**.
+
+Dashboard-defined routes support the same configuration (file types, size limits, webhook URL) but without middleware or typed callbacks. The `route` prop on client components references the route slug you set in the dashboard.
+
+## Type inference
+
+The `satisfies FileRouter` pattern preserves the exact string literal keys of your router object. When you call `generateReactHelpers<typeof router>()`, TypeScript infers those string literals as the allowed values for the `route` prop — invalid route names become compile-time errors.
+
+```typescript title="lib/uploadkit.ts"
+import { generateReactHelpers } from '@uploadkit/react';
+import type { router } from '@/app/api/uploadkit/route';
+
+export const { UploadButton, UploadDropzone, useUploadKit } =
+  generateReactHelpers<typeof router>();
+```
+
+```tsx
+// TypeScript error: Argument of type '"typo"' is not assignable to
+// parameter of type '"imageUploader" | "documentUploader" | "videoUploader"'
+<UploadButton route="typo" />
+```
