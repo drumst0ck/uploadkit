@@ -687,27 +687,23 @@ await UsageRecord.findOneAndUpdate(
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **API key hashing strategy**
+1. **API key hashing strategy** — RESOLVED
    - What we know: Current model stores plain text; creating + returning a key once is the correct pattern
-   - What's unclear: Should Phase 3 implement SHA256 hashing, or is plain text acceptable for v1?
-   - Recommendation: Implement SHA256 at creation time — 1 hour of work, protects users if DB is ever exposed
+   - Decision: Implement SHA256 hashing. Plan 03-01 Task 1 patches ApiKey model with `keyHash` (SHA256 hex) and `keyPrefix` (first 12 chars for display). Full key returned only at creation time, never stored.
 
-2. **Webhook URL location**
+2. **Webhook URL location** — RESOLVED
    - What we know: `onUploadComplete` is a per-route concept (per FileRouter config in the SDK)
-   - What's unclear: Does the API-side webhook URL live on `FileRouter` or `Project`?
-   - Recommendation: `FileRouter.webhookUrl` — matches SDK's per-route callback model (UploadThing pattern)
+   - Decision: `FileRouter.webhookUrl` — matches SDK's per-route callback model (UploadThing pattern). Plan 03-01 Task 1 adds the field to the FileRouter model.
 
-3. **QStash in local development**
+3. **QStash in local development** — RESOLVED
    - What we know: QStash requires a public URL; Vercel provides this in preview/prod
-   - What's unclear: Development workflow — does the team use ngrok, or just skip webhook delivery in dev?
-   - Recommendation: Skip in dev with `console.warn`; document in README that a tunnel is needed for full local webhook testing
+   - Decision: Skip in dev with `console.warn` when `QSTASH_TOKEN` is absent. Plan 03-01 Task 1 implements the env guard in `qstash.ts`. A tunnel is needed for full local webhook testing.
 
-4. **File key slash handling**
+4. **File key slash handling** — RESOLVED
    - What we know: Key format is `{projectId}/{routeSlug}/{nanoid}/{fileName}` — contains slashes
-   - What's unclear: Should the REST API `GET /api/v1/files/:key` use a catch-all route or URL-encode the key?
-   - Recommendation: URL-encode the key in the client (SDK will always do this), decode in handler — simpler than catch-all routing
+   - Decision: URL-encode the key in the client (SDK will always do this), decode in handler with `decodeURIComponent(params.key)`. Plan 03-03 Task 1 implements this pattern in the files/[key] route.
 
 ---
 
