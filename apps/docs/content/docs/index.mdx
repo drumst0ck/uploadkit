@@ -1,0 +1,46 @@
+---
+title: Introduction
+description: UploadKit is a file upload service for developers. Add beautiful, type-safe file uploads to any app in minutes.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+## What is UploadKit?
+
+UploadKit is a **File Uploads as a Service (FUaaS)** platform — a type-safe, developer-first way to add file uploads to any app. It handles the infrastructure so you can focus on building.
+
+You get managed cloud storage powered by Cloudflare R2, a global CDN, an open-source TypeScript SDK, and premium React components that look great out of the box. Need to use your own S3 or R2 bucket? UploadKit supports **BYOS (Bring Your Own Storage)** with zero frontend changes.
+
+## Key Features
+
+- **Managed storage** — Cloudflare R2-backed storage with a global CDN. No bucket configuration required.
+- **BYOS support** — Use your own S3-compatible bucket. The SDK API is identical in both modes.
+- **Premium components** — `UploadButton`, `UploadDropzone`, `UploadModal`, `FileList`, and `FilePreview` — dark mode, accessible, and themeable.
+- **End-to-end type safety** — Define file routes once in TypeScript; the client and server stay in sync automatically.
+- **Direct uploads** — Files go straight from the browser to storage via presigned URLs. No server bottleneck.
+- **Dashboard** — Manage projects, browse files, create API keys, and track usage in one place.
+
+## Quick Links
+
+<Cards>
+  <Card
+    href="/docs/getting-started/quickstart"
+    title="Quickstart"
+    description="Add file uploads to your app in under five minutes."
+  />
+  <Card
+    href="/docs/sdk/core"
+    title="SDK Reference"
+    description="Explore @uploadkit/core, @uploadkit/react, and @uploadkit/next."
+  />
+  <Card
+    href="/docs/api-reference/rest-api"
+    title="API Reference"
+    description="Full reference for the UploadKit REST API."
+  />
+  <Card
+    href="/docs/guides/image-upload"
+    title="Guides"
+    description="Step-by-step guides for common upload scenarios."
+  />
+</Cards>

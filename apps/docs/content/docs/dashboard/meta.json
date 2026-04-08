@@ -1,0 +1,4 @@
+{
+  "title": "Dashboard",
+  "pages": ["overview", "projects", "files", "api-keys", "billing"]
+}

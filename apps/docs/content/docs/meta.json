@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "index",
+    "---Getting Started---",
+    "getting-started",
+    "---Core Concepts---",
+    "core-concepts",
+    "---SDK---",
+    "sdk",
+    "---API Reference---",
+    "api-reference",
+    "---Dashboard---",
+    "dashboard",
+    "---Guides---",
+    "guides"
+  ]
+}

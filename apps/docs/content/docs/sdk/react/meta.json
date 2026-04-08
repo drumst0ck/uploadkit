@@ -1,0 +1,4 @@
+{
+  "title": "@uploadkit/react",
+  "pages": ["installation", "upload-button", "upload-dropzone", "upload-modal", "file-list", "file-preview", "use-uploadkit", "theming", "api-reference"]
+}

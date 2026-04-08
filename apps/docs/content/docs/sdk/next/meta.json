@@ -1,0 +1,4 @@
+{
+  "title": "@uploadkit/next",
+  "pages": ["installation", "file-router", "middleware", "type-safety", "api-reference"]
+}
