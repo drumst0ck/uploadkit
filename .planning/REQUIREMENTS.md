@@ -85,8 +85,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Dashboard
 
 - [x] **DASH-01**: Auth.js v5 login/register (GitHub, Google, magic link)
-- [ ] **DASH-02**: Overview page with 4 metric cards (storage, bandwidth, uploads today, total files) + 30-day upload chart + recent files table
-- [ ] **DASH-03**: Project CRUD with slug-based routing
+- [x] **DASH-02**: Overview page with 4 metric cards (storage, bandwidth, uploads today, total files) + 30-day upload chart + recent files table
+- [x] **DASH-03**: Project CRUD with slug-based routing
 - [ ] **DASH-04**: File browser with DataTable (preview, name, size, type, date, actions), filters, search, pagination, bulk delete
 - [ ] **DASH-05**: API Keys page (masked display uk_live_xxx...xxx, copy, create, revoke with confirmation)
 - [ ] **DASH-06**: File Routes configuration UI per project
@@ -248,8 +248,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REACT-12 | Phase 5 | Complete |
 | REACT-13 | Phase 5 | Complete |
 | DASH-01 | Phase 6 | Complete |
-| DASH-02 | Phase 6 | Pending |
-| DASH-03 | Phase 6 | Pending |
+| DASH-02 | Phase 6 | Complete |
+| DASH-03 | Phase 6 | Complete |
 | DASH-04 | Phase 6 | Pending |
 | DASH-05 | Phase 6 | Pending |
 | DASH-06 | Phase 6 | Pending |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-dashboard/06-01-PLAN.md
-last_updated: "2026-04-08T18:45:27.206Z"
+stopped_at: Completed 06-dashboard/06-02-PLAN.md
+last_updated: "2026-04-08T18:50:28.570Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 21
-  completed_plans: 17
-  percent: 81
+  completed_plans: 18
+  percent: 86
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 ## Current Position
 
 Phase: 06 (dashboard) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-04-08
 
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P03 | 12m | 2 tasks | 6 files |
 | Phase 05 P04 | 3m | 2 tasks | 7 files |
 | Phase 06-dashboard P01 | 8m | 2 tasks | 33 files |
+| Phase 06-dashboard P02 | 20m | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,8 @@ Recent decisions affecting current work:
 - [Phase 06-dashboard]: packages/ui exports key '.' not './' — slash suffix causes module resolution failure when dashboard imports @uploadkit/ui
 - [Phase 06-dashboard]: MobileMenuWrapper client component pattern — server layout cannot use useState; thin client wrapper lifts mobile menu state while keeping auth/DB code server-side
 - [Phase 06-dashboard]: exactOptionalPropertyTypes: all optional React props typed as T | undefined throughout dashboard layout components
+- [Phase 06-dashboard]: File queries scoped via user projectIds (IFile.projectId not IFile.userId) — IFile model links to projectId, userId not a field on File
+- [Phase 06-dashboard]: Project sub-layout uses notFound() for missing/cross-user slugs — more correct than redirect for 404 semantics
 
 ### Pending Todos
 
@@ -144,6 +147,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T18:45:27.204Z
-Stopped at: Completed 06-dashboard/06-01-PLAN.md
+Last session: 2026-04-08T18:50:28.568Z
+Stopped at: Completed 06-dashboard/06-02-PLAN.md
 Resume file: None
