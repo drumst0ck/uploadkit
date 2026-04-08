@@ -18,6 +18,9 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@uploadkit/shared": "workspace:*"
+  },
   "peerDependencies": {},
   "devDependencies": {
     "@uploadkit/config": "workspace:*",
