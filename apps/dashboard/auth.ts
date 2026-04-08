@@ -4,6 +4,7 @@ import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import { authConfig } from './auth.config';
 import { getAuthMongoClient, connectDB, Project } from '@uploadkit/db';
 import { nanoid } from 'nanoid';
+import { sendWelcomeEmail } from '@uploadkit/emails';
 
 declare module 'next-auth' {
   interface Session {
@@ -37,6 +38,14 @@ const result: NextAuthResult = NextAuth(async () => {
             name: 'My First Project',
             slug: `my-first-project-${nanoid(8)}`,
             userId: user.id as string,
+          });
+        }
+
+        // EMAIL-01: Send welcome email (fire-and-forget, D-08)
+        if (user.email) {
+          void sendWelcomeEmail(user.email, {
+            userName: user.name ?? 'there',
+            loginUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.uploadkit.dev'}/dashboard`,
           });
         }
       },

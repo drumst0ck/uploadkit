@@ -14,6 +14,7 @@
     "@aws-sdk/s3-request-presigner": "latest",
     "@sentry/nextjs": "latest",
     "@uploadkit/db": "workspace:*",
+    "@uploadkit/emails": "workspace:*",
     "@uploadkit/shared": "workspace:*",
     "@upstash/qstash": "latest",
     "@upstash/ratelimit": "latest",
