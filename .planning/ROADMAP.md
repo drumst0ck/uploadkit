@@ -166,10 +166,10 @@ Plans:
   4. The "Migration from UploadThing" guide exists and covers the key API differences
 **Plans**: 4 plans
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
-- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
+- [ ] 09-01-PLAN.md — Fumadocs site setup, MDX pipeline, sidebar hierarchy, search
+- [ ] 09-02-PLAN.md — Getting Started (quickstart, Next.js, React, API-only) + Core Concepts
+- [ ] 09-03-PLAN.md — SDK Reference (@uploadkit/core, @uploadkit/react, @uploadkit/next)
+- [ ] 09-04-PLAN.md — REST API Reference, Guides (incl. migration from UploadThing), Dashboard docs
 
 ### Phase 10: Testing, Publishing & Launch
 **Goal**: The full SDK is published to npm with correct versions and changelogs; the codebase has Vitest unit coverage on critical paths and Playwright E2E tests on the upload and auth flows; the project is launch-ready
