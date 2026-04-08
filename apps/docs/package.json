@@ -18,6 +18,7 @@
     "fumadocs-core": "latest"
   },
   "devDependencies": {
+    "@types/mdx": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@uploadkit/config": "workspace:*",

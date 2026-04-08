@@ -1,8 +1,12 @@
 {
   "extends": "@uploadkit/config/typescript/nextjs",
   "compilerOptions": {
-    "paths": { "@/*": ["./src/*"] }
+    "declaration": false,
+    "paths": {
+      "@/*": ["./src/*"],
+      "collections/*": ["./.source/*"]
+    }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".source/**/*.ts"],
   "exclude": ["node_modules"]
 }

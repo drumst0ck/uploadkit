@@ -1,3 +1,5 @@
-export default function DocsPage() {
-  return <h1>UploadKit Docs</h1>;
+import { redirect } from 'next/navigation';
+
+export default function HomePage() {
+  redirect('/docs');
 }

@@ -230,6 +230,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: latest
         version: 4.2.2
+      '@types/mdx':
+        specifier: latest
+        version: 2.0.13
       '@types/react':
         specifier: latest
         version: 19.2.14
