@@ -1,0 +1,35 @@
+{
+  "name": "@uploadkit/emails",
+  "version": "0.1.0",
+  "private": true,
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "@react-email/components": "latest",
+    "@react-email/render": "latest",
+    "resend": "latest"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@uploadkit/config": "workspace:*",
+    "@types/react": "latest",
+    "tsup": "^8.5.1",
+    "typescript": "latest"
+  }
+}
