@@ -148,12 +148,11 @@ Plans:
   2. The interactive code demo tab switches between Next.js, React, and API examples and shows a live component preview (UploadButton/Dropzone/Modal) with dark/light toggle
   3. The pricing page shows all four tiers with a monthly/yearly toggle that recalculates prices (20% annual discount); the overage pricing section is visible below the tier table
   4. The page scores 90+ on Lighthouse for Performance, Accessibility, and SEO on both mobile and desktop
-**Plans**: 4 plans
+**Plans**: 3 plans
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
-- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
+- [ ] 08-01-PLAN.md — Web app foundation: fonts (Satoshi+Inter), dark theme, Shiki singleton, tier data utils, navbar, hero section
+- [ ] 08-02-PLAN.md — Landing page sections: code demo, features grid, comparison table, component showcase, pricing preview, footer, scroll animations
+- [ ] 08-03-PLAN.md — Pricing page: monthly/yearly toggle, 4 tier cards, feature comparison matrix, overage pricing, SEO metadata + OG images
 **UI hint**: yes
 
 ### Phase 9: Documentation
