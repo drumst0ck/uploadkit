@@ -79,8 +79,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **REACT-09**: Dark mode native (prefers-color-scheme + explicit override)
 - [x] **REACT-10**: Customizable via className and appearance prop (Tailwind merge compatible)
 - [x] **REACT-11**: Premium visual design matching Vercel/Supabase/Linear quality
-- [ ] **REACT-12**: generateReactHelpers<AppFileRouter>() for typed component generation
-- [ ] **REACT-13**: WCAG 2.1 AA accessibility (focus-visible, aria-labels, reduced-motion)
+- [x] **REACT-12**: generateReactHelpers<AppFileRouter>() for typed component generation
+- [x] **REACT-13**: WCAG 2.1 AA accessibility (focus-visible, aria-labels, reduced-motion)
 
 ### Dashboard
 
@@ -245,8 +245,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REACT-09 | Phase 5 | Complete |
 | REACT-10 | Phase 5 | Complete |
 | REACT-11 | Phase 5 | Complete |
-| REACT-12 | Phase 5 | Pending |
-| REACT-13 | Phase 5 | Pending |
+| REACT-12 | Phase 5 | Complete |
+| REACT-13 | Phase 5 | Complete |
 | DASH-01 | Phase 6 | Pending |
 | DASH-02 | Phase 6 | Pending |
 | DASH-03 | Phase 6 | Pending |

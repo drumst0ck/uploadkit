@@ -14,7 +14,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - [x] **Phase 2: Authentication** - Auth.js v5 with GitHub, Google, and magic link; persistent sessions (completed 2026-04-08)
 - [x] **Phase 3: Upload Flow & REST API** - Presigned URL pipeline, multipart, abort/retry, full file/project/key REST API (completed 2026-04-08)
 - [x] **Phase 4: SDK Core & Next.js Adapter** - @uploadkit/core factory, BYOS mode, @uploadkit/next file router pattern (completed 2026-04-08)
-- [ ] **Phase 5: SDK React Components** - UploadButton, Dropzone, Modal, FileList, FilePreview, hook, theming, a11y
+- [x] **Phase 5: SDK React Components** - UploadButton, Dropzone, Modal, FileList, FilePreview, hook, theming, a11y (completed 2026-04-08)
 - [ ] **Phase 6: Dashboard** - Auth shell, project/file/key management, upload logs, usage, command palette
 - [ ] **Phase 7: Billing & Email** - Stripe Checkout, Billing Portal, metered overages, Resend transactional emails
 - [ ] **Phase 8: Landing & Pricing Pages** - Hero, code demo, feature grid, competitor table, pricing page
@@ -100,7 +100,7 @@ Plans:
 - [x] 05-01-PLAN.md — Provider context, useUploadKit hook, styles.css theming, build config
 - [x] 05-02-PLAN.md — UploadButton with states/variants, UploadDropzone with drag-and-drop
 - [x] 05-03-PLAN.md — UploadModal (native dialog), FileList, FilePreview with canvas thumbnails
-- [ ] 05-04-PLAN.md — generateReactHelpers factory, accessibility audit, final exports
+- [x] 05-04-PLAN.md — generateReactHelpers factory, accessibility audit, final exports
 **UI hint**: yes
 
 ### Phase 6: Dashboard
@@ -200,7 +200,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 2. Authentication | 2/2 | Complete   | 2026-04-08 |
 | 3. Upload Flow & REST API | 4/4 | Complete   | 2026-04-08 |
 | 4. SDK Core & Next.js Adapter | 2/2 | Complete   | 2026-04-08 |
-| 5. SDK React Components | 3/4 | In Progress|  |
+| 5. SDK React Components | 4/4 | Complete   | 2026-04-08 |
 | 6. Dashboard | 0/? | Not started | - |
 | 7. Billing & Email | 0/? | Not started | - |
 | 8. Landing & Pricing Pages | 0/? | Not started | - |
