@@ -19,7 +19,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@uploadkit/core": "workspace:*"
+    "@uploadkit/core": "workspace:*",
+    "@uploadkit/shared": "workspace:*",
+    "@aws-sdk/client-s3": "latest",
+    "@aws-sdk/s3-request-presigner": "latest",
+    "nanoid": "latest",
+    "server-only": "latest"
   },
   "peerDependencies": {
     "next": ">=14"
