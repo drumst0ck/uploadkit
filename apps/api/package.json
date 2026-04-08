@@ -24,8 +24,10 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@uploadkit/config": "workspace:*",
+    "@vitest/coverage-v8": "latest",
     "tailwindcss": "latest",
     "@tailwindcss/postcss": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "vitest": "latest"
   }
 }
