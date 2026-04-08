@@ -72,9 +72,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **REACT-02**: useUploadKit headless hook (upload, progress, status, error, abort)
 - [x] **REACT-03**: UploadButton with states (idle, hover, uploading with %, success, error) and variants (default, outline, ghost)
 - [x] **REACT-04**: UploadDropzone with drag-and-drop, file previews, per-file progress bars, multi-file support
-- [ ] **REACT-05**: UploadModal with backdrop blur, scale+opacity animation, ESC/click-outside close
-- [ ] **REACT-06**: FileList component with uploaded files and actions
-- [ ] **REACT-07**: FilePreview with client-side canvas thumbnail generation (images), video poster, PDF first page, type icons
+- [x] **REACT-05**: UploadModal with backdrop blur, scale+opacity animation, ESC/click-outside close
+- [x] **REACT-06**: FileList component with uploaded files and actions
+- [x] **REACT-07**: FilePreview with client-side canvas thumbnail generation (images), video poster, PDF first page, type icons
 - [x] **REACT-08**: CSS custom properties theming (--uk-primary, --uk-bg, --uk-border, etc.)
 - [x] **REACT-09**: Dark mode native (prefers-color-scheme + explicit override)
 - [x] **REACT-10**: Customizable via className and appearance prop (Tailwind merge compatible)
@@ -238,9 +238,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REACT-02 | Phase 5 | Complete |
 | REACT-03 | Phase 5 | Complete |
 | REACT-04 | Phase 5 | Complete |
-| REACT-05 | Phase 5 | Pending |
-| REACT-06 | Phase 5 | Pending |
-| REACT-07 | Phase 5 | Pending |
+| REACT-05 | Phase 5 | Complete |
+| REACT-06 | Phase 5 | Complete |
+| REACT-07 | Phase 5 | Complete |
 | REACT-08 | Phase 5 | Complete |
 | REACT-09 | Phase 5 | Complete |
 | REACT-10 | Phase 5 | Complete |
