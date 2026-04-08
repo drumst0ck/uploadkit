@@ -1,0 +1,83 @@
+---
+title: API Keys
+description: Create, manage, and revoke API keys for your UploadKit project.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+API keys authenticate requests to the UploadKit REST API and SDK. Each project has its own keys, and keys come in two environments: **live** and **test**.
+
+## Key types
+
+| Type | Prefix | Use case |
+|------|--------|----------|
+| Live | `uk_live_` | Production — real uploads, counted against quota |
+| Test | `uk_test_` | Development and CI — sandbox, no quota impact, files purged after 24h |
+
+Always use a test key during development. Switch to a live key only when deploying to production.
+
+## Creating an API key
+
+1. Navigate to **API Keys** in the sidebar
+2. Click **Create Key**
+3. Give the key a descriptive name (e.g., "Production Server", "GitHub Actions CI")
+4. Select **Live** or **Test**
+5. Click **Create**
+
+<Callout type="warn">
+  **Copy the key now.** The full plaintext key is shown **only once** immediately after creation. After you close the dialog, only a masked version (`uk_live_xxx...xxx`) is stored — UploadKit cannot recover or display the key again.
+</Callout>
+
+## Key display
+
+After creation, keys are displayed in masked form:
+
+```
+uk_live_xxx...xxxabc
+```
+
+The first few and last few characters are shown for identification. You can use this to confirm which key is in use in your application.
+
+## Using API keys in your application
+
+Set the key as an environment variable — never hardcode it:
+
+```bash title=".env.local"
+UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
+NEXT_PUBLIC_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
+```
+
+The `NEXT_PUBLIC_` prefix exposes the key to the browser for direct SDK use. This is safe because UploadKit API keys are scoped to your project and rate-limited — treat them like public access tokens, not passwords.
+
+For server-side only use (e.g., file deletion, listing files via the REST API), use only the non-public `UPLOADKIT_API_KEY`.
+
+## Copying a key
+
+If you need to retrieve a key value and you still have it in your environment, you can confirm you have the right key by comparing the masked display in the dashboard with your stored value.
+
+If you have lost the key, you must revoke it and create a new one.
+
+## Revoking a key
+
+To revoke an API key:
+
+1. Find the key in the API Keys list
+2. Click the **Revoke** button (trash icon)
+3. Confirm in the dialog
+
+Revoked keys stop working immediately. Any requests using the revoked key receive a `401 Unauthorized` response.
+
+<Callout type="info">
+  Revoke a key immediately if you suspect it has been exposed (e.g., committed to a public repository, logged in plaintext). Create a replacement key and update your environment variables.
+</Callout>
+
+## Key limits by tier
+
+| Tier | Max keys per project |
+|------|---------------------|
+| Free | 2 |
+| Pro | 10 |
+| Team | 50 |
+| Enterprise | Unlimited |
+
+If you reach your key limit, revoke unused keys or upgrade your plan.

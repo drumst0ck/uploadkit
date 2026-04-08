@@ -1,0 +1,83 @@
+---
+title: Files
+description: Browse, search, preview, and delete files in the UploadKit dashboard.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The **Files** section in the dashboard is a full-featured browser for all files uploaded to the current project.
+
+## File browser
+
+The file browser displays files in a data table with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| Preview | Thumbnail for images; file type icon for other formats |
+| Name | Original file name as uploaded |
+| Size | File size in human-readable format (KB, MB, GB) |
+| Type | MIME type (e.g., `image/jpeg`, `application/pdf`) |
+| Status | `UPLOADED`, `UPLOADING`, `FAILED`, or `DELETED` |
+| CDN URL | Copy button to copy the full CDN URL |
+| Uploaded | Date and time of upload |
+| Actions | Delete button |
+
+Files are sorted by upload date, newest first. The table supports pagination with 20 files per page.
+
+## Search and filter
+
+Use the search bar at the top of the file browser to filter by file name. The search is debounced — results update as you type.
+
+Filter options:
+
+- **Status** — Show only `UPLOADED`, `FAILED`, or all files
+- **Date range** — Filter by upload date (today, last 7 days, last 30 days, custom range)
+- **File type** — Filter by MIME type category (images, documents, videos, other)
+
+## File preview
+
+Click any row to open the file detail panel:
+
+- **Image files** — Full-size preview rendered in the panel
+- **PDF files** — Embedded PDF viewer
+- **Other files** — File metadata with a direct download link
+
+The detail panel also shows:
+- Full CDN URL (with copy button)
+- Storage key (for API operations)
+- Upload metadata (any key-value pairs attached during upload)
+- Upload timestamp
+
+## Copying the CDN URL
+
+Each file has a permanent CDN URL served via Cloudflare's global network:
+
+```
+https://cdn.uploadkit.dev/uploads/abc123/photo.jpg
+```
+
+Click the copy icon in the CDN URL column to copy it to your clipboard. This is the URL you should store in your database and reference in your application.
+
+## Bulk delete
+
+To delete multiple files at once:
+
+1. Check the checkboxes on the left side of each row
+2. The bulk action toolbar appears at the top of the table
+3. Click **Delete selected**
+4. Confirm in the dialog
+
+Deletion is permanent. Files are removed from Cloudflare R2 immediately and the CDN URLs stop resolving within a few seconds.
+
+## Upload logs
+
+The **Logs** tab (within the Files section) shows a live-polling view of recent upload activity:
+
+- Refreshes every 5 seconds
+- Each entry shows: file name, status, route slug, timestamp, and metadata
+- Filter by status (`UPLOADED`, `FAILED`) or date
+- Useful for debugging upload failures in real time
+
+<Callout type="info">
+  Failed uploads (`FAILED` status) occur when the presigned URL was issued but the client did not complete the PUT request within the expiry window (1 hour), or when R2 returned an error. These files do not count toward storage usage.
+</Callout>

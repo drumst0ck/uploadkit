@@ -1,0 +1,157 @@
+---
+title: Image Upload Guide
+description: Add image uploads to your app — file route config, dropzone component, client-side preview, and saving the URL.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+This guide shows how to accept image uploads (JPEG, PNG, WebP, GIF) with a 4 MB limit — a common configuration for profile photos, product images, and content attachments.
+
+## 1. Configure the file route
+
+Define which file types and sizes your route accepts. In Next.js, this goes in your UploadKit route handler:
+
+<Tabs groupId="framework" items={['Next.js', 'React (API key)']}>
+  <Tab value="Next.js">
+    ```typescript title="app/api/uploadkit/route.ts"
+    import { createUploadKitHandler } from '@uploadkit/next';
+    import type { FileRouter } from '@uploadkit/next';
+
+    const router = {
+      imageUploader: {
+        maxFileSize: '4MB',
+        maxFileCount: 10,
+        allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+        middleware: async ({ req }) => {
+          // Attach auth context — returned value becomes `metadata`
+          const session = await getSession(req);
+          return { userId: session.user.id };
+        },
+        onUploadComplete: async ({ file, metadata }) => {
+          // Save the URL to your database
+          await db.images.create({
+            url: file.url,
+            userId: metadata.userId,
+          });
+        },
+      },
+    } satisfies FileRouter;
+
+    export const { GET, POST } = createUploadKitHandler({ router });
+    ```
+  </Tab>
+  <Tab value="React (API key)">
+    ```typescript
+    // No file router needed — validation happens in the UploadKit API
+    // Set NEXT_PUBLIC_UPLOADKIT_API_KEY in your environment
+    ```
+
+    When using the React SDK directly with an API key, file type and size limits are configured in your project's file routes in the [dashboard](/docs/dashboard/overview).
+  </Tab>
+</Tabs>
+
+## 2. Add the dropzone component
+
+<Tabs groupId="framework" items={['Next.js', 'React (API key)']}>
+  <Tab value="Next.js">
+    ```tsx title="app/upload/page.tsx"
+    'use client';
+
+    import { UploadDropzone } from '@uploadkit/react';
+
+    export default function UploadPage() {
+      return (
+        <UploadDropzone
+          route="imageUploader"
+          onUploadComplete={(files) => {
+            console.log('Uploaded:', files[0].url);
+          }}
+          onUploadError={(error) => {
+            console.error('Upload failed:', error.message);
+          }}
+        />
+      );
+    }
+    ```
+  </Tab>
+  <Tab value="React (API key)">
+    ```tsx
+    'use client';
+
+    import { UploadDropzone } from '@uploadkit/react';
+
+    export default function UploadPage() {
+      return (
+        <UploadDropzone
+          apiKey={process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!}
+          routeSlug="imageUploader"
+          onUploadComplete={(files) => {
+            console.log('Uploaded:', files[0].url);
+          }}
+          onUploadError={(error) => {
+            console.error('Upload failed:', error.message);
+          }}
+        />
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## 3. Show a client-side preview
+
+Use the `FilePreview` component to display thumbnails before and after upload:
+
+```tsx title="app/upload/page.tsx"
+'use client';
+
+import { useState } from 'react';
+import { UploadDropzone, FilePreview } from '@uploadkit/react';
+
+export default function UploadPage() {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  return (
+    <div>
+      <UploadDropzone
+        route="imageUploader"
+        onUploadComplete={(files) => {
+          setImageUrl(files[0].url);
+        }}
+      />
+
+      {imageUrl && (
+        <div className="mt-4">
+          <p className="text-sm text-muted-foreground">Uploaded image:</p>
+          <img src={imageUrl} alt="Uploaded" className="mt-2 rounded-lg max-w-sm" />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+For in-progress thumbnail previews (before the upload completes), use the `FilePreview` component from `@uploadkit/react` — it generates thumbnails client-side via canvas.
+
+## 4. Handle the upload result
+
+The `onUploadComplete` callback receives an array of uploaded files:
+
+```typescript
+onUploadComplete={(files) => {
+  const file = files[0];
+  // file.url — CDN URL (permanent, use this in your database)
+  // file.key — Storage key (for deletion via API)
+  // file.name — Original file name
+  // file.size — File size in bytes
+  // file.type — MIME type
+
+  // Save to your database
+  await updateUserAvatar(userId, file.url);
+}}
+```
+
+<Callout type="info">
+  Save `file.url` to your database — this is the permanent CDN URL. The `file.key` is useful if you need to delete the file later via the [Files API](/docs/api-reference/files).
+</Callout>

@@ -1,0 +1,175 @@
+---
+title: Multipart Upload Guide
+description: How multipart uploads work in UploadKit — automatic activation, progress tracking, abort behavior, and retry configuration.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Uploading large files (videos, datasets, archives) requires a different strategy than single-file uploads. UploadKit handles this automatically using the S3 Multipart Upload API — no configuration required.
+
+## How it works
+
+For files **over 10 MB**, UploadKit automatically switches to the multipart upload flow:
+
+1. **Init** — The SDK calls `POST /api/v1/upload/multipart/init` to create a multipart upload and receive presigned URLs for each 10 MB chunk.
+2. **Upload chunks** — Each chunk is uploaded in parallel (up to 3 concurrent parts) using the presigned URLs.
+3. **Complete** — After all parts are uploaded, the SDK calls `POST /api/v1/upload/multipart/complete` with each part's ETag. R2 assembles the parts into the final file.
+
+For files **10 MB and under**, the standard single-file presigned URL flow is used.
+
+<Callout>
+  The switch between single-file and multipart is entirely automatic. Your file route configuration, `onUploadComplete` callback, and React components behave identically regardless of file size.
+</Callout>
+
+## Progress tracking
+
+Use the `onUploadProgress` callback to track per-chunk progress and aggregate it into an overall percentage:
+
+```tsx title="components/VideoUploader.tsx"
+'use client';
+
+import { useState } from 'react';
+import { UploadDropzone } from '@uploadkit/react';
+
+export function VideoUploader() {
+  const [progress, setProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      <UploadDropzone
+        route="videoUploader"
+        onUploadBegin={() => {
+          setUploading(true);
+          setProgress(0);
+        }}
+        onUploadProgress={(p) => {
+          setProgress(p);
+        }}
+        onUploadComplete={(files) => {
+          setUploading(false);
+          setProgress(100);
+          console.log('Video uploaded:', files[0].url);
+        }}
+        onUploadError={(error) => {
+          setUploading(false);
+          console.error('Upload failed:', error.message);
+        }}
+      />
+
+      {uploading && (
+        <div className="space-y-1">
+          <div className="flex justify-between text-sm">
+            <span>Uploading...</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+The `onUploadProgress` value is an integer from 0 to 100, aggregated across all chunks.
+
+## Using the core SDK directly
+
+For maximum control, use `@uploadkit/core` with the `onProgress` callback:
+
+```typescript
+import { UploadKitClient } from '@uploadkit/core';
+
+const client = new UploadKitClient({
+  apiKey: process.env.UPLOADKIT_API_KEY!,
+});
+
+const results = await client.upload(files, {
+  routeSlug: 'videoUploader',
+  maxRetries: 3,
+  onProgress: (progress) => {
+    // progress.percent — 0-100 overall progress
+    // progress.loaded — bytes uploaded so far
+    // progress.total — total file size
+    console.log(`${progress.percent}% (${progress.loaded}/${progress.total} bytes)`);
+  },
+});
+```
+
+## Abort behavior
+
+Users can cancel an in-progress upload. The SDK cleans up the partial multipart upload automatically:
+
+```tsx
+'use client';
+
+import { useUploadKit } from '@uploadkit/react';
+
+export function UploadWithCancel() {
+  const { upload, abort, isUploading, progress } = useUploadKit({
+    route: 'videoUploader',
+  });
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    await upload(files);
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={handleFileChange} disabled={isUploading} />
+
+      {isUploading && (
+        <div className="flex items-center gap-4">
+          <span>{progress}%</span>
+          <button
+            onClick={abort}
+            className="text-sm text-destructive hover:underline"
+          >
+            Cancel upload
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+When `abort()` is called:
+1. In-progress chunk PUT requests are cancelled via `AbortSignal`
+2. The SDK calls `POST /api/v1/upload/multipart/abort` to clean up all uploaded parts in R2
+3. The file record is removed from the database
+4. `onUploadError` is called with an `AbortError`
+
+## Retry configuration
+
+Failed chunk uploads are automatically retried up to 3 times with exponential backoff. You can configure this via the core SDK:
+
+```typescript
+const results = await client.upload(files, {
+  routeSlug: 'videoUploader',
+  maxRetries: 5,  // Retry each chunk up to 5 times (default: 3)
+});
+```
+
+If all retries for a chunk fail, the entire upload is aborted and the partial upload is cleaned up.
+
+## File size limits
+
+Multipart uploads are subject to the same size limits as regular uploads:
+
+| Tier | Max file size |
+|------|-------------|
+| Free | 4 MB |
+| Pro | 512 MB |
+| Team | 5 GB |
+| Enterprise | 10 GB |
+
+<Callout type="info">
+  For files over 4 MB on the Free tier, the upload will be rejected by the API before multipart initiation. Upgrade to Pro to unlock 512 MB file support.
+</Callout>

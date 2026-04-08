@@ -1,0 +1,183 @@
+---
+title: Document Upload Guide
+description: Accept PDF and Word document uploads with large file support, custom dropzone content, and metadata tagging.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+Document uploads often require larger file size limits and more context about what the file represents. This guide configures a route for PDFs and Word documents up to 50 MB, with metadata for categorizing uploads.
+
+## 1. Configure the file route
+
+```typescript title="app/api/uploadkit/route.ts"
+import { createUploadKitHandler } from '@uploadkit/next';
+import type { FileRouter } from '@uploadkit/next';
+
+const router = {
+  documentUploader: {
+    maxFileSize: '50MB',
+    maxFileCount: 5,
+    allowedTypes: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
+    middleware: async ({ req }) => {
+      const session = await getSession(req);
+      if (!session) throw new Error('Unauthorized');
+
+      // Get category from request headers or URL params
+      const category = req.headers.get('x-upload-category') ?? 'general';
+
+      return {
+        userId: session.user.id,
+        category,
+      };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      await db.documents.create({
+        url: file.url,
+        key: file.key,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        userId: metadata.userId,
+        category: metadata.category,
+        uploadedAt: new Date(),
+      });
+    },
+  },
+} satisfies FileRouter;
+
+export const { GET, POST } = createUploadKitHandler({ router });
+```
+
+## 2. Add the dropzone with custom content
+
+```tsx title="components/DocumentDropzone.tsx"
+'use client';
+
+import { UploadDropzone } from '@uploadkit/react';
+
+interface DocumentDropzoneProps {
+  category: 'invoice' | 'contract' | 'report' | 'general';
+  onUploadComplete: (url: string, name: string) => void;
+}
+
+export function DocumentDropzone({ category, onUploadComplete }: DocumentDropzoneProps) {
+  return (
+    <UploadDropzone
+      route="documentUploader"
+      appearance={{
+        container: 'border-2 border-dashed border-border rounded-xl p-8',
+        uploadIcon: 'text-muted-foreground',
+        label: 'text-foreground font-medium',
+        allowedContent: 'text-muted-foreground text-sm',
+        button: 'bg-primary text-primary-foreground rounded-lg px-4 py-2',
+      }}
+      content={{
+        label: 'Drop your document here',
+        allowedContent: 'PDF, DOC, DOCX up to 50 MB',
+        button({ ready, isUploading }) {
+          if (isUploading) return 'Uploading...';
+          if (ready) return 'Choose document';
+          return 'Loading...';
+        },
+      }}
+      onUploadComplete={(files) => {
+        onUploadComplete(files[0].url, files[0].name);
+      }}
+      onUploadError={(error) => {
+        console.error('Document upload failed:', error.message);
+      }}
+    />
+  );
+}
+```
+
+## 3. Pass metadata to categorize uploads
+
+Pass category information through the upload request by setting a custom header in the middleware, or by reading it from the authenticated session:
+
+```tsx
+// Option A: Pass category via query params before upload (recommended)
+// Your backend middleware reads req.headers or req.url
+
+// Option B: Use metadata directly in the file route
+const router = {
+  invoiceUploader: {
+    maxFileSize: '50MB',
+    allowedTypes: ['application/pdf'],
+    middleware: async ({ req }) => {
+      const session = await getSession(req);
+      return {
+        userId: session.user.id,
+        category: 'invoice',  // hardcoded per route
+      };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      await db.documents.create({
+        url: file.url,
+        userId: metadata.userId,
+        category: metadata.category,  // 'invoice'
+      });
+    },
+  },
+} satisfies FileRouter;
+```
+
+## 4. Display uploaded documents
+
+```tsx title="components/DocumentList.tsx"
+interface Document {
+  id: string;
+  name: string;
+  url: string;
+  size: number;
+  uploadedAt: Date;
+}
+
+export function DocumentList({ documents }: { documents: Document[] }) {
+  return (
+    <ul className="divide-y divide-border rounded-lg border">
+      {documents.map((doc) => (
+        <li key={doc.id} className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📄</span>
+            <div>
+              <p className="font-medium text-sm">{doc.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {(doc.size / 1024 / 1024).toFixed(1)} MB
+              </p>
+            </div>
+          </div>
+          <a
+            href={doc.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-primary hover:underline"
+          >
+            Download
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+<Callout type="info">
+  Files over 10 MB are automatically uploaded using the multipart flow — no configuration needed. See the [Multipart Upload Guide](/docs/guides/multipart-upload) for details on how this works.
+</Callout>
+
+## MIME types reference
+
+| Format | MIME type |
+|--------|----------|
+| PDF | `application/pdf` |
+| Word (legacy .doc) | `application/msword` |
+| Word (modern .docx) | `application/vnd.openxmlformats-officedocument.wordprocessingml.document` |
+| Excel (.xlsx) | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` |
+| PowerPoint (.pptx) | `application/vnd.openxmlformats-officedocument.presentationml.presentation` |
+| Plain text | `text/plain` |

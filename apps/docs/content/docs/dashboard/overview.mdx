@@ -1,0 +1,60 @@
+---
+title: Dashboard Overview
+description: The UploadKit dashboard — project management, file browser, API keys, usage monitoring, and billing.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The UploadKit dashboard at [app.uploadkit.dev](https://app.uploadkit.dev) is the control center for your file uploads. It gives you visibility into what files are stored, how much capacity you have used, and the tools to manage your API keys and billing.
+
+## What the dashboard provides
+
+| Feature | Description |
+|---------|-------------|
+| **Project management** | Create and switch between isolated projects, each with its own files, API keys, and usage |
+| **File browser** | Search, preview, and bulk-delete files across your project |
+| **API keys** | Create live and test API keys, revoke compromised keys |
+| **Usage monitoring** | Real-time charts for storage, bandwidth, and upload count |
+| **Billing** | Subscribe, upgrade, and manage your Stripe subscription |
+| **Upload logs** | Inspect recent upload activity, filter by status and date |
+
+## Signing up
+
+1. Go to [app.uploadkit.dev](https://app.uploadkit.dev)
+2. Sign in with **GitHub**, **Google**, or your **email address** (magic link)
+3. On first login, a default project is created for you automatically
+
+No credit card is required for the Free tier.
+
+## The overview page
+
+After logging in, the dashboard lands on the project overview. It contains:
+
+**Metric cards** — at a glance numbers for this billing period:
+- Storage used (e.g., 1.2 GB of 5 GB)
+- Bandwidth used
+- Upload count
+- API key count
+
+**Upload chart** — a bar chart showing daily upload volume over the past 30 days. Useful for spotting traffic spikes or unusual activity.
+
+**Recent files** — the 10 most recently uploaded files with thumbnails, file names, sizes, and CDN URLs. Click any row to open the file detail.
+
+## Navigating the dashboard
+
+The sidebar is organized by section:
+
+```
+├── Overview
+├── Files
+├── API Keys
+├── Usage
+├── Billing
+└── Settings
+```
+
+The project switcher at the top of the sidebar lets you jump between projects. Each project is a completely isolated environment with its own files, keys, and quota.
+
+<Callout type="info">
+  All dashboard data is scoped to the currently selected project. Switching projects changes every section — files, keys, and usage numbers.
+</Callout>

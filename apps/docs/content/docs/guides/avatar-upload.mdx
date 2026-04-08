@@ -1,0 +1,170 @@
+---
+title: Avatar Upload Guide
+description: Single-file avatar upload with circular preview and replace-existing pattern.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+Avatar uploads have specific requirements: a single file, small size limit, and the ability to replace an existing avatar without leaving orphaned files. This guide covers all three.
+
+## 1. Configure the file route
+
+```typescript title="app/api/uploadkit/route.ts"
+import { createUploadKitHandler } from '@uploadkit/next';
+import type { FileRouter } from '@uploadkit/next';
+
+const router = {
+  avatarUploader: {
+    maxFileSize: '2MB',
+    maxFileCount: 1,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    middleware: async ({ req }) => {
+      const session = await getSession(req);
+      if (!session) throw new Error('Unauthorized');
+
+      // Pass the existing avatar key so we can delete it after upload
+      const user = await db.users.findById(session.user.id);
+      return {
+        userId: session.user.id,
+        existingAvatarKey: user.avatarKey ?? null,
+      };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      // Delete the old avatar from storage
+      if (metadata.existingAvatarKey) {
+        await uploadkit.files.delete(metadata.existingAvatarKey);
+      }
+
+      // Save the new avatar
+      await db.users.updateById(metadata.userId, {
+        avatarUrl: file.url,
+        avatarKey: file.key,
+      });
+    },
+  },
+} satisfies FileRouter;
+
+export const { GET, POST } = createUploadKitHandler({ router });
+```
+
+<Callout>
+  Store both `file.url` and `file.key` for avatar files. The URL is displayed to users; the key is used to delete the old avatar when the user uploads a new one.
+</Callout>
+
+## 2. Add the upload button with circular preview
+
+```tsx title="components/AvatarUploader.tsx"
+'use client';
+
+import { useState } from 'react';
+import { UploadButton } from '@uploadkit/react';
+
+interface AvatarUploaderProps {
+  currentAvatarUrl: string | null;
+  userId: string;
+}
+
+export function AvatarUploader({ currentAvatarUrl, userId }: AvatarUploaderProps) {
+  const [avatarUrl, setAvatarUrl] = useState(currentAvatarUrl);
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      {/* Circular avatar preview */}
+      <div className="relative">
+        <img
+          src={avatarUrl ?? '/default-avatar.png'}
+          alt="Your avatar"
+          className="h-24 w-24 rounded-full object-cover ring-2 ring-border"
+        />
+      </div>
+
+      <UploadButton
+        route="avatarUploader"
+        appearance={{
+          button: 'rounded-full px-4 py-2 text-sm font-medium',
+        }}
+        onUploadComplete={(files) => {
+          setAvatarUrl(files[0].url);
+        }}
+        onUploadError={(error) => {
+          alert(`Upload failed: ${error.message}`);
+        }}
+      />
+    </div>
+  );
+}
+```
+
+## 3. Styling the circular preview
+
+You can use the `className` prop to apply custom styles directly to the upload button:
+
+```tsx
+<UploadButton
+  route="avatarUploader"
+  className="w-full"
+  appearance={{
+    button: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    allowedContent: 'text-muted-foreground text-xs mt-1',
+  }}
+/>
+```
+
+For a completely custom UI that looks like the circular avatar itself, use the `useUploadKit` hook:
+
+```tsx title="components/CustomAvatarUpload.tsx"
+'use client';
+
+import { useRef } from 'react';
+import { useUploadKit } from '@uploadkit/react';
+
+export function CustomAvatarUpload({ onSuccess }: { onSuccess: (url: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { upload, isUploading, progress } = useUploadKit({ route: 'avatarUploader' });
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const results = await upload([file]);
+    if (results[0]) {
+      onSuccess(results[0].url);
+    }
+  };
+
+  return (
+    <button
+      onClick={() => inputRef.current?.click()}
+      className="relative h-24 w-24 rounded-full overflow-hidden group cursor-pointer"
+      disabled={isUploading}
+    >
+      <img src="/current-avatar.jpg" alt="Avatar" className="h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="text-white text-xs">
+          {isUploading ? `${progress}%` : 'Change'}
+        </span>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+    </button>
+  );
+}
+```
+
+## Replace-existing avatar pattern
+
+The pattern used in this guide — storing both `url` and `key`, passing the existing key through middleware metadata, deleting the old file in `onUploadComplete` — ensures:
+
+1. No orphaned files accumulate in storage
+2. Storage usage stays accurate
+3. The old CDN URL is invalidated after deletion
+
+<Callout type="info">
+  Deletion in `onUploadComplete` is atomic from the user's perspective: the new avatar is already saved before the old one is deleted, so there is never a moment with no avatar.
+</Callout>

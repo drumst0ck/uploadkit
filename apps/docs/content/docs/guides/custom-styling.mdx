@@ -1,0 +1,199 @@
+---
+title: Custom Styling Guide
+description: Override CSS variables, add Tailwind classes, target inner elements with the appearance prop, and build fully custom UI with useUploadKit.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+UploadKit components are designed to be styled — from quick color tweaks to completely custom UI. There are four levels of customization, each progressively more involved.
+
+## Level 1: CSS custom properties
+
+Override `--uk-*` variables to match your brand with zero JavaScript:
+
+```css title="app/globals.css"
+:root {
+  /* Brand accent color */
+  --uk-accent: #6366f1;
+  --uk-accent-hover: #818cf8;
+  --uk-accent-foreground: #ffffff;
+
+  /* Surfaces */
+  --uk-background: #ffffff;
+  --uk-border: #e4e4e7;
+  --uk-radius: 12px;
+
+  /* Text */
+  --uk-text-primary: #09090b;
+  --uk-text-secondary: #71717a;
+
+  /* States */
+  --uk-drag-active: rgba(99, 102, 241, 0.08);
+}
+
+/* Dark mode */
+.dark {
+  --uk-background: #09090b;
+  --uk-border: rgba(255, 255, 255, 0.06);
+  --uk-text-primary: #fafafa;
+  --uk-text-secondary: #a1a1aa;
+  --uk-drag-active: rgba(99, 102, 241, 0.12);
+}
+```
+
+These variables cascade to every UploadKit component in your app.
+
+## Level 2: className prop
+
+Add Tailwind classes directly to the component container:
+
+```tsx
+<UploadDropzone
+  route="imageUploader"
+  className="my-8 border-2 border-primary/20 bg-primary/5"
+  onUploadComplete={handleComplete}
+/>
+```
+
+## Level 3: appearance prop
+
+Target specific inner elements for surgical styling:
+
+```tsx
+<UploadDropzone
+  route="imageUploader"
+  appearance={{
+    container: 'border-dashed border-2 rounded-2xl p-10',
+    uploadIcon: 'text-primary h-12 w-12',
+    label: 'text-xl font-semibold text-foreground mt-4',
+    allowedContent: 'text-muted-foreground text-sm mt-1',
+    button: 'bg-primary text-primary-foreground rounded-full px-6 py-2 text-sm font-medium hover:bg-primary/90 transition-colors mt-4',
+  }}
+  onUploadComplete={handleComplete}
+/>
+
+<UploadButton
+  route="imageUploader"
+  appearance={{
+    button: 'rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white px-4 py-2 text-sm font-semibold shadow-lg',
+    allowedContent: 'text-xs text-muted-foreground mt-1',
+  }}
+/>
+```
+
+**Available appearance keys:**
+
+| Key | Element |
+|-----|---------|
+| `container` | Outer wrapper div |
+| `uploadIcon` | SVG cloud icon |
+| `label` | Primary instruction text |
+| `allowedContent` | "Image, PDF up to 4MB" subtitle |
+| `button` | Upload trigger button |
+
+## Level 4: Build custom UI with useUploadKit
+
+For complete control over layout, animation, and interaction, use the `useUploadKit` hook:
+
+```tsx title="components/CustomDropzone.tsx"
+'use client';
+
+import { useCallback, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { useUploadKit } from '@uploadkit/react';
+
+export function CustomDropzone() {
+  const { upload, isUploading, progress } = useUploadKit({
+    route: 'imageUploader',
+    onUploadComplete: (files) => {
+      console.log('Uploaded:', files.map((f) => f.url));
+    },
+    onUploadError: (error) => {
+      console.error('Upload failed:', error.message);
+    },
+  });
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      upload(acceptedFiles);
+    },
+    [upload],
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 'image/*': [] },
+    maxSize: 4 * 1024 * 1024,
+    disabled: isUploading,
+  });
+
+  return (
+    <div
+      {...getRootProps()}
+      className={[
+        'relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 transition-all cursor-pointer',
+        isDragActive
+          ? 'border-primary bg-primary/5 scale-[1.01]'
+          : 'border-border hover:border-primary/50 hover:bg-muted/30',
+        isUploading ? 'pointer-events-none opacity-60' : '',
+      ].join(' ')}
+    >
+      <input {...getInputProps()} />
+
+      {isUploading ? (
+        <div className="flex flex-col items-center gap-3 w-full max-w-xs">
+          <span className="text-sm font-medium text-foreground">Uploading... {progress}%</span>
+          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="rounded-full bg-primary/10 p-4">
+            <svg className="h-8 w-8 text-primary" /* ... upload icon */ />
+          </div>
+          <p className="font-semibold text-foreground">
+            {isDragActive ? 'Drop to upload' : 'Drag images here'}
+          </p>
+          <p className="text-sm text-muted-foreground">or click to browse — up to 4 MB</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Dark mode customization
+
+If your app uses Tailwind's `dark:` variant, you can pair it with the CSS variable approach:
+
+```css title="app/globals.css"
+/* Override --uk-* variables inside the dark class */
+.dark {
+  --uk-background: theme(colors.zinc.950);
+  --uk-border: theme(colors.zinc.800);
+  --uk-text-primary: theme(colors.zinc.50);
+  --uk-text-secondary: theme(colors.zinc.400);
+  --uk-accent: theme(colors.violet.500);
+}
+```
+
+Or use the `appearance` prop with `dark:` classes when using Tailwind:
+
+```tsx
+<UploadDropzone
+  route="imageUploader"
+  appearance={{
+    container: 'dark:border-zinc-700 dark:bg-zinc-900/50',
+    label: 'dark:text-zinc-100',
+    allowedContent: 'dark:text-zinc-400',
+  }}
+/>
+```
+
+<Callout type="info">
+  UploadKit components ship with dark mode support out of the box. The CSS variable approach requires the least code — start there before reaching for the `appearance` prop.
+</Callout>

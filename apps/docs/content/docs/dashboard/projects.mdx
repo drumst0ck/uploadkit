@@ -1,0 +1,66 @@
+---
+title: Projects
+description: Create, configure, and delete projects — UploadKit's top-level isolation boundary for files, API keys, and usage.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Projects are the top-level organizational unit in UploadKit. Each project has its own:
+
+- Files and storage quota
+- API keys (live and test)
+- File routes
+- Usage tracking (separate storage, bandwidth, upload counters)
+
+This isolation makes it easy to keep production and staging environments separate, or to manage multiple applications under one account.
+
+## Creating a project
+
+1. Open the project switcher in the sidebar (top-left)
+2. Click **New Project**
+3. Enter a project name (e.g., "My App — Production")
+4. Click **Create**
+
+A slug is generated automatically from the name (e.g., `my-app-production`). The slug appears in the dashboard URL and is used internally — it is not exposed to end users.
+
+**Project limits by tier:**
+
+| Tier | Max projects |
+|------|-------------|
+| Free | 2 |
+| Pro | 10 |
+| Team | 50 |
+| Enterprise | Unlimited |
+
+If you reach your project limit, you will see an error when creating a new project. Upgrade your plan or delete an unused project.
+
+## Project settings
+
+Navigate to **Settings** within a project to:
+
+- **Rename the project** — change the display name (the slug does not change)
+- **View the project ID** — useful for API calls that require a project identifier
+
+## Switching between projects
+
+Click the project name in the sidebar to open the switcher. All active projects are listed. Click any project to switch — the entire dashboard reloads scoped to that project.
+
+<Callout type="info">
+  Each API key is tied to a specific project. Make sure you are using the correct project's API key in your application.
+</Callout>
+
+## Deleting a project
+
+<Callout type="warn">
+  **Cascading deletion.** Deleting a project permanently removes all files (from Cloudflare R2 storage and the database), all API keys, all file routes, and all usage records for that project. This cannot be undone.
+</Callout>
+
+To delete a project:
+
+1. Open **Settings** for the project
+2. Scroll to the **Danger Zone** section
+3. Click **Delete Project**
+4. Type the project name to confirm
+5. Click **Delete**
+
+Deletion runs in the background. Large projects with many files may take a few minutes to complete. You will be redirected to another project automatically.

@@ -1,0 +1,88 @@
+---
+title: Billing
+description: Subscription tiers, upgrading, managing your plan, and overage pricing.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+UploadKit offers four subscription tiers. All plans include access to the full SDK and dashboard — tiers differ in storage limits, bandwidth, upload count, and project/key capacity.
+
+## Subscription tiers
+
+| Feature | Free | Pro | Team | Enterprise |
+|---------|------|-----|------|-----------|
+| **Price** | $0/mo | $15/mo | $35/mo | Custom |
+| **Storage** | 5 GB | 100 GB | 1 TB | Unlimited |
+| **Bandwidth** | 2 GB/mo | 200 GB/mo | 2 TB/mo | Unlimited |
+| **Max file size** | 4 MB | 512 MB | 5 GB | 10 GB |
+| **Uploads/month** | 1,000 | 50,000 | 500,000 | Unlimited |
+| **Projects** | 2 | 10 | 50 | Unlimited |
+| **API keys** | 2 | 10 | 50 | Unlimited |
+| **Overage billing** | — | Yes | Yes | Negotiated |
+
+<Callout type="info">
+  Free tier accounts do not have overage billing — uploads are blocked once the monthly quota is reached. Upgrade to Pro to enable overages.
+</Callout>
+
+## Overage pricing
+
+Pro and Team plans continue to work after quota is reached by charging for overage usage at the end of the billing period:
+
+| Resource | Overage rate |
+|---------|-------------|
+| Storage | $0.02 per GB |
+| Bandwidth | $0.01 per GB |
+| Uploads | $0.001 per upload |
+
+Overages are billed via Stripe at the end of each calendar month. You can monitor usage in real time from the **Usage** page to avoid unexpected charges.
+
+## Upgrading your plan
+
+1. Navigate to **Billing** in the sidebar
+2. Click **Upgrade** next to the plan you want
+3. You are redirected to Stripe Checkout
+4. Enter your payment details and complete the subscription
+5. Your account is upgraded immediately after payment
+
+Upgrade takes effect instantly — your new limits apply as soon as the Stripe Checkout session completes.
+
+## Managing your subscription
+
+To change your plan, update payment information, or view invoice history:
+
+1. Navigate to **Billing** in the sidebar
+2. Click **Manage subscription**
+3. You are redirected to the Stripe Billing Portal
+
+From the Billing Portal you can:
+
+- **Upgrade or downgrade** your plan
+- **Update payment method** (credit card or bank account)
+- **Download invoices** (PDF)
+- **Cancel your subscription** (you keep access until the end of the billing period)
+
+## Canceling your subscription
+
+Cancel from the Stripe Billing Portal. After cancellation:
+
+- You retain access to your current plan until the end of the billing period
+- At the end of the period, your account reverts to the Free tier
+- Files exceeding the Free tier 5 GB limit are not automatically deleted — you have 30 days to remove excess files before they are flagged
+
+## Usage monitoring
+
+The **Usage** page shows real-time usage for the current billing period:
+
+- **Storage** — current storage used vs. your plan limit
+- **Bandwidth** — egress from CDN this month
+- **Uploads** — number of successful uploads this month
+
+Usage updates within a few minutes of each upload or deletion.
+
+<Callout type="info">
+  Usage is tracked per **account**, not per project. Your 5 GB Free tier storage is shared across all projects in your account.
+</Callout>
+
+## Enterprise plans
+
+Enterprise plans include custom storage limits, SLA guarantees, dedicated support, and negotiated overage rates. Contact sales at [sales@uploadkit.dev](mailto:sales@uploadkit.dev) to discuss requirements.
