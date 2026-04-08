@@ -535,22 +535,16 @@ The adapter manages these MongoDB collections automatically:
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`getAuthMongoClient()` timing — lazy vs. eager initialization**
-   - What we know: The adapter needs a connected `MongoClient`. `connectDB()` is async.
-   - What's unclear: Whether Next.js initializes `auth.ts` before any DB connection is available in the serverless cold-start path.
-   - Recommendation: Make `auth.ts` lazily initialize the adapter via an async factory. Test with a cold-start scenario during implementation.
+   - RESOLVED: Use async lazy factory pattern — `NextAuth(async () => { const client = await getAuthMongoClient(); ... })`. This ensures `connectDB()` completes before the adapter is initialized on every cold start. Implemented in Plan 02-01 Task 1 auth.ts Step 5.
 
 2. **Resend magic link email — custom template or default?**
-   - What we know: The default Auth.js Resend template is functional but generic.
-   - What's unclear: Whether a custom `sendVerificationRequest` function is worth building in this phase vs. deferring to Phase 7 (Email).
-   - Recommendation: Use default Auth.js template in this phase. Phase 7 (Email) will implement the custom React Email template per EMAIL-01.
+   - RESOLVED: Use default Auth.js Resend template in this phase. Phase 7 (Email) will implement the custom React Email template per EMAIL-01.
 
 3. **Session cookie in subdomain context**
-   - What we know: Dashboard is at `dashboard.uploadkit.dev` (Phase 1 subdomain structure).
-   - What's unclear: Whether `AUTH_URL` needs explicit configuration for the cookie domain to work correctly with the subdomain.
-   - Recommendation: Set `AUTH_URL=https://dashboard.uploadkit.dev` in production env. Auth.js v5 uses `AUTH_URL` to scope cookies correctly.
+   - RESOLVED: Set `AUTH_URL=https://dashboard.uploadkit.dev` in production env (documented in .env.example per Plan 02-01 Task 2). Auth.js v5 uses `AUTH_URL` to scope cookies to the dashboard subdomain.
 
 ---
 
