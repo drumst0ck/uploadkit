@@ -28,14 +28,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Upload Flow
 
-- [ ] **UPLD-01**: Client can request presigned PUT URL via POST /api/v1/upload/request (validates API key, tier limits, file type/size)
-- [ ] **UPLD-02**: Client uploads directly to R2 via presigned URL (no server proxy)
-- [ ] **UPLD-03**: Client confirms upload via POST /api/v1/upload/complete (API verifies file in R2, stores metadata, executes onUploadComplete callback)
-- [ ] **UPLD-04**: Multipart upload for files >10MB (transparent chunking, 5MB min part size, ETag collection)
-- [ ] **UPLD-05**: Upload progress events (0-100%) via XHR
-- [ ] **UPLD-06**: Upload abort/cancel via AbortController
+- [x] **UPLD-01**: Client can request presigned PUT URL via POST /api/v1/upload/request (validates API key, tier limits, file type/size)
+- [x] **UPLD-02**: Client uploads directly to R2 via presigned URL (no server proxy)
+- [x] **UPLD-03**: Client confirms upload via POST /api/v1/upload/complete (API verifies file in R2, stores metadata, executes onUploadComplete callback)
+- [x] **UPLD-04**: Multipart upload for files >10MB (transparent chunking, 5MB min part size, ETag collection)
+- [x] **UPLD-05**: Upload progress events (0-100%) via XHR
+- [x] **UPLD-06**: Upload abort/cancel via AbortController
 - [x] **UPLD-07**: Automatic retry with exponential backoff (configurable, default 3 retries)
-- [ ] **UPLD-08**: Client-side file type and size validation before upload request
+- [x] **UPLD-08**: Client-side file type and size validation before upload request
 - [ ] **UPLD-09**: Cleanup job for stale "UPLOADING" records (>1 hour) to prevent orphaned R2 objects
 
 ### REST API
@@ -206,14 +206,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-02 | Phase 2 | Complete |
 | AUTH-03 | Phase 2 | Complete |
 | AUTH-04 | Phase 2 | Complete |
-| UPLD-01 | Phase 3 | Pending |
-| UPLD-02 | Phase 3 | Pending |
-| UPLD-03 | Phase 3 | Pending |
-| UPLD-04 | Phase 3 | Pending |
-| UPLD-05 | Phase 3 | Pending |
-| UPLD-06 | Phase 3 | Pending |
+| UPLD-01 | Phase 3 | Complete |
+| UPLD-02 | Phase 3 | Complete |
+| UPLD-03 | Phase 3 | Complete |
+| UPLD-04 | Phase 3 | Complete |
+| UPLD-05 | Phase 3 | Complete |
+| UPLD-06 | Phase 3 | Complete |
 | UPLD-07 | Phase 3 | Complete |
-| UPLD-08 | Phase 3 | Pending |
+| UPLD-08 | Phase 3 | Complete |
 | UPLD-09 | Phase 3 | Pending |
 | API-01 | Phase 3 | Complete |
 | API-02 | Phase 3 | Pending |

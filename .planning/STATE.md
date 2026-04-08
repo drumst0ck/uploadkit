@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-upload-flow-rest-api 03-01-PLAN.md
-last_updated: "2026-04-08T12:50:57.174Z"
+stopped_at: Completed 03-upload-flow-rest-api 03-02-PLAN.md
+last_updated: "2026-04-08T12:56:21.890Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 10
-  completed_plans: 7
-  percent: 70
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 ## Current Position
 
 Phase: 03 (upload-flow-rest-api) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-08
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-authentication P01 | 7m | 3 tasks | 20 files |
 | Phase 02-authentication P02 | 2m | 2 tasks | 4 files |
 | Phase 03-upload-flow-rest-api P01 | 15m | 3 tasks | 13 files |
+| Phase 03-upload-flow-rest-api P02 | 3m | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,9 @@ Recent decisions affecting current work:
 - [Phase 03-upload-flow-rest-api]: ApiKey model stores keyHash (SHA256 hex) + keyPrefix — plaintext key never persisted (T-03-01)
 - [Phase 03-upload-flow-rest-api]: Rate limit runs before DB lookup in withApiKey using Upstash HTTP to minimize latency on rejected requests (T-03-05)
 - [Phase 03-upload-flow-rest-api]: QStash client null-guarded on QSTASH_TOKEN — enqueueWebhook is a no-op in dev (D-09/D-10)
+- [Phase 03-upload-flow-rest-api]: effectiveMaxSize = Math.min(fileRouter.maxFileSize, TIER_LIMITS[tier].maxFileSizeBytes) enforces the more restrictive of route-level and tier-level file size limits
+- [Phase 03-upload-flow-rest-api]: R2 HEAD catches both 403 and 404 from S3ServiceException..statusCode — R2 returns 403 for missing objects when bucket has restricted GetObject policy (Pitfall 4)
+- [Phase 03-upload-flow-rest-api]: Optional metadata uses conditional spread ...(metadata !== undefined ? { metadata } : {}) to satisfy exactOptionalPropertyTypes: true throughout upload routes
 
 ### Pending Todos
 
@@ -101,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T12:50:57.172Z
-Stopped at: Completed 03-upload-flow-rest-api 03-01-PLAN.md
+Last session: 2026-04-08T12:56:21.888Z
+Stopped at: Completed 03-upload-flow-rest-api 03-02-PLAN.md
 Resume file: None
