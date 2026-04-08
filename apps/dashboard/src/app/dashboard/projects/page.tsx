@@ -1,0 +1,90 @@
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { Plus, FolderOpen } from 'lucide-react';
+import { auth } from '../../../../auth';
+import { connectDB, Project } from '@uploadkit/db';
+import { Button } from '@uploadkit/ui';
+import { CreateProjectDialog } from '../../../components/create-project-dialog';
+import { formatDate } from '../../../lib/format';
+
+export const dynamic = 'force-dynamic';
+
+export default async function ProjectsPage() {
+  const session = await auth();
+  if (!session?.user) redirect('/login');
+
+  await connectDB();
+
+  const projects = await Project.find({ userId: session.user.id })
+    .sort({ _id: -1 })
+    .lean();
+
+  // If user has exactly 1 project, redirect directly to it
+  if (projects.length === 1 && projects[0]) {
+    redirect(`/dashboard/projects/${projects[0].slug}`);
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Page header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-white">Projects</h1>
+          <p className="text-sm text-zinc-400 mt-1">
+            Manage your upload projects and API keys.
+          </p>
+        </div>
+        <CreateProjectDialog>
+          <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2">
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            New project
+          </Button>
+        </CreateProjectDialog>
+      </div>
+
+      {projects.length === 0 ? (
+        /* Empty state */
+        <div className="rounded-xl border border-dashed border-white/[0.10] bg-[#141416] p-16 text-center">
+          <FolderOpen className="h-10 w-10 text-zinc-600 mx-auto mb-4" aria-hidden="true" />
+          <h2 className="text-lg font-medium text-zinc-300 mb-2">
+            No projects yet
+          </h2>
+          <p className="text-sm text-zinc-500 mb-6">
+            Create your first project to start uploading files.
+          </p>
+          <CreateProjectDialog>
+            <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Create your first project
+            </Button>
+          </CreateProjectDialog>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {projects.map((project) => (
+            <Link
+              key={String(project._id)}
+              href={`/dashboard/projects/${project.slug}`}
+              className="group rounded-xl border border-white/[0.06] bg-[#141416] p-6 transition-colors hover:border-white/[0.12] hover:bg-white/[0.02] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
+            >
+              {/* Project avatar */}
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-lg font-semibold text-indigo-300 mb-4">
+                {project.name[0]?.toUpperCase() ?? 'P'}
+              </div>
+
+              <h2 className="text-base font-medium text-white group-hover:text-indigo-300 transition-colors mb-1 truncate">
+                {project.name}
+              </h2>
+              <p className="text-xs font-mono text-zinc-500 mb-3 truncate">
+                {project.slug}
+              </p>
+              <p className="text-xs text-zinc-600">
+                Created {formatDate(project.createdAt)}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
