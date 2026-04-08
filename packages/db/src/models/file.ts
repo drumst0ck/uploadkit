@@ -14,6 +14,7 @@ export interface IFile extends Document {
   projectId: Types.ObjectId;
   uploadedBy?: string;
   deletedAt?: Date;
+  webhookFailedAt?: Date; // Set by QStash DLQ callback when webhook delivery is exhausted (D-10)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +36,7 @@ const fileSchema = new Schema<IFile>(
     projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
     uploadedBy: { type: String },
     deletedAt: { type: Date },
+    webhookFailedAt: { type: Date },
   },
   { timestamps: true },
 );
