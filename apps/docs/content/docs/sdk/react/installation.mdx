@@ -1,0 +1,78 @@
+---
+title: Installation
+description: Add @uploadkit/react to your project and wrap your app with UploadKitProvider.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+`@uploadkit/react` provides styled upload components, a headless hook, and helper utilities for building file upload UIs. It requires `@uploadkit/core` as a peer dependency.
+
+## Install
+
+<Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @uploadkit/react @uploadkit/core
+    ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npm install @uploadkit/react @uploadkit/core
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @uploadkit/react @uploadkit/core
+    ```
+  </Tab>
+</Tabs>
+
+React 18 or 19 is required. If you are using Next.js, also install `@uploadkit/next` for the server-side route handler.
+
+## Wrap your app with UploadKitProvider
+
+Add `UploadKitProvider` at the root of your component tree (or the nearest ancestor of your upload UI):
+
+```tsx title="app/layout.tsx"
+import { UploadKitProvider } from '@uploadkit/react';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <UploadKitProvider apiKey={process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!}>
+          {children}
+        </UploadKitProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+The provider creates an `UploadKitClient` exactly once using `useRef` and makes it available to all child components and hooks via React context.
+
+## CSS is auto-imported
+
+Component styles are bundled with the package. **No manual stylesheet import is required** — the CSS is injected automatically when you use any component.
+
+If you need to override styles or apply custom theming, you can target the CSS custom properties directly. See the [Theming guide](/docs/sdk/react/theming).
+
+## UploadKitProvider props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `apiKey` | `string` | Yes | Your UploadKit API key. Use an environment variable prefixed `NEXT_PUBLIC_` so it is available in the browser. |
+| `baseUrl` | `string` | No | Override the API endpoint. Defaults to `'https://api.uploadkit.dev'`. |
+| `children` | `ReactNode` | Yes | The component tree that should have access to upload functionality. |
+
+<Callout type="warn">
+  The `apiKey` is stored in a private class field inside `UploadKitClient` and is never attached to the DOM or serialized in state. It is however visible in the page source when using `NEXT_PUBLIC_`. Use route-level auth in your server-side middleware to protect which files users can upload.
+</Callout>
+
+## Next steps
+
+- [UploadButton](/docs/sdk/react/upload-button) — one-click file uploads
+- [UploadDropzone](/docs/sdk/react/upload-dropzone) — drag-and-drop with multi-file support
+- [useUploadKit](/docs/sdk/react/use-uploadkit) — headless hook for custom UIs
+- [Theming](/docs/sdk/react/theming) — CSS custom properties reference

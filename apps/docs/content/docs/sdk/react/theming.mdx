@@ -1,0 +1,162 @@
+---
+title: Theming
+description: Customize @uploadkit/react components with CSS custom properties.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+<Callout>
+  Components use CSS custom properties (not Tailwind classes) so they work in any React project, not just Tailwind projects.
+</Callout>
+
+## CSS custom properties
+
+All visual properties are controlled by CSS variables. Override them on `:root` or any ancestor element to theme the components.
+
+### Token reference
+
+| Variable | Light default | Dark default | Controls |
+|----------|--------------|--------------|---------|
+| `--uk-primary` | `#0070f3` | `#0070f3` | Button background, dropzone border on hover, progress bar, focus rings |
+| `--uk-primary-hover` | `#005bb5` | `#005bb5` | Button background on hover |
+| `--uk-bg` | `#ffffff` | `#0a0a0b` | Component background |
+| `--uk-bg-secondary` | `#fafafa` | `#141416` | File item backgrounds, icon container backgrounds |
+| `--uk-border` | `#eaeaea` | `rgba(255,255,255,0.08)` | Borders and dividers |
+| `--uk-text` | `#171717` | `#fafafa` | Primary text color |
+| `--uk-text-secondary` | `#666666` | `#a1a1aa` | Secondary text, labels, hints |
+| `--uk-success` | `#00c853` | `#00c853` | Success state (checkmark, button after upload) |
+| `--uk-error` | `#dc2626` | `#dc2626` | Error state (X icon, button on failure, toast text) |
+| `--uk-radius` | `12px` | `12px` | Border radius on buttons, dropzone, modal, file items |
+| `--uk-font` | System UI stack | System UI stack | Font family for all component text |
+| `--uk-transition` | `200ms ease-out` | `200ms ease-out` | Transition duration and easing |
+
+## Overriding tokens
+
+Set variables on `:root` to change them globally, or on a specific ancestor to scope them:
+
+```css
+/* Global override */
+:root {
+  --uk-primary: #7c3aed;        /* Purple instead of blue */
+  --uk-primary-hover: #6d28d9;
+  --uk-radius: 8px;             /* Less rounded */
+}
+
+/* Scoped override — only affects components inside .upload-area */
+.upload-area {
+  --uk-primary: #059669;        /* Green for this section only */
+}
+```
+
+## Dark mode
+
+Dark mode works in two ways:
+
+**Automatic (prefers-color-scheme):** The background, border, and text tokens switch automatically based on the system preference. No code required.
+
+**Explicit (data-theme attribute):** Set `data-theme="dark"` on `<html>` (or any ancestor) to force dark mode regardless of system preference:
+
+```tsx title="app/layout.tsx"
+<html lang="en" data-theme="dark">
+```
+
+Or toggle dynamically:
+
+```tsx
+document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+```
+
+The `--uk-primary`, `--uk-success`, and `--uk-error` tokens are the same in light and dark mode by default. Only the background, border, and text tokens change.
+
+## Full brand color override
+
+```css
+:root {
+  /* Primary — your brand color */
+  --uk-primary: #7c3aed;
+  --uk-primary-hover: #6d28d9;
+
+  /* Softer radius for a more conservative look */
+  --uk-radius: 6px;
+
+  /* Custom font stack */
+  --uk-font: 'Inter', -apple-system, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Lighten primary slightly for better contrast on dark bg */
+    --uk-primary: #a78bfa;
+    --uk-primary-hover: #8b5cf6;
+  }
+}
+```
+
+## Tailwind integration
+
+Use the `className` prop to add Tailwind utility classes to the outer wrapper, and the `appearance` prop to target inner elements:
+
+```tsx
+<UploadButton
+  route="imageUploader"
+  className="w-full"
+  appearance={{
+    button: 'rounded-full font-semibold tracking-tight',
+    progressBar: 'h-0.5',
+    progressText: 'text-xs tabular-nums',
+  }}
+/>
+
+<UploadDropzone
+  route="imageUploader"
+  className="border-dashed"
+  appearance={{
+    container: 'min-h-48 rounded-2xl',
+    label: 'text-sm',
+    icon: 'opacity-60',
+    fileItem: 'bg-neutral-50 dark:bg-neutral-900/50',
+  }}
+/>
+```
+
+For deeper customization, override CSS variables in your Tailwind theme:
+
+```css
+/* globals.css or your Tailwind CSS file */
+@layer base {
+  :root {
+    --uk-primary: theme(colors.violet.600);
+    --uk-primary-hover: theme(colors.violet.700);
+    --uk-radius: theme(borderRadius.lg);
+  }
+}
+```
+
+## CSS keyframes
+
+The package defines these animations (used internally):
+
+| Keyframe | Used by |
+|----------|---------|
+| `uk-spin` | Spinning loader in `UploadButton` during upload |
+| `uk-modal-enter` | Modal scale-in on open |
+| `uk-modal-exit` | Modal scale-out on close |
+| `uk-fade-in` | File item appearance, error toast appearance |
+| `uk-progress-indeterminate` | Progress bar indeterminate state |
+
+## Reduced motion
+
+All component transitions and animations are gated on `prefers-reduced-motion`. When the user has enabled reduced motion in their OS, durations drop to `0.01ms` — effectively instant with no flicker.
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .uk-button,
+  .uk-dropzone,
+  .uk-modal,
+  /* ... all component elements */
+  {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+```

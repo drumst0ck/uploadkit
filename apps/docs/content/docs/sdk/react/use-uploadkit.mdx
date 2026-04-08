@@ -1,0 +1,153 @@
+---
+title: useUploadKit
+description: Headless upload state machine hook for building fully custom upload UIs.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Overview
+
+`useUploadKit` is a headless hook that gives you complete control over the upload UI. It manages upload state (progress, status, errors) and exposes actions (`upload`, `abort`, `reset`) while rendering nothing itself.
+
+Use it when the built-in components (`UploadButton`, `UploadDropzone`) don't match your design — or when you want to integrate upload state into an existing form.
+
+```typescript
+const { upload, abort, reset, status, progress, error, result, isUploading } =
+  useUploadKit('imageUploader');
+```
+
+## Return value
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `upload` | `(file: File, metadata?: Record<string, unknown>) => Promise<void>` | Upload a file on the given route. Automatically aborts any in-progress upload before starting. |
+| `abort` | `() => void` | Cancel the current upload and reset state to idle. |
+| `reset` | `() => void` | Reset state to idle without aborting. |
+| `status` | `'idle' \| 'uploading' \| 'success' \| 'error'` | Current upload lifecycle state. |
+| `progress` | `number` | Upload progress percentage (0–100). |
+| `error` | `Error \| null` | Error from the last failed upload. `null` when idle or uploading. |
+| `result` | `UploadResult \| null` | Result from the last successful upload. `null` when idle, uploading, or errored. |
+| `isUploading` | `boolean` | Shorthand for `status === 'uploading'`. |
+
+## Signature
+
+```typescript
+function useUploadKit(route: string): {
+  upload: (file: File, metadata?: Record<string, unknown>) => Promise<void>;
+  abort: () => void;
+  reset: () => void;
+  status: 'idle' | 'uploading' | 'success' | 'error';
+  progress: number;
+  error: Error | null;
+  result: UploadResult | null;
+  isUploading: boolean;
+}
+```
+
+## Full example — custom upload form
+
+```tsx
+'use client';
+
+import { useRef } from 'react';
+import { useUploadKit } from '@uploadkit/react';
+
+export function CustomUploadForm() {
+  const { upload, abort, reset, status, progress, error, result, isUploading } =
+    useUploadKit('documentUploader');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await upload(file, { source: 'custom-form' });
+    e.target.value = '';
+  }
+
+  return (
+    <div>
+      <input
+        ref={inputRef}
+        type="file"
+        hidden
+        onChange={handleFileChange}
+      />
+
+      {status === 'idle' && (
+        <button onClick={() => inputRef.current?.click()}>
+          Choose file to upload
+        </button>
+      )}
+
+      {status === 'uploading' && (
+        <div>
+          <div style={{ width: '100%', height: 4, background: '#eee' }}>
+            <div style={{ width: `${progress}%`, height: '100%', background: '#0070f3' }} />
+          </div>
+          <p>Uploading... {progress}%</p>
+          <button onClick={abort}>Cancel</button>
+        </div>
+      )}
+
+      {status === 'success' && result && (
+        <div>
+          <p>Uploaded: <a href={result.url}>{result.name}</a></p>
+          <button onClick={reset}>Upload another</button>
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div>
+          <p style={{ color: 'red' }}>{error?.message}</p>
+          <button onClick={reset}>Try again</button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Compared to the built-in components
+
+| | `useUploadKit` | `UploadButton` / `UploadDropzone` |
+|---|---|---|
+| **Rendering** | None — you build the UI | Styled components with built-in states |
+| **Flexibility** | Full control | Configure via props and `appearance` |
+| **Use case** | Custom forms, existing design systems | Standard file upload UI |
+| **Multi-file** | One file at a time per hook | `UploadDropzone` handles multi-file |
+
+For multi-file scenarios with the hook, instantiate the hook once per file or manage multiple files with separate state.
+
+## With metadata
+
+```tsx
+const { upload } = useUploadKit('invoiceUploader');
+
+// Pass metadata as the second argument to upload()
+await upload(file, { organizationId: org.id, month: '2026-04' });
+```
+
+## Aborting on unmount
+
+If your component unmounts while an upload is in progress, call `abort` in a cleanup effect:
+
+```tsx
+import { useEffect } from 'react';
+import { useUploadKit } from '@uploadkit/react';
+
+function UploadWidget() {
+  const { upload, abort, isUploading } = useUploadKit('imageUploader');
+
+  useEffect(() => {
+    return () => {
+      if (isUploading) abort();
+    };
+  }, [isUploading, abort]);
+
+  // ...
+}
+```
+
+<Callout type="info">
+  The hook uses `useReducer` internally — not `useState` — to ensure all state transitions are atomic and the upload state machine never reaches an inconsistent state.
+</Callout>

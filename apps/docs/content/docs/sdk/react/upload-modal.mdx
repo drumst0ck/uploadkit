@@ -1,0 +1,115 @@
+---
+title: UploadModal
+description: A modal dialog for file uploads using the native HTML dialog element.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Basic usage
+
+`UploadModal` is a controlled component. You manage the `open` state and pass `onClose` to let the modal close itself.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { UploadModal } from '@uploadkit/react';
+
+export default function Page() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Upload a file</button>
+
+      <UploadModal
+        open={open}
+        onClose={() => setOpen(false)}
+        route="imageUploader"
+        title="Upload image"
+        onUploadComplete={(results) => {
+          console.log('Uploaded:', results.map((r) => r.url));
+          setOpen(false);
+        }}
+      />
+    </>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `open` | `boolean` | — | **Required.** Controls whether the modal is open. |
+| `onClose` | `() => void` | — | **Required.** Called when the modal requests to close (ESC key, backdrop click). |
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. Client-side UX only. |
+| `maxSize` | `number` | — | Maximum file size in bytes. Client-side UX only. |
+| `maxFiles` | `number` | — | Maximum number of files per upload session. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata for the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload successfully. |
+| `onUploadError` | `(error: Error) => void` | — | Called when any upload fails. |
+| `className` | `string` | — | Additional CSS class(es) for the `<dialog>` element. |
+| `title` | `string` | — | Heading text shown inside the modal. Also used as `aria-label`. |
+| `appearance` | `Partial<Record<'modal' \| 'backdrop' \| 'content' \| 'container' \| 'label' \| 'icon' \| 'fileItem' \| 'progressBar' \| 'button', string>>` | — | Override CSS classes on inner elements. |
+
+## Native dialog element
+
+`UploadModal` uses the native HTML `<dialog>` element rather than a div-based overlay. Benefits:
+
+- **Built-in focus trap**: Tab/Shift+Tab cycles through focusable elements inside the modal only
+- **`::backdrop`**: The browser renders the backdrop pseudo-element — style it via `appearance.backdrop` or CSS
+- **`aria-modal` semantics**: Screen readers understand it's a modal without extra ARIA attributes
+- **ESC key handling**: Native dialog closes on ESC; `UploadModal` intercepts this event and calls `onClose()` instead so React state drives the close
+
+## Animation
+
+The modal animates in with a scale + opacity effect (0.95 → 1.0 scale, 0 → 1 opacity) over 200ms ease-out. The animation is defined in the CSS as `@keyframes uk-modal-enter` and applied to `dialog[open]`.
+
+The backdrop uses `backdrop-filter: blur(4px)` and 50% black opacity.
+
+## Close behavior
+
+The modal closes when:
+- User presses **ESC** — `onClose()` is called
+- User **clicks the backdrop** (outside the modal content) — detected by comparing `event.target` to the `<dialog>` element itself
+
+```tsx
+// Controlled: set open=false in onClose to close the modal
+<UploadModal
+  open={isOpen}
+  onClose={() => setIsOpen(false)}
+  route="imageUploader"
+/>
+```
+
+## Accessibility
+
+- Uses native `<dialog>` for built-in `role="dialog"` and `aria-modal`
+- `aria-label` is set to the `title` prop (or `'Upload files'` if not provided)
+- Focus trap is native — no JavaScript needed
+- ESC key handled via `onCancel` with `preventDefault()` to ensure React state controls the close
+- Respects `prefers-reduced-motion` — animation duration drops to near-zero when reduced motion is preferred
+
+<Callout type="info">
+  The `<dialog>` element's `.showModal()` and `.close()` imperative API is called via `useEffect` whenever the `open` prop changes. This keeps React state as the single source of truth while using the browser's native modal infrastructure.
+</Callout>
+
+## Custom close button
+
+Add a close button inside the modal by wrapping `UploadModal` or using `UploadDropzone` directly with custom children:
+
+```tsx
+<UploadModal
+  open={open}
+  onClose={() => setOpen(false)}
+  route="imageUploader"
+  title="Upload files"
+  onUploadComplete={(results) => {
+    // Close automatically after upload
+    saveFiles(results);
+    setOpen(false);
+  }}
+/>
+```

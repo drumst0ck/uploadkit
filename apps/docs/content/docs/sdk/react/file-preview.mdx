@@ -1,0 +1,131 @@
+---
+title: FilePreview
+description: 48x48 thumbnail rendering for files — images, videos, and type icons.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Overview
+
+`FilePreview` renders a 48×48 pixel thumbnail for a file. It accepts either a browser `File` object (pre-upload) or an `UploadResult` (post-upload).
+
+```tsx
+import { FilePreview } from '@uploadkit/react';
+
+// From a File object (before upload)
+<FilePreview file={selectedFile} />
+
+// From an UploadResult (after upload, uses CDN URL)
+<FilePreview file={uploadResult} />
+```
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `file` | `File \| UploadResult` | Yes | The file to preview. Accepts a browser `File` object or a completed `UploadResult`. |
+| `className` | `string` | No | Additional CSS class(es) for the container. |
+| `appearance` | `Partial<Record<'container' \| 'image' \| 'icon', string>>` | No | Override CSS classes on inner elements. |
+
+## How thumbnails are generated
+
+The component automatically picks the right strategy based on the file type and source:
+
+| Source | File type | Strategy |
+|--------|-----------|----------|
+| `UploadResult` | image or video | Renders `<img src={file.url}>` directly — the CDN URL |
+| `UploadResult` | other | Shows a type-specific SVG icon |
+| `File` | image | Generates a blob URL via `URL.createObjectURL()` |
+| `File` | video | Captures the first frame via canvas `drawImage` |
+| `File` | other | Shows a type-specific SVG icon |
+
+For `File` objects, thumbnail generation is deferred until the element is visible using `IntersectionObserver` — useful when rendering many files in a list.
+
+## Pre-upload preview
+
+Show a preview before the file is uploaded:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { FilePreview } from '@uploadkit/react';
+
+export default function FilePicker() {
+  const [file, setFile] = useState<File | null>(null);
+
+  return (
+    <div>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+      />
+      {file && (
+        <div style={{ marginTop: '8px' }}>
+          <FilePreview file={file} />
+          <span>{file.name}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## useThumbnail — custom preview UI
+
+For advanced use cases, you can use the `useThumbnail` hook directly to build your own preview component:
+
+```tsx
+import { useRef } from 'react';
+import { useThumbnail } from '@uploadkit/react';
+
+function CustomPreview({ file }: { file: File }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { thumbnailUrl, isGenerating } = useThumbnail(file, containerRef);
+
+  return (
+    <div ref={containerRef} style={{ width: 80, height: 80 }}>
+      {isGenerating ? (
+        <div>Generating...</div>
+      ) : thumbnailUrl ? (
+        <img src={thumbnailUrl} alt={file.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      ) : (
+        <div>No preview</div>
+      )}
+    </div>
+  );
+}
+```
+
+### useThumbnail signature
+
+```typescript
+function useThumbnail(
+  file: File,
+  containerRef: React.RefObject<HTMLElement | null>
+): {
+  thumbnailUrl: string | null;
+  isGenerating: boolean;
+}
+```
+
+The hook uses `IntersectionObserver` on `containerRef` to start generation only when the element enters the viewport. Blob URLs are automatically revoked when the component unmounts.
+
+<Callout type="info">
+  Video thumbnail generation uses `canvas.drawImage(videoElement, ...)` to capture the first frame. This requires the browser to decode the video header — it works for most MP4 and WebM files but may not work for all codecs.
+</Callout>
+
+## Appearance
+
+```tsx
+<FilePreview
+  file={file}
+  className="rounded-none"
+  appearance={{
+    container: 'w-16 h-16',    // Override the 48x48 default size
+    image: 'object-contain',   // Change object-fit
+    icon: 'text-blue-500',     // Change icon color
+  }}
+/>
+```

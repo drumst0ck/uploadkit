@@ -1,0 +1,259 @@
+---
+title: API Reference
+description: Complete API reference for @uploadkit/react — all components, hooks, and types.
+---
+
+## UploadKitProvider
+
+Context provider. Wrap your app (or upload UI) with this to make the SDK client available to all child components and hooks.
+
+```typescript
+function UploadKitProvider(props: UploadKitProviderProps): JSX.Element
+```
+
+### UploadKitProviderProps
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `apiKey` | `string` | Yes | UploadKit API key. Use `NEXT_PUBLIC_UPLOADKIT_API_KEY` env var in Next.js. |
+| `baseUrl` | `string` | No | Override the API endpoint. Defaults to `'https://api.uploadkit.dev'`. |
+| `children` | `ReactNode` | Yes | Component tree with access to upload functionality. |
+
+---
+
+## useUploadKit
+
+Headless upload state machine hook. Must be used inside `<UploadKitProvider>`.
+
+```typescript
+function useUploadKit(route: string): {
+  upload: (file: File, metadata?: Record<string, unknown>) => Promise<void>;
+  abort: () => void;
+  reset: () => void;
+  status: 'idle' | 'uploading' | 'success' | 'error';
+  progress: number;
+  error: Error | null;
+  result: UploadResult | null;
+  isUploading: boolean;
+}
+```
+
+| Return | Type | Description |
+|--------|------|-------------|
+| `upload` | `(file: File, metadata?) => Promise<void>` | Upload a file. Aborts any existing in-progress upload first. |
+| `abort` | `() => void` | Cancel the current upload and reset to idle. |
+| `reset` | `() => void` | Reset state to idle. |
+| `status` | `'idle' \| 'uploading' \| 'success' \| 'error'` | Current upload lifecycle state. |
+| `progress` | `number` | Progress percentage (0–100). |
+| `error` | `Error \| null` | Last error. Null when not in error state. |
+| `result` | `UploadResult \| null` | Last upload result. Null when not in success state. |
+| `isUploading` | `boolean` | `status === 'uploading'`. |
+
+---
+
+## UploadButton
+
+```typescript
+const UploadButton: React.ForwardRefExoticComponent<UploadButtonProps & React.RefAttributes<HTMLButtonElement>>
+```
+
+### UploadButtonProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from the file router. |
+| `accept` | `string[]` | — | MIME types for the file input. |
+| `maxSize` | `number` | — | Max file size in bytes (client-side validation). |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `variant` | `'default' \| 'outline' \| 'ghost'` | `'default'` | Visual style variant. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Size variant. |
+| `disabled` | `boolean` | `false` | Disables the button. |
+| `className` | `string` | — | CSS class(es) for the outer wrapper. |
+| `appearance` | `Partial<Record<'button' \| 'progressBar' \| 'progressText', string>>` | — | CSS class overrides for inner elements. |
+| `children` | `ReactNode` | — | Custom button label. |
+
+---
+
+## UploadDropzone
+
+```typescript
+const UploadDropzone: React.ForwardRefExoticComponent<UploadDropzoneProps & React.RefAttributes<HTMLDivElement>>
+```
+
+### UploadDropzoneProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from the file router. |
+| `accept` | `string[]` | — | MIME types. Wildcards supported: `'image/*'`. |
+| `maxSize` | `number` | — | Max file size in bytes (client-side validation). |
+| `maxFiles` | `number` | — | Max number of files per drop or selection. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload successfully. |
+| `onUploadError` | `(error: Error) => void` | — | Called when any file upload fails. |
+| `disabled` | `boolean` | `false` | Disables the dropzone. |
+| `className` | `string` | — | CSS class(es) for the outer wrapper. |
+| `appearance` | `Partial<Record<'container' \| 'label' \| 'icon' \| 'fileItem' \| 'progressBar' \| 'button', string>>` | — | CSS class overrides for inner elements. |
+
+---
+
+## UploadModal
+
+```typescript
+function UploadModal(props: UploadModalProps): JSX.Element
+```
+
+### UploadModalProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `open` | `boolean` | — | **Required.** Controls modal visibility. |
+| `onClose` | `() => void` | — | **Required.** Called on ESC or backdrop click. |
+| `route` | `string` | — | **Required.** Route name from the file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `maxFiles` | `number` | — | Max number of files. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload successfully. |
+| `onUploadError` | `(error: Error) => void` | — | Called when any upload fails. |
+| `className` | `string` | — | CSS class(es) for the `<dialog>` element. |
+| `title` | `string` | — | Heading text and `aria-label` for the dialog. |
+| `appearance` | `Partial<Record<'modal' \| 'backdrop' \| 'content' \| 'container' \| 'label' \| 'icon' \| 'fileItem' \| 'progressBar' \| 'button', string>>` | — | CSS class overrides for inner elements. |
+
+---
+
+## FileList
+
+```typescript
+function FileList(props: FileListProps): JSX.Element
+```
+
+### FileListProps
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `files` | `UploadResult[]` | Yes | Array of upload results to display. |
+| `onDelete` | `(fileKey: string) => void` | No | Delete button handler. Hidden when not provided. |
+| `className` | `string` | No | CSS class(es) for the list wrapper. |
+| `appearance` | `Partial<Record<'list' \| 'item' \| 'preview' \| 'name' \| 'size' \| 'deleteButton', string>>` | No | CSS class overrides for inner elements. |
+
+---
+
+## FilePreview
+
+```typescript
+function FilePreview(props: FilePreviewProps): JSX.Element
+```
+
+### FilePreviewProps
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `file` | `File \| UploadResult` | Yes | File to preview. |
+| `className` | `string` | No | CSS class(es) for the container. |
+| `appearance` | `Partial<Record<'container' \| 'image' \| 'icon', string>>` | No | CSS class overrides. |
+
+---
+
+## useDragState
+
+Hook for drag-and-drop state management. Uses an integer counter (not boolean) to prevent flickering on child element drag events.
+
+```typescript
+function useDragState(
+  onDrop: (files: File[]) => void
+): {
+  isDragging: boolean;
+  handlers: {
+    onDragEnter: (e: React.DragEvent) => void;
+    onDragLeave: (e: React.DragEvent) => void;
+    onDragOver: (e: React.DragEvent) => void;
+    onDrop: (e: React.DragEvent) => void;
+  };
+}
+```
+
+---
+
+## useAutoDismiss
+
+Hook that manages a list of items with auto-removal after a delay.
+
+```typescript
+function useAutoDismiss<T extends { id: string }>(
+  delay: number
+): [items: T[], add: (item: T) => void, remove: (id: string) => void]
+```
+
+---
+
+## useThumbnail
+
+Hook that generates a thumbnail URL for a `File` using `URL.createObjectURL` (images) or canvas frame capture (videos). Defers generation until the container is visible using `IntersectionObserver`.
+
+```typescript
+function useThumbnail(
+  file: File,
+  containerRef: React.RefObject<HTMLElement | null>
+): {
+  thumbnailUrl: string | null;
+  isGenerating: boolean;
+}
+```
+
+---
+
+## generateReactHelpers
+
+Type-safe factory that narrows the `route` prop to the literal keys of your file router.
+
+```typescript
+function generateReactHelpers<TRouter extends FileRouter>(): {
+  UploadButton: React.ComponentType<Omit<UploadButtonProps, 'route'> & { route: keyof TRouter & string }>;
+  UploadDropzone: React.ComponentType<Omit<UploadDropzoneProps, 'route'> & { route: keyof TRouter & string }>;
+  UploadModal: React.ComponentType<Omit<UploadModalProps, 'route'> & { route: keyof TRouter & string }>;
+  useUploadKit: (route: keyof TRouter & string) => ReturnType<typeof useUploadKit>;
+}
+```
+
+Usage:
+
+```typescript
+import { generateReactHelpers } from '@uploadkit/react';
+import type { AppFileRouter } from '@/app/api/uploadkit/[...uploadkit]/route';
+
+export const { UploadButton, UploadDropzone, UploadModal, useUploadKit } =
+  generateReactHelpers<AppFileRouter>();
+```
+
+---
+
+## CSS custom properties
+
+See the full [Theming reference](/docs/sdk/react/theming) for all CSS variables, their defaults in light and dark mode, and what they control.
+
+| Variable | Light | Dark | Controls |
+|----------|-------|------|---------|
+| `--uk-primary` | `#0070f3` | `#0070f3` | Buttons, borders, focus rings |
+| `--uk-primary-hover` | `#005bb5` | `#005bb5` | Hover states |
+| `--uk-bg` | `#ffffff` | `#0a0a0b` | Component backgrounds |
+| `--uk-bg-secondary` | `#fafafa` | `#141416` | Secondary backgrounds |
+| `--uk-border` | `#eaeaea` | `rgba(255,255,255,0.08)` | Borders |
+| `--uk-text` | `#171717` | `#fafafa` | Primary text |
+| `--uk-text-secondary` | `#666666` | `#a1a1aa` | Secondary text |
+| `--uk-success` | `#00c853` | `#00c853` | Success states |
+| `--uk-error` | `#dc2626` | `#dc2626` | Error states |
+| `--uk-radius` | `12px` | `12px` | Border radius |
+| `--uk-font` | System UI | System UI | Font family |
+| `--uk-transition` | `200ms ease-out` | `200ms ease-out` | Transitions |
+
+---
+
+## VERSION
+
+```typescript
+import { VERSION } from '@uploadkit/react';
+// '0.1.0'
+```

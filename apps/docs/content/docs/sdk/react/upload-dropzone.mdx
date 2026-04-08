@@ -1,0 +1,124 @@
+---
+title: UploadDropzone
+description: A drag-and-drop zone with multi-file support, per-file progress bars, and auto-dismissing error toasts.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Basic usage
+
+```tsx
+import { UploadDropzone } from '@uploadkit/react';
+
+export default function Page() {
+  return (
+    <UploadDropzone
+      route="imageUploader"
+      onUploadComplete={(results) => {
+        // results is UploadResult[] — called when ALL files finish
+        console.log('Uploaded:', results.map((r) => r.url));
+      }}
+      onUploadError={(error) => {
+        console.error('Upload failed:', error.message);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. Supports wildcards: `'image/*'`. Client-side UX validation only. |
+| `maxSize` | `number` | — | Maximum file size in bytes. Client-side UX validation only. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. Files beyond this limit are silently ignored. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to `onUploadComplete` on the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after **all** accepted files have uploaded successfully. |
+| `onUploadError` | `(error: Error) => void` | — | Called when any individual file upload fails. |
+| `disabled` | `boolean` | `false` | Disables the dropzone and file input. |
+| `className` | `string` | — | Additional CSS class(es) for the outer wrapper. |
+| `appearance` | `Partial<Record<'container' \| 'label' \| 'icon' \| 'fileItem' \| 'progressBar' \| 'button', string>>` | — | Override CSS classes on specific inner elements. |
+
+`UploadDropzone` accepts a `ref` forwarded to the outer container `<div>`.
+
+## Visual states
+
+| State | Appearance |
+|-------|-----------|
+| `idle` | Dashed border, upload icon, "Drop files here or click to browse" label |
+| `dragging-over` | Border turns primary color, light primary background tint |
+| `uploading` | File list appears below the zone, each file shows a progress bar |
+| `success` | File row shows a green checkmark |
+| `error` | File row shows a red X; error toast appears and auto-dismisses after 5 seconds |
+
+## Multi-file uploads
+
+Accept up to 5 images at once:
+
+```tsx
+<UploadDropzone
+  route="galleryUploader"
+  accept={['image/*']}
+  maxFiles={5}
+  maxSize={10 * 1024 * 1024}
+  onUploadComplete={(results) => {
+    // results contains all successfully uploaded files
+    results.forEach((r) => console.log(r.url));
+  }}
+/>
+```
+
+Files upload in parallel batches of 3. If a single file fails, `onUploadError` is called for that file and the others continue uploading. `onUploadComplete` is only called when all accepted files succeed.
+
+## Per-file progress
+
+Each file in the queue shows an inline progress bar. Files upload in parallel (batches of 3) so progress is independent per file.
+
+```tsx
+<UploadDropzone
+  route="videoUploader"
+  accept={['video/mp4', 'video/webm']}
+  maxSize={500 * 1024 * 1024} // 500 MB
+  onUploadComplete={(results) => {
+    setVideos(results.map((r) => r.url));
+  }}
+/>
+```
+
+## Rejected files
+
+Files that fail client-side validation (wrong type, too large) are shown as dismissable error toasts below the dropzone. They auto-dismiss after 5 seconds and can be closed manually.
+
+```tsx
+<UploadDropzone
+  route="pdfUploader"
+  accept={['application/pdf']}
+  maxSize={5 * 1024 * 1024}
+  onUploadError={(error) => {
+    // Called for server-side rejections; client-side rejections show inline toasts
+    toast.error(error.message);
+  }}
+/>
+```
+
+## Appearance — targeting inner elements
+
+```tsx
+<UploadDropzone
+  route="imageUploader"
+  className="border-2"
+  appearance={{
+    container: 'rounded-2xl min-h-[200px]',
+    label: 'text-sm',
+    icon: 'w-8 h-8',
+    fileItem: 'bg-neutral-50',
+    progressBar: 'h-1',
+  }}
+/>
+```
+
+## Keyboard accessibility
+
+The dropzone is focusable (`tabIndex={0}`) and responds to Enter and Space to open the file picker. It has `role="button"` and `aria-label="Drop files here or click to browse"`. A screen-reader live region announces the number of files uploading and completed.

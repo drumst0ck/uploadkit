@@ -1,0 +1,146 @@
+---
+title: UploadButton
+description: A styled button that opens a file picker and shows upload progress inline.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Basic usage
+
+```tsx
+import { UploadButton } from '@uploadkit/react';
+
+export default function Page() {
+  return (
+    <UploadButton
+      route="imageUploader"
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+      onUploadError={(error) => {
+        console.error('Upload failed:', error.message);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router (e.g. `'imageUploader'`). |
+| `accept` | `string[]` | — | Accepted MIME types for the file input (e.g. `['image/jpeg', 'image/png']`). Client-side UX validation only — the server enforces authoritatively. |
+| `maxSize` | `number` | — | Maximum file size in bytes. Client-side UX validation only. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to `onUploadComplete` on the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. Receives the full file record. |
+| `onUploadError` | `(error: Error) => void` | — | Called when an upload fails (network error, type rejection, size rejection). |
+| `variant` | `'default' \| 'outline' \| 'ghost'` | `'default'` | Visual style variant. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Size variant. |
+| `disabled` | `boolean` | `false` | Disables the button. |
+| `className` | `string` | — | Additional CSS class(es) for the button wrapper. |
+| `appearance` | `Partial<Record<'button' \| 'progressBar' \| 'progressText', string>>` | — | Override CSS classes on specific inner elements. |
+| `children` | `ReactNode` | — | Custom button label content. Omit to use the built-in state labels. |
+
+`UploadButton` accepts a `ref` forwarded to the underlying `<button>` element.
+
+## Visual states
+
+The button cycles through four states during an upload:
+
+| State | Label | Icon | Button color |
+|-------|-------|------|-------------|
+| `idle` | "Upload file" | Cloud-upload icon | Primary (`--uk-primary`) |
+| `uploading` | "Uploading 42%" | Spinning loader | Primary, semi-transparent |
+| `success` | "Uploaded" | Checkmark | Success (`--uk-success`) |
+| `error` | "Failed" | X icon | Error (`--uk-error`) |
+
+After success, the button automatically resets to idle after 3 seconds. On error, it stays in the error state until the user tries again.
+
+## Variants
+
+All three variants at `md` size:
+
+```tsx
+// Filled (default)
+<UploadButton route="imageUploader" variant="default" />
+
+// Outlined border, transparent background
+<UploadButton route="imageUploader" variant="outline" />
+
+// No border, no background — minimal
+<UploadButton route="imageUploader" variant="ghost" />
+```
+
+## Sizes
+
+```tsx
+<UploadButton route="imageUploader" size="sm" />  {/* 12px text, compact padding */}
+<UploadButton route="imageUploader" size="md" />  {/* 14px text — default */}
+<UploadButton route="imageUploader" size="lg" />  {/* 16px text, spacious padding */}
+```
+
+## Custom label
+
+Replace the built-in state labels with custom content:
+
+```tsx
+<UploadButton route="avatarUploader">
+  <svg>...</svg>
+  Replace your avatar
+</UploadButton>
+```
+
+When `children` is provided, the button still handles all upload state logic — only the label content is customized.
+
+## Appearance — targeting inner elements
+
+Override CSS classes on specific inner elements without affecting the outer wrapper:
+
+```tsx
+<UploadButton
+  route="imageUploader"
+  className="w-full"              // outer wrapper
+  appearance={{
+    button: 'rounded-full',       // the <button> element
+    progressBar: 'h-1 bg-blue-500', // progress bar fill
+    progressText: 'text-xs font-mono', // "42%" text
+  }}
+/>
+```
+
+## File type and size validation
+
+```tsx
+<UploadButton
+  route="imageUploader"
+  accept={['image/jpeg', 'image/png', 'image/webp']}
+  maxSize={4 * 1024 * 1024} // 4 MB in bytes
+  onUploadError={(error) => {
+    // Called immediately if the file fails client-side validation
+    // Also called for server-side rejections
+    alert(error.message);
+  }}
+/>
+```
+
+## With metadata
+
+```tsx
+<UploadButton
+  route="projectFiles"
+  metadata={{ projectId: currentProject.id, uploadedBy: session.user.id }}
+  onUploadComplete={async (result) => {
+    await saveFileToProject(result.url, result.key);
+  }}
+/>
+```
+
+## Accessibility
+
+- `aria-busy` is set to `true` during upload
+- A live region announces progress changes and status transitions to screen readers
+- The hidden file `<input>` is `aria-hidden="true"` and `tabIndex={-1}`
+- `focus-visible` outline uses `--uk-primary` at 2px offset
+
+See the [Theming guide](/docs/sdk/react/theming) for appearance customization with CSS custom properties.

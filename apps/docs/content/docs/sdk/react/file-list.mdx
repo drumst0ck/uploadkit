@@ -1,0 +1,125 @@
+---
+title: FileList
+description: Display a list of uploaded files with thumbnails and optional delete actions.
+---
+
+## Overview
+
+`FileList` renders an array of `UploadResult` objects as a styled list, where each row shows a thumbnail preview, filename, file size, and an optional delete button.
+
+```tsx
+import { FileList } from '@uploadkit/react';
+import type { UploadResult } from '@uploadkit/react';
+
+export default function FilesPage({ files }: { files: UploadResult[] }) {
+  return (
+    <FileList
+      files={files}
+      onDelete={(key) => {
+        console.log('Delete requested for:', key);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `files` | `UploadResult[]` | Yes | Array of completed upload results to display. Each item must have at minimum `key`, `name`, `size`, `type`, and `url`. |
+| `onDelete` | `(fileKey: string) => void` | No | Called with the file's storage `key` when the delete button is clicked. If omitted, the delete button is not rendered. |
+| `className` | `string` | No | Additional CSS class(es) for the list wrapper. |
+| `appearance` | `Partial<Record<'list' \| 'item' \| 'preview' \| 'name' \| 'size' \| 'deleteButton', string>>` | No | Override CSS classes on specific inner elements. |
+
+## With delete handling
+
+`FileList` handles the UI only — delete calls are your responsibility. Wire `onDelete` to your API:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { FileList } from '@uploadkit/react';
+import type { UploadResult } from '@uploadkit/react';
+
+export default function FilesPage() {
+  const [files, setFiles] = useState<UploadResult[]>(initialFiles);
+
+  async function handleDelete(key: string) {
+    // Call your API to delete the file from storage
+    await fetch('/api/files', {
+      method: 'DELETE',
+      body: JSON.stringify({ key }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    // Remove from local state
+    setFiles((prev) => prev.filter((f) => f.key !== key));
+  }
+
+  return (
+    <FileList
+      files={files}
+      onDelete={handleDelete}
+    />
+  );
+}
+```
+
+## After an upload
+
+Combine `UploadDropzone` with `FileList` to show uploaded files:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { UploadDropzone, FileList } from '@uploadkit/react';
+import type { UploadResult } from '@uploadkit/react';
+
+export default function UploaderPage() {
+  const [files, setFiles] = useState<UploadResult[]>([]);
+
+  return (
+    <div>
+      <UploadDropzone
+        route="imageUploader"
+        onUploadComplete={(results) => setFiles((prev) => [...prev, ...results])}
+      />
+
+      {files.length > 0 && (
+        <div style={{ marginTop: '1rem' }}>
+          <FileList
+            files={files}
+            onDelete={(key) => setFiles((prev) => prev.filter((f) => f.key !== key))}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Empty state
+
+When `files` is an empty array, `FileList` renders a "No files uploaded" message.
+
+## Appearance
+
+```tsx
+<FileList
+  files={files}
+  appearance={{
+    list: 'gap-2',
+    item: 'bg-neutral-50 dark:bg-neutral-900',
+    name: 'font-medium',
+    size: 'text-neutral-400',
+    deleteButton: 'text-red-500 hover:text-red-700',
+  }}
+/>
+```
+
+## FilePreview inside FileList
+
+Each row renders a `FilePreview` thumbnail — 48×48 px with the file's CDN URL as the `src` for images and videos, or a type-specific SVG icon for other file types. See the [FilePreview docs](/docs/sdk/react/file-preview) for details on how thumbnails are generated.
