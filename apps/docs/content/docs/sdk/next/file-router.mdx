@@ -1,0 +1,155 @@
+---
+title: File Router
+description: Define upload routes with RouteConfig — maxFileSize, allowedTypes, middleware, and callbacks.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The file router is a plain object where each key is a route name and each value is a `RouteConfig`. Define it with `satisfies FileRouter` and export it from your route handler file.
+
+```typescript title="app/api/uploadkit/[...uploadkit]/route.ts"
+import { createUploadKitHandler } from '@uploadkit/next';
+import type { FileRouter } from '@uploadkit/next';
+
+const fileRouter = {
+  // Route for profile pictures
+  avatarUploader: {
+    maxFileSize: '2MB',
+    maxFileCount: 1,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    middleware: async ({ req }) => {
+      // Extract auth from request, return metadata
+      const userId = req.headers.get('x-user-id');
+      if (!userId) throw new Error('Unauthorized');
+      return { userId };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      await db.users.update({ id: metadata.userId, avatar: file.url });
+    },
+  },
+
+  // Route for documents (PDFs up to 10 MB)
+  documentUploader: {
+    maxFileSize: '10MB',
+    maxFileCount: 5,
+    allowedTypes: ['application/pdf', 'application/msword'],
+    onUploadComplete: async ({ file }) => {
+      console.log('Document uploaded:', file.name);
+    },
+  },
+
+  // Route for any file type (generic)
+  attachmentUploader: {
+    maxFileSize: '25MB',
+  },
+} satisfies FileRouter;
+
+export type AppFileRouter = typeof fileRouter;
+
+export const { GET, POST } = createUploadKitHandler({
+  router: fileRouter,
+  apiKey: process.env.UPLOADKIT_API_KEY,
+});
+```
+
+<Callout>
+  For the conceptual overview of how file routes work end-to-end, see [Core Concepts: File Routes](/docs/core-concepts/file-routes).
+</Callout>
+
+## RouteConfig options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `maxFileSize` | `string \| number` | — | Maximum file size. String format: `'4MB'`, `'512KB'`, `'1GB'`. Numbers are treated as bytes. Server enforces this limit authoritatively. |
+| `maxFileCount` | `number` | — | Maximum number of files per upload session. Only enforced server-side when using `UploadDropzone` or multi-file APIs. |
+| `allowedTypes` | `string[]` | — | Accepted MIME types. Supports wildcards: `'image/*'` accepts all image types. `'application/pdf'` accepts only PDFs. |
+| `middleware` | `(ctx: { req: Request }) => Promise<TMiddleware> \| TMiddleware` | — | Async function that receives the raw `Request` and returns metadata. Throw an error to reject the upload. |
+| `onUploadComplete` | `(args: { file: UploadedFile; metadata: TMiddleware }) => Promise<unknown> \| unknown` | — | Called after the file is successfully uploaded to storage. Receives the file record and the metadata returned by `middleware`. |
+
+## File size format
+
+The `maxFileSize` string uses a simple `{number}{unit}` format:
+
+```typescript
+'500KB'  // 512,000 bytes
+'4MB'    // 4,194,304 bytes
+'1GB'    // 1,073,741,824 bytes
+'1.5MB'  // 1,572,864 bytes
+```
+
+Parsed by the `parseFileSize` utility — see [API reference](/docs/sdk/next/api-reference).
+
+## `satisfies FileRouter` vs type annotation
+
+**Always use `satisfies`, not `: FileRouter`**:
+
+```typescript
+// Good — preserves literal route name keys for type inference
+const fileRouter = {
+  avatarUploader: { ... },
+  documentUploader: { ... },
+} satisfies FileRouter;
+
+export type AppFileRouter = typeof fileRouter;
+// AppFileRouter = { avatarUploader: RouteConfig; documentUploader: RouteConfig }
+// Route names are preserved as literal types
+
+// Bad — erases literal keys, TypeScript can't infer route names
+const fileRouter: FileRouter = {
+  avatarUploader: { ... },
+};
+// AppFileRouter = Record<string, RouteConfig>
+// All autocomplete and type safety lost in the client components
+```
+
+The `satisfies` operator validates that your object matches `FileRouter` while preserving the specific key names. This is what lets `generateReactHelpers<AppFileRouter>()` narrow the `route` prop to `'avatarUploader' | 'documentUploader'` on `UploadButton`.
+
+See [Type Safety](/docs/sdk/next/type-safety) for the full end-to-end pattern.
+
+## Multiple routes example
+
+A real app typically defines routes per content type:
+
+```typescript
+const fileRouter = {
+  // Profile photos — small, images only
+  profilePhoto: {
+    maxFileSize: '2MB',
+    maxFileCount: 1,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+    middleware: async ({ req }) => {
+      const session = await getSession(req);
+      if (!session) throw new Error('You must be logged in to upload');
+      return { userId: session.user.id };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      await db.users.updateOne(
+        { _id: metadata.userId },
+        { $set: { avatar: file.url } }
+      );
+    },
+  },
+
+  // Project attachments — larger, any type
+  projectAttachment: {
+    maxFileSize: '50MB',
+    maxFileCount: 10,
+    middleware: async ({ req }) => {
+      const session = await getSession(req);
+      const projectId = req.headers.get('x-project-id');
+      if (!session || !projectId) throw new Error('Unauthorized');
+      return { userId: session.user.id, projectId };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      await db.attachments.create({
+        projectId: metadata.projectId,
+        uploadedBy: metadata.userId,
+        name: file.name,
+        url: file.url,
+        size: file.size,
+        type: file.type,
+      });
+    },
+  },
+} satisfies FileRouter;
+```

@@ -1,0 +1,157 @@
+---
+title: Middleware
+description: Authenticate uploads, inject metadata, and reject unauthorized requests with RouteConfig.middleware.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## What middleware does
+
+The `middleware` function in a `RouteConfig` runs on the server before any file is accepted. It:
+
+1. Receives the raw `Request` object
+2. Can inspect headers, cookies, or the request body for authentication
+3. Returns metadata that is forwarded to `onUploadComplete`
+4. Can throw an error to reject the upload with a 500 response
+
+```typescript
+const fileRouter = {
+  avatarUploader: {
+    maxFileSize: '2MB',
+    middleware: async ({ req }) => {
+      // 1. Authenticate
+      const userId = await getUserFromRequest(req);
+      if (!userId) throw new Error('Unauthorized');
+
+      // 2. Return metadata
+      return { userId };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      // metadata is typed as { userId: string }
+      await db.users.update({ id: metadata.userId, avatar: file.url });
+    },
+  },
+} satisfies FileRouter;
+```
+
+## Extracting auth from the request
+
+### Session cookie (Next.js App Router)
+
+```typescript
+import { auth } from '@/lib/auth'; // your Auth.js setup
+
+middleware: async ({ req }) => {
+  // Auth.js v5: pass the request to auth()
+  const session = await auth(req);
+  if (!session?.user?.id) {
+    throw new Error('You must be signed in to upload files');
+  }
+  return { userId: session.user.id, email: session.user.email };
+},
+```
+
+### JWT in Authorization header
+
+```typescript
+import { jwtVerify } from 'jose';
+
+middleware: async ({ req }) => {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new Error('Missing authorization header');
+  }
+
+  const token = authHeader.slice(7);
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    return { userId: payload.sub as string };
+  } catch {
+    throw new Error('Invalid or expired token');
+  }
+},
+```
+
+### API key in custom header
+
+```typescript
+middleware: async ({ req }) => {
+  const apiKey = req.headers.get('x-api-key');
+  const project = await db.projects.findOne({ apiKey });
+  if (!project) throw new Error('Invalid API key');
+  return { projectId: project.id.toString() };
+},
+```
+
+## Metadata flows to onUploadComplete
+
+Whatever the middleware returns is available in `onUploadComplete` as `metadata`. TypeScript infers the type from the middleware return type — no manual typing required.
+
+```typescript
+const fileRouter = {
+  invoiceUploader: {
+    allowedTypes: ['application/pdf'],
+    middleware: async ({ req }) => {
+      // Returns { userId: string; organizationId: string }
+      return { userId: '...', organizationId: '...' };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      // metadata is typed as { userId: string; organizationId: string }
+      // No type annotation needed — inferred from middleware
+      await db.invoices.create({
+        organizationId: metadata.organizationId,
+        uploadedBy: metadata.userId,
+        pdfUrl: file.url,
+      });
+    },
+  },
+} satisfies FileRouter;
+```
+
+## Rejecting uploads
+
+Throw any `Error` inside `middleware` to reject the upload. The handler returns a 500 response with the error message.
+
+```typescript
+middleware: async ({ req }) => {
+  const session = await getSession(req);
+
+  // Reject unauthenticated users
+  if (!session) throw new Error('Authentication required');
+
+  // Reject users without the right plan
+  if (session.user.plan === 'free' && session.user.uploadCount >= 100) {
+    throw new Error('Free plan upload limit reached. Upgrade to continue.');
+  }
+
+  // Reject users without write access to a resource
+  const canWrite = await checkPermission(session.user.id, 'files:write');
+  if (!canWrite) throw new Error('Insufficient permissions');
+
+  return { userId: session.user.id };
+},
+```
+
+<Callout type="info">
+  The middleware throws a plain `Error`, not `UploadKitError`. The handler catches it and returns a 500 response. The client components (`UploadButton`, `UploadDropzone`) will call `onUploadError` with the error message.
+</Callout>
+
+## Accessing request body
+
+The `req` object is the standard Web API `Request`. You can read headers, search params, and the body — but note that the handler also reads the body for its own processing, so avoid reading `req.json()` directly in middleware. Use headers and cookies instead.
+
+```typescript
+middleware: async ({ req }) => {
+  // Headers: always safe to read
+  const origin = req.headers.get('origin');
+  const userAgent = req.headers.get('user-agent');
+
+  // Search params: safe to read
+  const url = new URL(req.url);
+  const projectId = url.searchParams.get('projectId');
+
+  return { projectId };
+},
+```

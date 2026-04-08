@@ -1,0 +1,139 @@
+---
+title: Installation
+description: Add @uploadkit/next and @uploadkit/react to your Next.js app.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+`@uploadkit/next` provides the server-side route handler for Next.js App Router. Pair it with `@uploadkit/react` for the client-side UI components.
+
+<Steps>
+
+<Step>
+
+## Install packages
+
+<Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @uploadkit/next @uploadkit/react
+    ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npm install @uploadkit/next @uploadkit/react
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @uploadkit/next @uploadkit/react
+    ```
+  </Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+
+## Set environment variables
+
+Add your UploadKit API key to `.env.local`. You need two variables — one for the server handler, one for the React provider in the browser.
+
+```bash title=".env.local"
+UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
+NEXT_PUBLIC_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
+```
+
+<Callout type="info">
+  Get your API key from [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev). Both variables use the same key — `NEXT_PUBLIC_` makes it available to client components.
+</Callout>
+
+</Step>
+
+<Step>
+
+## Create the file router
+
+Create `app/api/uploadkit/[...uploadkit]/route.ts` and define your routes:
+
+```typescript title="app/api/uploadkit/[...uploadkit]/route.ts"
+import { createUploadKitHandler } from '@uploadkit/next';
+import type { FileRouter } from '@uploadkit/next';
+
+const fileRouter = {
+  imageUploader: {
+    maxFileSize: '4MB',
+    allowedTypes: ['image/*'],
+    onUploadComplete: async ({ file, metadata }) => {
+      console.log('Uploaded:', file.url);
+    },
+  },
+} satisfies FileRouter;
+
+export type AppFileRouter = typeof fileRouter;
+
+export const { GET, POST } = createUploadKitHandler({
+  router: fileRouter,
+  apiKey: process.env.UPLOADKIT_API_KEY,
+});
+```
+
+<Callout>
+  Using `satisfies FileRouter` (not a type annotation) preserves the literal route name keys. This is required for the client components to be fully type-safe.
+</Callout>
+
+</Step>
+
+<Step>
+
+## Wrap your app with UploadKitProvider
+
+In your root layout, add `UploadKitProvider`:
+
+```tsx title="app/layout.tsx"
+import { UploadKitProvider } from '@uploadkit/react';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <UploadKitProvider apiKey={process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!}>
+          {children}
+        </UploadKitProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+</Step>
+
+<Step>
+
+## Add an upload component
+
+```tsx title="app/page.tsx"
+import { UploadButton } from '@uploadkit/react';
+
+export default function Page() {
+  return (
+    <UploadButton
+      route="imageUploader"
+      onUploadComplete={(result) => console.log('Done:', result.url)}
+    />
+  );
+}
+```
+
+</Step>
+
+</Steps>
+
+## Next steps
+
+- [File router](/docs/sdk/next/file-router) — full `RouteConfig` options with multiple routes
+- [Middleware](/docs/sdk/next/middleware) — extract auth context and reject uploads
+- [Type safety](/docs/sdk/next/type-safety) — typed components with `generateReactHelpers`
+- [API reference](/docs/sdk/next/api-reference) — complete type definitions

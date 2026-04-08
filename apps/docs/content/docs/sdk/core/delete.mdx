@@ -1,0 +1,94 @@
+---
+title: Deleting Files
+description: Delete uploaded files by their storage key using @uploadkit/core.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## deleteFile
+
+Delete a file by its storage key. The key is returned in the `UploadResult` from `client.upload()`.
+
+```typescript
+import { createUploadKit } from '@uploadkit/core';
+
+const client = createUploadKit({ apiKey: 'uk_live_xxxxxxxxxxxxxxxxxxxxx' });
+
+// Upload a file and capture the result
+const result = await client.upload({ file, route: 'imageUploader' });
+
+// Later: delete it using its storage key
+await client.deleteFile(result.key);
+```
+
+The method returns `Promise<void>` and resolves when the file has been permanently removed from storage.
+
+## Extracting the key from UploadResult
+
+The `key` property on `UploadResult` is the storage path within the bucket — it uniquely identifies the file and is what you store in your database for future deletion.
+
+```typescript
+// UploadResult shape:
+// {
+//   id: string       — UploadKit file ID
+//   key: string      — storage key (e.g. 'imageUploader/abc123/photo.jpg')
+//   name: string     — original filename
+//   size: number     — bytes
+//   type: string     — MIME type
+//   url: string      — CDN URL
+//   status: string   — 'completed'
+//   createdAt: string
+// }
+
+// Store the key in your database alongside the CDN URL:
+await db.files.create({
+  key: result.key,
+  url: result.url,
+  userId: session.user.id,
+});
+
+// Later, when the user requests deletion:
+await client.deleteFile(fileRecord.key);
+await db.files.delete({ id: fileRecord.id });
+```
+
+## Error handling
+
+```typescript
+import { createUploadKit, UploadKitError } from '@uploadkit/core';
+
+try {
+  await client.deleteFile(key);
+} catch (err) {
+  if (err instanceof UploadKitError) {
+    if (err.status === 404) {
+      console.log('File not found — may have already been deleted');
+    } else {
+      console.error(`Delete failed: [${err.code}] ${err.message}`);
+    }
+  } else {
+    throw err;
+  }
+}
+```
+
+<Callout type="warn">
+  Deletion is permanent and cannot be undone. The file is removed from storage and the CDN. Any existing CDN URLs for the file will stop resolving.
+</Callout>
+
+## Listing files before deletion
+
+Use `client.listFiles()` to browse files if you do not have the key stored:
+
+```typescript
+const { files } = await client.listFiles({ limit: 50 });
+
+for (const file of files) {
+  console.log(file.key, file.name, file.url);
+}
+
+// Delete a specific file
+await client.deleteFile(files[0].key);
+```
+
+See the [API reference](/docs/sdk/core/api-reference) for the full `listFiles` signature.

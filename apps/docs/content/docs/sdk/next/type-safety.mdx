@@ -1,0 +1,107 @@
+---
+title: Type Safety
+description: End-to-end TypeScript inference from your file router to client components.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+UploadKit provides end-to-end type safety: route names defined in your server-side file router are automatically enforced in client components. Invalid route names are caught at compile time, and your IDE shows autocompletion.
+
+## Step 1: Export AppFileRouter from the route handler
+
+In your route handler file, export the inferred type of your file router using `typeof`:
+
+```typescript title="app/api/uploadkit/[...uploadkit]/route.ts"
+import { createUploadKitHandler } from '@uploadkit/next';
+import type { FileRouter } from '@uploadkit/next';
+
+const fileRouter = {
+  avatarUploader: {
+    maxFileSize: '2MB',
+    allowedTypes: ['image/*'],
+  },
+  documentUploader: {
+    maxFileSize: '10MB',
+    allowedTypes: ['application/pdf'],
+  },
+} satisfies FileRouter;
+
+// Export the inferred type — this is the key
+export type AppFileRouter = typeof fileRouter;
+
+export const { GET, POST } = createUploadKitHandler({
+  router: fileRouter,
+  apiKey: process.env.UPLOADKIT_API_KEY,
+});
+```
+
+<Callout>
+  `satisfies FileRouter` is required here. If you use `: FileRouter` instead, TypeScript erases the literal route name keys and `AppFileRouter` becomes `Record<string, RouteConfig>`, losing all type inference.
+</Callout>
+
+## Step 2: Generate typed helpers
+
+In your client-side code, call `generateReactHelpers<AppFileRouter>()` to get typed versions of the components and hook:
+
+```typescript title="lib/uploadkit.ts"
+import { generateReactHelpers } from '@uploadkit/react';
+import type { AppFileRouter } from '@/app/api/uploadkit/[...uploadkit]/route';
+
+export const { UploadButton, UploadDropzone, UploadModal, useUploadKit } =
+  generateReactHelpers<AppFileRouter>();
+```
+
+## Step 3: Use the typed components
+
+Import from your helper module instead of from `@uploadkit/react` directly:
+
+```tsx title="app/profile/page.tsx"
+'use client';
+
+import { UploadButton } from '@/lib/uploadkit';
+
+export default function ProfilePage() {
+  return (
+    <UploadButton
+      route="avatarUploader"  // Only valid route names are accepted
+      onUploadComplete={(result) => console.log(result.url)}
+    />
+  );
+}
+```
+
+Invalid route names produce a compile-time TypeScript error:
+
+```tsx
+// TypeScript error: Type '"nonExistent"' is not assignable to type '"avatarUploader" | "documentUploader"'
+<UploadButton route="nonExistent" />
+```
+
+## How it works
+
+`generateReactHelpers<TRouter>()` narrows the `route` prop type on all components from `string` to `keyof TRouter & string`:
+
+```typescript
+// Under the hood — simplified
+type TypedButtonProps = Omit<UploadButtonProps, 'route'> & {
+  route: keyof TRouter & string;
+};
+
+// For AppFileRouter = { avatarUploader: ..., documentUploader: ... }:
+// route: 'avatarUploader' | 'documentUploader'
+```
+
+This is a pure TypeScript operation — `generateReactHelpers` does not create wrapper components, so there are zero extra React elements in the tree and no runtime cost.
+
+## IDE autocompletion
+
+With the typed helpers, your IDE shows route name suggestions:
+
+```tsx
+<UploadButton route="|" />
+//                   ^ IDE suggests: "avatarUploader" | "documentUploader"
+```
+
+## Route name changes
+
+When you rename a route in `fileRouter`, TypeScript immediately flags all call sites using the old name — across all files in the project. Rename refactors become safe.

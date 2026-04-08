@@ -1,0 +1,55 @@
+---
+title: Installation
+description: Add @uploadkit/core to your project and make your first upload.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+`@uploadkit/core` is a zero-dependency TypeScript SDK that works in Node.js, the browser, and Edge runtimes (Cloudflare Workers, Vercel Edge Functions). It handles single-part and multipart uploads, progress tracking, retries, and cancellation.
+
+<Callout type="info">
+  If you are using **Next.js**, install `@uploadkit/next` and `@uploadkit/react` instead — they include everything from core plus the server handler and React components. See the [Next.js guide](/docs/getting-started/nextjs).
+</Callout>
+
+## Install
+
+<Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @uploadkit/core
+    ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npm install @uploadkit/core
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @uploadkit/core
+    ```
+  </Tab>
+</Tabs>
+
+Zero external runtime dependencies. Works with Node.js 18+, all modern browsers, and Edge runtimes.
+
+## Minimum working example
+
+```typescript
+import { createUploadKit } from '@uploadkit/core';
+
+const client = createUploadKit({ apiKey: 'uk_live_xxxxxxxxxxxxxxxxxxxxx' });
+
+const file = /* a File or Blob */ someFile;
+
+const result = await client.upload({ file, route: 'imageUploader' });
+
+console.log(result.url); // https://cdn.uploadkit.dev/...
+```
+
+## Next steps
+
+- [Configuration](/docs/sdk/core/configuration) — all `UploadKitConfig` options
+- [Upload guide](/docs/sdk/core/upload) — progress tracking, abort, error handling
+- [API reference](/docs/sdk/core/api-reference) — complete type definitions

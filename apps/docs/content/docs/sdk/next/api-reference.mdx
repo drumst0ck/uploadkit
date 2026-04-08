@@ -1,0 +1,180 @@
+---
+title: API Reference
+description: Complete API reference for @uploadkit/next — all types, functions, and utilities.
+---
+
+## createUploadKitHandler
+
+Creates the Next.js App Router route handler. Returns `{ GET, POST }` for export from your route file.
+
+```typescript
+function createUploadKitHandler<TRouter extends FileRouter>(
+  config: UploadKitHandlerConfig<TRouter>
+): {
+  GET: (req: Request, ctx: RouteParams) => Promise<Response>;
+  POST: (req: Request, ctx: RouteParams) => Promise<Response>;
+}
+```
+
+### UploadKitHandlerConfig
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `router` | `TRouter` | Yes | Your file router object. Must match `FileRouter`. |
+| `apiKey` | `string` | No | UploadKit managed API key (`uk_live_...`). Required unless `storage` is provided. |
+| `storage` | `S3CompatibleStorage` | No | BYOS storage credentials. When provided, the handler generates presigned URLs directly to your bucket instead of proxying through UploadKit. |
+
+One of `apiKey` or `storage` must be provided.
+
+---
+
+## FileRouter
+
+A plain TypeScript object type that maps route names to `RouteConfig` objects.
+
+```typescript
+type FileRouter = Record<string, RouteConfig<any>>;
+```
+
+Use with `satisfies` to preserve literal route name keys:
+
+```typescript
+const fileRouter = {
+  imageUploader: { maxFileSize: '4MB' },
+} satisfies FileRouter;
+
+export type AppFileRouter = typeof fileRouter;
+```
+
+---
+
+## RouteConfig
+
+Configuration for a single upload route.
+
+```typescript
+type RouteConfig<TMiddleware extends Record<string, unknown> = Record<string, unknown>> = {
+  maxFileSize?: string | number;
+  maxFileCount?: number;
+  allowedTypes?: string[];
+  middleware?: (ctx: { req: Request }) => Promise<TMiddleware> | TMiddleware;
+  onUploadComplete?: (args: { file: UploadedFile; metadata: TMiddleware }) => Promise<unknown> | unknown;
+};
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `maxFileSize` | `string \| number` | Maximum file size. String: `'4MB'`, `'512KB'`, `'1GB'`. Number: bytes. |
+| `maxFileCount` | `number` | Maximum number of files per upload session. |
+| `allowedTypes` | `string[]` | Accepted MIME types. Wildcards supported: `'image/*'`. |
+| `middleware` | `function` | Runs before upload. Receives `{ req: Request }`. Return metadata or throw to reject. |
+| `onUploadComplete` | `function` | Runs after successful upload. Receives `{ file: UploadedFile; metadata }`. |
+
+The generic `TMiddleware` is inferred from the return type of `middleware`. TypeScript propagates this type to `onUploadComplete`'s `metadata` parameter automatically.
+
+---
+
+## UploadedFile
+
+The file record passed to `onUploadComplete`.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | UploadKit file ID. |
+| `key` | `string` | Storage key (path within the bucket). |
+| `name` | `string` | Original filename. |
+| `size` | `number` | File size in bytes. |
+| `type` | `string` | MIME type. |
+| `url` | `string` | CDN URL for the uploaded file. |
+| `metadata` | `Record<string, unknown>` | Optional metadata from the upload request. |
+
+---
+
+## S3CompatibleStorage
+
+BYOS storage credentials for connecting to your own S3 or Cloudflare R2 bucket.
+
+```typescript
+interface S3CompatibleStorage {
+  endpoint?: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucket: string;
+}
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `endpoint` | `string` | S3 endpoint URL. For R2: `'https://<accountId>.r2.cloudflarestorage.com'`. Omit for AWS S3. |
+| `region` | `string` | Region string. Use `'auto'` for Cloudflare R2, or the AWS region (e.g. `'us-east-1'`). |
+| `accessKeyId` | `string` | Access key ID. For R2, generate an API token in the Cloudflare dashboard. |
+| `secretAccessKey` | `string` | Secret access key. |
+| `bucket` | `string` | Bucket name. |
+
+Store these in environment variables — never hardcode credentials.
+
+```bash title=".env.local"
+BYOS_ENDPOINT=https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com
+BYOS_REGION=auto
+BYOS_ACCESS_KEY_ID=your_access_key_id
+BYOS_SECRET_ACCESS_KEY=your_secret_access_key
+BYOS_BUCKET=your-bucket-name
+```
+
+```typescript title="app/api/uploadkit/[...uploadkit]/route.ts"
+export const { GET, POST } = createUploadKitHandler({
+  router: fileRouter,
+  storage: {
+    endpoint: process.env.BYOS_ENDPOINT,
+    region: process.env.BYOS_REGION!,
+    accessKeyId: process.env.BYOS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.BYOS_SECRET_ACCESS_KEY!,
+    bucket: process.env.BYOS_BUCKET!,
+  },
+});
+```
+
+---
+
+## parseFileSize
+
+Converts a human-readable file size string to bytes.
+
+```typescript
+function parseFileSize(size: string | number): number
+```
+
+| Input | Output |
+|-------|--------|
+| `'500KB'` | `512000` |
+| `'4MB'` | `4194304` |
+| `'1GB'` | `1073741824` |
+| `'1.5MB'` | `1572864` |
+| `5000` (number) | `5000` |
+
+Throws an `Error` if the format is invalid:
+
+```typescript
+import { parseFileSize } from '@uploadkit/next';
+
+parseFileSize('4MB')     // 4194304
+parseFileSize('512KB')   // 524288
+parseFileSize(1000000)   // 1000000
+
+parseFileSize('4 megabytes') // Error: Invalid file size format
+```
+
+---
+
+## generateReactHelpers (re-export)
+
+`@uploadkit/next` re-exports `generateReactHelpers` for type inference convenience. The actual implementation is in `@uploadkit/react`. See [Type Safety](/docs/sdk/next/type-safety) for usage.
+
+```typescript
+import { generateReactHelpers } from '@uploadkit/react';
+import type { AppFileRouter } from './route';
+
+export const { UploadButton, UploadDropzone, UploadModal, useUploadKit } =
+  generateReactHelpers<AppFileRouter>();
+```

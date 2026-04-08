@@ -1,0 +1,173 @@
+---
+title: API Reference
+description: Complete API reference for @uploadkit/core — all types, methods, and error codes.
+---
+
+## createUploadKit
+
+Factory function. Creates and returns an `UploadKitClient`.
+
+```typescript
+function createUploadKit(config: UploadKitConfig): UploadKitClient
+```
+
+### UploadKitConfig
+
+| Property | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `apiKey` | `string` | Yes | — | API key prefixed `uk_live_` or `uk_test_`. |
+| `baseUrl` | `string` | No | `'https://api.uploadkit.dev'` | Override the API endpoint. |
+| `maxRetries` | `number` | No | `3` | Retry attempts on transient failures. `0` disables retries. |
+
+---
+
+## UploadKitClient
+
+The main SDK client. Created by `createUploadKit()`.
+
+### Methods
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `upload` | `(options: UploadOptions) => Promise<UploadResult>` | Upload a file. Automatically uses multipart for files >10 MB. |
+| `listFiles` | `(options?: ListFilesOptions) => Promise<ListFilesResult>` | List files for this API key's project. |
+| `deleteFile` | `(key: string) => Promise<void>` | Permanently delete a file by its storage key. |
+
+---
+
+## upload
+
+```typescript
+client.upload(options: UploadOptions): Promise<UploadResult>
+```
+
+### UploadOptions
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `file` | `File` | Yes | The file to upload. |
+| `route` | `string` | Yes | Route name from your server-side file router. |
+| `metadata` | `Record<string, unknown>` | No | JSON-serializable metadata forwarded to `onUploadComplete`. |
+| `onProgress` | `(percentage: number) => void` | No | Called with progress percentage (0–100). |
+| `signal` | `AbortSignal` | No | Cancellation signal from `AbortController`. |
+
+### UploadResult
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | UploadKit file ID. |
+| `key` | `string` | Storage key (e.g. `'imageUploader/abc123/photo.jpg'`). Use for deletion. |
+| `name` | `string` | Original filename. |
+| `size` | `number` | File size in bytes. |
+| `type` | `string` | MIME type (e.g. `'image/jpeg'`). |
+| `url` | `string` | CDN URL for the file. |
+| `status` | `string` | Upload status — `'completed'` on success. |
+| `metadata` | `Record<string, unknown>` | Metadata returned from `onUploadComplete`, if any. |
+| `createdAt` | `string` | ISO 8601 timestamp. |
+
+---
+
+## listFiles
+
+```typescript
+client.listFiles(options?: ListFilesOptions): Promise<ListFilesResult>
+```
+
+### ListFilesOptions
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `limit` | `number` | `20` | Maximum number of files to return (1–100). |
+| `cursor` | `string` | — | Pagination cursor from a previous response's `nextCursor`. |
+
+### ListFilesResult
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `files` | `UploadResult[]` | Array of file records for the current page. |
+| `nextCursor` | `string \| undefined` | Pass as `cursor` in the next call to get the next page. `undefined` means no more pages. |
+
+---
+
+## deleteFile
+
+```typescript
+client.deleteFile(key: string): Promise<void>
+```
+
+Permanently deletes the file with the given storage key. Returns `Promise<void>` on success. Throws `UploadKitError` on failure (including 404 if the file does not exist).
+
+---
+
+## UploadKitError
+
+Thrown by all client methods on API or network errors. Import from `@uploadkit/core`.
+
+```typescript
+import { UploadKitError } from '@uploadkit/core';
+
+try {
+  await client.upload({ file, route: 'imageUploader' });
+} catch (err) {
+  if (err instanceof UploadKitError) {
+    console.error(err.code, err.message, err.status);
+  }
+}
+```
+
+### UploadKitError properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `code` | `string` | Machine-readable error code (e.g. `'FILE_TOO_LARGE'`, `'INVALID_FILE_TYPE'`, `'UNAUTHORIZED'`). |
+| `message` | `string` | Human-readable error description. |
+| `status` | `number` | HTTP status code from the API. |
+| `suggestion` | `string` | Actionable hint for resolving the error. |
+
+### Common error codes
+
+| Code | Status | When it occurs |
+|------|--------|----------------|
+| `MISSING_API_KEY` | 400 | `createUploadKit()` called without `apiKey`. |
+| `UNAUTHORIZED` | 401 | Invalid or revoked API key. |
+| `FILE_TOO_LARGE` | 413 | File exceeds the route's `maxFileSize`. |
+| `INVALID_FILE_TYPE` | 415 | MIME type not in the route's `allowedTypes`. |
+| `ROUTE_NOT_FOUND` | 404 | Route name does not exist in your file router. |
+| `UPLOAD_FAILED` | 500 | Unexpected error during upload. |
+
+---
+
+## Internal types
+
+These types are exported for advanced use cases (custom wrappers, testing). The SDK does not rely on them being stable.
+
+### UploadRequestResponse
+
+Internal response from `POST /api/v1/upload/request` (single-part upload).
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `fileId` | `string` | ID of the pending file record. |
+| `uploadUrl` | `string` | Presigned PUT URL for direct-to-storage upload. |
+| `key` | `string` | Storage key for the file. |
+| `cdnUrl` | `string` | CDN URL that will serve the file after upload. |
+
+### MultipartInitResponse
+
+Internal response from `POST /api/v1/upload/multipart/init` (files >10 MB).
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `fileId` | `string` | ID of the pending file record. |
+| `uploadId` | `string` | Multipart upload ID (from R2/S3). |
+| `key` | `string` | Storage key for the file. |
+| `parts` | `Array<{ partNumber: number; uploadUrl: string }>` | Array of presigned PUT URLs, one per part. |
+
+---
+
+## VERSION
+
+```typescript
+import { VERSION } from '@uploadkit/core';
+// '0.1.0'
+```

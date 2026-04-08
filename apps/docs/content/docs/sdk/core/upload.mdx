@@ -1,0 +1,140 @@
+---
+title: Uploading Files
+description: Basic uploads, progress tracking, metadata, abort, and error handling with @uploadkit/core.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Basic upload
+
+Call `client.upload()` with a `File` object and the route name defined in your server-side file router.
+
+```typescript
+import { createUploadKit } from '@uploadkit/core';
+
+const client = createUploadKit({ apiKey: 'uk_live_xxxxxxxxxxxxxxxxxxxxx' });
+
+const result = await client.upload({
+  file: someFile,   // File | Blob
+  route: 'imageUploader',
+});
+
+console.log(result.url);  // CDN URL of the uploaded file
+console.log(result.key);  // Storage key (use for deletion)
+console.log(result.id);   // UploadKit file ID
+```
+
+## With metadata
+
+Pass a `metadata` object to forward arbitrary data to your server-side `onUploadComplete` handler.
+Values must be JSON-serializable.
+
+```typescript
+const result = await client.upload({
+  file: avatarFile,
+  route: 'avatars',
+  metadata: {
+    userId: session.user.id,
+    projectId: 'proj_abc123',
+  },
+});
+```
+
+On the server, `metadata` is available in `onUploadComplete`:
+
+```typescript
+onUploadComplete: async ({ file, metadata }) => {
+  // metadata.userId and metadata.projectId are available here
+  await db.avatars.update({ userId: metadata.userId, url: file.url });
+},
+```
+
+## Progress tracking
+
+Pass an `onProgress` callback. It receives an integer percentage from 0–100.
+
+```typescript
+const result = await client.upload({
+  file: videoFile,
+  route: 'videos',
+  onProgress: (percentage) => {
+    console.log(`Upload progress: ${percentage}%`);
+    progressBar.style.width = `${percentage}%`;
+  },
+});
+```
+
+## Abort / cancel
+
+Pass an `AbortSignal` from an `AbortController` to cancel an in-progress upload.
+
+```typescript
+const controller = new AbortController();
+
+// Later: controller.abort() to cancel
+
+try {
+  const result = await client.upload({
+    file: largeFile,
+    route: 'documents',
+    signal: controller.signal,
+  });
+} catch (err) {
+  if (err instanceof Error && err.name === 'AbortError') {
+    console.log('Upload cancelled by user');
+  }
+}
+
+// Trigger cancellation from a button:
+cancelButton.addEventListener('click', () => controller.abort());
+```
+
+## Error handling
+
+`client.upload()` throws an `UploadKitError` on failure. Import it from `@uploadkit/core` for typed error handling.
+
+```typescript
+import { createUploadKit, UploadKitError } from '@uploadkit/core';
+
+try {
+  const result = await client.upload({ file, route: 'imageUploader' });
+} catch (err) {
+  if (err instanceof UploadKitError) {
+    console.error(`[${err.code}] ${err.message}`);
+    // err.code — machine-readable code (e.g. 'FILE_TOO_LARGE', 'INVALID_FILE_TYPE')
+    // err.status — HTTP status code
+    // err.suggestion — human-readable fix hint
+  } else {
+    // Network error, timeout, etc.
+    throw err;
+  }
+}
+```
+
+## Multipart uploads
+
+Files larger than 10 MB are automatically uploaded using multipart upload — no code change required. The SDK splits the file into parts, uploads them in parallel, and assembles them on the server. Progress callbacks work normally across all parts.
+
+```typescript
+// This uses single-part for files ≤10 MB, multipart for files >10 MB
+// The API is identical either way
+const result = await client.upload({
+  file: largeVideoFile, // e.g. 500 MB
+  route: 'videos',
+  onProgress: (pct) => setProgress(pct),
+});
+```
+
+<Callout type="info">
+  Multipart uploads are resumable. If the connection drops mid-upload, the SDK automatically retries the failed parts up to `maxRetries` times before throwing.
+</Callout>
+
+## UploadOptions reference
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `file` | `File` | Yes | The file to upload. Must be a browser `File` or `Blob`. |
+| `route` | `string` | Yes | Route name from your server-side file router (e.g. `'imageUploader'`). |
+| `metadata` | `Record<string, unknown>` | No | JSON-serializable metadata forwarded to `onUploadComplete`. |
+| `onProgress` | `(percentage: number) => void` | No | Progress callback. Receives 0–100. |
+| `signal` | `AbortSignal` | No | Cancellation signal from `AbortController`. |

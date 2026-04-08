@@ -1,0 +1,50 @@
+---
+title: Configuration
+description: All UploadKitConfig options for @uploadkit/core.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Pass a `UploadKitConfig` object to `createUploadKit()`. Only `apiKey` is required.
+
+```typescript
+import { createUploadKit } from '@uploadkit/core';
+
+const client = createUploadKit({
+  apiKey: process.env.UPLOADKIT_API_KEY!,
+  baseUrl: 'https://api.uploadkit.dev',
+  maxRetries: 3,
+});
+```
+
+## Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `apiKey` | `string` | Yes | — | Your UploadKit API key. Prefixed `uk_live_` for production or `uk_test_` for development. Get yours at [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev). |
+| `baseUrl` | `string` | No | `'https://api.uploadkit.dev'` | Override the API base URL. Useful for self-hosted UploadKit or local development proxies. |
+| `maxRetries` | `number` | No | `3` | Number of automatic retries on transient network errors (5xx, timeouts). Set to `0` to disable retries. |
+
+<Callout type="warn">
+  Never expose your `apiKey` in client-side code. In browser environments, use the React components from `@uploadkit/react` — they receive the key through `UploadKitProvider` without leaking it to the DOM.
+</Callout>
+
+## Advanced example
+
+Override all options for self-hosted or staging environments:
+
+```typescript
+import { createUploadKit } from '@uploadkit/core';
+
+const client = createUploadKit({
+  apiKey: process.env.UPLOADKIT_API_KEY!,
+  // Point to a local dev server or staging environment
+  baseUrl: process.env.UPLOADKIT_BASE_URL ?? 'https://api.uploadkit.dev',
+  // Disable retries for tests to fail fast
+  maxRetries: process.env.NODE_ENV === 'test' ? 0 : 3,
+});
+```
+
+## BYOS (Bring Your Own Storage)
+
+If you are using BYOS mode with your own S3/R2 bucket, configure your storage credentials in the server-side `@uploadkit/next` handler instead — the core client works identically from the browser regardless of storage mode. See the [BYOS guide](/docs/guides/byos) for details.
