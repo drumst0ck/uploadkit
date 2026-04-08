@@ -19,6 +19,7 @@
     "@upstash/ratelimit": "latest",
     "@upstash/redis": "latest",
     "bcryptjs": "latest",
+    "mongoose": "^9.4.1",
     "nanoid": "latest",
     "next": "latest",
     "react": "latest",
