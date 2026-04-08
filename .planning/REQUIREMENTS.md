@@ -36,7 +36,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **UPLD-06**: Upload abort/cancel via AbortController
 - [x] **UPLD-07**: Automatic retry with exponential backoff (configurable, default 3 retries)
 - [x] **UPLD-08**: Client-side file type and size validation before upload request
-- [ ] **UPLD-09**: Cleanup job for stale "UPLOADING" records (>1 hour) to prevent orphaned R2 objects
+- [x] **UPLD-09**: Cleanup job for stale "UPLOADING" records (>1 hour) to prevent orphaned R2 objects
 
 ### REST API
 
@@ -46,7 +46,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **API-04**: API Keys management (list per project, create with uk_live_/uk_test_ prefix, revoke)
 - [x] **API-05**: File Router configuration endpoints (CRUD per project)
 - [x] **API-06**: Usage endpoints (current period, history)
-- [ ] **API-07**: Upload logs endpoint (GET /api/v1/logs?since=timestamp)
+- [x] **API-07**: Upload logs endpoint (GET /api/v1/logs?since=timestamp)
 - [x] **API-08**: Descriptive error messages with codes and fix suggestions (Stripe-style)
 
 ### SDK Core (@uploadkit/core)
@@ -214,14 +214,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UPLD-06 | Phase 3 | Complete |
 | UPLD-07 | Phase 3 | Complete |
 | UPLD-08 | Phase 3 | Complete |
-| UPLD-09 | Phase 3 | Pending |
+| UPLD-09 | Phase 3 | Complete |
 | API-01 | Phase 3 | Complete |
 | API-02 | Phase 3 | Complete |
 | API-03 | Phase 3 | Complete |
 | API-04 | Phase 3 | Complete |
 | API-05 | Phase 3 | Complete |
 | API-06 | Phase 3 | Complete |
-| API-07 | Phase 3 | Pending |
+| API-07 | Phase 3 | Complete |
 | API-08 | Phase 3 | Complete |
 | SDK-01 | Phase 4 | Pending |
 | SDK-02 | Phase 4 | Pending |

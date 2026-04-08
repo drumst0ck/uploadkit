@@ -12,7 +12,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 
 - [x] **Phase 1: Monorepo & Infrastructure** - Turborepo monorepo, R2, MongoDB, Redis, Sentry, CI/CD, Changesets (completed 2026-04-07)
 - [x] **Phase 2: Authentication** - Auth.js v5 with GitHub, Google, and magic link; persistent sessions (completed 2026-04-08)
-- [ ] **Phase 3: Upload Flow & REST API** - Presigned URL pipeline, multipart, abort/retry, full file/project/key REST API
+- [x] **Phase 3: Upload Flow & REST API** - Presigned URL pipeline, multipart, abort/retry, full file/project/key REST API (completed 2026-04-08)
 - [ ] **Phase 4: SDK Core & Next.js Adapter** - @uploadkit/core factory, BYOS mode, @uploadkit/next file router pattern
 - [ ] **Phase 5: SDK React Components** - UploadButton, Dropzone, Modal, FileList, FilePreview, hook, theming, a11y
 - [ ] **Phase 6: Dashboard** - Auth shell, project/file/key management, upload logs, usage, command palette
@@ -69,7 +69,7 @@ Plans:
 - [x] 03-01-PLAN.md — API foundation: package deps, withApiKey wrapper, error serializer, Zod schemas, model patches
 - [x] 03-02-PLAN.md — Upload pipeline: presigned URL request, complete, multipart init/complete/abort
 - [x] 03-03-PLAN.md — REST CRUD: files, projects, API keys, file routers, usage endpoints
-- [ ] 03-04-PLAN.md — Upload logs polling endpoint and orphaned upload cleanup cron job
+- [x] 03-04-PLAN.md — Upload logs polling endpoint and orphaned upload cleanup cron job
 
 ### Phase 4: SDK Core & Next.js Adapter
 **Goal**: `@uploadkit/core` and `@uploadkit/next` are published-ready packages that work in both managed and BYOS modes, giving Next.js developers a typed file router pattern
@@ -200,7 +200,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 |-------|----------------|--------|-----------|
 | 1. Monorepo & Infrastructure | 4/4 | Complete   | 2026-04-07 |
 | 2. Authentication | 2/2 | Complete   | 2026-04-08 |
-| 3. Upload Flow & REST API | 1/4 | In Progress|  |
+| 3. Upload Flow & REST API | 4/4 | Complete   | 2026-04-08 |
 | 4. SDK Core & Next.js Adapter | 0/? | Not started | - |
 | 5. SDK React Components | 0/? | Not started | - |
 | 6. Dashboard | 0/? | Not started | - |
