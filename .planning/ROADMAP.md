@@ -16,7 +16,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - [x] **Phase 4: SDK Core & Next.js Adapter** - @uploadkit/core factory, BYOS mode, @uploadkit/next file router pattern (completed 2026-04-08)
 - [x] **Phase 5: SDK React Components** - UploadButton, Dropzone, Modal, FileList, FilePreview, hook, theming, a11y (completed 2026-04-08)
 - [x] **Phase 6: Dashboard** - Auth shell, project/file/key management, upload logs, usage, command palette (completed 2026-04-08)
-- [ ] **Phase 7: Billing & Email** - Stripe Checkout, Billing Portal, metered overages, Resend transactional emails
+- [x] **Phase 7: Billing & Email** - Stripe Checkout, Billing Portal, metered overages, Resend transactional emails (completed 2026-04-08)
 - [ ] **Phase 8: Landing & Pricing Pages** - Hero, code demo, feature grid, competitor table, pricing page
 - [ ] **Phase 9: Documentation** - Fumadocs site, quickstart, SDK reference, API reference, guides
 - [ ] **Phase 10: Testing, Publishing & Launch** - Vitest unit tests, Playwright E2E, npm publish, launch readiness
@@ -137,7 +137,7 @@ Plans:
 - [x] 07-01-PLAN.md — Stripe client singletons, Checkout + Portal endpoints, billing page, setup script
 - [x] 07-02-PLAN.md — Stripe webhook handler, Meters API integration, soft tier limit enforcement
 - [x] 07-03-PLAN.md — packages/emails workspace package with React Email templates (welcome, usage alert, invoice)
-- [ ] 07-04-PLAN.md — Wire email triggers: welcome on signup, usage alerts on threshold, invoice emails on webhooks
+- [x] 07-04-PLAN.md — Wire email triggers: welcome on signup, usage alerts on threshold, invoice emails on webhooks
 
 ### Phase 8: Landing & Pricing Pages
 **Goal**: The public landing page and pricing page are live, visually competitive with Vercel/Linear, fully responsive, SEO-ready, and convert visitors to signups
@@ -203,7 +203,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 4. SDK Core & Next.js Adapter | 2/2 | Complete   | 2026-04-08 |
 | 5. SDK React Components | 4/4 | Complete   | 2026-04-08 |
 | 6. Dashboard | 5/5 | Complete   | 2026-04-08 |
-| 7. Billing & Email | 3/4 | In Progress|  |
+| 7. Billing & Email | 4/4 | Complete   | 2026-04-08 |
 | 8. Landing & Pricing Pages | 0/? | Not started | - |
 | 9. Documentation | 0/? | Not started | - |
 | 10. Testing, Publishing & Launch | 0/? | Not started | - |
