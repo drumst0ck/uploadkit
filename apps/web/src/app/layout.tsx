@@ -5,6 +5,8 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'UploadKit — File Uploads for Developers',
   description: 'Add beautiful, type-safe file uploads to your app in minutes. Free tier included.',
+  metadataBase: new URL('https://uploadkit.dev'),
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
