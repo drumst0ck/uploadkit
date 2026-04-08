@@ -125,9 +125,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DOCS-02**: Quickstart guide (5-minute setup: install, file router, provider, component)
 - [x] **DOCS-03**: Getting started guides per framework (Next.js App Router, React/Vite, API-only)
 - [x] **DOCS-04**: Core concepts (file routes, presigned URLs, BYOS, security)
-- [ ] **DOCS-05**: SDK reference — @uploadkit/core (config, upload, delete, API reference)
-- [ ] **DOCS-06**: SDK reference — @uploadkit/react (all components, hook, theming, API reference)
-- [ ] **DOCS-07**: SDK reference — @uploadkit/next (handler, file router, middleware, type safety)
+- [x] **DOCS-05**: SDK reference — @uploadkit/core (config, upload, delete, API reference)
+- [x] **DOCS-06**: SDK reference — @uploadkit/react (all components, hook, theming, API reference)
+- [x] **DOCS-07**: SDK reference — @uploadkit/next (handler, file router, middleware, type safety)
 - [ ] **DOCS-08**: API reference (REST endpoints, auth, errors, webhooks)
 - [ ] **DOCS-09**: Guides (image upload, avatar upload, document upload, multipart, custom styling, migration from UploadThing)
 - [ ] **DOCS-10**: Dashboard documentation (overview, projects, files, API keys, billing)
@@ -288,9 +288,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCS-02 | Phase 9 | Complete |
 | DOCS-03 | Phase 9 | Complete |
 | DOCS-04 | Phase 9 | Complete |
-| DOCS-05 | Phase 9 | Pending |
-| DOCS-06 | Phase 9 | Pending |
-| DOCS-07 | Phase 9 | Pending |
+| DOCS-05 | Phase 9 | Complete |
+| DOCS-06 | Phase 9 | Complete |
+| DOCS-07 | Phase 9 | Complete |
 | DOCS-08 | Phase 9 | Pending |
 | DOCS-09 | Phase 9 | Pending |
 | DOCS-10 | Phase 9 | Pending |
