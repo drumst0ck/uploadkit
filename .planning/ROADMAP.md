@@ -66,10 +66,10 @@ Plans:
   5. `GET /api/v1/logs?since=timestamp` returns upload events for the polling interval; rate-limited endpoints return 429 with a Stripe-style error message when quota exceeded
 **Plans**: 4 plans
 Plans:
-- [x] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [x] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [x] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
-- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
+- [ ] 03-01-PLAN.md — API foundation: package deps, withApiKey wrapper, error serializer, Zod schemas, model patches
+- [ ] 03-02-PLAN.md — Upload pipeline: presigned URL request, complete, multipart init/complete/abort
+- [ ] 03-03-PLAN.md — REST CRUD: files, projects, API keys, file routers, usage endpoints
+- [ ] 03-04-PLAN.md — Upload logs polling endpoint and orphaned upload cleanup cron job
 
 ### Phase 4: SDK Core & Next.js Adapter
 **Goal**: `@uploadkit/core` and `@uploadkit/next` are published-ready packages that work in both managed and BYOS modes, giving Next.js developers a typed file router pattern
@@ -200,7 +200,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 |-------|----------------|--------|-----------|
 | 1. Monorepo & Infrastructure | 4/4 | Complete   | 2026-04-07 |
 | 2. Authentication | 2/2 | Complete   | 2026-04-08 |
-| 3. Upload Flow & REST API | 0/? | Not started | - |
+| 3. Upload Flow & REST API | 0/4 | Planned | - |
 | 4. SDK Core & Next.js Adapter | 0/? | Not started | - |
 | 5. SDK React Components | 0/? | Not started | - |
 | 6. Dashboard | 0/? | Not started | - |
