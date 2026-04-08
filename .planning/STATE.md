@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: "2026-04-08T17:07:24.926Z"
-last_activity: 2026-04-08 -- Phase 5 planning complete
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-04-08T17:22:45.788Z"
+last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 4
   total_plans: 16
-  completed_plans: 12
-  percent: 75
+  completed_plans: 13
+  percent: 81
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Developers can add beautiful, type-safe file uploads to any app in minutes — with a generous free tier, no vendor lock-in (BYOS), and premium components out of the box.
-**Current focus:** Phase 04 — sdk-core-next-js-adapter
+**Current focus:** Phase 05 — sdk-react-components
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
+Phase: 05 (sdk-react-components) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-04-08 -- Phase 5 planning complete
+Last activity: 2026-04-08
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-upload-flow-rest-api P04 | 3m | 2 tasks | 6 files |
 | Phase 04-sdk-core-next-js-adapter P01 | 20m | 3 tasks | 13 files |
 | Phase 04-sdk-core-next-js-adapter P02 | 7m | 2 tasks | 12 files |
+| Phase 05 P01 | 4m | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,9 @@ Recent decisions affecting current work:
 - [Phase 04-sdk-core-next-js-adapter]: DOM lib added to packages/next/tsconfig.json — handler uses Request/Response Web API globals
 - [Phase 04-sdk-core-next-js-adapter]: byos.ts dynamically imported in handler.ts — only loaded when config.storage is present, avoids AWS SDK in managed-mode bundles
 - [Phase 04-sdk-core-next-js-adapter]: generateReactHelpers type stub throws at runtime — TYPE SIGNATURE is Phase 4 deliverable; Phase 5 replaces throw with real component factories
+- [Phase 05]: useRef (not useState/useMemo) for UploadKitClient: guarantees single instantiation regardless of React Strict Mode double-invocation
+- [Phase 05]: dist/index.mjs for ESM, dist/index.js for CJS: tsup with CSS entry + splitting=true naming convention; package.json exports updated accordingly
+- [Phase 05]: tsconfig.json overrides rootDir/outDir locally: tsconfig.library.json rootDir is relative to config package, explicit override required per-consumer package
 
 ### Pending Todos
 
@@ -122,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T16:45:15.814Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-sdk-react-components/05-CONTEXT.md
+Last session: 2026-04-08T17:22:45.786Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None

@@ -68,17 +68,17 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### SDK React (@uploadkit/react)
 
-- [ ] **REACT-01**: UploadKitProvider context with API key configuration
-- [ ] **REACT-02**: useUploadKit headless hook (upload, progress, status, error, abort)
+- [x] **REACT-01**: UploadKitProvider context with API key configuration
+- [x] **REACT-02**: useUploadKit headless hook (upload, progress, status, error, abort)
 - [ ] **REACT-03**: UploadButton with states (idle, hover, uploading with %, success, error) and variants (default, outline, ghost)
 - [ ] **REACT-04**: UploadDropzone with drag-and-drop, file previews, per-file progress bars, multi-file support
 - [ ] **REACT-05**: UploadModal with backdrop blur, scale+opacity animation, ESC/click-outside close
 - [ ] **REACT-06**: FileList component with uploaded files and actions
 - [ ] **REACT-07**: FilePreview with client-side canvas thumbnail generation (images), video poster, PDF first page, type icons
-- [ ] **REACT-08**: CSS custom properties theming (--uk-primary, --uk-bg, --uk-border, etc.)
-- [ ] **REACT-09**: Dark mode native (prefers-color-scheme + explicit override)
+- [x] **REACT-08**: CSS custom properties theming (--uk-primary, --uk-bg, --uk-border, etc.)
+- [x] **REACT-09**: Dark mode native (prefers-color-scheme + explicit override)
 - [ ] **REACT-10**: Customizable via className and appearance prop (Tailwind merge compatible)
-- [ ] **REACT-11**: Premium visual design matching Vercel/Supabase/Linear quality
+- [x] **REACT-11**: Premium visual design matching Vercel/Supabase/Linear quality
 - [ ] **REACT-12**: generateReactHelpers<AppFileRouter>() for typed component generation
 - [ ] **REACT-13**: WCAG 2.1 AA accessibility (focus-visible, aria-labels, reduced-motion)
 
@@ -234,17 +234,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NEXT-03 | Phase 4 | Complete |
 | NEXT-04 | Phase 4 | Complete |
 | NEXT-05 | Phase 4 | Complete |
-| REACT-01 | Phase 5 | Pending |
-| REACT-02 | Phase 5 | Pending |
+| REACT-01 | Phase 5 | Complete |
+| REACT-02 | Phase 5 | Complete |
 | REACT-03 | Phase 5 | Pending |
 | REACT-04 | Phase 5 | Pending |
 | REACT-05 | Phase 5 | Pending |
 | REACT-06 | Phase 5 | Pending |
 | REACT-07 | Phase 5 | Pending |
-| REACT-08 | Phase 5 | Pending |
-| REACT-09 | Phase 5 | Pending |
+| REACT-08 | Phase 5 | Complete |
+| REACT-09 | Phase 5 | Complete |
 | REACT-10 | Phase 5 | Pending |
-| REACT-11 | Phase 5 | Pending |
+| REACT-11 | Phase 5 | Complete |
 | REACT-12 | Phase 5 | Pending |
 | REACT-13 | Phase 5 | Pending |
 | DASH-01 | Phase 6 | Pending |

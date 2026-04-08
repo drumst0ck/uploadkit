@@ -97,7 +97,7 @@ Plans:
   5. All interactive components pass WCAG 2.1 AA contrast check and show visible `:focus-visible` rings
 **Plans**: 4 plans
 Plans:
-- [ ] 05-01-PLAN.md — Provider context, useUploadKit hook, styles.css theming, build config
+- [x] 05-01-PLAN.md — Provider context, useUploadKit hook, styles.css theming, build config
 - [ ] 05-02-PLAN.md — UploadButton with states/variants, UploadDropzone with drag-and-drop
 - [ ] 05-03-PLAN.md — UploadModal (native dialog), FileList, FilePreview with canvas thumbnails
 - [ ] 05-04-PLAN.md — generateReactHelpers factory, accessibility audit, final exports
@@ -200,7 +200,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 2. Authentication | 2/2 | Complete   | 2026-04-08 |
 | 3. Upload Flow & REST API | 4/4 | Complete   | 2026-04-08 |
 | 4. SDK Core & Next.js Adapter | 2/2 | Complete   | 2026-04-08 |
-| 5. SDK React Components | 0/4 | Planned | - |
+| 5. SDK React Components | 1/4 | In Progress|  |
 | 6. Dashboard | 0/? | Not started | - |
 | 7. Billing & Email | 0/? | Not started | - |
 | 8. Landing & Pricing Pages | 0/? | Not started | - |
