@@ -1,0 +1,271 @@
+---
+title: Next.js App Router
+description: Complete setup guide for Next.js App Router with @uploadkit/next and @uploadkit/react.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+## Prerequisites
+
+- Next.js 14 or later (App Router)
+- React 18 or later
+- pnpm, npm, or yarn
+
+## Installation
+
+Install both `@uploadkit/next` for the server-side handler and `@uploadkit/react` for UI components:
+
+<Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @uploadkit/next @uploadkit/react
+    ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npm install @uploadkit/next @uploadkit/react
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @uploadkit/next @uploadkit/react
+    ```
+  </Tab>
+</Tabs>
+
+## Create the file router
+
+Create a Route Handler at `app/api/uploadkit/route.ts`. This is where you define every upload category your app supports, along with its constraints and server-side logic.
+
+```typescript title="app/api/uploadkit/route.ts"
+import { createUploadKitHandler } from '@uploadkit/next';
+import type { FileRouter } from '@uploadkit/next';
+import { auth } from '@/lib/auth'; // your Auth.js or Clerk auth helper
+
+const router = {
+  // Accept profile images up to 4 MB
+  imageUploader: {
+    maxFileSize: '4MB',
+    allowedTypes: ['image/*'],
+    onUploadComplete: async ({ file, metadata }) => {
+      console.log('Image uploaded by user:', metadata.userId, file.url);
+      // Save to your database here
+    },
+  },
+
+  // Accept PDF / Word documents up to 16 MB, max 5 files at once
+  documentUploader: {
+    maxFileSize: '16MB',
+    maxFileCount: 5,
+    allowedTypes: ['application/pdf', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    middleware: async ({ req }) => {
+      // Authenticate the request — runs on your server before the upload is authorised
+      const session = await auth();
+      if (!session?.user?.id) {
+        throw new Error('Unauthorized');
+      }
+      // Anything returned here is passed to onUploadComplete as `metadata`
+      return { userId: session.user.id, plan: session.user.plan };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      // metadata.userId and metadata.plan are fully typed
+      console.log('Document uploaded:', file.key, 'by', metadata.userId);
+    },
+  },
+
+  // Square avatar images only — 2 MB limit
+  avatarUploader: {
+    maxFileSize: '2MB',
+    maxFileCount: 1,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    middleware: async ({ req }) => {
+      const session = await auth();
+      if (!session?.user?.id) throw new Error('Unauthorized');
+      return { userId: session.user.id };
+    },
+    onUploadComplete: async ({ file, metadata }) => {
+      // Update user avatar URL in your database
+      await db.user.update({ where: { id: metadata.userId }, data: { avatarUrl: file.url } });
+    },
+  },
+} satisfies FileRouter;
+
+export const { GET, POST } = createUploadKitHandler({ router });
+```
+
+<Callout>
+  The `satisfies FileRouter` pattern (not a type annotation) preserves the literal route name strings. This is what enables end-to-end TypeScript on the client — the `route` prop is typed to `"imageUploader" | "documentUploader" | "avatarUploader"`.
+</Callout>
+
+## Environment variables
+
+Add these to your `.env.local`:
+
+```bash title=".env.local"
+# Server-side: used by createUploadKitHandler to authenticate with the UploadKit API
+UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
+
+# Client-side: used by UploadKitProvider
+NEXT_PUBLIC_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
+```
+
+<Callout type="warn">
+  Never expose `UPLOADKIT_API_KEY` (without `NEXT_PUBLIC_`) in client-side code. If using BYOS, your storage credentials go here too — server-side only.
+</Callout>
+
+## Add the provider
+
+Wrap your root layout's `children` with `UploadKitProvider` so all components in the tree can access the upload client:
+
+```tsx title="app/layout.tsx"
+import { UploadKitProvider } from '@uploadkit/react';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <UploadKitProvider apiKey={process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!}>
+          {children}
+        </UploadKitProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+## Use components
+
+UploadKit ships three ready-made upload components. Use whichever fits your UI:
+
+### UploadButton
+
+A single button that opens the system file picker:
+
+```tsx title="app/profile/page.tsx"
+import { UploadButton } from '@uploadkit/react';
+
+export default function ProfilePage() {
+  return (
+    <UploadButton
+      route="imageUploader"
+      onUploadComplete={(files) => {
+        console.log('Files uploaded:', files.map((f) => f.url));
+      }}
+      onUploadError={(error) => {
+        alert(`Upload failed: ${error.message}`);
+      }}
+    />
+  );
+}
+```
+
+### UploadDropzone
+
+A drag-and-drop zone with a file picker fallback:
+
+```tsx title="app/documents/page.tsx"
+import { UploadDropzone } from '@uploadkit/react';
+
+export default function DocumentsPage() {
+  return (
+    <UploadDropzone
+      route="documentUploader"
+      onUploadComplete={(files) => {
+        console.log('Documents uploaded:', files);
+      }}
+    />
+  );
+}
+```
+
+### UploadModal
+
+An accessible modal dialog triggered by a button:
+
+```tsx title="app/settings/page.tsx"
+'use client';
+
+import { useState } from 'react';
+import { UploadModal } from '@uploadkit/react';
+
+export default function SettingsPage() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Change avatar</button>
+      <UploadModal
+        open={open}
+        onOpenChange={setOpen}
+        route="avatarUploader"
+        onUploadComplete={(files) => {
+          setOpen(false);
+          console.log('Avatar updated:', files[0]?.url);
+        }}
+      />
+    </>
+  );
+}
+```
+
+## Handle upload completion
+
+The `onUploadComplete` callback in your file router runs **server-side** after the file has been stored. Use it to update your database, trigger webhooks, or send notifications:
+
+```typescript title="app/api/uploadkit/route.ts (excerpt)"
+documentUploader: {
+  // ...config...
+  onUploadComplete: async ({ file, metadata }) => {
+    // file: { id, key, name, size, type, url, status, createdAt }
+    // metadata: whatever your middleware returned
+
+    // Save the file record to your database
+    await db.document.create({
+      data: {
+        userId: metadata.userId,
+        fileKey: file.key,
+        fileName: file.name,
+        fileUrl: file.url,
+        fileSize: file.size,
+      },
+    });
+
+    // Optionally trigger downstream processing
+    await queueDocumentProcessing({ fileKey: file.key });
+  },
+},
+```
+
+For real-time updates in the client after upload completes, listen to the `onUploadComplete` callback on the component and update local state or revalidate with `router.refresh()`.
+
+## Type safety
+
+Use `generateReactHelpers` to get a fully-typed version of the upload components bound to your specific router:
+
+```typescript title="lib/uploadkit.ts"
+import { generateReactHelpers } from '@uploadkit/react';
+import type { FileRouter } from '@/app/api/uploadkit/route';
+
+// Re-export typed components — route prop is now typed to your route names
+export const { UploadButton, UploadDropzone, UploadModal, useUploadKit } =
+  generateReactHelpers<FileRouter>();
+```
+
+Then import these typed versions throughout your app:
+
+```tsx
+import { UploadButton } from '@/lib/uploadkit';
+// route prop is now typed: "imageUploader" | "documentUploader" | "avatarUploader"
+```
+
+## BYOS mode
+
+If you want to use your own S3 or Cloudflare R2 bucket instead of UploadKit's managed storage, pass a `storage` configuration to `createUploadKitHandler`. Your frontend code stays identical.
+
+See the [Bring Your Own Storage guide](/docs/core-concepts/byos) for the full setup.

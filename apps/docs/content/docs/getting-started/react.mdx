@@ -1,0 +1,164 @@
+---
+title: React / Vite
+description: Set up UploadKit in a React app with Vite, Create React App, or any React framework.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+<Callout type="info">
+  React/Vite apps use `@uploadkit/core` directly — file routes are defined in the UploadKit dashboard, not in code. For code-defined file routes with TypeScript inference, use the [Next.js adapter](/docs/getting-started/nextjs).
+</Callout>
+
+## Installation
+
+Install `@uploadkit/core` for the upload client and `@uploadkit/react` for the UI components:
+
+<Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @uploadkit/core @uploadkit/react
+    ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npm install @uploadkit/core @uploadkit/react
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @uploadkit/core @uploadkit/react
+    ```
+  </Tab>
+</Tabs>
+
+## Get an API key
+
+Create a free account at [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev) and generate an API key from the **API Keys** section of your project.
+
+For client-side apps, add it to your `.env` file (Vite exposes `VITE_` prefixed variables to the browser):
+
+```bash title=".env"
+VITE_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
+```
+
+## Add the provider
+
+Wrap your app's root with `UploadKitProvider`. Place it inside your router provider if you're using React Router or TanStack Router:
+
+```tsx title="src/main.tsx"
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { UploadKitProvider } from '@uploadkit/react';
+import App from './App';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <UploadKitProvider apiKey={import.meta.env.VITE_UPLOADKIT_API_KEY}>
+      <App />
+    </UploadKitProvider>
+  </React.StrictMode>,
+);
+```
+
+## Use components
+
+Once the provider is in place, you can drop upload components anywhere in your component tree.
+
+### UploadButton
+
+```tsx title="src/components/AvatarUpload.tsx"
+import { UploadButton } from '@uploadkit/react';
+
+export function AvatarUpload() {
+  return (
+    <UploadButton
+      route="avatarUploader"
+      onUploadComplete={(files) => {
+        console.log('Uploaded:', files[0]?.url);
+      }}
+      onUploadError={(error) => {
+        console.error('Upload failed:', error.message);
+      }}
+    />
+  );
+}
+```
+
+### UploadDropzone
+
+```tsx title="src/components/DocumentDropzone.tsx"
+import { UploadDropzone } from '@uploadkit/react';
+
+export function DocumentDropzone() {
+  return (
+    <UploadDropzone
+      route="documentUploader"
+      onUploadComplete={(files) => {
+        console.log('Documents ready:', files.map((f) => f.url));
+      }}
+    />
+  );
+}
+```
+
+## Using the headless hook
+
+When you need full control over the upload UI — a custom progress bar, inline file list, or your own drag-and-drop area — use the `useUploadKit` hook directly:
+
+```tsx title="src/components/CustomUploader.tsx"
+import { useUploadKit } from '@uploadkit/react';
+
+export function CustomUploader() {
+  const { upload, files, isUploading } = useUploadKit({
+    route: 'imageUploader',
+    onUploadComplete: (uploadedFiles) => {
+      console.log('Done:', uploadedFiles);
+    },
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) upload(file);
+  };
+
+  return (
+    <div>
+      <input type="file" accept="image/*" onChange={handleChange} disabled={isUploading} />
+      {isUploading && <p>Uploading...</p>}
+      {files.map((f) => (
+        <div key={f.id}>
+          <span>{f.name}</span>
+          <progress value={f.progress} max={100} />
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Using the core client directly
+
+For maximum control, you can use `UploadKitClient` from `@uploadkit/core` without any React dependency:
+
+```typescript title="src/lib/upload.ts"
+import { UploadKitClient } from '@uploadkit/core';
+
+const client = new UploadKitClient({
+  apiKey: import.meta.env.VITE_UPLOADKIT_API_KEY,
+});
+
+export async function uploadFile(
+  file: File,
+  onProgress?: (pct: number) => void,
+) {
+  const result = await client.upload({
+    file,
+    route: 'imageUploader',
+    onProgress,
+  });
+  return result; // { id, key, name, size, type, url, status, createdAt }
+}
+```
+
+This is useful when integrating uploads into form libraries, file managers, or non-React contexts.
