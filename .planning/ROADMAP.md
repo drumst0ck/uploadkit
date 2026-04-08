@@ -151,7 +151,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 08-01-PLAN.md — Web app foundation: fonts (Satoshi+Inter), dark theme, Shiki singleton, tier data utils, navbar, hero section
-- [ ] 08-02-PLAN.md — Landing page sections: code demo, features grid, comparison table, component showcase, pricing preview, footer, scroll animations
+- [x] 08-02-PLAN.md — Landing page sections: code demo, features grid, comparison table, component showcase, pricing preview, footer, scroll animations
 - [ ] 08-03-PLAN.md — Pricing page: monthly/yearly toggle, 4 tier cards, feature comparison matrix, overage pricing, SEO metadata + OG images
 **UI hint**: yes
 
@@ -203,6 +203,6 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 5. SDK React Components | 4/4 | Complete   | 2026-04-08 |
 | 6. Dashboard | 5/5 | Complete   | 2026-04-08 |
 | 7. Billing & Email | 4/4 | Complete   | 2026-04-08 |
-| 8. Landing & Pricing Pages | 1/3 | In Progress|  |
+| 8. Landing & Pricing Pages | 2/3 | In Progress|  |
 | 9. Documentation | 0/? | Not started | - |
 | 10. Testing, Publishing & Launch | 0/? | Not started | - |

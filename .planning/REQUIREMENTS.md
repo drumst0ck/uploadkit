@@ -102,13 +102,13 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Landing Page
 
 - [x] **LAND-01**: Hero section with headline, subheadline, CTAs, animated code snippet, "5GB free" badge
-- [ ] **LAND-02**: Interactive code demo with tabs (Next.js, React, API) and live component preview
-- [ ] **LAND-03**: Features grid (3x2) — managed storage, BYOS, components, type-safety, direct uploads, dashboard
-- [ ] **LAND-04**: Competitor comparison table (subtle, "Others" not named)
-- [ ] **LAND-05**: Component showcase with interactive demos (UploadButton, UploadDropzone, UploadModal) + dark/light toggle
-- [ ] **LAND-06**: Pricing preview (3 cards: Free/Pro/Team) with CTA to /pricing
-- [ ] **LAND-07**: Footer with links (Docs, GitHub, Twitter, Discord, Status)
-- [ ] **LAND-08**: Motion animations (entrance stagger, hover effects, scroll-triggered)
+- [x] **LAND-02**: Interactive code demo with tabs (Next.js, React, API) and live component preview
+- [x] **LAND-03**: Features grid (3x2) — managed storage, BYOS, components, type-safety, direct uploads, dashboard
+- [x] **LAND-04**: Competitor comparison table (subtle, "Others" not named)
+- [x] **LAND-05**: Component showcase with interactive demos (UploadButton, UploadDropzone, UploadModal) + dark/light toggle
+- [x] **LAND-06**: Pricing preview (3 cards: Free/Pro/Team) with CTA to /pricing
+- [x] **LAND-07**: Footer with links (Docs, GitHub, Twitter, Discord, Status)
+- [x] **LAND-08**: Motion animations (entrance stagger, hover effects, scroll-triggered)
 - [x] **LAND-09**: Responsive (375px, 768px, 1024px, 1440px) + dark mode
 - [ ] **LAND-10**: SEO (metadata, OG images, structured data)
 
@@ -271,13 +271,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EMAIL-02 | Phase 7 | Complete |
 | EMAIL-03 | Phase 7 | Complete |
 | LAND-01 | Phase 8 | Complete |
-| LAND-02 | Phase 8 | Pending |
-| LAND-03 | Phase 8 | Pending |
-| LAND-04 | Phase 8 | Pending |
-| LAND-05 | Phase 8 | Pending |
-| LAND-06 | Phase 8 | Pending |
-| LAND-07 | Phase 8 | Pending |
-| LAND-08 | Phase 8 | Pending |
+| LAND-02 | Phase 8 | Complete |
+| LAND-03 | Phase 8 | Complete |
+| LAND-04 | Phase 8 | Complete |
+| LAND-05 | Phase 8 | Complete |
+| LAND-06 | Phase 8 | Complete |
+| LAND-07 | Phase 8 | Complete |
+| LAND-08 | Phase 8 | Complete |
 | LAND-09 | Phase 8 | Complete |
 | LAND-10 | Phase 8 | Pending |
 | PRICE-01 | Phase 8 | Pending |

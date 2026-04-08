@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-04-08T22:26:47.252Z"
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-04-08T22:34:42.645Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 7
   total_plans: 28
-  completed_plans: 26
-  percent: 93
+  completed_plans: 27
+  percent: 96
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 ## Current Position
 
 Phase: 08 (landing-pricing-pages) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-08
 
@@ -83,6 +83,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07-billing-email P03 | 3m | 1 tasks | 8 files |
 | Phase 07-billing-email P04 | 5m | 2 tasks | 5 files |
 | Phase 08-landing-pricing-pages P01 | 4m | 2 tasks | 15 files |
+| Phase 08-landing-pricing-pages P02 | 5m | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -167,6 +168,9 @@ Recent decisions affecting current work:
 - [Phase 08-landing-pricing-pages]: Satoshi fonts downloaded as woff2 from Fontshare zip bundle — extracted to apps/web/src/fonts/
 - [Phase 08-landing-pricing-pages]: Shiki singleton: module-level Promise reused across all server renders — zero cost for repeated highlight() calls
 - [Phase 08-landing-pricing-pages]: CSS :target trick for mobile nav — zero client JS, href=#mobile-menu toggles display via :target pseudo-class
+- [Phase 08-landing-pricing-pages]: @uploadkit/react added as workspace dep in apps/web — missing from original package.json
+- [Phase 08-landing-pricing-pages]: AnimateObserver pattern: single document-level IntersectionObserver keeps all content sections as zero-JS Server Components
+- [Phase 08-landing-pricing-pages]: @uploadkit/react component prop is route not endpoint — matched actual SDK API
 
 ### Pending Todos
 
@@ -178,6 +182,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T22:26:47.248Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-04-08T22:34:42.640Z
+Stopped at: Completed 08-02-PLAN.md
 Resume file: None
