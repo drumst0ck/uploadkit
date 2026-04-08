@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 6 context gathered
-last_updated: "2026-04-08T18:30:43.377Z"
-last_activity: 2026-04-08 -- Phase 6 planning complete
+stopped_at: Completed 06-dashboard/06-01-PLAN.md
+last_updated: "2026-04-08T18:45:27.206Z"
+last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 21
-  completed_plans: 16
-  percent: 76
+  completed_plans: 17
+  percent: 81
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Developers can add beautiful, type-safe file uploads to any app in minutes — with a generous free tier, no vendor lock-in (BYOS), and premium components out of the box.
-**Current focus:** Phase 05 — sdk-react-components
+**Current focus:** Phase 06 — dashboard
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
+Phase: 06 (dashboard) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-04-08 -- Phase 6 planning complete
+Last activity: 2026-04-08
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -71,6 +71,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P02 | 3m | 2 tasks | 6 files |
 | Phase 05 P03 | 12m | 2 tasks | 6 files |
 | Phase 05 P04 | 3m | 2 tasks | 7 files |
+| Phase 06-dashboard P01 | 8m | 2 tasks | 33 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,10 @@ Recent decisions affecting current work:
 - [Phase 05]: generateReactHelpers uses TypeScript cast (not wrapper components) — zero extra React elements in tree
 - [Phase 05]: @uploadkit/next is devDependency of @uploadkit/react (type-only import, external in tsup — not bundled)
 - [Phase 05]: uk-error darkened from ef4444 to dc2626 for WCAG AA 4.5:1 contrast ratio on white
+- [Phase 06-dashboard]: packages/ui tsconfig overrides rootDir/outDir locally — tsconfig.library.json rootDir is relative to config package, explicit override required per-consumer package
+- [Phase 06-dashboard]: packages/ui exports key '.' not './' — slash suffix causes module resolution failure when dashboard imports @uploadkit/ui
+- [Phase 06-dashboard]: MobileMenuWrapper client component pattern — server layout cannot use useState; thin client wrapper lifts mobile menu state while keeping auth/DB code server-side
+- [Phase 06-dashboard]: exactOptionalPropertyTypes: all optional React props typed as T | undefined throughout dashboard layout components
 
 ### Pending Todos
 
@@ -139,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T18:09:47.371Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-dashboard/06-CONTEXT.md
+Last session: 2026-04-08T18:45:27.204Z
+Stopped at: Completed 06-dashboard/06-01-PLAN.md
+Resume file: None
