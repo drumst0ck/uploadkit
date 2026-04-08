@@ -10,17 +10,19 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@uploadkit/shared": "workspace:*",
+    "@uploadkit/ui": "workspace:*",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "@uploadkit/ui": "workspace:*"
+    "shiki": "^4.0.2"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@uploadkit/config": "workspace:*",
     "tailwindcss": "latest",
-    "@tailwindcss/postcss": "latest",
     "typescript": "latest"
   }
 }

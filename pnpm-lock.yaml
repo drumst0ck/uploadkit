@@ -44,6 +44,9 @@ importers:
       '@uploadkit/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@uploadkit/emails':
+        specifier: workspace:*
+        version: link:../../packages/emails
       '@uploadkit/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -123,6 +126,9 @@ importers:
       '@uploadkit/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@uploadkit/emails':
+        specifier: workspace:*
+        version: link:../../packages/emails
       '@uploadkit/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -242,6 +248,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@uploadkit/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@uploadkit/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -254,6 +263,9 @@ importers:
       react-dom:
         specifier: latest
         version: 19.2.5(react@19.2.5)
+      shiki:
+        specifier: ^4.0.2
+        version: 4.0.2
     devDependencies:
       '@tailwindcss/postcss':
         specifier: latest
