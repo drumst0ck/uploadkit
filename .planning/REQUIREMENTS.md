@@ -90,10 +90,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DASH-04**: File browser with DataTable (preview, name, size, type, date, actions), filters, search, pagination, bulk delete
 - [x] **DASH-05**: API Keys page (masked display uk_live_xxx...xxx, copy, create, revoke with confirmation)
 - [x] **DASH-06**: File Routes configuration UI per project
-- [ ] **DASH-07**: Upload logs page with polling (5s interval), filter by date/status/route
-- [ ] **DASH-08**: Usage page with progress bars (% of tier limit), historical chart, breakdown by project
-- [ ] **DASH-09**: Billing page (current plan card, upgrade button, Stripe Billing Portal link, invoice history)
-- [ ] **DASH-10**: Settings page (profile, notifications, delete account)
+- [x] **DASH-07**: Upload logs page with polling (5s interval), filter by date/status/route
+- [x] **DASH-08**: Usage page with progress bars (% of tier limit), historical chart, breakdown by project
+- [x] **DASH-09**: Billing page (current plan card, upgrade button, Stripe Billing Portal link, invoice history)
+- [x] **DASH-10**: Settings page (profile, notifications, delete account)
 - [ ] **DASH-11**: Command palette (cmd+k) for navigation
 - [x] **DASH-12**: Sidebar layout (collapsible), header with breadcrumbs/search/avatar
 - [x] **DASH-13**: Dark mode by default with toggle, responsive design
@@ -253,10 +253,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-04 | Phase 6 | Complete |
 | DASH-05 | Phase 6 | Complete |
 | DASH-06 | Phase 6 | Complete |
-| DASH-07 | Phase 6 | Pending |
-| DASH-08 | Phase 6 | Pending |
-| DASH-09 | Phase 6 | Pending |
-| DASH-10 | Phase 6 | Pending |
+| DASH-07 | Phase 6 | Complete |
+| DASH-08 | Phase 6 | Complete |
+| DASH-09 | Phase 6 | Complete |
+| DASH-10 | Phase 6 | Complete |
 | DASH-11 | Phase 6 | Pending |
 | DASH-12 | Phase 6 | Complete |
 | DASH-13 | Phase 6 | Complete |

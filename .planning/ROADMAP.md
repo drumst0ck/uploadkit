@@ -118,7 +118,7 @@ Plans:
 - [x] 06-01-PLAN.md — shadcn/ui init in packages/ui, dashboard deps, layout shell (sidebar, header, breadcrumbs, providers)
 - [x] 06-02-PLAN.md — Overview page (metric cards, upload chart, recent files) + project CRUD with slug routing
 - [x] 06-03-PLAN.md — File browser DataTable + API keys management + file routes configuration
-- [ ] 06-04-PLAN.md — Upload logs with polling + usage page with charts + billing shell + settings
+- [x] 06-04-PLAN.md — Upload logs with polling + usage page with charts + billing shell + settings
 - [ ] 06-05-PLAN.md — Command palette (cmd+k) + project settings + visual verification checkpoint
 **UI hint**: yes
 
