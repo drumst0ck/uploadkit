@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-04-08T21:34:54.293Z"
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-04-08T21:40:08.777Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 10
   completed_phases: 6
   total_plans: 25
-  completed_plans: 22
-  percent: 88
+  completed_plans: 23
+  percent: 92
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 ## Current Position
 
 Phase: 07 (billing-email) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-08
 
@@ -78,6 +78,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06-dashboard P04 | 30m | 2 tasks | 13 files |
 | Phase 06-dashboard P05 | 5m | 1 tasks | 6 files |
 | Phase 07-billing-email P01 | 6m | 2 tasks | 12 files |
+| Phase 07-billing-email P02 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,9 @@ Recent decisions affecting current work:
 - [Phase 07-billing-email]: Lazy Proxy pattern for Stripe singleton: defers key check to request time to prevent build failures when STRIPE_SECRET_KEY absent in CI
 - [Phase 07-billing-email]: Dashboard server actions call Stripe directly (not via inter-app HTTP): cleaner architecture since both apps share the same DB; billing API routes serve external consumers
 - [Phase 07-billing-email]: stripeCustomerId: sparse/unique (not required) — free users have no customer; required:true prevented Subscription records for FREE tier
+- [Phase 07-billing-email]: Stripe dahlia API (2026-03-25): current_period_start/end moved from Subscription root to SubscriptionItem — extract from items.data[0] with conditional spread
+- [Phase 07-billing-email]: MeterEvents conditioned on status === ACTIVE — avoids billing PAST_DUE subscribers during grace period overage
+- [Phase 07-billing-email]: Tier limit soft-block: ctx.tier === FREE guard — PRO/TEAM/ENTERPRISE all pass through on quota breach for overage billing
 
 ### Pending Todos
 
@@ -164,6 +168,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T21:34:54.289Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-04-08T21:40:08.773Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None

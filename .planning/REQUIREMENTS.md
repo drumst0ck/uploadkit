@@ -136,10 +136,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **BILL-01**: Stripe Checkout for Pro/Team subscription creation
 - [x] **BILL-02**: Stripe Billing Portal for plan management (upgrade, downgrade, cancel)
-- [ ] **BILL-03**: Stripe webhook handling (checkout.session.completed, subscription.updated/deleted, invoice.paid/failed)
-- [ ] **BILL-04**: Metered overage billing via Stripe Meters API (storage, bandwidth, uploads)
-- [ ] **BILL-05**: Usage tracking with MongoDB atomic $inc counters per user per period
-- [ ] **BILL-06**: Tier limit enforcement (check before presigned URL generation)
+- [x] **BILL-03**: Stripe webhook handling (checkout.session.completed, subscription.updated/deleted, invoice.paid/failed)
+- [x] **BILL-04**: Metered overage billing via Stripe Meters API (storage, bandwidth, uploads)
+- [x] **BILL-05**: Usage tracking with MongoDB atomic $inc counters per user per period
+- [x] **BILL-06**: Tier limit enforcement (check before presigned URL generation)
 
 ### Email
 
@@ -263,10 +263,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-14 | Phase 6 | Complete |
 | BILL-01 | Phase 7 | Complete |
 | BILL-02 | Phase 7 | Complete |
-| BILL-03 | Phase 7 | Pending |
-| BILL-04 | Phase 7 | Pending |
-| BILL-05 | Phase 7 | Pending |
-| BILL-06 | Phase 7 | Pending |
+| BILL-03 | Phase 7 | Complete |
+| BILL-04 | Phase 7 | Complete |
+| BILL-05 | Phase 7 | Complete |
+| BILL-06 | Phase 7 | Complete |
 | EMAIL-01 | Phase 7 | Pending |
 | EMAIL-02 | Phase 7 | Pending |
 | EMAIL-03 | Phase 7 | Pending |
