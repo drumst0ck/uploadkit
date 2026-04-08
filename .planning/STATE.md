@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02-authentication/02-01-PLAN.md
-last_updated: "2026-04-08T11:18:25.411Z"
+status: verifying
+stopped_at: "Completed 02-authentication/02-02-PLAN.md (checkpoint:human-verify pending)"
+last_updated: "2026-04-08T11:22:54.318Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 10
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 
 Phase: 02 (authentication) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-08
 
 Progress: [░░░░░░░░░░] 0%
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-monorepo-infrastructure P03 | 8m | 2 tasks | 9 files |
 | Phase 01-monorepo-infrastructure P04 | 2m | 2 tasks | 10 files |
 | Phase 02-authentication P01 | 7m | 3 tasks | 20 files |
+| Phase 02-authentication P02 | 2m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 02-authentication]: Auth.js v5 async lazy factory: NextAuth(async () => config) ensures connectDB() runs before adapter on every cold start
 - [Phase 02-authentication]: packages/db and packages/shared package.json exports corrected from index.cjs to index.js to match actual tsup CJS output filename
 - [Phase 02-authentication]: declaration: false in dashboard tsconfig.json — Next.js apps don't need .d.ts emit; avoids non-portable AppRouteHandlerFn type error from next-auth internals
+- [Phase 02-authentication]: export const dynamic='force-dynamic' required on all auth-gated pages — Next.js static prerendering fails when MONGODB_URI/AUTH_SECRET absent at build time
+- [Phase 02-authentication]: Server actions used for signIn/signOut — CSRF-safe by Next.js design (T-02-11)
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T11:18:25.408Z
-Stopped at: Completed 02-authentication/02-01-PLAN.md
+Last session: 2026-04-08T11:22:54.315Z
+Stopped at: Completed 02-authentication/02-02-PLAN.md (checkpoint:human-verify pending)
 Resume file: None

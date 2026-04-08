@@ -11,7 +11,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Monorepo & Infrastructure** - Turborepo monorepo, R2, MongoDB, Redis, Sentry, CI/CD, Changesets (completed 2026-04-07)
-- [ ] **Phase 2: Authentication** - Auth.js v5 with GitHub, Google, and magic link; persistent sessions
+- [x] **Phase 2: Authentication** - Auth.js v5 with GitHub, Google, and magic link; persistent sessions (completed 2026-04-08)
 - [ ] **Phase 3: Upload Flow & REST API** - Presigned URL pipeline, multipart, abort/retry, full file/project/key REST API
 - [ ] **Phase 4: SDK Core & Next.js Adapter** - @uploadkit/core factory, BYOS mode, @uploadkit/next file router pattern
 - [ ] **Phase 5: SDK React Components** - UploadButton, Dropzone, Modal, FileList, FilePreview, hook, theming, a11y
@@ -52,7 +52,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 02-01-PLAN.md — Auth.js v5 backend: providers, database sessions, proxy route protection, auto-create default project
-- [ ] 02-02-PLAN.md — Login page UI, protected dashboard layout, overview page, end-to-end verification
+- [x] 02-02-PLAN.md — Login page UI, protected dashboard layout, overview page, end-to-end verification
 
 ### Phase 3: Upload Flow & REST API
 **Goal**: Developers can upload files end-to-end through the presigned URL pipeline (including multipart, abort, retry) and perform all file/project/key operations via authenticated REST endpoints
@@ -199,7 +199,7 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Monorepo & Infrastructure | 4/4 | Complete   | 2026-04-07 |
-| 2. Authentication | 0/2 | Planning complete | - |
+| 2. Authentication | 2/2 | Complete   | 2026-04-08 |
 | 3. Upload Flow & REST API | 0/? | Not started | - |
 | 4. SDK Core & Next.js Adapter | 0/? | Not started | - |
 | 5. SDK React Components | 0/? | Not started | - |
