@@ -44,7 +44,7 @@ const result: NextAuthResult = NextAuth(async () => {
             slug: 'default',
             projectId: newProject._id,
             maxFileSize: 52428800, // 50MB
-            maxFileCount: 10,
+            maxFileCount: 100,
             allowedTypes: ['*/*'],
           });
         }

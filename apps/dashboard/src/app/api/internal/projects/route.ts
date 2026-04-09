@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     slug: 'default',
     projectId: project._id,
     maxFileSize: 52428800, // 50MB
-    maxFileCount: 10,
+    maxFileCount: 100,
     allowedTypes: ['*/*'],
   });
 

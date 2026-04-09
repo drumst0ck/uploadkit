@@ -58,7 +58,7 @@ async function handlePost(
     slug: 'default',
     projectId: project._id,
     maxFileSize: 52428800, // 50MB
-    maxFileCount: 10,
+    maxFileCount: 100,
     allowedTypes: ['*/*'],
   });
 
