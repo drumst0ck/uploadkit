@@ -1,3 +1,97 @@
 @import 'tailwindcss';
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
+
+/* ─── UploadKit Brand Overrides ─────────────────────── */
+/* Override fumadocs dark-mode tokens with UploadKit palette.
+   Variables confirmed from fumadocs-ui@16.7.10/css/lib/default-colors.css.
+   Must appear after @import lines so cascade order wins. */
+
+.dark {
+  --color-fd-background: #0a0a0b;
+  --color-fd-foreground: #fafafa;
+  --color-fd-card: #141416;
+  --color-fd-card-foreground: #fafafa;
+  --color-fd-popover: #141416;
+  --color-fd-popover-foreground: #fafafa;
+  --color-fd-primary: #6366f1;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #1e1e22;
+  --color-fd-secondary-foreground: #fafafa;
+  --color-fd-muted: #1e1e22;
+  --color-fd-muted-foreground: #a1a1aa;
+  --color-fd-accent: rgba(99, 102, 241, 0.15);
+  --color-fd-accent-foreground: #ffffff;
+  --color-fd-border: rgba(255, 255, 255, 0.06);
+  --color-fd-ring: #6366f1;
+}
+
+/* ─── Typography ─────────────────────────────────────── */
+body {
+  font-family: var(--font-inter, system-ui, sans-serif);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-satoshi, system-ui, sans-serif);
+  letter-spacing: -0.02em;
+}
+
+/* ─── Code blocks ────────────────────────────────────── */
+/* Darker background than fumadocs default, matching GitHub dark */
+pre {
+  background: #0d1117 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 12px !important;
+}
+
+/* Inline code — indigo tint */
+:not(pre) > code {
+  background: rgba(99, 102, 241, 0.12) !important;
+  color: #a5b4fc !important;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.875em;
+}
+
+/* ─── Links ──────────────────────────────────────────── */
+.prose a {
+  color: #818cf8;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.prose a:hover {
+  color: #6366f1;
+  text-decoration: underline;
+}
+
+/* ─── Tables ─────────────────────────────────────────── */
+th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+td, th {
+  padding: 0.75rem 1rem;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
