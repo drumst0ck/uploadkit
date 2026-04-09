@@ -1,19 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 import { Button } from '@uploadkit/ui';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkit/ui';
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
+  const [isDark, setIsDark] = React.useState(true);
 
-  // Avoid hydration mismatch — only render icon after mount
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const toggle = () => {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.classList.toggle('dark', next);
+  };
 
   return (
     <Tooltip>
@@ -21,19 +20,11 @@ export function ThemeToggle() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onClick={toggle}
           className="h-8 w-8 text-zinc-400 hover:text-zinc-200"
           aria-label="Toggle theme"
         >
-          {mounted ? (
-            theme === 'dark' ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
       </TooltipTrigger>
       <TooltipContent>Toggle theme</TooltipContent>

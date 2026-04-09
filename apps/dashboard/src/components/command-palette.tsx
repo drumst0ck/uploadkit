@@ -19,7 +19,7 @@ import {
   LogOut,
   Search,
 } from 'lucide-react';
-import { useTheme } from 'next-themes';
+// Theme toggle without next-themes (removed due to Next.js 16 hydration bug)
 import { signOut } from 'next-auth/react';
 import { useProjects } from '../hooks/use-projects';
 import useSWR from 'swr';
@@ -73,7 +73,12 @@ function useDebounced<T>(value: T, delay: number): T {
 
 export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandPaletteProps) {
   const router = useRouter();
-  const { resolvedTheme, setTheme } = useTheme();
+  const [isDark, setIsDark] = React.useState(true);
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.classList.toggle('dark', next);
+  };
   const { projects } = useProjects();
 
   const [inputValue, setInputValue] = React.useState('');
@@ -91,7 +96,7 @@ export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandP
   }
 
   function handleToggleTheme() {
-    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+    toggleTheme();
     onOpenChange(false);
   }
 
@@ -207,8 +212,8 @@ export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandP
             }}
           />
           <PaletteItem
-            icon={resolvedTheme === 'dark' ? Sun : Moon}
-            label={resolvedTheme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            icon={isDark ? Sun : Moon}
+            label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             onSelect={handleToggleTheme}
           />
           <PaletteItem
