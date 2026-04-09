@@ -71,7 +71,7 @@ export function ProjectSwitcher({
         side="top"
         className="w-56 border-border bg-card"
       >
-        <DropdownMenuLabel className="text-xs text-foreground0">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
           Projects
         </DropdownMenuLabel>
         {projects.map((project) => (

@@ -79,9 +79,9 @@ const SelectContent = React.forwardRef<
         minWidth: '8rem',
         overflow: 'hidden',
         borderRadius: '0.375rem',
-        border: '1px solid rgba(255, 255, 255, 0.06)',
-        backgroundColor: 'var(--popover, #141416)',
-        color: 'var(--popover-foreground, #fafafa)',
+        border: '1px solid var(--border)',
+        backgroundColor: 'var(--popover)',
+        color: 'var(--popover-foreground)',
         boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
       }}
       position={position}

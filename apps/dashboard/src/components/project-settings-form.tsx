@@ -133,7 +133,7 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-muted-foreground">Project slug</label>
             <div className="flex items-center gap-2">
-              <p className="flex-1 rounded-lg border border-border bg-white/[0.02] px-3 py-2 font-mono text-sm text-foreground0">
+              <p className="flex-1 rounded-lg border border-border bg-muted px-3 py-2 font-mono text-sm text-muted-foreground">
                 {slug}
               </p>
               <button
@@ -170,7 +170,7 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
       {/* Danger zone */}
       <div className="rounded-xl border border-red-500/20 bg-red-500/[0.03] p-6">
         <h2 className="mb-2 text-sm font-medium text-red-400">Danger Zone</h2>
-        <p className="mb-5 text-sm text-foreground0">
+        <p className="mb-5 text-sm text-muted-foreground">
           Permanently delete this project and all its files, API keys, and routes. This action
           cannot be undone.
         </p>
@@ -194,7 +194,7 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
               <AlertDialogTitle className="text-foreground">
                 Delete project permanently?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-foreground0">
+              <AlertDialogDescription className="text-muted-foreground">
                 This will permanently delete this project and all its files, API keys, and routes.
                 This action{' '}
                 <span className="font-medium text-foreground">cannot be undone</span>.

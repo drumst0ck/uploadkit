@@ -115,12 +115,12 @@ export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandP
       // Overlay: fixed full-screen backdrop with dark bg + blur
       overlayClassName="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
       // Content: centered panel (cmdk uses contentClassName for the Command wrapper div)
-      contentClassName="fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
+      contentClassName="fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl"
     >
       <VisuallyHidden><DialogPrimitive.Title>Command palette</DialogPrimitive.Title></VisuallyHidden>
       {/* Search input row */}
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <Search className="h-4 w-4 flex-shrink-0 text-foreground0" aria-hidden="true" />
+        <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
         <Command.Input
           value={inputValue}
           onValueChange={setInputValue}
@@ -134,7 +134,7 @@ export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandP
       </div>
 
       <Command.List className="max-h-80 overflow-y-auto py-2">
-        <Command.Empty className="py-8 text-center text-sm text-foreground0">
+        <Command.Empty className="py-8 text-center text-sm text-muted-foreground">
           No results found.
         </Command.Empty>
 

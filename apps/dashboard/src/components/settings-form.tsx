@@ -117,7 +117,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-muted-foreground">Email</label>
-            <p className="rounded-lg border border-border bg-white/[0.02] px-3 py-2 text-sm text-foreground0">
+            <p className="rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               {email}
               <span className="ml-2 text-xs text-muted-foreground">(cannot be changed)</span>
             </p>
@@ -151,7 +151,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
             />
             <div>
               <p className="text-sm text-foreground">Usage alerts</p>
-              <p className="text-xs text-foreground0">
+              <p className="text-xs text-muted-foreground">
                 Email me when storage or bandwidth approaches tier limits.
               </p>
             </div>
@@ -166,7 +166,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
             />
             <div>
               <p className="text-sm text-foreground">Product updates</p>
-              <p className="text-xs text-foreground0">
+              <p className="text-xs text-muted-foreground">
                 Email me about new features and platform updates.
               </p>
             </div>
@@ -177,7 +177,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
       {/* Danger zone — DASH-10 */}
       <div className="rounded-xl border border-red-500/20 bg-red-500/[0.03] p-6">
         <h2 className="mb-2 text-sm font-medium text-red-400">Danger Zone</h2>
-        <p className="mb-5 text-sm text-foreground0">
+        <p className="mb-5 text-sm text-muted-foreground">
           Permanently delete your account, all projects, files, and API keys. This action
           cannot be undone.
         </p>
@@ -201,7 +201,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
               <AlertDialogTitle className="text-foreground">
                 Delete account permanently?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-foreground0">
+              <AlertDialogDescription className="text-muted-foreground">
                 This will permanently delete your account, all projects, files, and API keys.
                 This action{' '}
                 <span className="font-medium text-foreground">cannot be undone</span>.

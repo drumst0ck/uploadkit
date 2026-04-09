@@ -1775,3 +1775,114 @@ details[open] .faq-question::after {
     transition: none;
   }
 }
+
+/* ─── Changelog page ──────────────────────────────────────────────── */
+
+.changelog-hero {
+  padding: 6rem 0 3rem;
+  text-align: center;
+}
+
+.changelog-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+}
+
+.changelog-subtitle {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.changelog-entries {
+  padding: 0 0 6rem;
+}
+
+.changelog-entry {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 2rem;
+  padding: 2.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 768px) {
+  .changelog-entry {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.changelog-entry-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.changelog-date {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-version {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Satoshi', var(--font-satoshi), system-ui, sans-serif;
+  background: rgba(99, 102, 241, 0.12);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  width: fit-content;
+}
+
+.changelog-entry-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.changelog-entry-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.changelog-entry-lead {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.changelog-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.changelog-entry-list li {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
+.changelog-entry-list code {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  color: var(--color-text-primary);
+}
