@@ -44,12 +44,9 @@ Set the key as an environment variable — never hardcode it:
 
 ```bash title=".env.local"
 UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
-NEXT_PUBLIC_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-The `NEXT_PUBLIC_` prefix exposes the key to the browser for direct SDK use. This is safe because UploadKit API keys are scoped to your project and rate-limited — treat them like public access tokens, not passwords.
-
-For server-side only use (e.g., file deletion, listing files via the REST API), use only the non-public `UPLOADKIT_API_KEY`.
+The API key is **server-side only** — it is never exposed to the browser. The `@uploadkit/next` handler uses this key to authenticate with the UploadKit API. React components communicate through your local `/api/uploadkit` endpoint without needing the key.
 
 ## Copying a key
 
