@@ -129,8 +129,8 @@ async function HeroSection() {
             href="https://app.uploadkit.dev/login"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-6 py-2.5 text-sm font-semibold transition-all duration-200"
-            style={{ background: '#fafafa', color: '#09090b' }}
+            className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_30px_-5px_rgba(250,250,250,0.4)] active:scale-[0.98]"
+            style={{ background: '#fafafa', color: '#09090b', boxShadow: '0 0 20px -5px rgba(250,250,250,0.3)' }}
           >
             Start Building
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -139,7 +139,7 @@ async function HeroSection() {
             href="https://docs.uploadkit.dev"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-6 py-2.5 text-sm font-medium transition-colors duration-200 hover:text-[var(--color-text-primary)]"
+            className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-6 py-2.5 text-sm font-medium transition-colors duration-200 hover:text-[var(--color-text-primary)] hover:bg-white/[0.06]"
             style={{
               border: '1px solid rgba(255,255,255,0.12)',
               color: '#a1a1aa',
@@ -166,7 +166,7 @@ async function HeroSection() {
           <button
             type="button"
             aria-label="Copy install command"
-            className="flex-shrink-0 transition-opacity duration-200 hover:opacity-70"
+            className="flex-shrink-0 transition-all duration-200 hover:text-zinc-300 hover:bg-white/[0.06] rounded-md p-1 -m-1"
             style={{ color: '#52525B' }}
           >
             <Copy className="h-4 w-4" aria-hidden="true" />
@@ -261,10 +261,9 @@ function FeaturesSection() {
           {FEATURES.map(({ icon: Icon, title, description }) => (
             <div
               key={title}
-              className="flex flex-col gap-4 rounded-[var(--radius-md)] p-6 transition-colors duration-200"
+              className="flex flex-col gap-4 rounded-[var(--radius-md)] p-6 border border-white/[0.06] transition-all duration-200 hover:border-white/[0.12] hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30"
               style={{
                 background: '#0C0C0F',
-                border: '1px solid rgba(255,255,255,0.06)',
               }}
             >
               {/* Icon container */}
@@ -449,23 +448,25 @@ function PricingSection() {
               </p>
 
               {/* CTA */}
-              <Link
-                href={tier.ctaHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mb-8 w-full rounded-[var(--radius-sm)] py-2.5 text-center text-sm font-semibold transition-all duration-200"
-                style={
-                  tier.featured
-                    ? { background: '#6366f1', color: '#fff' }
-                    : {
-                        background: 'transparent',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        color: 'var(--color-text-primary)',
-                      }
-                }
-              >
-                {tier.cta}
-              </Link>
+              {tier.featured ? (
+                <Link
+                  href={tier.ctaHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mb-8 w-full rounded-[var(--radius-sm)] py-2.5 text-center text-sm font-semibold transition-all duration-200 bg-indigo-600 text-white hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30"
+                >
+                  {tier.cta}
+                </Link>
+              ) : (
+                <Link
+                  href={tier.ctaHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mb-8 w-full rounded-[var(--radius-sm)] py-2.5 text-center text-sm font-semibold transition-all duration-200 border border-white/[0.12] text-white hover:bg-white/[0.06] hover:border-white/[0.18]"
+                >
+                  {tier.cta}
+                </Link>
+              )}
 
               {/* Divider */}
               <div
@@ -531,8 +532,8 @@ function CtaSection() {
             href="https://app.uploadkit.dev/login"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-8 py-3 text-sm font-semibold transition-all duration-200"
-            style={{ background: '#fafafa', color: '#09090b' }}
+            className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-8 py-3 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_30px_-5px_rgba(250,250,250,0.4)] active:scale-[0.98]"
+            style={{ background: '#fafafa', color: '#09090b', boxShadow: '0 0 20px -5px rgba(250,250,250,0.3)' }}
           >
             Get Started Free
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

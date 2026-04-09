@@ -59,7 +59,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="https://app.uploadkit.dev/login"
-              className="rounded-[var(--radius-sm)] px-4 py-2 text-sm font-semibold transition-all duration-200"
+              className="rounded-[var(--radius-sm)] px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_20px_-5px_rgba(250,250,250,0.25)]"
               style={{
                 background: '#fafafa',
                 color: '#09090b',
