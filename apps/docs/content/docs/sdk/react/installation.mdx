@@ -32,7 +32,7 @@ React 18 or 19 is required. If you are using Next.js, also install `@uploadkit/n
 
 ## Wrap your app with UploadKitProvider
 
-Add `UploadKitProvider` at the root of your component tree (or the nearest ancestor of your upload UI):
+Add `UploadKitProvider` at the root of your component tree (or the nearest ancestor of your upload UI). Point the `endpoint` prop at your local Next.js Route Handler — the API key lives there on the server and never reaches the browser:
 
 ```tsx title="app/layout.tsx"
 import { UploadKitProvider } from '@uploadkit/react';
@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <UploadKitProvider apiKey={process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!}>
+        <UploadKitProvider endpoint="/api/uploadkit">
           {children}
         </UploadKitProvider>
       </body>
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-The provider creates an `UploadKitClient` exactly once using `useRef` and makes it available to all child components and hooks via React context.
+The provider creates an upload client exactly once using `useRef` and makes it available to all child components and hooks via React context.
 
 ## CSS is auto-imported
 
@@ -62,12 +62,11 @@ If you need to override styles or apply custom theming, you can target the CSS c
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `apiKey` | `string` | Yes | Your UploadKit API key. Use an environment variable prefixed `NEXT_PUBLIC_` so it is available in the browser. |
-| `baseUrl` | `string` | No | Override the API endpoint. Defaults to `'https://api.uploadkit.dev'`. |
+| `endpoint` | `string` | Yes | The local API route that proxies requests to the UploadKit API. Example: `"/api/uploadkit"`. Your API key is held server-side in this route handler — never in the browser. |
 | `children` | `ReactNode` | Yes | The component tree that should have access to upload functionality. |
 
 <Callout type="warn">
-  The `apiKey` is stored in a private class field inside `UploadKitClient` and is never attached to the DOM or serialized in state. It is however visible in the page source when using `NEXT_PUBLIC_`. Use route-level auth in your server-side middleware to protect which files users can upload.
+  Never pass your API key directly to `UploadKitProvider`. Use the `endpoint` prop instead — it points to your server-side route handler which holds `UPLOADKIT_API_KEY`. This ensures the key is never included in the browser bundle.
 </Callout>
 
 ## Next steps

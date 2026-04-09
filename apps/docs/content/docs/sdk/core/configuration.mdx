@@ -5,29 +5,54 @@ description: All UploadKitConfig options for @uploadkit/core.
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-Pass a `UploadKitConfig` object to `createUploadKit()`. Only `apiKey` is required.
+## Server-side vs browser usage
+
+`@uploadkit/core` provides two distinct factory functions depending on where your code runs:
+
+| Usage | Factory | Where it runs | Auth |
+|-------|---------|---------------|------|
+| **Server-side** (Node.js, Edge) | `createUploadKit({ apiKey })` | Route handlers, scripts, server actions | API key from `process.env.UPLOADKIT_API_KEY` |
+| **Browser** | `createProxyClient({ endpoint })` | Client components, browser scripts | Calls your local endpoint — no key in browser |
+
+<Callout type="warn">
+  Never call `createUploadKit({ apiKey })` in client-side code. The `apiKey` would be included in the browser bundle. For browser usage, use `createProxyClient({ endpoint })` instead — it routes through your server which holds the key.
+</Callout>
+
+### Server-side: createUploadKit
+
+Use this in Node.js scripts, Route Handlers, server actions, and Edge Functions:
 
 ```typescript
 import { createUploadKit } from '@uploadkit/core';
 
 const client = createUploadKit({
-  apiKey: process.env.UPLOADKIT_API_KEY!,
+  apiKey: process.env.UPLOADKIT_API_KEY!, // server env only — never NEXT_PUBLIC_
   baseUrl: 'https://api.uploadkit.dev',
   maxRetries: 3,
 });
 ```
 
-## Options
+### Browser: createProxyClient
+
+Use this in client components and browser scripts. It calls your local backend endpoint, which holds the real API key:
+
+```typescript
+import { createProxyClient } from '@uploadkit/core';
+
+const client = createProxyClient({
+  endpoint: '/api/uploadkit', // your server — not the UploadKit API directly
+});
+```
+
+## createUploadKit options
+
+Pass a `UploadKitConfig` object to `createUploadKit()`. Only `apiKey` is required.
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
-| `apiKey` | `string` | Yes | — | Your UploadKit API key. Prefixed `uk_live_` for production or `uk_test_` for development. Get yours at [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev). |
+| `apiKey` | `string` | Yes | — | Your UploadKit API key. Prefixed `uk_live_` for production or `uk_test_` for development. Get yours at [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev). Server-side only — never use in browser code. |
 | `baseUrl` | `string` | No | `'https://api.uploadkit.dev'` | Override the API base URL. Useful for self-hosted UploadKit or local development proxies. |
 | `maxRetries` | `number` | No | `3` | Number of automatic retries on transient network errors (5xx, timeouts). Set to `0` to disable retries. |
-
-<Callout type="warn">
-  Never expose your `apiKey` in client-side code. In browser environments, use the React components from `@uploadkit/react` — they receive the key through `UploadKitProvider` without leaking it to the DOM.
-</Callout>
 
 ## Advanced example
 

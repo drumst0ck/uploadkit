@@ -5,6 +5,38 @@ description: How UploadKit protects your uploads with API keys, validation, and 
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
+## Endpoint proxy pattern
+
+API keys are kept exclusively on the server. `UploadKitProvider` accepts an `endpoint` prop that points to a Next.js Route Handler (e.g. `/api/uploadkit`). Browser components call this local endpoint — your server holds `UPLOADKIT_API_KEY` and proxies the request to the UploadKit API. The key never touches the browser.
+
+```
+Browser → /api/uploadkit (your server, holds UPLOADKIT_API_KEY) → api.uploadkit.dev
+```
+
+```tsx title="app/layout.tsx — correct"
+// The endpoint prop points to your server route — no key in the browser
+<UploadKitProvider endpoint="/api/uploadkit">
+  {children}
+</UploadKitProvider>
+```
+
+```
+// WRONG — do not pass the API key directly to the provider.
+// The key would be bundled into the browser and visible to any user.
+// Use endpoint="/api/uploadkit" instead (see correct example above).
+```
+
+The route handler created by `createUploadKitHandler` is where the API key lives:
+
+```typescript title="app/api/uploadkit/route.ts"
+import { createUploadKitHandler } from '@uploadkit/next';
+
+export const { GET, POST } = createUploadKitHandler({
+  router: fileRouter,
+  apiKey: process.env.UPLOADKIT_API_KEY, // server env only — never NEXT_PUBLIC_
+});
+```
+
 ## API key authentication
 
 Every request to the UploadKit API must include a valid API key in the `x-api-key` header. UploadKit issues two types of keys:
@@ -123,7 +155,7 @@ The `storage` config in `createUploadKitHandler` is processed at request time on
 
 **Environment variables:**
 - `UPLOADKIT_API_KEY` — server-side only; never prefix with `NEXT_PUBLIC_`
-- `NEXT_PUBLIC_UPLOADKIT_API_KEY` — safe to expose; used only by `UploadKitProvider` in the client
+- `UploadKitProvider` uses an `endpoint` prop pointing to your server route — no client-side key variable needed
 
 **BYOS credentials:**
 - All storage credentials are server-side only

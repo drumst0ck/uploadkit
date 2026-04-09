@@ -39,15 +39,14 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ## Set environment variables
 
-Add your UploadKit API key to `.env.local`. You need two variables — one for the server handler, one for the React provider in the browser.
+Add your UploadKit API key to `.env.local`. Only one variable is needed — the key lives on the server only.
 
 ```bash title=".env.local"
 UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
-NEXT_PUBLIC_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
 ```
 
 <Callout type="info">
-  Get your API key from [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev). Both variables use the same key — `NEXT_PUBLIC_` makes it available to client components.
+  Get your API key from [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev). Never prefix this with `NEXT_PUBLIC_` — the key is used only by the server-side route handler, never by client components.
 </Callout>
 
 </Step>
@@ -90,7 +89,7 @@ export const { GET, POST } = createUploadKitHandler({
 
 ## Wrap your app with UploadKitProvider
 
-In your root layout, add `UploadKitProvider`:
+In your root layout, add `UploadKitProvider` pointing at the route handler you just created. Browser components call `/api/uploadkit` — your API key stays on the server:
 
 ```tsx title="app/layout.tsx"
 import { UploadKitProvider } from '@uploadkit/react';
@@ -99,7 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <UploadKitProvider apiKey={process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!}>
+        <UploadKitProvider endpoint="/api/uploadkit">
           {children}
         </UploadKitProvider>
       </body>

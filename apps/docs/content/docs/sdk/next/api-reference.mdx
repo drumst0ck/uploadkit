@@ -21,7 +21,7 @@ function createUploadKitHandler<TRouter extends FileRouter>(
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
 | `router` | `TRouter` | Yes | Your file router object. Must match `FileRouter`. |
-| `apiKey` | `string` | No | UploadKit managed API key (`uk_live_...`). Required unless `storage` is provided. |
+| `apiKey` | `string` | No | UploadKit managed API key (`uk_live_...`). Use `process.env.UPLOADKIT_API_KEY` — server-side only, never `NEXT_PUBLIC_`. Required unless `storage` is provided. |
 | `storage` | `S3CompatibleStorage` | No | BYOS storage credentials. When provided, the handler generates presigned URLs directly to your bucket instead of proxying through UploadKit. |
 
 One of `apiKey` or `storage` must be provided.

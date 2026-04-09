@@ -91,8 +91,8 @@ Upload failures are automatically retried with exponential backoff. Configure th
 ```typescript
 import { UploadKitClient } from '@uploadkit/core';
 
-const client = new UploadKitClient({
-  apiKey: process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!,
+const client = createProxyClient({
+  endpoint: '/api/uploadkit', // your server holds the API key — never pass it to the browser
   maxRetries: 3, // default: 3; set to 0 to disable
 });
 ```

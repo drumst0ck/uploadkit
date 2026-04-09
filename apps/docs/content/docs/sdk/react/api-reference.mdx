@@ -15,8 +15,7 @@ function UploadKitProvider(props: UploadKitProviderProps): JSX.Element
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `apiKey` | `string` | Yes | UploadKit API key. Use `NEXT_PUBLIC_UPLOADKIT_API_KEY` env var in Next.js. |
-| `baseUrl` | `string` | No | Override the API endpoint. Defaults to `'https://api.uploadkit.dev'`. |
+| `endpoint` | `string` | Yes | The local API route that proxies requests to the UploadKit API. Example: `"/api/uploadkit"`. Your `UPLOADKIT_API_KEY` is held server-side in this route — never passed to the browser. |
 | `children` | `ReactNode` | Yes | Component tree with access to upload functionality. |
 
 ---
