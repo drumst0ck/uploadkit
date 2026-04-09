@@ -139,12 +139,18 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@uploadkit/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@uploadkit/db':
         specifier: workspace:*
         version: link:../../packages/db
       '@uploadkit/emails':
         specifier: workspace:*
         version: link:../../packages/emails
+      '@uploadkit/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       '@uploadkit/shared':
         specifier: workspace:*
         version: link:../../packages/shared
