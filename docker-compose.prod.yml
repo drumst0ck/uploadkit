@@ -3,8 +3,6 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    ports:
-      - "3002:3000"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/uploadkit?authSource=admin
@@ -30,15 +28,11 @@ services:
       redis:
         condition: service_started
     restart: unless-stopped
-    labels:
-      - "coolify.domain=api.uploadkit.dev"
 
   dashboard:
     build:
       context: .
       dockerfile: apps/dashboard/Dockerfile
-    ports:
-      - "3001:3000"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/uploadkit?authSource=admin
@@ -57,32 +51,22 @@ services:
       mongodb:
         condition: service_started
     restart: unless-stopped
-    labels:
-      - "coolify.domain=app.uploadkit.dev"
 
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
     restart: unless-stopped
-    labels:
-      - "coolify.domain=uploadkit.dev"
 
   docs:
     build:
       context: .
       dockerfile: apps/docs/Dockerfile
-    ports:
-      - "3003:3000"
     environment:
       - NODE_ENV=production
     restart: unless-stopped
-    labels:
-      - "coolify.domain=docs.uploadkit.dev"
 
   mongodb:
     image: mongo:8
