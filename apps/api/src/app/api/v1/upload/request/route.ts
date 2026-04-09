@@ -43,11 +43,15 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     }
 
     // 4. Validate content type against FileRouter config
-    // Empty allowedTypes array means all types are allowed
-    if (
-      fileRouter.allowedTypes.length > 0 &&
-      !fileRouter.allowedTypes.includes(contentType)
-    ) {
+    // Empty allowedTypes array or "*/*" wildcard means all types are allowed
+    const typeAllowed =
+      fileRouter.allowedTypes.length === 0 ||
+      fileRouter.allowedTypes.some((t: string) => {
+        if (t === '*/*') return true;
+        if (t.endsWith('/*')) return contentType.startsWith(t.slice(0, -1));
+        return t === contentType;
+      });
+    if (!typeAllowed) {
       return NextResponse.json(
         {
           error: {
