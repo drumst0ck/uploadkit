@@ -10,6 +10,26 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./ssr": {
+      "types": "./dist/ssr-plugin.d.ts",
+      "import": "./dist/ssr-plugin.js",
+      "require": "./dist/ssr-plugin.cjs"
+    },
+    "./express": {
+      "types": "./dist/adapters/express.d.ts",
+      "import": "./dist/adapters/express.js",
+      "require": "./dist/adapters/express.cjs"
+    },
+    "./fastify": {
+      "types": "./dist/adapters/fastify.d.ts",
+      "import": "./dist/adapters/fastify.js",
+      "require": "./dist/adapters/fastify.cjs"
+    },
+    "./hono": {
+      "types": "./dist/adapters/hono.d.ts",
+      "import": "./dist/adapters/hono.js",
+      "require": "./dist/adapters/hono.cjs"
     }
   },
   "files": ["dist"],
@@ -23,14 +43,18 @@
     "@uploadkit/shared": "workspace:*",
     "@aws-sdk/client-s3": "latest",
     "@aws-sdk/s3-request-presigner": "latest",
-    "nanoid": "latest",
-    "server-only": "latest"
+    "nanoid": "latest"
   },
   "peerDependencies": {
-    "next": ">=14"
+    "next": ">=14",
+    "react": ">=18"
   },
   "devDependencies": {
+    "@types/express": "latest",
+    "@types/react": "latest",
     "@uploadkit/config": "workspace:*",
+    "fastify": "latest",
+    "hono": "latest",
     "tsup": "latest",
     "typescript": "latest"
   }

@@ -1,4 +1,4 @@
-import 'server-only';
+// Server-side only — do not import in browser code
 
 import type { FileRouter, UploadKitHandlerConfig, UploadedFile } from './types';
 import { parseFileSize, getRouteConfig } from './router';

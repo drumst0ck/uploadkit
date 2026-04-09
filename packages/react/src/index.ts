@@ -20,6 +20,9 @@ export type { FilePreviewProps } from './components/file-preview';
 // Helpers
 export { generateReactHelpers } from './helpers';
 
+// Tailwind plugin
+export { withUk } from './tailwind';
+
 // Hooks (exported for advanced consumers who want to build custom UI)
 export { useDragState } from './hooks/use-drag-state';
 export { useAutoDismiss } from './hooks/use-auto-dismiss';
