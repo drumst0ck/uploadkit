@@ -43,17 +43,20 @@ export function FilePreview({ file, className, appearance }: FilePreviewProps) {
     return (
       <div
         className={mergeClass('uk-preview', mergeClass(appearance?.container ?? '', className ?? ''))}
+        data-uk-element="preview"
       >
         {isImage || isVideo ? (
           <img
             src={file.url}
             alt={file.name}
             className={mergeClass('uk-preview__img', appearance?.image)}
+            data-uk-element="preview-image"
             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
           />
         ) : (
           <div
             className={mergeClass('uk-preview--icon', appearance?.icon)}
+            data-uk-element="preview-icon"
             style={{ color: 'var(--uk-text-secondary)' }}
             aria-hidden="true"
             dangerouslySetInnerHTML={{ __html: getFileTypeIcon(file.type) }}
@@ -94,12 +97,14 @@ function FilePreviewFromFile({
     <div
       ref={containerRef}
       className={mergeClass('uk-preview', mergeClass(appearance?.container ?? '', className ?? ''))}
+      data-uk-element="preview"
     >
       {thumbnailUrl ? (
         <img
           src={thumbnailUrl}
           alt={file.name}
           className={mergeClass('uk-preview__img', appearance?.image)}
+          data-uk-element="preview-image"
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
         />
       ) : isGenerating ? (
@@ -118,6 +123,7 @@ function FilePreviewFromFile({
         /* Non-image/video: type-specific icon */
         <div
           className={mergeClass('uk-preview--icon', appearance?.icon)}
+          data-uk-element="preview-icon"
           style={{ color: 'var(--uk-text-secondary)' }}
           aria-hidden="true"
           dangerouslySetInnerHTML={{ __html: getFileTypeIcon(file.type) }}

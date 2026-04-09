@@ -1,6 +1,10 @@
 import { useReducer, useCallback } from 'react';
-import type { UploadResult } from '@uploadkit/core';
+import type { UploadResult, ProgressGranularity } from '@uploadkit/core';
 import { useUploadKitContext } from './context';
+
+type UploadExtraOptions = {
+  progressGranularity?: ProgressGranularity;
+};
 
 // Upload lifecycle states
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
@@ -86,7 +90,7 @@ export function useUploadKit(route: string) {
   const [state, dispatch] = useReducer(uploadReducer, initialState);
 
   const upload = useCallback(
-    async (file: File, metadata?: Record<string, unknown>) => {
+    async (file: File, metadata?: Record<string, unknown>, extraOpts?: UploadExtraOptions) => {
       // Abort any in-progress upload before starting a new one
       state.abortController?.abort();
 
@@ -99,6 +103,7 @@ export function useUploadKit(route: string) {
           route,
           // exactOptionalPropertyTypes: metadata must be omitted (not undefined) when absent
           ...(metadata !== undefined ? { metadata } : {}),
+          ...(extraOpts?.progressGranularity !== undefined ? { progressGranularity: extraOpts.progressGranularity } : {}),
           onProgress: (percent) => dispatch({ type: 'PROGRESS', percent }),
           signal: controller.signal,
         });

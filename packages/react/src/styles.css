@@ -84,6 +84,7 @@
   .uk-button *,
   .uk-dropzone,
   .uk-dropzone *,
+  .uk-dropzone__submit,
   .uk-progress,
   .uk-progress *,
   .uk-file-item,
@@ -239,20 +240,41 @@
   font-size: 16px;
 }
 
-/* Button upload status states */
-.uk-button[data-status="uploading"] {
+/* Button upload status states — data-state replaces data-status */
+.uk-button[data-state="uploading"] {
   opacity: 0.7;
   cursor: default;
   pointer-events: none;
 }
 
-.uk-button[data-status="success"] {
+.uk-button[data-state="success"] {
   background: var(--uk-success);
 }
 
-.uk-button[data-status="error"] {
+.uk-button[data-state="error"] {
   background: var(--uk-error);
 }
+
+/* Manual mode staged file display */
+.uk-button__staged {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.uk-button__staged-clear {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--uk-text-secondary);
+  display: flex;
+  align-items: center;
+  transition: color var(--uk-transition);
+}
+
+.uk-button__staged-clear:hover { color: var(--uk-error); }
 
 /* --- Dropzone --- */
 .uk-dropzone {
@@ -454,3 +476,29 @@
   background: var(--uk-bg-secondary);
   flex-shrink: 0;
 }
+
+/* --- Dropzone submit button (manual mode) --- */
+.uk-dropzone__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  margin-top: 12px;
+  border-radius: var(--uk-radius);
+  background: var(--uk-primary);
+  color: #ffffff;
+  font-family: var(--uk-font);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--uk-transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.uk-dropzone__submit:hover { background: var(--uk-primary-hover); }
+.uk-dropzone__submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.uk-dropzone__submit:focus-visible { outline: 2px solid var(--uk-primary); outline-offset: 2px; }

@@ -1,5 +1,5 @@
 import { forwardRef, useRef, useCallback, useState } from 'react';
-import type { UploadResult } from '@uploadkit/core';
+import type { UploadResult, ProgressGranularity } from '@uploadkit/core';
 import { useUploadKitContext } from '../context';
 import { useDragState } from '../hooks/use-drag-state';
 import { useAutoDismiss } from '../hooks/use-auto-dismiss';
@@ -41,6 +41,11 @@ export type UploadDropzoneProps = {
   onUploadComplete?: (results: UploadResult[]) => void;
   /** Called when any individual upload fails */
   onUploadError?: (error: Error) => void;
+  /**
+   * Called with files before upload begins.
+   * Return modified files array, or empty array to cancel.
+   */
+  onBeforeUploadBegin?: (files: File[]) => File[] | Promise<File[]>;
   /** Disable the dropzone */
   disabled?: boolean;
   /** Additional CSS class(es) for the wrapper */
@@ -49,6 +54,14 @@ export type UploadDropzoneProps = {
   appearance?: Partial<
     Record<'container' | 'label' | 'icon' | 'fileItem' | 'progressBar' | 'button', string>
   >;
+  /**
+   * Upload mode.
+   * - 'manual' (default): files are staged; user clicks submit to begin uploading.
+   * - 'auto': uploads begin immediately on file selection/drop.
+   */
+  config?: { mode?: 'auto' | 'manual' };
+  /** Controls how often onProgress fires. Default: 'coarse' (every 10%). */
+  uploadProgressGranularity?: ProgressGranularity;
 };
 
 // Small inline SVG icons for file item status indicators
@@ -60,6 +73,18 @@ function nextId() {
   return `uk-${++_id}`;
 }
 
+// Derive composite data-state for the dropzone container
+function deriveContainerState(
+  isDragging: boolean,
+  files: FileEntry[],
+): string {
+  if (isDragging) return 'dragging';
+  if (files.some((f) => f.status === 'uploading')) return 'uploading';
+  if (files.length > 0 && files.every((f) => f.status === 'success')) return 'success';
+  if (files.some((f) => f.status === 'error')) return 'error';
+  return 'idle';
+}
+
 /**
  * UploadDropzone — drag-and-drop zone with multi-file support,
  * per-file progress bars, and auto-dismissing error toasts.
@@ -69,6 +94,7 @@ function nextId() {
  *  - useDragState counter technique prevents flickering on child element drag events.
  *  - useAutoDismiss removes rejection toasts after 5s.
  *  - Uploads run in parallel batches of up to 3 (T-05-05 DoS mitigation).
+ *  - Default mode is 'manual': files are staged, user clicks submit button to upload.
  *
  * Accessibility (REACT-10/REACT-11): role=button, tabIndex, onKeyDown, aria-label.
  */
@@ -82,12 +108,16 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
       metadata,
       onUploadComplete,
       onUploadError,
+      onBeforeUploadBegin,
       disabled = false,
       className,
       appearance,
+      config,
+      uploadProgressGranularity,
     },
     ref,
   ) => {
+    const mode = config?.mode ?? 'manual';
     const { client } = useUploadKitContext();
     const inputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<FileEntry[]>([]);
@@ -135,6 +165,7 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
             file: entry.file,
             route,
             ...(metadata !== undefined ? { metadata } : {}),
+            ...(uploadProgressGranularity !== undefined ? { progressGranularity: uploadProgressGranularity } : {}),
             onProgress: (percent) => {
               setFiles((prev) =>
                 prev.map((f) => (f.id === entry.id ? { ...f, progress: percent } : f)),
@@ -179,10 +210,31 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
           return null;
         }
       },
-      [client, route, metadata, onUploadError],
+      [client, route, metadata, uploadProgressGranularity, onUploadError],
     );
 
-    // Processes incoming files: validate, reject, enqueue, upload in batches of 3.
+    // Run uploads in parallel batches of 3
+    const runBatchUploads = useCallback(
+      async (accepted: FileEntry[]) => {
+        const CONCURRENCY = 3;
+        const results: UploadResult[] = [];
+
+        for (let i = 0; i < accepted.length; i += CONCURRENCY) {
+          const batch = accepted.slice(i, i + CONCURRENCY);
+          const batchResults = await Promise.all(batch.map((entry) => uploadFile(entry)));
+          for (const r of batchResults) {
+            if (r !== null) results.push(r);
+          }
+        }
+
+        if (results.length > 0 && results.length === accepted.length) {
+          onUploadComplete?.(results);
+        }
+      },
+      [uploadFile, onUploadComplete],
+    );
+
+    // Validates incoming files and either stages them (manual) or uploads immediately (auto).
     const processFiles = useCallback(
       async (incoming: File[]) => {
         if (disabled) return;
@@ -204,26 +256,86 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
 
         if (accepted.length === 0) return;
 
+        if (mode === 'manual') {
+          // Stage files only — submit button triggers upload
+          setFiles((prev) => [...prev, ...accepted]);
+          return;
+        }
+
+        // Auto mode: validate via onBeforeUploadBegin, then upload immediately
         setFiles((prev) => [...prev, ...accepted]);
 
-        // Upload in parallel batches of 3 (T-05-05: limit concurrent connections)
-        const CONCURRENCY = 3;
-        const results: UploadResult[] = [];
+        let filesToUpload = accepted;
 
-        for (let i = 0; i < accepted.length; i += CONCURRENCY) {
-          const batch = accepted.slice(i, i + CONCURRENCY);
-          const batchResults = await Promise.all(batch.map((entry) => uploadFile(entry)));
-          for (const r of batchResults) {
-            if (r !== null) results.push(r);
+        if (onBeforeUploadBegin) {
+          try {
+            const transformed = await onBeforeUploadBegin(accepted.map((e) => e.file));
+            if (transformed.length === 0) {
+              // Cancelled — remove staged entries
+              setFiles((prev) => prev.filter((f) => !accepted.some((a) => a.id === f.id)));
+              return;
+            }
+            // Map transformed files back to FileEntry objects
+            filesToUpload = transformed.map((file, i) => ({
+              ...(accepted[i] ?? accepted[0]!),
+              file,
+            }));
+            // Update the staged files with transformed versions
+            setFiles((prev) =>
+              prev.map((f) => {
+                const updated = filesToUpload.find((u) => u.id === f.id);
+                return updated ?? f;
+              }),
+            );
+          } catch (err) {
+            const error = err instanceof Error ? err : new Error(String(err));
+            onUploadError?.(error);
+            setFiles((prev) => prev.filter((f) => !accepted.some((a) => a.id === f.id)));
+            return;
           }
         }
 
-        if (results.length > 0 && results.length === accepted.length) {
-          onUploadComplete?.(results);
-        }
+        await runBatchUploads(filesToUpload);
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [disabled, maxFiles, accept, maxSize, addRejection, uploadFile, onUploadComplete],
+      [disabled, maxFiles, accept, maxSize, addRejection, mode, onBeforeUploadBegin, onUploadError, runBatchUploads],
+    );
+
+    // Manual mode: triggered when user clicks the submit button
+    const startUploads = useCallback(
+      async () => {
+        const idleFiles = files.filter((f) => f.status === 'idle');
+        if (idleFiles.length === 0) return;
+
+        let filesToUpload = idleFiles;
+
+        if (onBeforeUploadBegin) {
+          try {
+            const transformed = await onBeforeUploadBegin(idleFiles.map((e) => e.file));
+            if (transformed.length === 0) {
+              setFiles((prev) => prev.filter((f) => f.status !== 'idle'));
+              return;
+            }
+            filesToUpload = transformed.map((file, i) => ({
+              ...(idleFiles[i] ?? idleFiles[0]!),
+              file,
+            }));
+            setFiles((prev) =>
+              prev.map((f) => {
+                const updated = filesToUpload.find((u) => u.id === f.id);
+                return updated ?? f;
+              }),
+            );
+          } catch (err) {
+            const error = err instanceof Error ? err : new Error(String(err));
+            onUploadError?.(error);
+            return;
+          }
+        }
+
+        await runBatchUploads(filesToUpload);
+      },
+      [files, onBeforeUploadBegin, onUploadError, runBatchUploads],
     );
 
     const { isDragging, handlers: dragHandlers } = useDragState(processFiles);
@@ -250,6 +362,9 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
       });
     }
 
+    const containerState = deriveContainerState(isDragging, files);
+    const hasIdleFiles = files.some((f) => f.status === 'idle');
+    const isAnyUploading = files.some((f) => f.status === 'uploading');
     const dropzoneClass = mergeClass('uk-dropzone', appearance?.container);
 
     return (
@@ -258,6 +373,8 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
         <div
           ref={ref}
           className={mergeClass(dropzoneClass, className)}
+          data-uk-element="container"
+          data-state={containerState}
           data-dragging={isDragging ? 'true' : 'false'}
           {...dragHandlers}
           onClick={handleClick}
@@ -274,13 +391,21 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
         >
           <div
             className={mergeClass('uk-dropzone__icon', appearance?.icon)}
+            data-uk-element="upload-icon"
             dangerouslySetInnerHTML={{ __html: getUploadIcon() }}
           />
-          <p className={mergeClass('uk-dropzone__label', appearance?.label)}>
+          <p
+            className={mergeClass('uk-dropzone__label', appearance?.label)}
+            data-uk-element="label"
+          >
             <strong>Drop files here</strong> or click to browse
           </p>
           {accept && accept.length > 0 && (
-            <p className="uk-dropzone__hint" style={{ fontSize: '12px', color: 'var(--uk-text-secondary)', marginTop: '4px' }}>
+            <p
+              className="uk-dropzone__hint"
+              data-uk-element="allowed-content"
+              style={{ fontSize: '12px', color: 'var(--uk-text-secondary)', marginTop: '4px' }}
+            >
               {accept.join(', ')}
             </p>
           )}
@@ -309,11 +434,13 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
 
         {/* Queued file list */}
         {files.length > 0 && (
-          <div className="uk-file-list" style={{ marginTop: '12px' }}>
+          <div className="uk-file-list" data-uk-element="file-list" style={{ marginTop: '12px' }}>
             {files.map((f) => (
               <div
                 key={f.id}
                 className={mergeClass('uk-file-item', appearance?.fileItem)}
+                data-uk-element="file-item"
+                data-state={f.status}
               >
                 <span className="uk-file-item__name" title={f.file.name}>
                   {f.file.name}
@@ -368,6 +495,20 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
               </div>
             ))}
           </div>
+        )}
+
+        {/* Manual mode submit button — shown when there are idle (staged) files */}
+        {mode === 'manual' && hasIdleFiles && (
+          <button
+            type="button"
+            className="uk-dropzone__submit"
+            data-uk-element="submit-button"
+            disabled={isAnyUploading}
+            onClick={() => void startUploads()}
+            aria-label={`Upload ${files.filter((f) => f.status === 'idle').length} file(s)`}
+          >
+            Upload {files.filter((f) => f.status === 'idle').length} file{files.filter((f) => f.status === 'idle').length !== 1 ? 's' : ''}
+          </button>
         )}
 
         {/* Screen-reader live region — announces upload counts and status changes */}

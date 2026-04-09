@@ -25,7 +25,7 @@ export { UploadKitClient } from './client';
 
 // Proxy client — browser-safe, never handles an API key
 export { ProxyUploadKitClient, createProxyClient } from './proxy-client';
-export type { ProxyClientConfig, ProxyUploadOptions } from './proxy-client';
+export type { ProxyClientConfig, ProxyUploadOptions, ProgressGranularity } from './proxy-client';
 
 // Package version constant
 export const VERSION = '0.1.0';

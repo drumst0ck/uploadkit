@@ -6,12 +6,16 @@ export interface ProxyClientConfig {
   endpoint: string;
 }
 
+export type ProgressGranularity = 'coarse' | 'fine' | 'all';
+
 export interface ProxyUploadOptions {
   file: File;
   route: string;
   metadata?: Record<string, unknown>;
   onProgress?: (percentage: number) => void;
   signal?: AbortSignal;
+  /** Controls how often onProgress is called. Default: 'coarse' (every 10%). */
+  progressGranularity?: ProgressGranularity;
 }
 
 /**
@@ -33,7 +37,7 @@ export class ProxyUploadKitClient {
   }
 
   async upload(options: ProxyUploadOptions): Promise<UploadResult> {
-    const { file, route, metadata, onProgress, signal } = options;
+    const { file, route, metadata, onProgress, signal, progressGranularity } = options;
 
     // 1. Request presigned URL from local server endpoint
     const requestRes = await fetch(`${this.#endpoint}/${route}`, {
@@ -67,6 +71,7 @@ export class ProxyUploadKitClient {
     await this.#xhrPut(uploadUrl, file, {
       ...(onProgress !== undefined ? { onProgress } : {}),
       ...(signal !== undefined ? { signal } : {}),
+      ...(progressGranularity !== undefined ? { progressGranularity } : {}),
     });
 
     // 3. Confirm upload complete via local endpoint
@@ -113,9 +118,9 @@ export class ProxyUploadKitClient {
   #xhrPut(
     url: string,
     file: File,
-    opts: { onProgress?: (p: number) => void; signal?: AbortSignal } = {},
+    opts: { onProgress?: (p: number) => void; signal?: AbortSignal; progressGranularity?: ProgressGranularity } = {},
   ): Promise<void> {
-    const { onProgress, signal } = opts;
+    const { onProgress, signal, progressGranularity = 'coarse' } = opts;
 
     return new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -128,9 +133,24 @@ export class ProxyUploadKitClient {
         signal.addEventListener('abort', () => { xhr.abort(); });
       }
 
+      // Track last reported percent for granularity throttling
+      let lastReportedPercent = -1;
+
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable && onProgress) {
-          onProgress(Math.round((event.loaded / event.total) * 100));
+          const percent = Math.round((event.loaded / event.total) * 100);
+
+          if (progressGranularity === 'all') {
+            onProgress(percent);
+          } else {
+            // Threshold step: 10 for coarse, 2 for fine
+            const step = progressGranularity === 'fine' ? 2 : 10;
+            const nextThreshold = Math.ceil((lastReportedPercent + 1) / step) * step;
+            if (percent >= nextThreshold || percent === 100) {
+              lastReportedPercent = percent;
+              onProgress(percent);
+            }
+          }
         }
       };
 

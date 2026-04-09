@@ -32,14 +32,21 @@ const DELETE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="
  */
 export function FileList({ files, onDelete, className, appearance }: FileListProps) {
   return (
-    <div className={mergeClass('uk-file-list', mergeClass(appearance?.list ?? '', className ?? ''))}>
+    <div
+      className={mergeClass('uk-file-list', mergeClass(appearance?.list ?? '', className ?? ''))}
+      data-uk-element="file-list"
+    >
       {files.length === 0 ? (
         <p className="uk-file-list__empty" style={{ fontSize: '13px', color: 'var(--uk-text-secondary)', fontFamily: 'var(--uk-font)', margin: 0 }}>
           No files uploaded
         </p>
       ) : (
         files.map((file) => (
-          <div key={file.key} className={mergeClass('uk-file-item', appearance?.item)}>
+          <div
+            key={file.key}
+            className={mergeClass('uk-file-item', appearance?.item)}
+            data-uk-element="file-item"
+          >
             <FilePreview
               file={file}
               appearance={{
@@ -49,11 +56,15 @@ export function FileList({ files, onDelete, className, appearance }: FileListPro
             <div className="uk-file-item__info" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <span
                 className={mergeClass('uk-file-item__name', appearance?.name)}
+                data-uk-element="file-name"
                 title={file.name}
               >
                 {file.name}
               </span>
-              <span className={mergeClass('uk-file-item__size', appearance?.size)}>
+              <span
+                className={mergeClass('uk-file-item__size', appearance?.size)}
+                data-uk-element="file-size"
+              >
                 {formatBytes(file.size)}
               </span>
             </div>
@@ -61,6 +72,7 @@ export function FileList({ files, onDelete, className, appearance }: FileListPro
               <button
                 type="button"
                 className={mergeClass('uk-file-item__remove', appearance?.deleteButton)}
+                data-uk-element="delete-button"
                 onClick={() => onDelete(file.key)}
                 aria-label={`Delete ${file.name}`}
                 dangerouslySetInnerHTML={{ __html: DELETE_ICON }}

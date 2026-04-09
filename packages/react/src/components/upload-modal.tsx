@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import type { UploadResult } from '@uploadkit/core';
+import type { UploadResult, ProgressGranularity } from '@uploadkit/core';
 import { mergeClass } from '../utils/merge-class';
 import { UploadDropzone } from './upload-dropzone';
 
@@ -22,6 +22,11 @@ export type UploadModalProps = {
   onUploadComplete?: (results: UploadResult[]) => void;
   /** Called when any individual upload fails */
   onUploadError?: (error: Error) => void;
+  /**
+   * Called with files before upload begins.
+   * Return modified files array, or empty array to cancel.
+   */
+  onBeforeUploadBegin?: (files: File[]) => File[] | Promise<File[]>;
   /** Additional CSS class(es) for the modal */
   className?: string;
   /** Override specific inner element classes */
@@ -33,6 +38,14 @@ export type UploadModalProps = {
   >;
   /** Modal heading text */
   title?: string;
+  /**
+   * Upload mode forwarded to the inner UploadDropzone.
+   * - 'manual' (default): files are staged; user clicks submit to begin uploading.
+   * - 'auto': uploads begin immediately on file selection/drop.
+   */
+  config?: { mode?: 'auto' | 'manual' };
+  /** Controls how often onProgress fires. Default: 'coarse' (every 10%). */
+  uploadProgressGranularity?: ProgressGranularity;
 };
 
 /**
@@ -58,9 +71,12 @@ export function UploadModal({
   metadata,
   onUploadComplete,
   onUploadError,
+  onBeforeUploadBegin,
   className,
   appearance,
   title,
+  config,
+  uploadProgressGranularity,
 }: UploadModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -92,12 +108,20 @@ export function UploadModal({
     <dialog
       ref={dialogRef}
       className={mergeClass('uk-modal', mergeClass(appearance?.modal ?? '', className))}
+      data-uk-element="modal"
       onCancel={handleCancel}
       onClick={handleBackdropClick}
       aria-label={title ?? 'Upload files'}
     >
-      <div className={mergeClass('uk-modal__content', appearance?.content)}>
-        {title && <h2 className="uk-modal__title">{title}</h2>}
+      <div
+        className={mergeClass('uk-modal__content', appearance?.content)}
+        data-uk-element="modal-content"
+      >
+        {title && (
+          <h2 className="uk-modal__title" data-uk-element="modal-title">
+            {title}
+          </h2>
+        )}
         <UploadDropzone
           route={route}
           {...(accept !== undefined ? { accept } : {})}
@@ -106,6 +130,9 @@ export function UploadModal({
           {...(metadata !== undefined ? { metadata } : {})}
           {...(onUploadComplete !== undefined ? { onUploadComplete } : {})}
           {...(onUploadError !== undefined ? { onUploadError } : {})}
+          {...(onBeforeUploadBegin !== undefined ? { onBeforeUploadBegin } : {})}
+          {...(config !== undefined ? { config } : {})}
+          {...(uploadProgressGranularity !== undefined ? { uploadProgressGranularity } : {})}
           appearance={{
             ...(appearance?.container !== undefined ? { container: appearance.container } : {}),
             ...(appearance?.label !== undefined ? { label: appearance.label } : {}),
