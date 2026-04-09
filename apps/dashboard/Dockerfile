@@ -31,6 +31,7 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
+COPY --from=deps /app/apps/dashboard/node_modules ./apps/dashboard/node_modules
 
 COPY . .
 

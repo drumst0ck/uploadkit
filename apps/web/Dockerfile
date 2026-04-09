@@ -31,6 +31,7 @@ WORKDIR /app
 # Copy ALL node_modules from deps stage (turbo resolves full dependency graph)
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 
 # Copy full source code
 COPY . .
