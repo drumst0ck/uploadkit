@@ -182,7 +182,7 @@ Plans:
   4. GitHub Actions CI run on main passes lint, type-check, unit tests, and build in under 5 minutes
 **Plans**: 4 plans
 Plans:
-- [ ] 10-01-PLAN.md — API unit tests: withApiKey, errors, upload routes, CRUD, tier enforcement, Stripe webhooks
+- [x] 10-01-PLAN.md — API unit tests: withApiKey, errors, upload routes, CRUD, tier enforcement, Stripe webhooks
 - [ ] 10-02-PLAN.md — SDK + React tests: core validation/single/multipart/http, React useUploadKit hook
 - [ ] 10-03-PLAN.md — Playwright E2E: auth, upload, dashboard CRUD, billing, docs navigation
 - [ ] 10-04-PLAN.md — Publish prep: polished READMEs, changeset entry, verify script, CI update
@@ -205,4 +205,4 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 7. Billing & Email | 4/4 | Complete   | 2026-04-08 |
 | 8. Landing & Pricing Pages | 3/3 | Complete   | 2026-04-08 |
 | 9. Documentation | 3/4 | In Progress|  |
-| 10. Testing, Publishing & Launch | 0/4 | Not started | - |
+| 10. Testing, Publishing & Launch | 1/4 | In Progress|  |
