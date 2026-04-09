@@ -78,15 +78,11 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
 
       const { action } = body;
 
-      // BYOS mode: generate presigned URL
-      if (action === 'request-upload' && config.storage) {
-        const { generateByosPresignedUrl, createByosClient } = await import('./byos');
-        const { nanoid } = await import('nanoid');
-
-        // Run middleware for auth/metadata
+      if (action === 'request-upload') {
+        // Run middleware for auth/metadata (both modes)
         const metadata = await route.middleware?.({ req }) ?? {};
 
-        // Validate file against route config (T-04-09)
+        // Validate file against route config (T-04-09 / T-QK-03)
         if (route.maxFileSize !== undefined && body.contentLength !== undefined) {
           const maxBytes = parseFileSize(route.maxFileSize);
           if (body.contentLength > maxBytes) {
@@ -106,23 +102,97 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
           }
         }
 
-        const key = `${slug}/${nanoid()}/${body.fileName ?? 'upload'}`;
-        const client = createByosClient(config.storage);
-        const uploadUrl = await generateByosPresignedUrl(client, {
-          bucket: config.storage.bucket,
-          key,
-          contentType: body.contentType ?? 'application/octet-stream',
-          contentLength: body.contentLength ?? 0,
-        });
+        // BYOS mode: generate presigned URL via user's own storage credentials
+        if (config.storage) {
+          const { generateByosPresignedUrl, createByosClient } = await import('./byos');
+          const { nanoid } = await import('nanoid');
 
-        return Response.json({ uploadUrl, key, metadata });
+          const key = `${slug}/${nanoid()}/${body.fileName ?? 'upload'}`;
+          const client = createByosClient(config.storage);
+          const uploadUrl = await generateByosPresignedUrl(client, {
+            bucket: config.storage.bucket,
+            key,
+            contentType: body.contentType ?? 'application/octet-stream',
+            contentLength: body.contentLength ?? 0,
+          });
+
+          return Response.json({ uploadUrl, key, metadata });
+        }
+
+        // Managed mode: proxy to UploadKit API with server-side API key (T-QK-02)
+        if (config.apiKey) {
+          const apiUrl = config.apiUrl ?? 'https://api.uploadkit.dev';
+          const uploadRes = await fetch(`${apiUrl}/api/v1/upload/request`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${config.apiKey}`,
+            },
+            body: JSON.stringify({
+              fileName: body.fileName,
+              fileSize: body.contentLength,
+              contentType: body.contentType,
+              routeSlug: slug,
+              ...(Object.keys(metadata).length > 0 ? { metadata } : {}),
+            }),
+          });
+
+          if (!uploadRes.ok) {
+            const err = await uploadRes.json();
+            return Response.json(err, { status: uploadRes.status });
+          }
+
+          const data = await uploadRes.json() as { uploadUrl: string; key: string; fileId: string };
+          return Response.json({ uploadUrl: data.uploadUrl, key: data.key, fileId: data.fileId });
+        }
+
+        // Neither storage nor apiKey configured
+        return Response.json(
+          { error: { code: 'MISSING_CONFIG', message: 'Either apiKey (managed mode) or storage (BYOS mode) must be configured' } },
+          { status: 500 }
+        );
       }
 
-      // Standard upload-complete flow
+      // Upload-complete flow
       if (action === 'upload-complete' || !action) {
-        const metadata = await route.middleware?.({ req }) ?? {};
-        const result = await route.onUploadComplete?.({ file: body.file as UploadedFile, metadata });
-        return Response.json({ ok: true, metadata: result });
+        // BYOS mode: file metadata provided by client in body
+        if (config.storage) {
+          const metadata = await route.middleware?.({ req }) ?? {};
+          const result = await route.onUploadComplete?.({ file: body.file as UploadedFile, metadata });
+          return Response.json({ ok: true, metadata: result });
+        }
+
+        // Managed mode: confirm upload with UploadKit API server-side (T-QK-02)
+        if (config.apiKey) {
+          const apiUrl = config.apiUrl ?? 'https://api.uploadkit.dev';
+          const completeRes = await fetch(`${apiUrl}/api/v1/upload/complete`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${config.apiKey}`,
+            },
+            body: JSON.stringify({ fileId: body.fileId }),
+          });
+
+          if (!completeRes.ok) {
+            const err = await completeRes.json();
+            return Response.json(err, { status: completeRes.status });
+          }
+
+          const completeData = await completeRes.json() as { file: UploadedFile };
+          const metadata = await route.middleware?.({ req }) ?? {};
+          const userResult = await route.onUploadComplete?.({
+            file: completeData.file,
+            metadata,
+          });
+          return Response.json({ ok: true, file: completeData.file, url: completeData.file.url, metadata: userResult });
+        }
+
+        // Neither storage nor apiKey configured
+        return Response.json(
+          { error: { code: 'MISSING_CONFIG', message: 'Either apiKey (managed mode) or storage (BYOS mode) must be configured' } },
+          { status: 500 }
+        );
       }
 
       return Response.json(

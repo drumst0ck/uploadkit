@@ -41,8 +41,10 @@ export interface S3CompatibleStorage {
 
 export interface UploadKitHandlerConfig<TRouter extends FileRouter> {
   router: TRouter;
-  /** API key for managed UploadKit mode — proxies requests to the UploadKit API */
+  /** API key for managed UploadKit mode — server-side only, NEVER exposed to browser */
   apiKey?: string;
+  /** UploadKit API base URL — defaults to https://api.uploadkit.dev */
+  apiUrl?: string;
   /** S3-compatible storage config for BYOS mode */
   storage?: S3CompatibleStorage;
 }
