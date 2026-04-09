@@ -219,9 +219,10 @@ None yet.
 | 260409-dqx | Implement dashboard design changes from Pencil mockups | 2026-04-09 | 6db859c | [260409-dqx-implement-dashboard-design-changes-from-](./quick/260409-dqx-implement-dashboard-design-changes-from-/) |
 | 260409-fiq | Comprehensive UI polish — buttons, sidebar, cards, landing | 2026-04-09 | 25335eb | [260409-fiq-comprehensive-ui-polish-buttons-sidebar-](./quick/260409-fiq-comprehensive-ui-polish-buttons-sidebar-/) |
 | 260409-i9f | Refactor SDK — never expose API key in browser, use endpoint proxy pattern | 2026-04-09 | 4f29fa9 | [260409-i9f-refactor-sdk-never-expose-api-key-in-bro](./quick/260409-i9f-refactor-sdk-never-expose-api-key-in-bro/) |
+| 260409-ilx | Update docs for SDK endpoint proxy pattern — remove apiKey from all browser code | 2026-04-09 | 04a9143 | [260409-ilx-update-docs-for-sdk-endpoint-proxy-patte](./quick/260409-ilx-update-docs-for-sdk-endpoint-proxy-patte/) |
 
 ## Session Continuity
 
-Last session: 2026-04-09T08:30:00.000Z
-Stopped at: Completed quick task 260409-fiq: Comprehensive UI polish — buttons, sidebar, cards, landing
+Last session: 2026-04-09T08:45:00.000Z
+Stopped at: Completed quick task 260409-ilx: Update docs for SDK endpoint proxy pattern
 Resume file: None
