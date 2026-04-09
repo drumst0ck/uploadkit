@@ -9,7 +9,7 @@ WORKDIR /app
 # Copy workspace root files needed for install
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 
-# Copy all packages (needed for workspace resolution)
+# Copy ALL workspace packages (needed for workspace resolution)
 COPY packages/config/package.json ./packages/config/package.json
 COPY packages/shared/package.json ./packages/shared/package.json
 COPY packages/db/package.json ./packages/db/package.json
@@ -17,6 +17,7 @@ COPY packages/core/package.json ./packages/core/package.json
 COPY packages/react/package.json ./packages/react/package.json
 COPY packages/next/package.json ./packages/next/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
+COPY packages/emails/package.json ./packages/emails/package.json
 
 # Copy app package.json
 COPY apps/api/package.json ./apps/api/package.json
@@ -33,12 +34,13 @@ COPY --from=deps /app/packages/config/node_modules ./packages/config/node_module
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
+COPY --from=deps /app/packages/emails/node_modules ./packages/emails/node_modules
 
 # Copy full source code
 COPY . .
 
-# Build only the api app and its dependencies
-RUN pnpm turbo build --filter=api
+# Build the api app and its dependencies
+RUN pnpm turbo build --filter=@uploadkitdev/api
 
 # Stage 4: Production runner (non-root user, minimal image)
 FROM node:22-alpine AS runner
