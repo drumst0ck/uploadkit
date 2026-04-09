@@ -19,6 +19,7 @@ import {
   LogOut,
   Search,
 } from 'lucide-react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 // Theme toggle without next-themes (removed due to Next.js 16 hydration bug)
 import { signOut } from 'next-auth/react';
 import { useProjects } from '../hooks/use-projects';
@@ -115,6 +116,7 @@ export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandP
       // Content: centered panel (cmdk uses contentClassName for the Command wrapper div)
       contentClassName="fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
     >
+      <VisuallyHidden><span role="heading" aria-level={2}>Command palette</span></VisuallyHidden>
       {/* Search input row */}
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         <Search className="h-4 w-4 flex-shrink-0 text-foreground0" aria-hidden="true" />

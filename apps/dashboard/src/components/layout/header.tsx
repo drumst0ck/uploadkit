@@ -23,6 +23,7 @@ interface HeaderProps {
   };
   onSignOut: () => void;
   onMobileMenuOpen: () => void;
+  onSearchOpen?: () => void;
 }
 
 function getUserInitials(name?: string | null, email?: string | null): string {
@@ -35,7 +36,7 @@ function getUserInitials(name?: string | null, email?: string | null): string {
     .toUpperCase();
 }
 
-export function Header({ user, onSignOut, onMobileMenuOpen }: HeaderProps) {
+export function Header({ user, onSignOut, onMobileMenuOpen, onSearchOpen }: HeaderProps) {
   const { toggle } = useSidebar();
   const initials = getUserInitials(user.name, user.email);
 
@@ -74,12 +75,13 @@ export function Header({ user, onSignOut, onMobileMenuOpen }: HeaderProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="hidden h-8 gap-2 text-foreground0 hover:text-foreground sm:flex"
+          className="hidden h-8 gap-2 text-muted-foreground hover:text-foreground sm:flex"
           aria-label="Search (⌘K)"
+          onClick={onSearchOpen}
         >
           <Search className="h-3.5 w-3.5" />
           <span className="text-xs">Search</span>
-          <kbd className="hidden rounded border border-border bg-accent px-1.5 py-0.5 text-[10px] text-foreground0 lg:inline">
+          <kbd className="hidden rounded border border-border bg-accent px-1.5 py-0.5 text-[10px] text-muted-foreground lg:inline">
             ⌘K
           </kbd>
         </Button>
