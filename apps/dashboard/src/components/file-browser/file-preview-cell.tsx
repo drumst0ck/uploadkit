@@ -23,7 +23,7 @@ export function FilePreviewCell({ file }: FilePreviewCellProps) {
   }
 
   // Map MIME type prefix to lucide icon
-  const iconClass = 'h-5 w-5 text-zinc-400';
+  const iconClass = 'h-5 w-5 text-muted-foreground';
 
   if (file.type.startsWith('text/')) {
     return <FileText className={iconClass} />;

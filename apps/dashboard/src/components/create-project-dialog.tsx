@@ -71,15 +71,15 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="bg-card border-white/[0.08] text-white sm:max-w-md">
+      <DialogContent className="bg-card border-border text-foreground sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-white">Create a new project</DialogTitle>
+          <DialogTitle className="text-foreground">Create a new project</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="space-y-1.5">
             <label
               htmlFor="project-name"
-              className="text-sm font-medium text-zinc-300"
+              className="text-sm font-medium text-foreground"
             >
               Project name
             </label>
@@ -89,7 +89,7 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
               onChange={(e) => setName(e.target.value)}
               placeholder="My Awesome Project"
               maxLength={50}
-              className="bg-background border-white/[0.08] text-white placeholder:text-zinc-600 focus-visible:ring-indigo-500"
+              className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-indigo-500"
               autoFocus
               disabled={isSubmitting}
             />
@@ -105,14 +105,14 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
               variant="ghost"
               onClick={() => handleOpenChange(false)}
               disabled={isSubmitting}
-              className="text-zinc-400 hover:text-white hover:bg-white/[0.06]"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={!name.trim() || isSubmitting}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50"
+              className="bg-indigo-600 hover:bg-indigo-500 text-foreground disabled:opacity-50"
             >
               {isSubmitting ? 'Creating…' : 'Create project'}
             </Button>

@@ -45,14 +45,14 @@ export function Breadcrumbs() {
           <React.Fragment key={crumb.href}>
             {index > 0 && (
               <ChevronRight
-                className="h-3.5 w-3.5 flex-shrink-0 text-zinc-600"
+                className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground"
                 aria-hidden="true"
               />
             )}
             {isLast ? (
               <span
                 className={cn(
-                  'font-medium text-zinc-200',
+                  'font-medium text-foreground',
                   'max-w-[200px] truncate'
                 )}
                 aria-current="page"
@@ -62,7 +62,7 @@ export function Breadcrumbs() {
             ) : (
               <Link
                 href={crumb.href}
-                className="text-zinc-500 transition-colors hover:text-zinc-300 max-w-[200px] truncate"
+                className="text-foreground0 transition-colors hover:text-foreground max-w-[200px] truncate"
               >
                 {crumb.label}
               </Link>

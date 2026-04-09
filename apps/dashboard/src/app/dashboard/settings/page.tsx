@@ -20,8 +20,8 @@ export default async function SettingsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-xl font-semibold text-zinc-100">Settings</h1>
-        <p className="mt-1 text-sm text-zinc-500">
+        <h1 className="text-xl font-semibold text-foreground">Settings</h1>
+        <p className="mt-1 text-sm text-foreground0">
           Manage your account profile and preferences.
         </p>
       </div>

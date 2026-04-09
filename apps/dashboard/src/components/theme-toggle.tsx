@@ -14,7 +14,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400" aria-label="Toggle theme">
+      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" aria-label="Toggle theme">
         <Sun className="h-4 w-4" />
       </Button>
     );
@@ -29,7 +29,7 @@ export function ThemeToggle() {
           variant="ghost"
           size="icon"
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className="h-8 w-8 text-zinc-400 hover:text-zinc-200"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground"
           aria-label="Toggle theme"
         >
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}

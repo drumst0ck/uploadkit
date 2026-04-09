@@ -29,7 +29,7 @@ const TIER_DESCRIPTIONS: Record<Tier, { label: string; description: string }> = 
 };
 
 const TIER_BADGE_CLASS: Record<Tier, string> = {
-  FREE: 'bg-zinc-500/10 text-zinc-400 ring-1 ring-zinc-500/20',
+  FREE: 'bg-zinc-500/10 text-muted-foreground ring-1 ring-zinc-500/20',
   PRO: 'bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/20',
   TEAM: 'bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/20',
   ENTERPRISE: 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
@@ -103,8 +103,8 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
     <div className="flex flex-col gap-8">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold text-zinc-100">Billing</h1>
-        <p className="mt-1 text-sm text-zinc-500">
+        <h1 className="text-xl font-semibold text-foreground">Billing</h1>
+        <p className="mt-1 text-sm text-foreground0">
           Manage your subscription and billing details.
         </p>
       </div>
@@ -119,18 +119,18 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       )}
 
       {/* Current plan card */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
+      <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-medium text-zinc-100">Current Plan</h2>
+              <h2 className="text-sm font-medium text-foreground">Current Plan</h2>
               <span
                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TIER_BADGE_CLASS[tier]}`}
               >
                 {tierInfo.label}
               </span>
             </div>
-            <p className="text-sm text-zinc-500">{tierInfo.description}</p>
+            <p className="text-sm text-foreground0">{tierInfo.description}</p>
           </div>
         </div>
 
@@ -157,31 +157,31 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       </div>
 
       {/* Invoice history */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
-        <h2 className="mb-4 text-sm font-medium text-zinc-300">Invoice History</h2>
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="mb-4 text-sm font-medium text-foreground">Invoice History</h2>
 
-        <div className="overflow-hidden rounded-lg border border-white/[0.04]">
+        <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.04]">
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500">Invoice</th>
+              <tr className="border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-medium text-foreground0">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-foreground0">Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-foreground0">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-foreground0">Invoice</th>
               </tr>
             </thead>
             <tbody>
               {invoices.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-zinc-600">
+                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     No invoices yet.
                   </td>
                 </tr>
               ) : (
                 invoices.map((invoice) => (
-                  <tr key={invoice.id} className="border-b border-white/[0.04] last:border-0">
-                    <td className="px-4 py-3 text-zinc-400">{formatDate(invoice.date)}</td>
-                    <td className="px-4 py-3 text-zinc-400">{formatCents(invoice.amount)}</td>
+                  <tr key={invoice.id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(invoice.date)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatCents(invoice.amount)}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -189,7 +189,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                             ? 'bg-emerald-500/10 text-emerald-400'
                             : invoice.status === 'open'
                               ? 'bg-amber-500/10 text-amber-400'
-                              : 'bg-zinc-500/10 text-zinc-400'
+                              : 'bg-zinc-500/10 text-muted-foreground'
                         }`}
                       >
                         {formatInvoiceStatus(invoice.status)}
@@ -206,7 +206,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                           View PDF
                         </a>
                       ) : (
-                        <span className="text-xs text-zinc-600">—</span>
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </td>
                   </tr>

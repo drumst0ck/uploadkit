@@ -70,15 +70,15 @@ function SidebarContent({
       {/* Logo / Brand */}
       <div
         className={cn(
-          'flex h-14 flex-shrink-0 items-center border-b border-white/[0.06] px-3',
+          'flex h-14 flex-shrink-0 items-center border-b border-border px-3',
           collapsed ? 'justify-center' : 'gap-2'
         )}
       >
         <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-indigo-500">
-          <Upload className="h-4 w-4 text-white" />
+          <Upload className="h-4 w-4 text-foreground" />
         </div>
         {!collapsed && (
-          <span className="text-sm font-semibold tracking-tight text-white">
+          <span className="text-sm font-semibold tracking-tight text-foreground">
             UploadKit
           </span>
         )}
@@ -92,7 +92,7 @@ function SidebarContent({
       </div>
 
       {/* Project Switcher at bottom */}
-      <div className="flex-shrink-0 border-t border-white/[0.06] p-2">
+      <div className="flex-shrink-0 border-t border-border p-2">
         <ProjectSwitcher
           activeSlug={activeProjectSlug}
           initialProjects={initialProjects}
@@ -118,7 +118,7 @@ export function Sidebar({
         data-collapsed={collapsed}
         className={cn(
           'hidden lg:flex flex-col flex-shrink-0',
-          'bg-background border-r border-white/[0.06]',
+          'bg-background border-r border-border',
           'transition-[width] duration-200 ease-in-out',
           collapsed ? 'w-14' : 'w-60'
         )}
@@ -134,7 +134,7 @@ export function Sidebar({
       <Sheet open={mobileOpen} onOpenChange={(open) => !open && onMobileClose?.()}>
         <SheetContent
           side="left"
-          className="w-60 border-r border-white/[0.06] bg-background p-0"
+          className="w-60 border-r border-border bg-background p-0"
         >
           <SidebarContent
             collapsed={false}

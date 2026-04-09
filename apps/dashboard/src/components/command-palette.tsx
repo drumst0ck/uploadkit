@@ -113,32 +113,32 @@ export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandP
       // Overlay: fixed full-screen backdrop with dark bg + blur
       overlayClassName="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
       // Content: centered panel (cmdk uses contentClassName for the Command wrapper div)
-      contentClassName="fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-xl border border-white/[0.06] bg-background shadow-2xl"
+      contentClassName="fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
     >
       {/* Search input row */}
-      <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
-        <Search className="h-4 w-4 flex-shrink-0 text-zinc-500" aria-hidden="true" />
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <Search className="h-4 w-4 flex-shrink-0 text-foreground0" aria-hidden="true" />
         <Command.Input
           value={inputValue}
           onValueChange={setInputValue}
           placeholder="Type a command or search..."
-          className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none"
+          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
           aria-label="Search commands"
         />
-        <kbd className="hidden rounded border border-white/[0.08] px-1.5 py-0.5 text-xs text-zinc-600 sm:inline-flex">
+        <kbd className="hidden rounded border border-border px-1.5 py-0.5 text-xs text-muted-foreground sm:inline-flex">
           ESC
         </kbd>
       </div>
 
       <Command.List className="max-h-80 overflow-y-auto py-2">
-        <Command.Empty className="py-8 text-center text-sm text-zinc-500">
+        <Command.Empty className="py-8 text-center text-sm text-foreground0">
           No results found.
         </Command.Empty>
 
         {/* Navigation group */}
         <Command.Group
           heading="Navigation"
-          className="px-2 [&_[cmdk-group-heading]]:mb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-zinc-600"
+          className="px-2 [&_[cmdk-group-heading]]:mb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground"
         >
           <PaletteItem
             icon={LayoutDashboard}
@@ -201,7 +201,7 @@ export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandP
         {/* Actions group */}
         <Command.Group
           heading="Actions"
-          className="px-2 [&_[cmdk-group-heading]]:mb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-zinc-600"
+          className="px-2 [&_[cmdk-group-heading]]:mb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground"
         >
           <PaletteItem
             icon={PlusCircle}
@@ -228,7 +228,7 @@ export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandP
         {debouncedQuery.length >= 3 && searchResults.length > 0 && (
           <Command.Group
             heading="Files"
-            className="px-2 [&_[cmdk-group-heading]]:mb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-zinc-600"
+            className="px-2 [&_[cmdk-group-heading]]:mb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground"
           >
             {searchResults.map((file) => (
               <PaletteItem
@@ -261,10 +261,10 @@ function PaletteItem({ icon: Icon, label, onSelect, destructive = false }: Palet
       className={[
         'flex cursor-default items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors',
         'outline-none',
-        'aria-selected:bg-white/[0.06] aria-selected:text-white',
+        'aria-selected:bg-accent aria-selected:text-foreground',
         destructive
           ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300 aria-selected:bg-red-500/10 aria-selected:text-red-300'
-          : 'text-zinc-400 hover:bg-white/[0.06] hover:text-white',
+          : 'text-muted-foreground hover:bg-accent hover:text-foreground',
       ].join(' ')}
     >
       <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />

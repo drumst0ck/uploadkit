@@ -40,12 +40,12 @@ export function Header({ user, onSignOut, onMobileMenuOpen }: HeaderProps) {
   const initials = getUserInitials(user.name, user.email);
 
   return (
-    <header className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-white/[0.06] bg-background px-4">
+    <header className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-background px-4">
       {/* Mobile hamburger — triggers off-canvas Sheet */}
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 text-zinc-400 hover:text-zinc-200 lg:hidden"
+        className="h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden"
         onClick={onMobileMenuOpen}
         aria-label="Open menu"
       >
@@ -56,7 +56,7 @@ export function Header({ user, onSignOut, onMobileMenuOpen }: HeaderProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="hidden h-8 w-8 text-zinc-400 hover:text-zinc-200 lg:flex"
+        className="hidden h-8 w-8 text-muted-foreground hover:text-foreground lg:flex"
         onClick={toggle}
         aria-label="Toggle sidebar"
       >
@@ -74,12 +74,12 @@ export function Header({ user, onSignOut, onMobileMenuOpen }: HeaderProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="hidden h-8 gap-2 text-zinc-500 hover:text-zinc-300 sm:flex"
+          className="hidden h-8 gap-2 text-foreground0 hover:text-foreground sm:flex"
           aria-label="Search (⌘K)"
         >
           <Search className="h-3.5 w-3.5" />
           <span className="text-xs">Search</span>
-          <kbd className="hidden rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-zinc-500 lg:inline">
+          <kbd className="hidden rounded border border-border bg-accent px-1.5 py-0.5 text-[10px] text-foreground0 lg:inline">
             ⌘K
           </kbd>
         </Button>
@@ -108,22 +108,22 @@ export function Header({ user, onSignOut, onMobileMenuOpen }: HeaderProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-48 border-white/[0.08] bg-card"
+            className="w-48 border-border bg-card"
           >
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col gap-0.5">
                 {user.name && (
-                  <span className="text-sm font-medium text-white">{user.name}</span>
+                  <span className="text-sm font-medium text-foreground">{user.name}</span>
                 )}
                 {user.email && (
-                  <span className="text-xs text-zinc-400">{user.email}</span>
+                  <span className="text-xs text-muted-foreground">{user.email}</span>
                 )}
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-white/[0.06]" />
+            <DropdownMenuSeparator className="bg-accent" />
             <DropdownMenuItem
               onClick={onSignOut}
-              className="text-zinc-400 focus:bg-white/[0.06] focus:text-white"
+              className="text-muted-foreground focus:bg-accent focus:text-foreground"
             >
               Sign out
             </DropdownMenuItem>

@@ -36,11 +36,11 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-card px-3 py-2 text-xs text-white shadow-xl">
-      <p className="mb-1.5 font-medium text-zinc-300">{label}</p>
+    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-foreground shadow-xl">
+      <p className="mb-1.5 font-medium text-foreground">{label}</p>
       {payload.map((item) => (
         <p key={item.name} style={{ color: item.color }} className="flex justify-between gap-4">
-          <span className="text-zinc-500">{item.name}</span>
+          <span className="text-foreground0">{item.name}</span>
           <span>
             {item.name === 'Uploads'
               ? item.value.toLocaleString()

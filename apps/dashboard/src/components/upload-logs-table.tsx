@@ -81,7 +81,7 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Live indicator */}
-        <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -95,7 +95,7 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-          className="rounded-md border border-white/[0.08] bg-card px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {TIME_RANGE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -108,7 +108,7 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="rounded-md border border-white/[0.08] bg-card px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="">All statuses</option>
           <option value="UPLOADED">Uploaded</option>
@@ -116,31 +116,31 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
           <option value="FAILED">Failed</option>
         </select>
 
-        <span className="ml-auto text-xs text-zinc-500">
+        <span className="ml-auto text-xs text-foreground0">
           {isLoading ? 'Refreshing...' : `${logs.length} entries`}
         </span>
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-white/[0.06]">
+      <div className="overflow-hidden rounded-xl border border-border">
         {logs.length === 0 && !isLoading ? (
-          <div className="px-4 py-12 text-center text-sm text-zinc-500">
+          <div className="px-4 py-12 text-center text-sm text-foreground0">
             No upload activity in the selected time range.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06] text-left">
-                <th className="px-4 py-3 text-xs font-medium text-zinc-500">Status</th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-500">File name</th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-500">Size</th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-500 hidden sm:table-cell">
+              <tr className="border-b border-border text-left">
+                <th className="px-4 py-3 text-xs font-medium text-foreground0">Status</th>
+                <th className="px-4 py-3 text-xs font-medium text-foreground0">File name</th>
+                <th className="px-4 py-3 text-xs font-medium text-foreground0">Size</th>
+                <th className="px-4 py-3 text-xs font-medium text-foreground0 hidden sm:table-cell">
                   Type
                 </th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-500 hidden md:table-cell">
+                <th className="px-4 py-3 text-xs font-medium text-foreground0 hidden md:table-cell">
                   Uploaded by
                 </th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-500 text-right">Time</th>
+                <th className="px-4 py-3 text-xs font-medium text-foreground0 text-right">Time</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
@@ -149,29 +149,29 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
                 return (
                   <tr
                     key={log._id}
-                    className="transition-colors hover:bg-white/[0.02]"
+                    className="transition-colors hover:bg-accent"
                   >
                     <td className="px-4 py-3">
                       <span className={badge.className}>{badge.label}</span>
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className="max-w-[200px] truncate font-medium text-zinc-100"
+                        className="max-w-[200px] truncate font-medium text-foreground"
                         title={log.name}
                       >
                         {log.name}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-zinc-400 tabular-nums">
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
                       {formatBytes(log.size)}
                     </td>
-                    <td className="px-4 py-3 text-zinc-500 hidden sm:table-cell">
+                    <td className="px-4 py-3 text-foreground0 hidden sm:table-cell">
                       {log.type}
                     </td>
-                    <td className="px-4 py-3 text-zinc-500 hidden md:table-cell">
+                    <td className="px-4 py-3 text-foreground0 hidden md:table-cell">
                       {log.uploadedBy ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-right text-zinc-500 tabular-nums">
+                    <td className="px-4 py-3 text-right text-foreground0 tabular-nums">
                       {relativeTime(log.createdAt)}
                     </td>
                   </tr>

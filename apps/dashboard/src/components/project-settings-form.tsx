@@ -106,13 +106,13 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
   return (
     <div className="flex flex-col gap-8">
       {/* General section */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
-        <h2 className="mb-5 text-sm font-medium text-zinc-300">General</h2>
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="mb-5 text-sm font-medium text-foreground">General</h2>
 
         <form onSubmit={(e) => { void handleSaveName(e); }} className="flex flex-col gap-4">
           {/* Project name */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="project-name" className="text-xs font-medium text-zinc-400">
+            <label htmlFor="project-name" className="text-xs font-medium text-muted-foreground">
               Project name
             </label>
             <input
@@ -125,27 +125,27 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
               }}
               maxLength={50}
               placeholder="My Project"
-              className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+              className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
             />
           </div>
 
           {/* Slug (read-only + copy) */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-zinc-400">Project slug</label>
+            <label className="text-xs font-medium text-muted-foreground">Project slug</label>
             <div className="flex items-center gap-2">
-              <p className="flex-1 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 font-mono text-sm text-zinc-500">
+              <p className="flex-1 rounded-lg border border-border bg-white/[0.02] px-3 py-2 font-mono text-sm text-foreground0">
                 {slug}
               </p>
               <button
                 type="button"
                 onClick={() => { void handleCopySlug(); }}
                 aria-label="Copy slug"
-                className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+                className="rounded-lg border border-border bg-accent px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
               >
                 {slugCopied ? 'Copied!' : 'Copy'}
               </button>
             </div>
-            <p className="text-xs text-zinc-600">
+            <p className="text-xs text-muted-foreground">
               Slug is auto-derived from the project name when you save.
             </p>
           </div>
@@ -159,7 +159,7 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
             <button
               type="submit"
               disabled={isSaving || name.trim().length === 0 || name.trim().length > 50}
-              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
             >
               {isSaving ? 'Saving...' : 'Save changes'}
             </button>
@@ -170,7 +170,7 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
       {/* Danger zone */}
       <div className="rounded-xl border border-red-500/20 bg-red-500/[0.03] p-6">
         <h2 className="mb-2 text-sm font-medium text-red-400">Danger Zone</h2>
-        <p className="mb-5 text-sm text-zinc-500">
+        <p className="mb-5 text-sm text-foreground0">
           Permanently delete this project and all its files, API keys, and routes. This action
           cannot be undone.
         </p>
@@ -189,23 +189,23 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
             </button>
           </AlertDialogTrigger>
 
-          <AlertDialogContent className="border-white/[0.06] bg-card">
+          <AlertDialogContent className="border-border bg-card">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-zinc-100">
+              <AlertDialogTitle className="text-foreground">
                 Delete project permanently?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-zinc-500">
+              <AlertDialogDescription className="text-foreground0">
                 This will permanently delete this project and all its files, API keys, and routes.
                 This action{' '}
-                <span className="font-medium text-zinc-300">cannot be undone</span>.
+                <span className="font-medium text-foreground">cannot be undone</span>.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             {/* Typed project name confirmation */}
             <div className="flex flex-col gap-2 py-2">
-              <label className="text-xs font-medium text-zinc-400">
+              <label className="text-xs font-medium text-muted-foreground">
                 Type the project name to confirm:{' '}
-                <span className="font-mono text-zinc-300">{initialName}</span>
+                <span className="font-mono text-foreground">{initialName}</span>
               </label>
               <input
                 type="text"
@@ -213,19 +213,19 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
                 onChange={(e) => setConfirmName(e.target.value)}
                 placeholder={initialName}
                 autoComplete="off"
-                className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-700 focus:border-red-500/50 focus:outline-none focus:ring-1 focus:ring-red-500/30 transition-colors"
+                className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-red-500/50 focus:outline-none focus:ring-1 focus:ring-red-500/30 transition-colors"
               />
               {deleteError && <p className="text-xs text-red-400">{deleteError}</p>}
             </div>
 
             <AlertDialogFooter>
-              <AlertDialogCancel className="border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06]">
+              <AlertDialogCancel className="border-border bg-accent text-foreground hover:bg-accent">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
                 disabled={!canConfirmDelete || isDeleting}
                 onClick={() => { void handleDeleteProject(); }}
-                className="bg-red-600 text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="bg-red-600 text-foreground hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isDeleting ? 'Deleting...' : 'Delete project'}
               </AlertDialogAction>

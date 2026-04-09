@@ -27,9 +27,9 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-xl font-semibold text-zinc-100">Project Settings</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Manage settings for <span className="text-zinc-300">{project.name}</span>.
+        <h1 className="text-xl font-semibold text-foreground">Project Settings</h1>
+        <p className="mt-1 text-sm text-foreground0">
+          Manage settings for <span className="text-foreground">{project.name}</span>.
         </p>
       </div>
 

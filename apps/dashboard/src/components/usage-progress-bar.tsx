@@ -23,14 +23,14 @@ export function UsageProgressBar({ label, used, limit, formatFn }: UsageProgress
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-medium text-zinc-300">{label}</span>
-        <span className="text-xs text-zinc-500 tabular-nums">
+        <span className="text-sm font-medium text-foreground">{label}</span>
+        <span className="text-xs text-foreground0 tabular-nums">
           {usedStr} / {limitStr}
         </span>
       </div>
 
       {/* Track */}
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-accent">
         {/* Fill */}
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor}`}
@@ -44,7 +44,7 @@ export function UsageProgressBar({ label, used, limit, formatFn }: UsageProgress
       </div>
 
       {limit !== Infinity && (
-        <span className="text-xs text-zinc-600">{percentage.toFixed(1)}% used</span>
+        <span className="text-xs text-muted-foreground">{percentage.toFixed(1)}% used</span>
       )}
     </div>
   );

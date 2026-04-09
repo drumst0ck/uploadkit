@@ -31,7 +31,7 @@ function getTypeBadgeClasses(mime: string): string {
     mime.startsWith('application/vnd.openxmlformats')
   )
     return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-  return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+  return 'bg-zinc-500/10 text-muted-foreground border-zinc-500/20';
 }
 
 interface FileBrowserProps {
@@ -221,7 +221,7 @@ export function FileBrowser({ slug }: FileBrowserProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-zinc-500 hover:text-zinc-300"
+            className="h-8 w-8 text-foreground0 hover:text-foreground"
             onClick={() => handleCopyUrl(row.original.url)}
             aria-label="Copy file URL"
           >
@@ -230,7 +230,7 @@ export function FileBrowser({ slug }: FileBrowserProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-zinc-500 hover:text-red-400"
+            className="h-8 w-8 text-foreground0 hover:text-red-400"
             onClick={() => handleDeleteSingle(row.original._id)}
             aria-label="Delete file"
           >

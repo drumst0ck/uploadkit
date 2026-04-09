@@ -48,7 +48,7 @@ export function ProjectSwitcher({
       <DropdownMenuTrigger
         className={cn(
           'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm',
-          'text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-white',
+          'text-foreground transition-colors hover:bg-accent hover:text-foreground',
           'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500',
           collapsed && 'justify-center px-0'
         )}
@@ -69,9 +69,9 @@ export function ProjectSwitcher({
       <DropdownMenuContent
         align="start"
         side="top"
-        className="w-56 border-white/[0.08] bg-card"
+        className="w-56 border-border bg-card"
       >
-        <DropdownMenuLabel className="text-xs text-zinc-500">
+        <DropdownMenuLabel className="text-xs text-foreground0">
           Projects
         </DropdownMenuLabel>
         {projects.map((project) => (
@@ -79,18 +79,18 @@ export function ProjectSwitcher({
             key={project._id}
             onClick={() => router.push(`/dashboard/projects/${project.slug}`)}
             className={cn(
-              'gap-2 text-zinc-300 focus:bg-white/[0.06] focus:text-white',
-              project.slug === activeSlug && 'text-white'
+              'gap-2 text-foreground focus:bg-accent focus:text-foreground',
+              project.slug === activeSlug && 'text-foreground'
             )}
           >
             <FolderOpen className="h-4 w-4 opacity-60" />
             <span className="truncate">{project.name}</span>
           </DropdownMenuItem>
         ))}
-        {projects.length > 0 && <DropdownMenuSeparator className="bg-white/[0.06]" />}
+        {projects.length > 0 && <DropdownMenuSeparator className="bg-accent" />}
         <DropdownMenuItem
           onClick={() => router.push('/dashboard/projects/new')}
-          className="gap-2 text-zinc-400 focus:bg-white/[0.06] focus:text-white"
+          className="gap-2 text-muted-foreground focus:bg-accent focus:text-foreground"
         >
           <Plus className="h-4 w-4" />
           <span>New project</span>

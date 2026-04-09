@@ -30,11 +30,11 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-card/90 px-3 py-2 text-xs text-white shadow-xl shadow-black/40 backdrop-blur-sm">
-      <p className="font-medium text-zinc-300 mb-1">{label}</p>
+    <div className="rounded-lg border border-border bg-card/90 px-3 py-2 text-xs text-foreground shadow-xl shadow-black/40 backdrop-blur-sm">
+      <p className="font-medium text-foreground mb-1">{label}</p>
       <p className="text-indigo-300">
         {payload[0]?.value ?? 0}{' '}
-        <span className="text-zinc-500">uploads</span>
+        <span className="text-foreground0">uploads</span>
       </p>
     </div>
   );

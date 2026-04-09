@@ -59,8 +59,8 @@ function NavItemLink({
       className={cn(
         'flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-all duration-150',
         isActive
-          ? 'bg-indigo-500/10 text-white border-l-2 border-indigo-500 -ml-[1px]'
-          : 'text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-100',
+          ? 'bg-indigo-500/10 text-foreground border-l-2 border-indigo-500 -ml-[1px]'
+          : 'text-muted-foreground hover:bg-accent hover:text-foreground',
         collapsed && 'justify-center px-2'
       )}
     >
@@ -111,9 +111,9 @@ export function SidebarNav({ collapsed }: SidebarNavProps) {
 
       {/* Project-scoped sub-nav — visible when inside a project route */}
       {projectBasePath && (
-        <div className={cn('mt-2', !collapsed && 'ml-2 border-l border-white/[0.06] pl-2')}>
+        <div className={cn('mt-2', !collapsed && 'ml-2 border-l border-border pl-2')}>
           {!collapsed && (
-            <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-zinc-600">
+            <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Project
             </p>
           )}

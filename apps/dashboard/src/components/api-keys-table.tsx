@@ -241,7 +241,7 @@ export function ApiKeysTable({ slug }: ApiKeysTableProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-zinc-500 hover:text-zinc-300"
+                        className="h-8 w-8 text-foreground0 hover:text-foreground"
                         onClick={() =>
                           navigator.clipboard.writeText(key.keyPrefix + '...').catch(() => undefined)
                         }

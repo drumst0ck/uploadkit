@@ -63,14 +63,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <div className="w-full max-w-[400px]">
         {/* Brand */}
         <div className="mb-8 text-center">
-          <span className="text-2xl font-bold tracking-tight text-white">
+          <span className="text-2xl font-bold tracking-tight text-foreground">
             UploadKit
           </span>
-          <p className="mt-2 text-sm text-zinc-400">{heading}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{heading}</p>
         </div>
 
         {/* Card */}
-        <div className="rounded-xl border border-white/[0.06] bg-card p-8 shadow-2xl">
+        <div className="rounded-xl border border-border bg-card p-8 shadow-2xl">
           {/* Error banner */}
           {errorMessage && (
             <div className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
@@ -84,7 +84,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <form action={signInWithGitHub}>
               <button
                 type="submit"
-                className="flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-white/[0.08] bg-[#1c1c1e] text-sm font-medium text-zinc-100 transition-colors hover:bg-[#252528] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
+                className="flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-border bg-[#1c1c1e] text-sm font-medium text-foreground transition-colors hover:bg-[#252528] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
               >
                 {/* GitHub Octicon SVG */}
                 <svg
@@ -104,7 +104,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <form action={signInWithGoogle}>
               <button
                 type="submit"
-                className="flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-white/[0.08] bg-[#1c1c1e] text-sm font-medium text-zinc-100 transition-colors hover:bg-[#252528] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
+                className="flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-border bg-[#1c1c1e] text-sm font-medium text-foreground transition-colors hover:bg-[#252528] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
               >
                 {/* Google G logo SVG */}
                 <svg
@@ -137,9 +137,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           {/* Divider */}
           <div className="my-6 flex items-center gap-3">
-            <div className="h-px flex-1 bg-white/[0.06]" />
-            <span className="text-xs text-zinc-500">or</span>
-            <div className="h-px flex-1 bg-white/[0.06]" />
+            <div className="h-px flex-1 bg-accent" />
+            <span className="text-xs text-foreground0">or</span>
+            <div className="h-px flex-1 bg-accent" />
           </div>
 
           {/* Email magic link form */}
@@ -156,12 +156,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 required
                 autoComplete="email"
                 placeholder="you@example.com"
-                className="h-11 w-full rounded-lg border border-white/[0.08] bg-[#1c1c1e] px-4 text-sm text-zinc-100 placeholder-zinc-500 transition-colors focus:border-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="h-11 w-full rounded-lg border border-border bg-[#1c1c1e] px-4 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             <button
               type="submit"
-              className="h-11 w-full rounded-lg bg-indigo-500 text-sm font-medium text-white transition-colors hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
+              className="h-11 w-full rounded-lg bg-indigo-500 text-sm font-medium text-foreground transition-colors hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
             >
               {emailCTA}
             </button>
@@ -169,7 +169,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
 
         {/* Sign-in / Sign-up mode toggle (D-01) — cosmetic only */}
-        <p className="mt-6 text-center text-sm text-zinc-400">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           {isSignUp ? (
             <>
               Already have an account?{' '}

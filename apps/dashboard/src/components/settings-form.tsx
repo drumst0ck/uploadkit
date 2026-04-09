@@ -93,12 +93,12 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
   return (
     <div className="flex flex-col gap-8">
       {/* Profile section */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
-        <h2 className="mb-5 text-sm font-medium text-zinc-300">Profile</h2>
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="mb-5 text-sm font-medium text-foreground">Profile</h2>
 
         <form onSubmit={(e) => { void handleSaveProfile(e); }} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="name" className="text-xs font-medium text-zinc-400">
+            <label htmlFor="name" className="text-xs font-medium text-muted-foreground">
               Display name
             </label>
             <input
@@ -111,15 +111,15 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
               }}
               maxLength={100}
               placeholder="Your name"
-              className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+              className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-zinc-400">Email</label>
-            <p className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-zinc-500">
+            <label className="text-xs font-medium text-muted-foreground">Email</label>
+            <p className="rounded-lg border border-border bg-white/[0.02] px-3 py-2 text-sm text-foreground0">
               {email}
-              <span className="ml-2 text-xs text-zinc-600">(cannot be changed)</span>
+              <span className="ml-2 text-xs text-muted-foreground">(cannot be changed)</span>
             </p>
           </div>
 
@@ -139,19 +139,19 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
       </div>
 
       {/* Notifications section */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
-        <h2 className="mb-5 text-sm font-medium text-zinc-300">Notifications</h2>
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="mb-5 text-sm font-medium text-foreground">Notifications</h2>
         <div className="flex flex-col gap-4">
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
               checked={emailUsageAlerts}
               onChange={(e) => setEmailUsageAlerts(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-white/[0.12] bg-white/[0.03] accent-indigo-500"
+              className="mt-0.5 h-4 w-4 rounded border-border bg-accent accent-indigo-500"
             />
             <div>
-              <p className="text-sm text-zinc-300">Usage alerts</p>
-              <p className="text-xs text-zinc-500">
+              <p className="text-sm text-foreground">Usage alerts</p>
+              <p className="text-xs text-foreground0">
                 Email me when storage or bandwidth approaches tier limits.
               </p>
             </div>
@@ -162,11 +162,11 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
               type="checkbox"
               checked={emailProductUpdates}
               onChange={(e) => setEmailProductUpdates(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-white/[0.12] bg-white/[0.03] accent-indigo-500"
+              className="mt-0.5 h-4 w-4 rounded border-border bg-accent accent-indigo-500"
             />
             <div>
-              <p className="text-sm text-zinc-300">Product updates</p>
-              <p className="text-xs text-zinc-500">
+              <p className="text-sm text-foreground">Product updates</p>
+              <p className="text-xs text-foreground0">
                 Email me about new features and platform updates.
               </p>
             </div>
@@ -177,7 +177,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
       {/* Danger zone — DASH-10 */}
       <div className="rounded-xl border border-red-500/20 bg-red-500/[0.03] p-6">
         <h2 className="mb-2 text-sm font-medium text-red-400">Danger Zone</h2>
-        <p className="mb-5 text-sm text-zinc-500">
+        <p className="mb-5 text-sm text-foreground0">
           Permanently delete your account, all projects, files, and API keys. This action
           cannot be undone.
         </p>
@@ -196,23 +196,23 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
             </button>
           </AlertDialogTrigger>
 
-          <AlertDialogContent className="border-white/[0.06] bg-card">
+          <AlertDialogContent className="border-border bg-card">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-zinc-100">
+              <AlertDialogTitle className="text-foreground">
                 Delete account permanently?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-zinc-500">
+              <AlertDialogDescription className="text-foreground0">
                 This will permanently delete your account, all projects, files, and API keys.
                 This action{' '}
-                <span className="font-medium text-zinc-300">cannot be undone</span>.
+                <span className="font-medium text-foreground">cannot be undone</span>.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             {/* Typed email confirmation — T-06-15 repudiation mitigation */}
             <div className="flex flex-col gap-2 py-2">
-              <label className="text-xs font-medium text-zinc-400">
+              <label className="text-xs font-medium text-muted-foreground">
                 Type your email address to confirm:{' '}
-                <span className="font-mono text-zinc-300">{email}</span>
+                <span className="font-mono text-foreground">{email}</span>
               </label>
               <input
                 type="email"
@@ -220,7 +220,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
                 onChange={(e) => setConfirmEmail(e.target.value)}
                 placeholder={email}
                 autoComplete="off"
-                className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-700 focus:border-red-500/50 focus:outline-none focus:ring-1 focus:ring-red-500/30 transition-colors"
+                className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-red-500/50 focus:outline-none focus:ring-1 focus:ring-red-500/30 transition-colors"
               />
               {deleteError && (
                 <p className="text-xs text-red-400">{deleteError}</p>
@@ -228,13 +228,13 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
             </div>
 
             <AlertDialogFooter>
-              <AlertDialogCancel className="border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06]">
+              <AlertDialogCancel className="border-border bg-accent text-foreground hover:bg-accent">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
                 disabled={!canConfirmDelete || isDeleting}
                 onClick={() => { void handleDeleteAccount(); }}
-                className="bg-red-600 text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="bg-red-600 text-foreground hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isDeleting ? 'Deleting...' : 'Delete my account'}
               </AlertDialogAction>

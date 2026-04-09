@@ -106,7 +106,7 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-semibold text-white">Overview</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
       </div>
 
       {/* 4 Metric cards */}
@@ -136,19 +136,19 @@ export default async function DashboardPage() {
       </div>
 
       {/* Upload area chart */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
+      <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-sm font-medium text-zinc-300">Uploads — Last 30 Days</h2>
-          <Link href="/dashboard/projects" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+          <h2 className="text-sm font-medium text-foreground">Uploads — Last 30 Days</h2>
+          <Link href="/dashboard/projects" className="text-xs text-foreground0 hover:text-foreground transition-colors">
             All Projects
           </Link>
         </div>
-        <p className="text-xs text-zinc-600 mb-6">
+        <p className="text-xs text-muted-foreground mb-6">
           Daily upload activity across all your projects.
         </p>
         {chartData.length === 0 ? (
           <div className="flex h-[300px] items-center justify-center">
-            <p className="text-sm text-zinc-600">No uploads in the last 30 days.</p>
+            <p className="text-sm text-muted-foreground">No uploads in the last 30 days.</p>
           </div>
         ) : (
           <UploadsAreaChart data={chartData} />
@@ -156,18 +156,18 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recent files table */}
-      <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-medium text-zinc-300">Recent Files</h2>
-            <p className="text-xs text-zinc-600 mt-0.5">
+            <h2 className="text-sm font-medium text-foreground">Recent Files</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
               Your 5 most recently uploaded files.
             </p>
           </div>
           {userProjects[0] != null && (
             <Link
               href={`/dashboard/projects/${userProjects[0].slug}/files`}
-              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="text-xs text-foreground0 hover:text-foreground transition-colors"
             >
               View All →
             </Link>
@@ -175,17 +175,17 @@ export default async function DashboardPage() {
         </div>
         {recentFiles.length === 0 ? (
           <div className="px-6 py-12 text-center">
-            <p className="text-sm text-zinc-600">No files uploaded yet.</p>
+            <p className="text-sm text-muted-foreground">No files uploaded yet.</p>
           </div>
         ) : (
           <Table>
             <TableHeader>
-              <TableRow className="border-white/[0.06] hover:bg-transparent">
-                <TableHead className="text-zinc-500">Name</TableHead>
-                <TableHead className="text-zinc-500">Size</TableHead>
-                <TableHead className="text-zinc-500">Type</TableHead>
-                <TableHead className="text-zinc-500">Status</TableHead>
-                <TableHead className="text-zinc-500">Date</TableHead>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="text-foreground0">Name</TableHead>
+                <TableHead className="text-foreground0">Size</TableHead>
+                <TableHead className="text-foreground0">Type</TableHead>
+                <TableHead className="text-foreground0">Status</TableHead>
+                <TableHead className="text-foreground0">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -197,20 +197,20 @@ export default async function DashboardPage() {
                 return (
                   <TableRow
                     key={String(file._id)}
-                    className="border-white/[0.06] hover:bg-white/[0.02]"
+                    className="border-border hover:bg-accent"
                   >
-                    <TableCell className="font-medium text-zinc-200">
+                    <TableCell className="font-medium text-foreground">
                       <Link
                         href={fileLink}
-                        className="hover:text-white hover:underline underline-offset-4 transition-colors"
+                        className="hover:text-foreground hover:underline underline-offset-4 transition-colors"
                       >
                         {file.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-zinc-400">
+                    <TableCell className="text-muted-foreground">
                       {formatBytes(file.size)}
                     </TableCell>
-                    <TableCell className="text-zinc-500 font-mono text-xs">
+                    <TableCell className="text-foreground0 font-mono text-xs">
                       {file.type}
                     </TableCell>
                     <TableCell>
@@ -218,7 +218,7 @@ export default async function DashboardPage() {
                         {file.status}
                       </span>
                     </TableCell>
-                    <TableCell className="text-zinc-500">
+                    <TableCell className="text-foreground0">
                       {formatDate(file.createdAt)}
                     </TableCell>
                   </TableRow>

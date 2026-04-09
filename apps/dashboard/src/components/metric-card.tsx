@@ -16,15 +16,15 @@ export function MetricCard({ label, value, icon, trend }: MetricCardProps) {
   const isPositive = trend && trend.value >= 0;
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card p-5 shadow-lg shadow-black/20 transition-all duration-200 hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/30 hover:-translate-y-0.5">
+    <div className="rounded-xl border border-border bg-card p-5 shadow-lg shadow-black/20 transition-all duration-200 hover:border-border hover:shadow-xl hover:shadow-black/30 hover:-translate-y-0.5">
       {/* Label + icon row */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-zinc-400">{label}</span>
+        <span className="text-sm text-muted-foreground">{label}</span>
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">{icon}</div>
       </div>
 
       {/* Big number */}
-      <p className="text-2xl font-semibold text-white tracking-tight mb-1">
+      <p className="text-2xl font-semibold text-foreground tracking-tight mb-1">
         {value}
       </p>
 

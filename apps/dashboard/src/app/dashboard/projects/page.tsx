@@ -28,13 +28,13 @@ export default async function ProjectsPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Projects</h1>
-          <p className="text-sm text-zinc-400 mt-1">
+          <h1 className="text-2xl font-semibold text-foreground">Projects</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Manage your upload projects and API keys.
           </p>
         </div>
         <CreateProjectDialog>
-          <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2">
+          <Button className="bg-indigo-600 hover:bg-indigo-500 text-foreground gap-2">
             <Plus className="h-4 w-4" aria-hidden="true" />
             New project
           </Button>
@@ -43,12 +43,12 @@ export default async function ProjectsPage() {
 
       {projects.length === 0 ? (
         /* Empty state */
-        <div className="rounded-xl border border-dashed border-white/[0.10] bg-card p-16 text-center">
-          <div className="mb-4 inline-flex"><FolderOpen className="h-10 w-10 text-zinc-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.15)]" aria-hidden="true" /></div>
-          <h2 className="text-lg font-medium text-zinc-300 mb-2">
+        <div className="rounded-xl border border-dashed border-border bg-card p-16 text-center">
+          <div className="mb-4 inline-flex"><FolderOpen className="h-10 w-10 text-foreground0 drop-shadow-[0_0_8px_rgba(99,102,241,0.15)]" aria-hidden="true" /></div>
+          <h2 className="text-lg font-medium text-foreground mb-2">
             No projects yet
           </h2>
-          <p className="text-sm text-zinc-500 mb-6">
+          <p className="text-sm text-foreground0 mb-6">
             Create your first project to start uploading files.
           </p>
           <CreateProjectDialog>
@@ -64,20 +64,20 @@ export default async function ProjectsPage() {
             <Link
               key={String(project._id)}
               href={`/dashboard/projects/${project.slug}`}
-              className="group rounded-xl border border-white/[0.06] bg-card p-6 transition-colors hover:border-white/[0.12] hover:bg-white/[0.02] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
+              className="group rounded-xl border border-border bg-card p-6 transition-colors hover:border-border hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
             >
               {/* Project avatar */}
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-lg font-semibold text-indigo-300 mb-4">
                 {project.name[0]?.toUpperCase() ?? 'P'}
               </div>
 
-              <h2 className="text-base font-medium text-white group-hover:text-indigo-300 transition-colors mb-1 truncate">
+              <h2 className="text-base font-medium text-foreground group-hover:text-indigo-300 transition-colors mb-1 truncate">
                 {project.name}
               </h2>
-              <p className="text-xs font-mono text-zinc-500 mb-3 truncate">
+              <p className="text-xs font-mono text-foreground0 mb-3 truncate">
                 {project.slug}
               </p>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-muted-foreground">
                 Created {formatDate(project.createdAt)}
               </p>
             </Link>
