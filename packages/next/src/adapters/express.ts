@@ -33,9 +33,10 @@ export function createExpressHandler<TRouter extends FileRouter>(
       ...(hasBody ? { body: JSON.stringify(req.body) } : {}),
     });
 
-    // Extract route segments: Express route should be mounted like app.all('/api/uploadkit/*', handler)
-    // req.params[0] contains everything after the wildcard
-    const rawParam = req.params[0] ?? req.params['uploadkit'] ?? '';
+    // Extract route segments: Express v5 uses named params, v4 uses positional
+    // Mount: app.all('/api/uploadkit/:path(*)', handler)  (Express v5)
+    //    or: app.all('/api/uploadkit/*', handler)          (Express v4)
+    const rawParam = req.params['path'] ?? req.params[0] ?? req.params['uploadkit'] ?? '';
     const paramStr = Array.isArray(rawParam) ? rawParam.join('/') : rawParam;
     const segments = paramStr.split('/').filter(Boolean);
     const routeParams = { params: Promise.resolve({ uploadkit: segments }) };

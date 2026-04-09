@@ -37,7 +37,7 @@ const uploadRouter = {
 } satisfies FileRouter;
 
 // Upload handler — SDK clients POST here to get presigned URLs and confirm uploads
-app.all('/api/uploadkit/*', createExpressHandler({
+app.all('/api/uploadkit/:path(*)', createExpressHandler({
   apiKey: process.env.UPLOADKIT_API_KEY,
   router: uploadRouter,
 }));
