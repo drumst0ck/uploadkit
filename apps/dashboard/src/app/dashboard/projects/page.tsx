@@ -20,9 +20,8 @@ export default async function ProjectsPage() {
     .lean();
 
   // If user has exactly 1 project, redirect directly to it
-  if (projects.length === 1 && projects[0]) {
-    redirect(`/dashboard/projects/${projects[0].slug}`);
-  }
+  // Only redirect when navigating from sidebar — not when user explicitly visits /projects
+  // Removed: auto-redirect prevented users from seeing the project list and creating new projects
 
   return (
     <div className="space-y-6">
