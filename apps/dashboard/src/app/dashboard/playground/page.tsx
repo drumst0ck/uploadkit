@@ -1,5 +1,6 @@
 'use client';
 
+import '@uploadkit/react/styles.css';
 import * as React from 'react';
 import {
   UploadKitProvider,

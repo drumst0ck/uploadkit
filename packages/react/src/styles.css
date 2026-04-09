@@ -39,7 +39,8 @@
    3. DARK MODE — Explicit via data-theme attribute
    Must come AFTER @media block for correct specificity.
    ---------------------------------------------------------- */
-[data-theme="dark"] {
+[data-theme="dark"],
+.dark {
   --uk-bg: #0a0a0b;
   --uk-bg-secondary: #141416;
   --uk-border: rgba(255, 255, 255, 0.08);
