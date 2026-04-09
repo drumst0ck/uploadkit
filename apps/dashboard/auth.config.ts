@@ -12,6 +12,7 @@ export const authConfig: NextAuthConfig = {
       id: 'github',
       name: 'GitHub',
       type: 'oauth',
+      issuer: 'https://github.com',
       authorization: 'https://github.com/login/oauth/authorize',
       token: 'https://github.com/login/oauth/access_token',
       userinfo: 'https://api.github.com/user',
