@@ -12,35 +12,54 @@ const AlertDialogPortal = AlertDialogPrimitive.Portal;
 const AlertDialogOverlay = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
-    className={cn(
-      'fixed inset-0 z-50 bg-black/80 transition-opacity data-[state=open]:opacity-100 data-[state=closed]:opacity-0',
-      className
-    )}
+    className={cn('', className)}
+    style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 50,
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      ...style,
+    }}
     {...props}
     ref={ref}
   />
 ));
-AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName;
+AlertDialogOverlay.displayName = 'AlertDialogOverlay';
 
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <AlertDialogPortal>
     <AlertDialogOverlay />
     <AlertDialogPrimitive.Content
       ref={ref}
-      className={cn(
-        'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg transition-all duration-200 data-[state=open]:opacity-100 data-[state=open]:scale-100 data-[state=closed]:opacity-0 data-[state=closed]:scale-95 sm:rounded-lg',
-        className
-      )}
+      className={cn('', className)}
+      style={{
+        position: 'fixed',
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 51,
+        width: '100%',
+        maxWidth: '32rem',
+        display: 'grid',
+        gap: '1rem',
+        border: '1px solid rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'var(--popover, #141416)',
+        color: 'var(--popover-foreground, #fafafa)',
+        padding: '1.5rem',
+        borderRadius: '0.5rem',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        ...style,
+      }}
       {...props}
     />
   </AlertDialogPortal>
 ));
-AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;
+AlertDialogContent.displayName = 'AlertDialogContent';
 
 const AlertDialogHeader = ({
   className,
