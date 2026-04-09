@@ -51,7 +51,10 @@ export function useFiles({
     nextCursor: string | null;
     hasMore: boolean;
     totalCount: number;
-  }>(key, fetcher);
+  }>(key, fetcher, {
+    refreshInterval: 5000, // Poll every 5s for near-realtime updates
+    keepPreviousData: true, // Prevent table flicker during refresh
+  });
 
   return {
     files: data?.files ?? [],
