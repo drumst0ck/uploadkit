@@ -1,3 +1,4 @@
+import '@/lib/env';
 import type { Metadata } from 'next';
 import './globals.css';
 import { SWRProvider } from '../providers/swr-provider';
@@ -7,6 +8,7 @@ import { TooltipProvider } from '@uploadkit/ui';
 export const metadata: Metadata = {
   title: 'UploadKit Dashboard',
   description: 'Manage file uploads, projects, and billing on UploadKit.',
+  icons: { icon: '/favicon.svg' },
 };
 
 export default function RootLayout({

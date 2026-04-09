@@ -36,7 +36,7 @@ async function seed() {
     projectId: project._id,
     isTest: true,
   });
-  console.log(`  API key: ${plainKey}`);
+  console.log(`  API key: ${plainKey.slice(0, 12)}...${plainKey.slice(-4)}`);
 
   console.log('Creating test file router...');
   await FileRouter.create({
@@ -91,7 +91,7 @@ async function seed() {
   console.log('\nSeed complete!');
   console.log(`  User:    ${user.email} (${user._id})`);
   console.log(`  Project: ${project.slug} (${project._id})`);
-  console.log(`  API Key: uk_test_seed_key_abc123def456`);
+  console.log(`  API Key: ${plainKey.slice(0, 12)}...${plainKey.slice(-4)}`);
   console.log(`  Files:   2 sample files created`);
 
   process.exit(0);

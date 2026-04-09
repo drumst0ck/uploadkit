@@ -27,12 +27,13 @@ function mapStripeStatus(
 
 // Map a Stripe price ID to our internal tier name.
 // T-07-09: Tier is derived from priceId→env var mapping — never from client-supplied data.
-// Unknown price IDs default to 'PRO' (not ENTERPRISE) for conservative billing.
+// Unknown price IDs throw — prevents silent wrong-tier assignment.
 function mapPriceToTier(priceId: string): 'PRO' | 'TEAM' | 'ENTERPRISE' {
+  if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'PRO';
   if (priceId === process.env.STRIPE_TEAM_PRICE_ID) return 'TEAM';
   if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) return 'ENTERPRISE';
-  // Covers STRIPE_PRO_PRICE_ID and any unknown price IDs (default to PRO — conservative)
-  return 'PRO';
+  console.error('[stripe-webhook] Unknown priceId:', priceId);
+  throw new Error(`Unknown Stripe price ID: ${priceId}`);
 }
 
 // POST /api/v1/webhooks/stripe — Stripe webhook handler

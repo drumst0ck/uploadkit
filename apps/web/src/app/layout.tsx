@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description: 'Add beautiful, type-safe file uploads to your app in minutes. Free tier included.',
   metadataBase: new URL('https://uploadkit.dev'),
   robots: { index: true, follow: true },
+  icons: { icon: '/favicon.svg' },
 };
 
 export default function RootLayout({
