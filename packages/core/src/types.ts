@@ -1,5 +1,8 @@
 export type { UploadKitError } from '@uploadkit/shared';
 
+/** Controls how often onProgress callbacks are invoked during XHR uploads. */
+export type ProgressGranularity = 'coarse' | 'fine' | 'all';
+
 // SDK configuration
 export interface UploadKitConfig {
   apiKey: string;

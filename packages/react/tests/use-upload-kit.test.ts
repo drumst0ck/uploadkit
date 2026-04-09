@@ -4,8 +4,8 @@ import React from 'react';
 import { UploadKitProvider } from '../src/context';
 import { useUploadKit } from '../src/use-upload-kit';
 
-// The @uploadkit/core mock is set up in tests/setup.ts.
-// createUploadKit always returns this same mockClient object.
+// The @uploadkit/core mock is set up here.
+// createProxyClient always returns this same mockClient object.
 // We create a stable reference here so tests can configure it before renderHook.
 const mockClient = {
   upload: vi.fn(),
@@ -15,6 +15,8 @@ const mockClient = {
 
 vi.mock('@uploadkit/core', () => ({
   createUploadKit: vi.fn(() => mockClient),
+  createProxyClient: vi.fn(() => mockClient),
+  ProxyUploadKitClient: vi.fn(() => mockClient),
   UploadKitClient: vi.fn(() => mockClient),
   UploadKitError: class UploadKitError extends Error {
     code: string;
@@ -31,7 +33,7 @@ vi.mock('@uploadkit/core', () => ({
 // Wrapper factory — renders the hook inside UploadKitProvider
 function makeWrapper() {
   return function Wrapper({ children }: { children: React.ReactNode }) {
-    return React.createElement(UploadKitProvider, { apiKey: 'uk_live_test' }, children);
+    return React.createElement(UploadKitProvider, { endpoint: '/api/uploadkit' }, children);
   };
 }
 
