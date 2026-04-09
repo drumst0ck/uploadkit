@@ -1,45 +1,39 @@
 import { createContext, useContext, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { createUploadKit, UploadKitClient } from '@uploadkit/core';
-
-// Security (T-05-01): apiKey is held inside UploadKitClient's private class field
-// (#apiKey). The client ref is not exposed in DOM attributes or serialized state.
+import { createProxyClient, ProxyUploadKitClient } from '@uploadkit/core';
 
 export type UploadKitProviderProps = {
-  apiKey: string;
-  baseUrl?: string;
+  /** Local endpoint URL for the uploadkit handler, e.g. "/api/uploadkit" */
+  endpoint: string;
   children: ReactNode;
 };
 
 type UploadKitContextValue = {
-  client: UploadKitClient;
+  client: ProxyUploadKitClient;
 };
 
 const UploadKitContext = createContext<UploadKitContextValue | null>(null);
 
 /**
- * UploadKitProvider — wraps your app (or upload UI) and provides the SDK client
- * to all child components and hooks.
+ * UploadKitProvider — wraps your upload UI and provides the proxy client.
+ * The API key NEVER touches the browser. All requests go through your
+ * Next.js server endpoint which holds the secret key server-side.
  *
  * Usage:
  * ```tsx
- * <UploadKitProvider apiKey="uk_live_...">
+ * <UploadKitProvider endpoint="/api/uploadkit">
  *   <UploadButton route="avatars" />
  * </UploadKitProvider>
  * ```
  */
-export function UploadKitProvider({ apiKey, baseUrl, children }: UploadKitProviderProps) {
+export function UploadKitProvider({ endpoint, children }: UploadKitProviderProps) {
   // useRef ensures the client is created exactly once per provider mount,
-  // regardless of how many times the parent re-renders (T-05-03: prevents
-  // duplicate upload state machines from re-instantiation).
-  const clientRef = useRef<UploadKitClient | null>(null);
+  // regardless of how many times the parent re-renders (prevents duplicate
+  // upload state machines from re-instantiation on Strict Mode double-invoke).
+  const clientRef = useRef<ProxyUploadKitClient | null>(null);
 
   if (clientRef.current === null) {
-    clientRef.current = createUploadKit({
-      apiKey,
-      // exactOptionalPropertyTypes: omit baseUrl entirely when undefined
-      ...(baseUrl !== undefined ? { baseUrl } : {}),
-    });
+    clientRef.current = createProxyClient({ endpoint });
   }
 
   return (
@@ -58,7 +52,7 @@ export function useUploadKitContext(): UploadKitContextValue {
   if (ctx === null) {
     throw new Error(
       'useUploadKit must be used inside <UploadKitProvider>. ' +
-        'Wrap your upload UI with <UploadKitProvider apiKey="uk_live_...">.',
+        'Wrap your upload UI with <UploadKitProvider endpoint="/api/uploadkit">.',
     );
   }
   return ctx;
