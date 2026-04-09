@@ -40,13 +40,16 @@ export async function GET(
     deletedAt: null,
   };
 
+  // Escape regex special chars to prevent ReDoS attacks
+  const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   if (search) {
-    filter.name = { $regex: search, $options: 'i' };
+    filter.name = { $regex: escapeRegex(search), $options: 'i' };
   }
 
   if (type) {
     // e.g. "image" matches "image/png", "image/jpeg"
-    filter.type = { $regex: `^${type}/`, $options: 'i' };
+    filter.type = { $regex: `^${escapeRegex(type)}/`, $options: 'i' };
   }
 
   // Clone base filter for total count before cursor constraint

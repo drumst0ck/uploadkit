@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
   // Case-insensitive substring match on file name, non-deleted files only
   const files = await File.find({
     projectId: { $in: projectIds },
-    name: { $regex: q, $options: 'i' },
+    name: { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' },
     deletedAt: null,
     status: 'UPLOADED',
   })

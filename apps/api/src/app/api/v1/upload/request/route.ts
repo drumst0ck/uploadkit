@@ -89,7 +89,9 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     }
 
     // 7. Generate R2 key: {projectId}/{routeSlug}/{nanoid}/{fileName}
-    const key = `${ctx.project._id}/${routeSlug}/${nanoid()}/${fileName}`;
+    // Sanitize fileName: strip path traversal, allow only safe chars, cap length
+    const safeName = fileName.replace(/\.\.\//g, '').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 255);
+    const key = `${ctx.project._id}/${routeSlug}/${nanoid()}/${safeName}`;
 
     // 8. Generate presigned PUT URL (15 minute expiry)
     const uploadUrl = await generatePresignedPutUrl({

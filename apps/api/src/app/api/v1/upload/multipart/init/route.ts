@@ -98,7 +98,8 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     }
 
     // 4. Generate R2 key: {projectId}/{routeSlug}/{nanoid}/{fileName}
-    const key = `${ctx.project._id}/${routeSlug}/${nanoid()}/${fileName}`;
+    const safeName = fileName.replace(/\.\.\//g, '').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 255);
+    const key = `${ctx.project._id}/${routeSlug}/${nanoid()}/${safeName}`;
 
     // 5. Calculate part count based on 5 MiB part size
     const partCount = Math.ceil(fileSize / PART_SIZE);

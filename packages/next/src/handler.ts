@@ -107,7 +107,12 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
           const { generateByosPresignedUrl, createByosClient } = await import('./byos');
           const { nanoid } = await import('nanoid');
 
-          const key = `${slug}/${nanoid()}/${body.fileName ?? 'upload'}`;
+          // Sanitize fileName: strip path traversal, allow only safe chars, cap length
+          const safeName = (body.fileName ?? 'upload')
+            .replace(/\.\.\//g, '')
+            .replace(/[^a-zA-Z0-9._-]/g, '_')
+            .slice(0, 255);
+          const key = `${slug}/${nanoid()}/${safeName}`;
           const client = createByosClient(config.storage);
           const uploadUrl = await generateByosPresignedUrl(client, {
             bucket: config.storage.bucket,
