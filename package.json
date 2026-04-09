@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "latest",
+    "@playwright/test": "^1.59.1",
     "@vitest/coverage-v8": "latest",
     "prettier": "latest",
     "tsx": "latest",

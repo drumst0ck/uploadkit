@@ -23,6 +23,9 @@ Thumbs.db
 .vscode
 .idea
 
+# Playwright auth state (contains session cookies — must not be committed)
+e2e/.auth/
+
 # Logs
 *.log
 npm-debug.log*
