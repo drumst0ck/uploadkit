@@ -1,7 +1,9 @@
 {
   "name": "@uploadkit/react",
   "version": "0.1.0",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -13,10 +15,13 @@
     },
     "./styles.css": "./dist/styles.css"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -27,11 +32,15 @@
     "react-dom": ">=18"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@uploadkit/config": "workspace:*",
     "@uploadkit/next": "workspace:*",
+    "jsdom": "^29.0.2",
     "tsup": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "vitest": "^4.1.3"
   }
 }
