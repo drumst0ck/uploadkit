@@ -69,7 +69,7 @@ Request body:
       }),
     });
 
-    const { fileId, presignedUrl } = await response.json();
+    const { fileId, uploadUrl } = await response.json();
     ```
   </Tab>
   <Tab value="Python">
@@ -92,7 +92,7 @@ Request body:
 
     data = response.json()
     file_id = data['fileId']
-    presigned_url = data['presignedUrl']
+    upload_url = data['uploadUrl']
     ```
   </Tab>
 </Tabs>
@@ -102,8 +102,9 @@ Request body:
 ```json
 {
   "fileId": "file_01J9KXYZ...",
-  "presignedUrl": "https://pub-xxx.r2.dev/uploads/abc123?X-Amz-Signature=...",
-  "expiresAt": "2026-04-07T12:00:00Z"
+  "uploadUrl": "https://pub-xxx.r2.dev/uploads/abc123?X-Amz-Signature=...",
+  "cdnUrl": "https://cdn.uploadkit.dev/uploads/abc123.jpg",
+  "key": "uploads/abc123.jpg"
 }
 ```
 
@@ -122,7 +123,7 @@ Use the presigned URL to PUT the file directly to R2/S3. You **must** include th
   <Tab value="JavaScript">
     ```javascript
     // fileBuffer is an ArrayBuffer, Blob, or ReadableStream
-    await fetch(presignedUrl, {
+    await fetch(uploadUrl, {
       method: 'PUT',
       headers: { 'Content-Type': 'image/jpeg' },
       body: fileBuffer,
@@ -133,7 +134,7 @@ Use the presigned URL to PUT the file directly to R2/S3. You **must** include th
     ```python
     with open('profile.jpg', 'rb') as f:
         requests.put(
-            presigned_url,
+            upload_url,
             headers={'Content-Type': 'image/jpeg'},
             data=f,
         )
@@ -198,7 +199,7 @@ After the PUT succeeds, notify UploadKit that the upload is complete. This trigg
   "size": 204800,
   "type": "image/jpeg",
   "url": "https://cdn.uploadkit.dev/uploads/abc123/profile.jpg",
-  "status": "complete",
+  "status": "UPLOADED",
   "createdAt": "2026-04-07T11:59:30Z"
 }
 ```

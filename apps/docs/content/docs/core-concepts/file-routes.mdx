@@ -126,7 +126,7 @@ onUploadComplete: async ({ file, metadata }) => {
   console.log(file.size);      // 1048576 (bytes)
   console.log(file.type);      // "application/pdf"
   console.log(file.url);       // "https://cdn.uploadkit.dev/..."
-  console.log(file.status);    // "complete"
+  console.log(file.status);    // "UPLOADED"
   console.log(file.createdAt); // "2026-04-07T12:00:00Z"
 
   // metadata: whatever your middleware returned

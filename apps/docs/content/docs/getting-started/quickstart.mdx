@@ -43,9 +43,9 @@ Add `@uploadkit/next` (server-side handler) and `@uploadkit/react` (UI component
 
 ## Create your file router
 
-Create `app/api/uploadkit/route.ts` and define which files your app accepts:
+Create `app/api/uploadkit/[...uploadkit]/route.ts` and define which files your app accepts:
 
-```typescript title="app/api/uploadkit/route.ts"
+```typescript title="app/api/uploadkit/[...uploadkit]/route.ts"
 import { createUploadKitHandler } from '@uploadkit/next';
 import type { FileRouter } from '@uploadkit/next';
 
