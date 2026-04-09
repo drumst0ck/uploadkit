@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 10-testing-publishing-launch 10-01-PLAN.md
-last_updated: "2026-04-09T04:43:49.041Z"
+stopped_at: Completed 10-testing-publishing-launch 10-02-PLAN.md
+last_updated: "2026-04-09T04:51:36.261Z"
 last_activity: 2026-04-09
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 36
-  completed_plans: 33
-  percent: 92
+  completed_plans: 34
+  percent: 94
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 ## Current Position
 
 Phase: 10 (testing-publishing-launch) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-09
 
@@ -92,6 +92,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 09-documentation P03 | 8m | 2 tasks | 19 files |
 | Phase 09-documentation P04 | 8m | 2 tasks | 18 files |
 | Phase 10-testing-publishing-launch P01 | 9m | 2 tasks | 16 files |
+| Phase 10-testing-publishing-launch P02 | 10m | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -193,6 +194,9 @@ Recent decisions affecting current work:
 - [Phase 09-documentation]: migration-from-uploadthing.mdx uses before/after Tabs pattern with full API equivalents table (8 mappings)
 - [Phase 10-testing-publishing-launch]: @/ path alias must be added to vitest.config.ts — Next.js tsconfig paths not inherited by vitest
 - [Phase 10-testing-publishing-launch]: searchParams.get() returns null not undefined — use ?? undefined before zod parsing to prevent validation failures on absent optional params
+- [Phase 10-testing-publishing-launch]: XHR global mock must use regular function (not arrow) — vi.stubGlobal with arrow fn is not a constructor
+- [Phase 10-testing-publishing-launch]: React hook tests define stable mockClient object at module scope to avoid mock.results[] timing issue before renderHook
+- [Phase 10-testing-publishing-launch]: packages/react excluded from root vitest.config.ts — needs jsdom env, runs via its own vitest.config.ts
 
 ### Pending Todos
 
@@ -204,6 +208,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T04:43:49.036Z
-Stopped at: Completed 10-testing-publishing-launch 10-01-PLAN.md
+Last session: 2026-04-09T04:51:36.257Z
+Stopped at: Completed 10-testing-publishing-launch 10-02-PLAN.md
 Resume file: None
