@@ -1,6 +1,6 @@
 {
   "name": "@uploadkit/next",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -32,7 +32,9 @@
       "require": "./dist/adapters/hono.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -40,7 +42,6 @@
   },
   "dependencies": {
     "@uploadkit/core": "workspace:*",
-    "@uploadkit/shared": "workspace:*",
     "@aws-sdk/client-s3": "latest",
     "@aws-sdk/s3-request-presigner": "latest",
     "nanoid": "latest"
@@ -53,6 +54,7 @@
     "@types/express": "latest",
     "@types/react": "latest",
     "@uploadkit/config": "workspace:*",
+    "@uploadkit/shared": "workspace:*",
     "fastify": "latest",
     "hono": "latest",
     "tsup": "latest",

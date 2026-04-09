@@ -1,6 +1,6 @@
 {
   "name": "@uploadkit/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -12,17 +12,18 @@
       "require": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@uploadkit/shared": "workspace:*"
-  },
+  "dependencies": {},
   "peerDependencies": {},
   "devDependencies": {
+    "@uploadkit/shared": "workspace:*",
     "@uploadkit/config": "workspace:*",
     "tsup": "latest",
     "typescript": "latest"
