@@ -54,7 +54,7 @@ app.get('/files', async (_req, res) => {
 });
 
 // Delete file by storage key — note: key may contain slashes, use encodeURIComponent on client
-app.delete('/files/:key(*)', async (req, res) => {
+app.delete('/files/{*key}', async (req, res) => {
   try {
     const key = req.params.key;
     if (!key) {
