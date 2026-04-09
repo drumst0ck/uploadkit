@@ -13,6 +13,7 @@
     "@uploadkit/react": "workspace:*",
     "@uploadkit/shared": "workspace:*",
     "@uploadkit/ui": "workspace:*",
+    "lucide-react": "^1.7.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",

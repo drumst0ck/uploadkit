@@ -1,37 +1,41 @@
 import Link from 'next/link'
+import { Logo } from '@/components/logo'
 
 // Server Component — zero client JS for the nav itself.
 // Mobile menu uses CSS :target trick for zero-JS toggle.
 export default function Navbar() {
   return (
     <>
-      <header className="navbar-backdrop sticky top-0 z-50">
+      <header
+        className="sticky top-0 z-50"
+        style={{
+          background: 'rgba(9,9,11,0.80)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
         <nav
           aria-label="Main navigation"
-          className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4"
+          className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-3"
         >
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 font-display text-lg font-bold text-[var(--color-text-primary)] no-underline"
+            className="flex items-center no-underline"
             aria-label="UploadKit home"
           >
-            {/* Indigo accent dot */}
-            <span
-              className="inline-block h-2 w-2 rounded-full bg-[var(--color-accent)]"
-              aria-hidden="true"
-              style={{ boxShadow: '0 0 8px 2px var(--color-accent-glow)' }}
-            />
-            UploadKit
+            <Logo size={28} />
           </Link>
 
           {/* Desktop nav links */}
-          <ul className="hidden items-center gap-8 md:flex" role="list">
+          <ul className="hidden items-center gap-7 md:flex" role="list">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-sm text-[var(--color-text-secondary)] transition-colors duration-200 hover:text-[var(--color-text-primary)]"
+                  className="text-sm transition-colors duration-200 hover:text-[var(--color-text-primary)]"
+                  style={{ color: '#71717A' }}
                   {...(link.external
                     ? { target: '_blank', rel: 'noopener noreferrer' }
                     : {})}
@@ -46,23 +50,24 @@ export default function Navbar() {
           <div className="hidden items-center gap-3 md:flex">
             <Link
               href="https://app.uploadkit.dev/login"
-              className="text-sm text-[var(--color-text-secondary)] transition-colors duration-200 hover:text-[var(--color-text-primary)]"
+              className="text-sm transition-colors duration-200 hover:text-[var(--color-text-primary)]"
+              style={{ color: '#71717A' }}
               target="_blank"
               rel="noopener noreferrer"
             >
-              Sign in
+              Log in
             </Link>
             <Link
               href="https://app.uploadkit.dev/login"
-              className="rounded-[var(--radius-sm)] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-[var(--color-accent-hover)]"
+              className="rounded-[var(--radius-sm)] px-4 py-2 text-sm font-semibold transition-all duration-200"
+              style={{
+                background: '#fafafa',
+                color: '#09090b',
+              }}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                boxShadow: '0 0 0 0 var(--color-accent-glow)',
-                transition: 'background-color 200ms ease-out, box-shadow 200ms ease-out',
-              }}
             >
-              Get started
+              Get Started
             </Link>
           </div>
 
@@ -83,13 +88,11 @@ export default function Navbar() {
       <div
         id="mobile-menu"
         className="fixed inset-0 z-40 hidden target:flex flex-col"
-        style={{ background: 'rgba(10,10,11,0.95)', backdropFilter: 'blur(12px)' }}
+        style={{ background: 'rgba(9,9,11,0.97)', backdropFilter: 'blur(16px)' }}
       >
         {/* Close button */}
         <div className="flex items-center justify-between px-6 py-4">
-          <span className="font-display text-lg font-bold text-[var(--color-text-primary)]">
-            UploadKit
-          </span>
+          <Logo size={26} />
           <a
             href="#"
             aria-label="Close navigation menu"
@@ -120,15 +123,16 @@ export default function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Sign in
+              Log in
             </Link>
             <Link
               href="https://app.uploadkit.dev/login"
-              className="rounded-[var(--radius-sm)] bg-[var(--color-accent)] px-4 py-3 text-center text-sm font-medium text-white"
+              className="rounded-[var(--radius-sm)] px-4 py-3 text-center text-sm font-semibold"
+              style={{ background: '#fafafa', color: '#09090b' }}
               target="_blank"
               rel="noopener noreferrer"
             >
-              Get started free
+              Get Started
             </Link>
           </div>
         </nav>
@@ -139,7 +143,7 @@ export default function Navbar() {
 
 const NAV_LINKS = [
   { label: 'Features', href: '/#features', external: false },
-  { label: 'Pricing', href: '/pricing', external: false },
+  { label: 'Pricing', href: '/#pricing', external: false },
   { label: 'Docs', href: 'https://docs.uploadkit.dev', external: true },
-  { label: 'GitHub', href: 'https://github.com/uploadkit', external: true },
+  { label: 'Changelog', href: '/changelog', external: false },
 ] as const
