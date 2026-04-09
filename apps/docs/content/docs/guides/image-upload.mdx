@@ -41,13 +41,13 @@ Define which file types and sizes your route accepts. In Next.js, this goes in y
     export const { GET, POST } = createUploadKitHandler({ router });
     ```
   </Tab>
-  <Tab value="React (API key)">
+  <Tab value="React (endpoint)">
     ```typescript
     // No file router needed — validation happens in the UploadKit API
-    // Set NEXT_PUBLIC_UPLOADKIT_API_KEY in your environment
+    // Set UPLOADKIT_API_KEY in your server environment and expose /api/uploadkit
     ```
 
-    When using the React SDK directly with an API key, file type and size limits are configured in your project's file routes in the [dashboard](/docs/dashboard/overview).
+    When using the React SDK directly with an endpoint, file type and size limits are configured in your project's file routes in the [dashboard](/docs/dashboard/overview).
   </Tab>
 </Tabs>
 
@@ -75,7 +75,7 @@ Define which file types and sizes your route accepts. In Next.js, this goes in y
     }
     ```
   </Tab>
-  <Tab value="React (API key)">
+  <Tab value="React (endpoint)">
     ```tsx
     'use client';
 
@@ -84,8 +84,7 @@ Define which file types and sizes your route accepts. In Next.js, this goes in y
     export default function UploadPage() {
       return (
         <UploadDropzone
-          apiKey={process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!}
-          routeSlug="imageUploader"
+          route="imageUploader"
           onUploadComplete={(files) => {
             console.log('Uploaded:', files[0].url);
           }}
@@ -96,6 +95,8 @@ Define which file types and sizes your route accepts. In Next.js, this goes in y
       );
     }
     ```
+
+    Ensure `UploadKitProvider endpoint="/api/uploadkit"` wraps this component. The endpoint is your own backend server, which holds `UPLOADKIT_API_KEY` server-side.
   </Tab>
 </Tabs>
 

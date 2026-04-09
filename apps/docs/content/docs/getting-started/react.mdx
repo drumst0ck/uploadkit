@@ -32,19 +32,32 @@ Install `@uploadkit/core` for the upload client and `@uploadkit/react` for the U
   </Tab>
 </Tabs>
 
-## Get an API key
+## Set up a backend endpoint
 
-Create a free account at [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev) and generate an API key from the **API Keys** section of your project.
+`UploadKitProvider` communicates with a local backend endpoint that holds your API key server-side. Create a route in your backend framework (Express, Hono, Fastify, etc.) that proxies requests to the UploadKit API:
 
-For client-side apps, add it to your `.env` file (Vite exposes `VITE_` prefixed variables to the browser):
+```typescript title="server/routes/uploadkit.ts"
+import { createUploadKitHandler } from '@uploadkit/core/server';
+
+// Express example
+app.use('/api/uploadkit', createUploadKitHandler({
+  apiKey: process.env.UPLOADKIT_API_KEY, // server-side only — never exposed to the browser
+}));
+```
+
+Add your API key to your server's environment — never to any `VITE_`-prefixed variable (those are bundled into the browser):
 
 ```bash title=".env"
-VITE_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
+UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
 ```
+
+<Callout type="warn">
+  Never expose your API key in a `VITE_`-prefixed environment variable. Vite includes `VITE_*` variables in the browser bundle, making the key visible to anyone who inspects your app. Always keep it on the server.
+</Callout>
 
 ## Add the provider
 
-Wrap your app's root with `UploadKitProvider`. Place it inside your router provider if you're using React Router or TanStack Router:
+Wrap your app's root with `UploadKitProvider`, pointing it at your backend endpoint. Place it inside your router provider if you're using React Router or TanStack Router:
 
 ```tsx title="src/main.tsx"
 import React from 'react';
@@ -54,12 +67,14 @@ import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <UploadKitProvider apiKey={import.meta.env.VITE_UPLOADKIT_API_KEY}>
+    <UploadKitProvider endpoint="/api/uploadkit">
       <App />
     </UploadKitProvider>
   </React.StrictMode>,
 );
 ```
+
+The `endpoint` prop points to your own backend server — not directly to the UploadKit API. Your server holds the API key and proxies upload requests on behalf of the browser.
 
 ## Use components
 
@@ -139,13 +154,13 @@ export function CustomUploader() {
 
 ## Using the core client directly
 
-For maximum control, you can use `UploadKitClient` from `@uploadkit/core` without any React dependency:
+For maximum control, you can use `createProxyClient` from `@uploadkit/core` without any React dependency. The proxy client talks to your local backend endpoint (which holds the API key) rather than the UploadKit API directly:
 
 ```typescript title="src/lib/upload.ts"
-import { UploadKitClient } from '@uploadkit/core';
+import { createProxyClient } from '@uploadkit/core';
 
-const client = new UploadKitClient({
-  apiKey: import.meta.env.VITE_UPLOADKIT_API_KEY,
+const client = createProxyClient({
+  endpoint: '/api/uploadkit', // your backend endpoint, not the UploadKit API
 });
 
 export async function uploadFile(

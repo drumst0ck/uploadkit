@@ -77,11 +77,9 @@ Add your API key to `.env.local`:
 
 ```bash title=".env.local"
 UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
-NEXT_PUBLIC_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-- `UPLOADKIT_API_KEY` — used server-side in your file router handler
-- `NEXT_PUBLIC_UPLOADKIT_API_KEY` — used client-side in the provider
+- `UPLOADKIT_API_KEY` — server-side only; used by your file router handler to authenticate with the UploadKit API. Never prefix with `NEXT_PUBLIC_`.
 
 </Step>
 
@@ -89,7 +87,7 @@ NEXT_PUBLIC_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
 
 ## Add the provider
 
-Wrap your root layout's children with `UploadKitProvider`:
+Wrap your root layout's children with `UploadKitProvider`, pointing it at the route handler you created in the previous step:
 
 ```tsx title="app/layout.tsx"
 import { UploadKitProvider } from '@uploadkit/react';
@@ -102,7 +100,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <UploadKitProvider apiKey={process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!}>
+        <UploadKitProvider endpoint="/api/uploadkit">
           {children}
         </UploadKitProvider>
       </body>

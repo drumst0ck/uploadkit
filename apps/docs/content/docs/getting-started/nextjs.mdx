@@ -101,23 +101,20 @@ export const { GET, POST } = createUploadKitHandler({ router });
 
 ## Environment variables
 
-Add these to your `.env.local`:
+Add your API key to `.env.local`:
 
 ```bash title=".env.local"
-# Server-side: used by createUploadKitHandler to authenticate with the UploadKit API
+# Server-side only — used by createUploadKitHandler to authenticate with the UploadKit API
 UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
-
-# Client-side: used by UploadKitProvider
-NEXT_PUBLIC_UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
 ```
 
 <Callout type="warn">
-  Never expose `UPLOADKIT_API_KEY` (without `NEXT_PUBLIC_`) in client-side code. If using BYOS, your storage credentials go here too — server-side only.
+  Never prefix your UploadKit API key with `NEXT_PUBLIC_`. It belongs on the server only. If using BYOS, your storage credentials go here too — server-side only.
 </Callout>
 
 ## Add the provider
 
-Wrap your root layout's `children` with `UploadKitProvider` so all components in the tree can access the upload client:
+Wrap your root layout's `children` with `UploadKitProvider`, pointing it at the route handler you just created. The provider calls your local `/api/uploadkit` endpoint — your API key stays server-side and never reaches the browser:
 
 ```tsx title="app/layout.tsx"
 import { UploadKitProvider } from '@uploadkit/react';
@@ -130,7 +127,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <UploadKitProvider apiKey={process.env.NEXT_PUBLIC_UPLOADKIT_API_KEY!}>
+        <UploadKitProvider endpoint="/api/uploadkit">
           {children}
         </UploadKitProvider>
       </body>
