@@ -2,7 +2,7 @@ import NextAuth, { type NextAuthResult } from 'next-auth';
 import type { DefaultSession } from 'next-auth';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import { authConfig } from './auth.config';
-import { getAuthMongoClient, connectDB, Project } from '@uploadkit/db';
+import { getAuthMongoClient, connectDB, Project, FileRouter } from '@uploadkit/db';
 import { nanoid } from 'nanoid';
 import { sendWelcomeEmail } from '@uploadkit/emails';
 
@@ -34,10 +34,18 @@ const result: NextAuthResult = NextAuth(async () => {
         // Idempotency guard — skip if a project already exists (Pitfall 4 from RESEARCH.md)
         const existing = await Project.findOne({ userId: user.id as string });
         if (!existing) {
-          await Project.create({
+          const newProject = await Project.create({
             name: 'My First Project',
             slug: `my-first-project-${nanoid(8)}`,
             userId: user.id as string,
+          });
+          // Create default FileRouter so user can upload immediately
+          await FileRouter.create({
+            slug: 'default',
+            projectId: newProject._id,
+            maxFileSize: 52428800, // 50MB
+            maxFileCount: 10,
+            allowedTypes: ['*/*'],
           });
         }
 

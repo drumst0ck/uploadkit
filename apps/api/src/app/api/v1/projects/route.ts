@@ -2,7 +2,7 @@ export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
-import { connectDB, Project } from '@uploadkit/db';
+import { connectDB, Project, FileRouter } from '@uploadkit/db';
 import { TierLimitError } from '@uploadkit/shared';
 import { TIER_LIMITS } from '@uploadkit/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
@@ -51,6 +51,15 @@ async function handlePost(
     name: parsed.data.name,
     slug,
     userId: ctx.project.userId,
+  });
+
+  // Create default FileRouter so user can upload immediately
+  await FileRouter.create({
+    slug: 'default',
+    projectId: project._id,
+    maxFileSize: 52428800, // 50MB
+    maxFileCount: 10,
+    allowedTypes: ['*/*'],
   });
 
   return NextResponse.json({ project }, { status: 201 });

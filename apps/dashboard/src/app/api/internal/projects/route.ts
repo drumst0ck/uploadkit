@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
 import { auth } from '../../../../../auth';
-import { connectDB, Project } from '@uploadkit/db';
+import { connectDB, Project, FileRouter } from '@uploadkit/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,6 +67,15 @@ export async function POST(req: NextRequest) {
     name,
     slug,
     userId: session.user.id,
+  });
+
+  // Create default FileRouter so user can upload immediately
+  await FileRouter.create({
+    slug: 'default',
+    projectId: project._id,
+    maxFileSize: 52428800, // 50MB
+    maxFileCount: 10,
+    allowedTypes: ['*/*'],
   });
 
   return NextResponse.json(project, { status: 201 });
