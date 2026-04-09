@@ -1,5 +1,5 @@
 import { ApiKeysTable } from '../../../../../components/api-keys-table';
-import { TestButton } from '../../../../../components/test-button';
+import { TestDialog } from '../../../../../components/test-dialog';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +18,7 @@ export default async function KeysPage({ params }: KeysPageProps) {
           Manage API keys for this project. Keys authenticate SDK and API requests.
         </p>
       </div>
+      <TestDialog />
       <ApiKeysTable slug={slug} />
     </div>
   );
