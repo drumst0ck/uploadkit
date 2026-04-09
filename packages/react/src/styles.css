@@ -399,6 +399,7 @@
 /* --- Modal (dialog element) --- */
 .uk-modal {
   padding: 0;
+  margin: auto;
   border: none;
   border-radius: var(--uk-radius);
   background: var(--uk-bg);
@@ -406,6 +407,9 @@
   max-width: 520px;
   width: 90vw;
   box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  height: fit-content;
 }
 
 .uk-modal::backdrop {
