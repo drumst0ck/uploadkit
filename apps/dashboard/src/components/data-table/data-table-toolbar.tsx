@@ -13,7 +13,7 @@ interface DataTableToolbarProps {
 }
 
 const TYPE_OPTIONS = [
-  { label: 'All types', value: '' },
+  { label: 'All types', value: 'all' },
   { label: 'Images', value: 'image' },
   { label: 'Documents', value: 'application' },
   { label: 'Videos', value: 'video' },
@@ -57,7 +57,7 @@ export function DataTableToolbar({
             className="pl-8"
           />
         </div>
-        <Select onValueChange={onTypeFilter} defaultValue="">
+        <Select onValueChange={(v) => onTypeFilter(v === 'all' ? '' : v)} defaultValue="all">
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
