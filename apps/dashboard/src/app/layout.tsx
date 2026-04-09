@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { SWRProvider } from '../providers/swr-provider';
+import { ThemeProvider } from '../providers/theme-provider';
 import { TooltipProvider } from '@uploadkit/ui';
 
 export const metadata: Metadata = {
@@ -14,11 +15,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-[#0a0a0b] text-zinc-50 antialiased">
-        <TooltipProvider>
-          <SWRProvider>{children}</SWRProvider>
-        </TooltipProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-background text-foreground antialiased">
+        <ThemeProvider>
+          <TooltipProvider>
+            <SWRProvider>{children}</SWRProvider>
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

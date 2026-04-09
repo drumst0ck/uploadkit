@@ -40,7 +40,7 @@ export function Header({ user, onSignOut, onMobileMenuOpen }: HeaderProps) {
   const initials = getUserInitials(user.name, user.email);
 
   return (
-    <header className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-white/[0.06] bg-[#0a0a0b] px-4">
+    <header className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-white/[0.06] bg-background px-4">
       {/* Mobile hamburger — triggers off-canvas Sheet */}
       <Button
         variant="ghost"
@@ -108,7 +108,7 @@ export function Header({ user, onSignOut, onMobileMenuOpen }: HeaderProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-48 border-white/[0.08] bg-[#141416]"
+            className="w-48 border-white/[0.08] bg-card"
           >
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col gap-0.5">

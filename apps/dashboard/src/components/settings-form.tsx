@@ -93,7 +93,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
   return (
     <div className="flex flex-col gap-8">
       {/* Profile section */}
-      <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
         <h2 className="mb-5 text-sm font-medium text-zinc-300">Profile</h2>
 
         <form onSubmit={(e) => { void handleSaveProfile(e); }} className="flex flex-col gap-4">
@@ -139,7 +139,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
       </div>
 
       {/* Notifications section */}
-      <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
         <h2 className="mb-5 text-sm font-medium text-zinc-300">Notifications</h2>
         <div className="flex flex-col gap-4">
           <label className="flex cursor-pointer items-start gap-3">
@@ -196,7 +196,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
             </button>
           </AlertDialogTrigger>
 
-          <AlertDialogContent className="border-white/[0.06] bg-[#141416]">
+          <AlertDialogContent className="border-white/[0.06] bg-card">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-zinc-100">
                 Delete account permanently?

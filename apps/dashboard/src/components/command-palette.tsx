@@ -113,7 +113,7 @@ export function CommandPalette({ open, onOpenChange, onCreateProject }: CommandP
       // Overlay: fixed full-screen backdrop with dark bg + blur
       overlayClassName="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
       // Content: centered panel (cmdk uses contentClassName for the Command wrapper div)
-      contentClassName="fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0a0a0b] shadow-2xl"
+      contentClassName="fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-xl border border-white/[0.06] bg-background shadow-2xl"
     >
       {/* Search input row */}
       <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">

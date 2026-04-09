@@ -1,18 +1,26 @@
 'use client';
 
 import * as React from 'react';
+import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 import { Button } from '@uploadkit/ui';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkit/ui';
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = React.useState(true);
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
 
-  const toggle = () => {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle('dark', next);
-  };
+  React.useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400" aria-label="Toggle theme">
+        <Sun className="h-4 w-4" />
+      </Button>
+    );
+  }
+
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <Tooltip>
@@ -20,14 +28,14 @@ export function ThemeToggle() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={toggle}
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
           className="h-8 w-8 text-zinc-400 hover:text-zinc-200"
           aria-label="Toggle theme"
         >
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
       </TooltipTrigger>
-      <TooltipContent>Toggle theme</TooltipContent>
+      <TooltipContent>{isDark ? 'Light mode' : 'Dark mode'}</TooltipContent>
     </Tooltip>
   );
 }

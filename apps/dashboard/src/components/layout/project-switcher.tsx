@@ -69,7 +69,7 @@ export function ProjectSwitcher({
       <DropdownMenuContent
         align="start"
         side="top"
-        className="w-56 border-white/[0.08] bg-[#141416]"
+        className="w-56 border-white/[0.08] bg-card"
       >
         <DropdownMenuLabel className="text-xs text-zinc-500">
           Projects

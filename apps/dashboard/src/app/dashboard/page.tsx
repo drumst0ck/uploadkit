@@ -136,7 +136,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Upload area chart */}
-      <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-sm font-medium text-zinc-300">Uploads — Last 30 Days</h2>
           <Link href="/dashboard/projects" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
@@ -156,7 +156,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recent files table */}
-      <div className="rounded-xl border border-white/[0.06] bg-[#141416] overflow-hidden">
+      <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
         <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
           <div>
             <h2 className="text-sm font-medium text-zinc-300">Recent Files</h2>

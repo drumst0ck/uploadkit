@@ -16,7 +16,7 @@ export function MetricCard({ label, value, icon, trend }: MetricCardProps) {
   const isPositive = trend && trend.value >= 0;
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-5 shadow-lg shadow-black/20 transition-all duration-200 hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/30 hover:-translate-y-0.5">
+    <div className="rounded-xl border border-white/[0.06] bg-card p-5 shadow-lg shadow-black/20 transition-all duration-200 hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/30 hover:-translate-y-0.5">
       {/* Label + icon row */}
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm text-zinc-400">{label}</span>

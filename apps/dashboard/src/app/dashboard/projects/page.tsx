@@ -43,7 +43,7 @@ export default async function ProjectsPage() {
 
       {projects.length === 0 ? (
         /* Empty state */
-        <div className="rounded-xl border border-dashed border-white/[0.10] bg-[#141416] p-16 text-center">
+        <div className="rounded-xl border border-dashed border-white/[0.10] bg-card p-16 text-center">
           <div className="mb-4 inline-flex"><FolderOpen className="h-10 w-10 text-zinc-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.15)]" aria-hidden="true" /></div>
           <h2 className="text-lg font-medium text-zinc-300 mb-2">
             No projects yet
@@ -64,7 +64,7 @@ export default async function ProjectsPage() {
             <Link
               key={String(project._id)}
               href={`/dashboard/projects/${project.slug}`}
-              className="group rounded-xl border border-white/[0.06] bg-[#141416] p-6 transition-colors hover:border-white/[0.12] hover:bg-white/[0.02] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
+              className="group rounded-xl border border-white/[0.06] bg-card p-6 transition-colors hover:border-white/[0.12] hover:bg-white/[0.02] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
             >
               {/* Project avatar */}
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-lg font-semibold text-indigo-300 mb-4">

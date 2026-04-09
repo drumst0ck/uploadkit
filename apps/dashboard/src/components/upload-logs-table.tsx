@@ -95,7 +95,7 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-          className="rounded-md border border-white/[0.08] bg-[#141416] px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="rounded-md border border-white/[0.08] bg-card px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {TIME_RANGE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -108,7 +108,7 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="rounded-md border border-white/[0.08] bg-[#141416] px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="rounded-md border border-white/[0.08] bg-card px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="">All statuses</option>
           <option value="UPLOADED">Uploaded</option>

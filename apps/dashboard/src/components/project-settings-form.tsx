@@ -106,7 +106,7 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
   return (
     <div className="flex flex-col gap-8">
       {/* General section */}
-      <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
         <h2 className="mb-5 text-sm font-medium text-zinc-300">General</h2>
 
         <form onSubmit={(e) => { void handleSaveName(e); }} className="flex flex-col gap-4">
@@ -189,7 +189,7 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
             </button>
           </AlertDialogTrigger>
 
-          <AlertDialogContent className="border-white/[0.06] bg-[#141416]">
+          <AlertDialogContent className="border-white/[0.06] bg-card">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-zinc-100">
                 Delete project permanently?

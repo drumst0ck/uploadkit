@@ -65,7 +65,7 @@ export default async function UsagePage() {
       </div>
 
       {/* Progress bars — DASH-08: 3 bars against TIER_LIMITS */}
-      <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
         <h2 className="mb-6 text-sm font-medium text-zinc-300">Resource Usage</h2>
         <div className="flex flex-col gap-6">
           <UsageProgressBar
@@ -91,14 +91,14 @@ export default async function UsagePage() {
 
       {/* Historical chart */}
       {chartData.length > 0 && (
-        <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
+        <div className="rounded-xl border border-white/[0.06] bg-card p-6">
           <h2 className="mb-4 text-sm font-medium text-zinc-300">6-Month History</h2>
           <UsageBarChart data={chartData} />
         </div>
       )}
 
       {chartData.length === 0 && (
-        <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
+        <div className="rounded-xl border border-white/[0.06] bg-card p-6">
           <h2 className="mb-2 text-sm font-medium text-zinc-300">6-Month History</h2>
           <p className="text-sm text-zinc-500">No historical data yet. Usage records will appear here once you start uploading files.</p>
         </div>

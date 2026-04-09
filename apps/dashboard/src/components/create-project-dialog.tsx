@@ -71,7 +71,7 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="bg-[#141416] border-white/[0.08] text-white sm:max-w-md">
+      <DialogContent className="bg-card border-white/[0.08] text-white sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-white">Create a new project</DialogTitle>
         </DialogHeader>
@@ -89,7 +89,7 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
               onChange={(e) => setName(e.target.value)}
               placeholder="My Awesome Project"
               maxLength={50}
-              className="bg-[#0a0a0b] border-white/[0.08] text-white placeholder:text-zinc-600 focus-visible:ring-indigo-500"
+              className="bg-background border-white/[0.08] text-white placeholder:text-zinc-600 focus-visible:ring-indigo-500"
               autoFocus
               disabled={isSubmitting}
             />

@@ -119,7 +119,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       )}
 
       {/* Current plan card */}
-      <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
@@ -157,7 +157,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       </div>
 
       {/* Invoice history */}
-      <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
         <h2 className="mb-4 text-sm font-medium text-zinc-300">Invoice History</h2>
 
         <div className="overflow-hidden rounded-lg border border-white/[0.04]">

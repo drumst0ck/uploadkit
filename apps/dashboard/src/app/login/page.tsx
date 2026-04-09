@@ -59,7 +59,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const emailCTA = isSignUp ? 'Continue with email' : 'Send magic link';
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0a0a0b] px-4">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-[400px]">
         {/* Brand */}
         <div className="mb-8 text-center">
@@ -70,7 +70,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
 
         {/* Card */}
-        <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-8 shadow-2xl">
+        <div className="rounded-xl border border-white/[0.06] bg-card p-8 shadow-2xl">
           {/* Error banner */}
           {errorMessage && (
             <div className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">

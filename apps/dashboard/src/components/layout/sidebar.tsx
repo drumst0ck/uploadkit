@@ -118,7 +118,7 @@ export function Sidebar({
         data-collapsed={collapsed}
         className={cn(
           'hidden lg:flex flex-col flex-shrink-0',
-          'bg-[#0a0a0b] border-r border-white/[0.06]',
+          'bg-background border-r border-white/[0.06]',
           'transition-[width] duration-200 ease-in-out',
           collapsed ? 'w-14' : 'w-60'
         )}
@@ -134,7 +134,7 @@ export function Sidebar({
       <Sheet open={mobileOpen} onOpenChange={(open) => !open && onMobileClose?.()}>
         <SheetContent
           side="left"
-          className="w-60 border-r border-white/[0.06] bg-[#0a0a0b] p-0"
+          className="w-60 border-r border-white/[0.06] bg-background p-0"
         >
           <SidebarContent
             collapsed={false}
