@@ -13,7 +13,6 @@ import {
   KeyRound,
   Route,
   ScrollText,
-  PlayCircle,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkit/ui';
 import { cn } from '../../lib/cn';
@@ -30,7 +29,6 @@ const TOP_NAV_ITEMS: NavItem[] = [
   { label: 'Usage', href: '/dashboard/usage', icon: BarChart3 },
   { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
-  { label: 'Playground', href: '/dashboard/playground', icon: PlayCircle },
 ];
 
 // Project-scoped nav items that appear when on a /dashboard/projects/[slug]/* route
