@@ -42,9 +42,13 @@ export default async function DashboardPage() {
     userProjects.map((p) => [String(p._id), p.slug])
   );
 
-  const [usage, totalFiles, todayUploads, recentFiles, rawChartData] =
+  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevPeriod = prevDate.toISOString().slice(0, 7);
+
+  const [usage, prevUsage, totalFiles, todayUploads, recentFiles, rawChartData] =
     await Promise.all([
       UsageRecord.findOne({ userId, period: currentPeriod }).lean(),
+      UsageRecord.findOne({ userId, period: prevPeriod }).lean(),
       File.countDocuments({
         projectId: { $in: projectIds },
         status: 'UPLOADED',
@@ -88,18 +92,21 @@ export default async function DashboardPage() {
     uploads: d.uploads,
   }));
 
-  const greeting = session.user.name
-    ? `Welcome, ${session.user.name}`
-    : 'Welcome';
+  function computeTrend(
+    current: number,
+    previous: number
+  ): { value: number; label: string } | undefined {
+    if (previous === 0)
+      return current > 0 ? { value: 100, label: 'from last month' } : undefined;
+    const pct = Math.round(((current - previous) / previous) * 100);
+    return { value: pct, label: 'from last month' };
+  }
 
   return (
     <div className="space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-semibold text-white mb-1">{greeting}</h1>
-        <p className="text-zinc-400 text-sm">
-          Here&apos;s an overview of your usage this month.
-        </p>
+        <h1 className="text-2xl font-semibold text-white">Overview</h1>
       </div>
 
       {/* 4 Metric cards */}
@@ -108,11 +115,13 @@ export default async function DashboardPage() {
           label="Storage Used"
           value={formatBytes(usage?.storageUsed ?? 0)}
           icon={<HardDrive className="h-4 w-4" aria-hidden="true" />}
+          trend={computeTrend(usage?.storageUsed ?? 0, prevUsage?.storageUsed ?? 0)}
         />
         <MetricCard
           label="Bandwidth"
           value={formatBytes(usage?.bandwidth ?? 0)}
           icon={<ArrowUpDown className="h-4 w-4" aria-hidden="true" />}
+          trend={computeTrend(usage?.bandwidth ?? 0, prevUsage?.bandwidth ?? 0)}
         />
         <MetricCard
           label="Uploads Today"
@@ -128,9 +137,12 @@ export default async function DashboardPage() {
 
       {/* Upload area chart */}
       <div className="rounded-xl border border-white/[0.06] bg-[#141416] p-6">
-        <h2 className="text-sm font-medium text-zinc-300 mb-1">
-          Uploads — Last 30 Days
-        </h2>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-medium text-zinc-300">Uploads — Last 30 Days</h2>
+          <Link href="/dashboard/projects" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+            All Projects
+          </Link>
+        </div>
         <p className="text-xs text-zinc-600 mb-6">
           Daily upload activity across all your projects.
         </p>
@@ -145,11 +157,21 @@ export default async function DashboardPage() {
 
       {/* Recent files table */}
       <div className="rounded-xl border border-white/[0.06] bg-[#141416] overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/[0.06]">
-          <h2 className="text-sm font-medium text-zinc-300">Recent Files</h2>
-          <p className="text-xs text-zinc-600 mt-0.5">
-            Your 5 most recently uploaded files.
-          </p>
+        <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-medium text-zinc-300">Recent Files</h2>
+            <p className="text-xs text-zinc-600 mt-0.5">
+              Your 5 most recently uploaded files.
+            </p>
+          </div>
+          {userProjects[0] != null && (
+            <Link
+              href={`/dashboard/projects/${userProjects[0].slug}/files`}
+              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              View All →
+            </Link>
+          )}
         </div>
         {recentFiles.length === 0 ? (
           <div className="px-6 py-12 text-center">
@@ -162,6 +184,7 @@ export default async function DashboardPage() {
                 <TableHead className="text-zinc-500">Name</TableHead>
                 <TableHead className="text-zinc-500">Size</TableHead>
                 <TableHead className="text-zinc-500">Type</TableHead>
+                <TableHead className="text-zinc-500">Status</TableHead>
                 <TableHead className="text-zinc-500">Date</TableHead>
               </TableRow>
             </TableHeader>
@@ -189,6 +212,11 @@ export default async function DashboardPage() {
                     </TableCell>
                     <TableCell className="text-zinc-500 font-mono text-xs">
                       {file.type}
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        {file.status}
+                      </span>
                     </TableCell>
                     <TableCell className="text-zinc-500">
                       {formatDate(file.createdAt)}
