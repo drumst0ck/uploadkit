@@ -2,8 +2,9 @@ import { redirect } from 'next/navigation';
 import { auth } from '../../../../auth';
 import { connectDB, Subscription } from '@uploadkit/db';
 import { stripe } from '../../../lib/stripe';
-import { createCheckoutSession, createPortalSession } from './actions';
+import { createCheckoutSession } from './actions';
 import { Button } from '@uploadkit/ui';
+import { ManageBillingButton } from '../../../components/manage-billing-button';
 import type { Tier } from '@uploadkit/shared';
 
 export const dynamic = 'force-dynamic';
@@ -150,9 +151,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
           {/* Manage Billing — shown only to paid subscribers */}
           {hasPaidSubscription && (
-            <form action={createPortalSession}>
-              <Button type="submit" variant="outline">Manage Billing</Button>
-            </form>
+            <ManageBillingButton />
           )}
         </div>
       </div>

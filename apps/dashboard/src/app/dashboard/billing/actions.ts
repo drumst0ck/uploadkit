@@ -82,7 +82,7 @@ export async function createCheckoutSession(priceId: string): Promise<never> {
  * Security (T-07-03):
  *   - stripeCustomerId looked up from DB by authenticated session userId — never from client
  */
-export async function createPortalSession(): Promise<never> {
+export async function createPortalSession(): Promise<{ url: string }> {
   const session = await auth();
   if (!session?.user?.id) {
     redirect('/login');
@@ -104,5 +104,5 @@ export async function createPortalSession(): Promise<never> {
     return_url: `${appUrl}/dashboard/billing`,
   });
 
-  redirect(portalSession.url);
+  return { url: portalSession.url };
 }
