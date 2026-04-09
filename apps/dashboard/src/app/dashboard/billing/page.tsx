@@ -141,8 +141,8 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
             </form>
           )}
 
-          {/* Upgrade to Team — shown for PRO users */}
-          {tier === 'PRO' && teamPriceId && (
+          {/* Upgrade to Team — shown for FREE and PRO users */}
+          {(tier === 'FREE' || tier === 'PRO') && teamPriceId && (
             <form action={createCheckoutSession.bind(null, teamPriceId)}>
               <Button type="submit" className="bg-violet-500 shadow-violet-500/20 hover:bg-violet-400 hover:shadow-violet-500/30">Upgrade to Team</Button>
             </form>
