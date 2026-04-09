@@ -7,14 +7,10 @@ import {
   type RowSelectionState,
 } from '@tanstack/react-table';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   Button,
   Checkbox,
 } from '@uploadkit/ui';
-import { MoreHorizontal, ArrowUpDown, Copy, Trash2 } from 'lucide-react';
+import { Link2, ArrowUpDown, Trash2 } from 'lucide-react';
 import { DataTable } from '../data-table/data-table';
 import { DataTableToolbar } from '../data-table/data-table-toolbar';
 import { DataTablePagination } from '../data-table/data-table-pagination';
@@ -23,6 +19,20 @@ import { useFiles, type FileRecord } from '../../hooks/use-files';
 import { formatBytes, formatDate } from '../../lib/format';
 
 const columnHelper = createColumnHelper<FileRecord>();
+
+function getTypeBadgeClasses(mime: string): string {
+  if (mime.startsWith('image/')) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+  if (mime.startsWith('video/')) return 'bg-red-500/10 text-red-400 border-red-500/20';
+  if (mime.startsWith('audio/')) return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+  if (
+    mime.startsWith('application/pdf') ||
+    mime.startsWith('application/doc') ||
+    mime.startsWith('application/msword') ||
+    mime.startsWith('application/vnd.openxmlformats')
+  )
+    return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+  return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+}
 
 interface FileBrowserProps {
   slug: string;
@@ -37,7 +47,7 @@ export function FileBrowser({ slug }: FileBrowserProps) {
   // Current cursor = top of stack, empty string = first page
   const currentCursor = cursorStack[cursorStack.length - 1] ?? '';
 
-  const { files, isLoading, nextCursor, hasMore, mutate } = useFiles({
+  const { files, isLoading, nextCursor, hasMore, totalCount, mutate } = useFiles({
     slug,
     search,
     typeFilter,
@@ -183,9 +193,16 @@ export function FileBrowser({ slug }: FileBrowserProps) {
     columnHelper.accessor('type', {
       id: 'mimeType',
       header: 'Type',
-      cell: ({ getValue }) => (
-        <span className="text-muted-foreground text-xs">{getValue()}</span>
-      ),
+      cell: ({ getValue }) => {
+        const mime = getValue();
+        return (
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border ${getTypeBadgeClasses(mime)}`}
+          >
+            {mime}
+          </span>
+        );
+      },
     }),
     // Column 6: createdAt
     columnHelper.accessor('createdAt', {
@@ -200,28 +217,26 @@ export function FileBrowser({ slug }: FileBrowserProps) {
     columnHelper.display({
       id: 'actions',
       cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="File actions">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => handleCopyUrl(row.original.url)}
-            >
-              <Copy className="mr-2 h-4 w-4" />
-              Copy URL
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => handleDeleteSingle(row.original._id)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-zinc-500 hover:text-zinc-300"
+            onClick={() => handleCopyUrl(row.original.url)}
+            aria-label="Copy file URL"
+          >
+            <Link2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-zinc-500 hover:text-red-400"
+            onClick={() => handleDeleteSingle(row.original._id)}
+            aria-label="Delete file"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     }),
   ];
@@ -249,6 +264,9 @@ export function FileBrowser({ slug }: FileBrowserProps) {
         onPreviousPage={handlePreviousPage}
         hasPrevious={cursorStack.length > 0}
         showingCount={files.length}
+        totalCount={totalCount}
+        pageNumber={cursorStack.length + 1}
+        pageSize={20}
       />
     </div>
   );

@@ -49,22 +49,25 @@ export async function GET(
     filter.type = { $regex: `^${type}/`, $options: 'i' };
   }
 
+  // Clone base filter for total count before cursor constraint
+  const baseFilter = { ...filter };
+
   // Cursor pagination: fetch items before this _id (newest-first)
   if (cursor && mongoose.isValidObjectId(cursor)) {
     filter._id = { $lt: new mongoose.Types.ObjectId(cursor) };
   }
 
-  const files = await File.find(filter)
-    .sort({ _id: -1 })
-    .limit(PAGE_SIZE + 1)
-    .lean();
+  const [files, totalCount] = await Promise.all([
+    File.find(filter).sort({ _id: -1 }).limit(PAGE_SIZE + 1).lean(),
+    File.countDocuments(baseFilter),
+  ]);
 
   const hasMore = files.length > PAGE_SIZE;
   const resultFiles = hasMore ? files.slice(0, PAGE_SIZE) : files;
   const lastFile = resultFiles[resultFiles.length - 1];
   const nextCursor = hasMore && lastFile ? String(lastFile._id) : null;
 
-  return NextResponse.json({ files: resultFiles, nextCursor, hasMore });
+  return NextResponse.json({ files: resultFiles, nextCursor, hasMore, totalCount });
 }
 
 // DELETE /api/internal/projects/[slug]/files

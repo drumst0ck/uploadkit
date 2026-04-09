@@ -22,6 +22,7 @@ export interface UseFilesResult {
   error: unknown;
   nextCursor: string | null;
   hasMore: boolean;
+  totalCount: number;
   mutate: () => void;
 }
 
@@ -49,6 +50,7 @@ export function useFiles({
     files: FileRecord[];
     nextCursor: string | null;
     hasMore: boolean;
+    totalCount: number;
   }>(key, fetcher);
 
   return {
@@ -57,6 +59,7 @@ export function useFiles({
     error,
     nextCursor: data?.nextCursor ?? null,
     hasMore: data?.hasMore ?? false,
+    totalCount: data?.totalCount ?? 0,
     mutate,
   };
 }
