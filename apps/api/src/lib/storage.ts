@@ -14,7 +14,6 @@ export const R2_BUCKET = process.env.R2_BUCKET_NAME ?? (
   process.env.NODE_ENV === 'production' ? 'uploadkit-prod' : 'uploadkit-dev'
 );
 
-// Per D-08: CDN domain for prod only, R2 direct URLs for dev
-export const CDN_URL = process.env.NODE_ENV === 'production'
-  ? 'https://cdn.uploadkit.dev'
-  : `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+// Per D-08: CDN domain when available, R2 direct URLs as fallback
+export const CDN_URL = process.env.CDN_URL
+  ?? `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
