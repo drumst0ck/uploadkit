@@ -3,6 +3,7 @@ import { auth } from '../../../../auth';
 import { connectDB, Subscription } from '@uploadkit/db';
 import { stripe } from '../../../lib/stripe';
 import { createCheckoutSession, createPortalSession } from './actions';
+import { Button } from '@uploadkit/ui';
 import type { Tier } from '@uploadkit/shared';
 
 export const dynamic = 'force-dynamic';
@@ -136,36 +137,21 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           {/* Upgrade to Pro — shown for FREE users */}
           {tier === 'FREE' && proPriceId && (
             <form action={createCheckoutSession.bind(null, proPriceId)}>
-              <button
-                type="submit"
-                className="inline-flex cursor-pointer items-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-              >
-                Upgrade to Pro
-              </button>
+              <Button type="submit">Upgrade to Pro</Button>
             </form>
           )}
 
           {/* Upgrade to Team — shown for PRO users */}
           {tier === 'PRO' && teamPriceId && (
             <form action={createCheckoutSession.bind(null, teamPriceId)}>
-              <button
-                type="submit"
-                className="inline-flex cursor-pointer items-center rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
-              >
-                Upgrade to Team
-              </button>
+              <Button type="submit" className="bg-violet-500 shadow-violet-500/20 hover:bg-violet-400 hover:shadow-violet-500/30">Upgrade to Team</Button>
             </form>
           )}
 
           {/* Manage Billing — shown only to paid subscribers */}
           {hasPaidSubscription && (
             <form action={createPortalSession}>
-              <button
-                type="submit"
-                className="inline-flex cursor-pointer items-center rounded-lg border border-white/[0.06] bg-white/[0.03] px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.06] hover:text-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/20"
-              >
-                Manage Billing
-              </button>
+              <Button type="submit" variant="outline">Manage Billing</Button>
             </form>
           )}
         </div>

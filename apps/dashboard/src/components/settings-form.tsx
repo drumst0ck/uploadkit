@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
+  Button,
 } from '@uploadkit/ui';
 
 interface SettingsFormProps {
@@ -130,13 +131,9 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
           )}
 
           <div className="flex">
-            <button
-              type="submit"
-              disabled={isSaving || name.trim().length === 0}
-              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
-            >
+            <Button type="submit" disabled={isSaving || name.trim().length === 0}>
               {isSaving ? 'Saving...' : 'Save changes'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

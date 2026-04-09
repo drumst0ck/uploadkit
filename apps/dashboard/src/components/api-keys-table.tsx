@@ -117,7 +117,7 @@ export function ApiKeysTable({ slug }: ApiKeysTableProps) {
       <div className="flex justify-end">
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 border-0">
+            <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
               Create API Key
             </Button>

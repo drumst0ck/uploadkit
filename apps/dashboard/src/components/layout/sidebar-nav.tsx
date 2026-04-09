@@ -57,10 +57,10 @@ function NavItemLink({
     <Link
       href={item.href}
       className={cn(
-        'flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors',
+        'flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-all duration-150',
         isActive
-          ? 'bg-white/[0.06] text-white'
-          : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200',
+          ? 'bg-indigo-500/10 text-white border-l-2 border-indigo-500 -ml-[1px]'
+          : 'text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-100',
         collapsed && 'justify-center px-2'
       )}
     >

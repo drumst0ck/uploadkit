@@ -45,7 +45,7 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         /* Empty state */
         <div className="rounded-xl border border-dashed border-white/[0.10] bg-[#141416] p-16 text-center">
-          <FolderOpen className="h-10 w-10 text-zinc-600 mx-auto mb-4" aria-hidden="true" />
+          <div className="mb-4 inline-flex"><FolderOpen className="h-10 w-10 text-zinc-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.15)]" aria-hidden="true" /></div>
           <h2 className="text-lg font-medium text-zinc-300 mb-2">
             No projects yet
           </h2>
@@ -53,7 +53,7 @@ export default async function ProjectsPage() {
             Create your first project to start uploading files.
           </p>
           <CreateProjectDialog>
-            <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2">
+            <Button className="gap-2">
               <Plus className="h-4 w-4" aria-hidden="true" />
               Create your first project
             </Button>
