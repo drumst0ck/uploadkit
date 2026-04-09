@@ -2,34 +2,34 @@
   "name": "@uploadkit/next",
   "version": "0.1.0",
   "sideEffects": false,
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     },
     "./ssr": {
       "types": "./dist/ssr-plugin.d.ts",
-      "import": "./dist/ssr-plugin.js",
-      "require": "./dist/ssr-plugin.cjs"
+      "import": "./dist/ssr-plugin.mjs",
+      "require": "./dist/ssr-plugin.js"
     },
     "./express": {
       "types": "./dist/adapters/express.d.ts",
-      "import": "./dist/adapters/express.js",
-      "require": "./dist/adapters/express.cjs"
+      "import": "./dist/adapters/express.mjs",
+      "require": "./dist/adapters/express.js"
     },
     "./fastify": {
       "types": "./dist/adapters/fastify.d.ts",
-      "import": "./dist/adapters/fastify.js",
-      "require": "./dist/adapters/fastify.cjs"
+      "import": "./dist/adapters/fastify.mjs",
+      "require": "./dist/adapters/fastify.js"
     },
     "./hono": {
       "types": "./dist/adapters/hono.d.ts",
-      "import": "./dist/adapters/hono.js",
-      "require": "./dist/adapters/hono.cjs"
+      "import": "./dist/adapters/hono.mjs",
+      "require": "./dist/adapters/hono.js"
     }
   },
   "files": ["dist"],
