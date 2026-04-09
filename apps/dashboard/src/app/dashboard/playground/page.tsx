@@ -18,14 +18,20 @@ export default function PlaygroundPage() {
   const [results, setResults] = React.useState<UploadResult[]>([]);
   const [errors, setErrors] = React.useState<string[]>([]);
 
-  const handleComplete = (result: UploadResult | UploadResult[]) => {
+  const handleComplete = React.useCallback((result: UploadResult | UploadResult[]) => {
     const items = Array.isArray(result) ? result : [result];
     setResults((prev) => [...prev, ...items]);
-  };
+  }, []);
 
-  const handleError = (error: Error) => {
+  const lastErrorRef = React.useRef('');
+  const handleError = React.useCallback((error: Error) => {
+    // Deduplicate rapid-fire identical errors to prevent render loops
+    if (error.message === lastErrorRef.current) return;
+    lastErrorRef.current = error.message;
     setErrors((prev) => [...prev, error.message]);
-  };
+    // Reset dedup after 1s so the same error can appear again later
+    setTimeout(() => { lastErrorRef.current = ''; }, 1000);
+  }, []);
 
   return (
     <UploadKitProvider apiKey={API_KEY} baseUrl={BASE_URL}>
