@@ -104,7 +104,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-foreground">Billing</h1>
-        <p className="mt-1 text-sm text-foreground0">
+        <p className="mt-1 text-sm text-muted-foreground">
           Manage your subscription and billing details.
         </p>
       </div>
@@ -130,7 +130,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 {tierInfo.label}
               </span>
             </div>
-            <p className="text-sm text-foreground0">{tierInfo.description}</p>
+            <p className="text-sm text-muted-foreground">{tierInfo.description}</p>
           </div>
         </div>
 
@@ -164,10 +164,10 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="px-4 py-3 text-left text-xs font-medium text-foreground0">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-foreground0">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-foreground0">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-foreground0">Invoice</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Invoice</th>
               </tr>
             </thead>
             <tbody>

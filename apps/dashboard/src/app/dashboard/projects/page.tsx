@@ -44,11 +44,11 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         /* Empty state */
         <div className="rounded-xl border border-dashed border-border bg-card p-16 text-center">
-          <div className="mb-4 inline-flex"><FolderOpen className="h-10 w-10 text-foreground0 drop-shadow-[0_0_8px_rgba(99,102,241,0.15)]" aria-hidden="true" /></div>
+          <div className="mb-4 inline-flex"><FolderOpen className="h-10 w-10 text-muted-foreground drop-shadow-[0_0_8px_rgba(99,102,241,0.15)]" aria-hidden="true" /></div>
           <h2 className="text-lg font-medium text-foreground mb-2">
             No projects yet
           </h2>
-          <p className="text-sm text-foreground0 mb-6">
+          <p className="text-sm text-muted-foreground mb-6">
             Create your first project to start uploading files.
           </p>
           <CreateProjectDialog>
@@ -74,7 +74,7 @@ export default async function ProjectsPage() {
               <h2 className="text-base font-medium text-foreground group-hover:text-indigo-300 transition-colors mb-1 truncate">
                 {project.name}
               </h2>
-              <p className="text-xs font-mono text-foreground0 mb-3 truncate">
+              <p className="text-xs font-mono text-muted-foreground mb-3 truncate">
                 {project.slug}
               </p>
               <p className="text-xs text-muted-foreground">

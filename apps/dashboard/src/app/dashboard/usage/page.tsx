@@ -51,7 +51,7 @@ export default async function UsagePage() {
       {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-foreground">Usage</h1>
-        <p className="mt-1 text-sm text-foreground0">
+        <p className="mt-1 text-sm text-muted-foreground">
           Current billing period: {periodLabel}
         </p>
       </div>
@@ -100,7 +100,7 @@ export default async function UsagePage() {
       {chartData.length === 0 && (
         <div className="rounded-xl border border-border bg-card p-6">
           <h2 className="mb-2 text-sm font-medium text-foreground">6-Month History</h2>
-          <p className="text-sm text-foreground0">No historical data yet. Usage records will appear here once you start uploading files.</p>
+          <p className="text-sm text-muted-foreground">No historical data yet. Usage records will appear here once you start uploading files.</p>
         </div>
       )}
     </div>

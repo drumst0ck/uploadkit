@@ -139,7 +139,7 @@ export default async function DashboardPage() {
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-sm font-medium text-foreground">Uploads — Last 30 Days</h2>
-          <Link href="/dashboard/projects" className="text-xs text-foreground0 hover:text-foreground transition-colors">
+          <Link href="/dashboard/projects" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
             All Projects
           </Link>
         </div>
@@ -167,7 +167,7 @@ export default async function DashboardPage() {
           {userProjects[0] != null && (
             <Link
               href={`/dashboard/projects/${userProjects[0].slug}/files`}
-              className="text-xs text-foreground0 hover:text-foreground transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               View All →
             </Link>
@@ -181,11 +181,11 @@ export default async function DashboardPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="text-foreground0">Name</TableHead>
-                <TableHead className="text-foreground0">Size</TableHead>
-                <TableHead className="text-foreground0">Type</TableHead>
-                <TableHead className="text-foreground0">Status</TableHead>
-                <TableHead className="text-foreground0">Date</TableHead>
+                <TableHead className="text-muted-foreground">Name</TableHead>
+                <TableHead className="text-muted-foreground">Size</TableHead>
+                <TableHead className="text-muted-foreground">Type</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
+                <TableHead className="text-muted-foreground">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
                     <TableCell className="text-muted-foreground">
                       {formatBytes(file.size)}
                     </TableCell>
-                    <TableCell className="text-foreground0 font-mono text-xs">
+                    <TableCell className="text-muted-foreground font-mono text-xs">
                       {file.type}
                     </TableCell>
                     <TableCell>
@@ -218,7 +218,7 @@ export default async function DashboardPage() {
                         {file.status}
                       </span>
                     </TableCell>
-                    <TableCell className="text-foreground0">
+                    <TableCell className="text-muted-foreground">
                       {formatDate(file.createdAt)}
                     </TableCell>
                   </TableRow>

@@ -116,7 +116,7 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
           <option value="FAILED">Failed</option>
         </select>
 
-        <span className="ml-auto text-xs text-foreground0">
+        <span className="ml-auto text-xs text-muted-foreground">
           {isLoading ? 'Refreshing...' : `${logs.length} entries`}
         </span>
       </div>
@@ -124,23 +124,23 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-border">
         {logs.length === 0 && !isLoading ? (
-          <div className="px-4 py-12 text-center text-sm text-foreground0">
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">
             No upload activity in the selected time range.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left">
-                <th className="px-4 py-3 text-xs font-medium text-foreground0">Status</th>
-                <th className="px-4 py-3 text-xs font-medium text-foreground0">File name</th>
-                <th className="px-4 py-3 text-xs font-medium text-foreground0">Size</th>
-                <th className="px-4 py-3 text-xs font-medium text-foreground0 hidden sm:table-cell">
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground">File name</th>
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Size</th>
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground hidden sm:table-cell">
                   Type
                 </th>
-                <th className="px-4 py-3 text-xs font-medium text-foreground0 hidden md:table-cell">
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground hidden md:table-cell">
                   Uploaded by
                 </th>
-                <th className="px-4 py-3 text-xs font-medium text-foreground0 text-right">Time</th>
+                <th className="px-4 py-3 text-xs font-medium text-muted-foreground text-right">Time</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
@@ -165,13 +165,13 @@ export function UploadLogsTable({ slug }: UploadLogsTableProps) {
                     <td className="px-4 py-3 text-muted-foreground tabular-nums">
                       {formatBytes(log.size)}
                     </td>
-                    <td className="px-4 py-3 text-foreground0 hidden sm:table-cell">
+                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                       {log.type}
                     </td>
-                    <td className="px-4 py-3 text-foreground0 hidden md:table-cell">
+                    <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
                       {log.uploadedBy ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-right text-foreground0 tabular-nums">
+                    <td className="px-4 py-3 text-right text-muted-foreground tabular-nums">
                       {relativeTime(log.createdAt)}
                     </td>
                   </tr>

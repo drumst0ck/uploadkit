@@ -221,7 +221,7 @@ export function FileBrowser({ slug }: FileBrowserProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-foreground0 hover:text-foreground"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
             onClick={() => handleCopyUrl(row.original.url)}
             aria-label="Copy file URL"
           >
@@ -230,7 +230,7 @@ export function FileBrowser({ slug }: FileBrowserProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-foreground0 hover:text-red-400"
+            className="h-8 w-8 text-muted-foreground hover:text-red-400"
             onClick={() => handleDeleteSingle(row.original._id)}
             aria-label="Delete file"
           >

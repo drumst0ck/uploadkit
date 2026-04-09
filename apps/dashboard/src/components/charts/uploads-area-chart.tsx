@@ -34,7 +34,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
       <p className="font-medium text-foreground mb-1">{label}</p>
       <p className="text-indigo-300">
         {payload[0]?.value ?? 0}{' '}
-        <span className="text-foreground0">uploads</span>
+        <span className="text-muted-foreground">uploads</span>
       </p>
     </div>
   );

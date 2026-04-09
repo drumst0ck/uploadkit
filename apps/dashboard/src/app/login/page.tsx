@@ -138,7 +138,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           {/* Divider */}
           <div className="my-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-accent" />
-            <span className="text-xs text-foreground0">or</span>
+            <span className="text-xs text-muted-foreground">or</span>
             <div className="h-px flex-1 bg-accent" />
           </div>
 

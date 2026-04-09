@@ -40,7 +40,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
       <p className="mb-1.5 font-medium text-foreground">{label}</p>
       {payload.map((item) => (
         <p key={item.name} style={{ color: item.color }} className="flex justify-between gap-4">
-          <span className="text-foreground0">{item.name}</span>
+          <span className="text-muted-foreground">{item.name}</span>
           <span>
             {item.name === 'Uploads'
               ? item.value.toLocaleString()

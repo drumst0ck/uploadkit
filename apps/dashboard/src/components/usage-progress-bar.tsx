@@ -24,7 +24,7 @@ export function UsageProgressBar({ label, used, limit, formatFn }: UsageProgress
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm font-medium text-foreground">{label}</span>
-        <span className="text-xs text-foreground0 tabular-nums">
+        <span className="text-xs text-muted-foreground tabular-nums">
           {usedStr} / {limitStr}
         </span>
       </div>
