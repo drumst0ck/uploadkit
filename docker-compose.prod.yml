@@ -5,10 +5,31 @@ services:
       dockerfile: apps/api/Dockerfile
     ports:
       - "3002:3000"
-    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/uploadkit?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME:-uploadkit-prod}
+      - CDN_URL=${CDN_URL:-https://cdn.uploadkit.dev}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}
+      - STRIPE_TEAM_PRICE_ID=${STRIPE_TEAM_PRICE_ID}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - QSTASH_TOKEN=${QSTASH_TOKEN:-}
+      - QSTASH_CURRENT_SIGNING_KEY=${QSTASH_CURRENT_SIGNING_KEY:-}
+      - QSTASH_NEXT_SIGNING_KEY=${QSTASH_NEXT_SIGNING_KEY:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - CRON_SECRET=${CRON_SECRET:-}
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_started
+      redis:
+        condition: service_started
+    restart: unless-stopped
     labels:
       - "coolify.domain=api.uploadkit.dev"
 
@@ -18,11 +39,24 @@ services:
       dockerfile: apps/dashboard/Dockerfile
     ports:
       - "3001:3000"
-    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/uploadkit?authSource=admin
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_GITHUB_ID=${AUTH_GITHUB_ID}
+      - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
+      - AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID:-}
+      - AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET:-}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}
+      - STRIPE_TEAM_PRICE_ID=${STRIPE_TEAM_PRICE_ID}
+      - NEXT_PUBLIC_APP_URL=https://app.uploadkit.dev
+      - SENTRY_DSN=${SENTRY_DSN:-}
     depends_on:
-      - mongodb
-      - redis
-      - api
+      mongodb:
+        condition: service_started
+    restart: unless-stopped
     labels:
       - "coolify.domain=app.uploadkit.dev"
 
@@ -32,7 +66,9 @@ services:
       dockerfile: apps/web/Dockerfile
     ports:
       - "3000:3000"
-    env_file: .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
     labels:
       - "coolify.domain=uploadkit.dev"
 
@@ -42,7 +78,9 @@ services:
       dockerfile: apps/docs/Dockerfile
     ports:
       - "3003:3000"
-    env_file: .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
     labels:
       - "coolify.domain=docs.uploadkit.dev"
 
@@ -52,10 +90,15 @@ services:
       - mongodb_data:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
 
 volumes:
   mongodb_data:
+  redis_data:
