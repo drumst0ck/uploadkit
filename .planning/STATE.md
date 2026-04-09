@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: "Completed quick task 260409-kyy: create 3 SDK example projects"
-last_updated: "2026-04-09T13:13:15.935Z"
+stopped_at: "Completed quick task 260409-t9f: Replace Upstash with native Redis"
+last_updated: "2026-04-09T19:08:54.437Z"
 last_activity: "2026-04-09 - Completed quick task 260409-jdo: Implement 7 UploadThing feature gaps — config.mode, onBeforeUploadBegin, data-uk-element/data-state, progress granularity, NextSSRPlugin, withUk, backend adapters"
 progress:
   total_phases: 10
@@ -206,6 +206,7 @@ Recent decisions affecting current work:
 - [Phase quick-260409-k7l]: Use var(--popover)/var(--popover-foreground)/var(--border) without fallback values in portal inline styles — fallbacks were the source of the light mode regression
 - [Phase quick-260409-k7l]: bg-muted replaces bg-white/[0.02] for read-only fields — muted token is visible in both light and dark mode
 - [Phase quick-260409-kyy]: examples use workspace:* for all @uploadkit/* deps — symlinked from local packages, no npm registry needed
+- [Phase quick-260409-t9f]: ioredis with lazyConnect:true + RateLimiterMemory fallback replaces Upstash HTTP rate limiter — native TCP Redis for self-hosted stack, in-memory CI-safe fallback when REDIS_URL unset
 
 ### Pending Todos
 
@@ -229,6 +230,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T13:13:12.844Z
-Stopped at: Completed quick task 260409-kyy: create 3 SDK example projects
+Last session: 2026-04-09T19:08:50.130Z
+Stopped at: Completed quick task 260409-t9f: Replace Upstash with native Redis
 Resume file: None
