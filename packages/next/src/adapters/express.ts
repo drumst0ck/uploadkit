@@ -8,10 +8,9 @@ import { createUploadKitHandler } from '../handler';
  * Mount like:
  * ```ts
  * import { createExpressHandler } from '@uploadkit/next/express';
- * app.all('/api/uploadkit/*', createExpressHandler({ router, apiKey }));
+ * app.all('/api/uploadkit/{*path}', createExpressHandler({ router, apiKey }));  // Express v5
+ * app.all('/api/uploadkit/*', createExpressHandler({ router, apiKey }));        // Express v4
  * ```
- *
- * req.params[0] should contain the route segment(s) after the wildcard.
  */
 export function createExpressHandler<TRouter extends FileRouter>(
   config: UploadKitHandlerConfig<TRouter>
