@@ -11,8 +11,8 @@ import { serializeValidationError, serializeError } from '@/lib/errors';
 async function handleGet(req: NextRequest, ctx: ApiContext): Promise<NextResponse> {
   const url = new URL(req.url);
   const params = PaginationSchema.safeParse({
-    limit: url.searchParams.get('limit'),
-    cursor: url.searchParams.get('cursor'),
+    limit: url.searchParams.get('limit') ?? undefined,
+    cursor: url.searchParams.get('cursor') ?? undefined,
   });
 
   if (!params.success) {
