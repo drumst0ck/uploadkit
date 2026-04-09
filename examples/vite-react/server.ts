@@ -33,6 +33,7 @@ const uploadRouter = {
 // Mount the UploadKit handler — createExpressHandler adapts the Web API handler to Express
 app.all('/api/uploadkit/*', createExpressHandler({
   apiKey: process.env.UPLOADKIT_API_KEY!,
+  apiUrl: process.env.UPLOADKIT_API_URL ?? 'http://localhost:3002',
   router: uploadRouter,
 }));
 
