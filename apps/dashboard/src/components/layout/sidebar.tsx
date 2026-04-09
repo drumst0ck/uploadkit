@@ -1,10 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { Upload } from 'lucide-react';
 import { Sheet, SheetContent } from '@uploadkit/ui';
 import { TooltipProvider } from '@uploadkit/ui';
 import { cn } from '../../lib/cn';
+import { Logo } from '../logo';
 import { SidebarNav } from './sidebar-nav';
 import { ProjectSwitcher } from './project-switcher';
 
@@ -74,14 +74,7 @@ function SidebarContent({
           collapsed ? 'justify-center' : 'gap-2'
         )}
       >
-        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-indigo-500">
-          <Upload className="h-4 w-4 text-foreground" />
-        </div>
-        {!collapsed && (
-          <span className="text-sm font-semibold tracking-tight text-foreground">
-            UploadKit
-          </span>
-        )}
+        <Logo size={28} showWordmark={!collapsed} />
       </div>
 
       {/* Navigation */}
