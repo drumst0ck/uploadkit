@@ -109,7 +109,7 @@ export function ComponentShowcase() {
               <div key={demo.name} className="showcase-card">
                 <div className="showcase-card-label">{demo.name}</div>
                 <div className="showcase-card-content">
-                  <UploadKitProvider apiKey="demo">
+                  <UploadKitProvider endpoint="/api/uploadkit">
                     {demo.component(theme)}
                   </UploadKitProvider>
                 </div>

@@ -106,7 +106,7 @@ export function CodeDemoClient({ nextjsHtml, reactHtml, apiHtml }: CodeDemoClien
           </div>
 
           <div className="preview-content">
-            <UploadKitProvider apiKey="demo">
+            <UploadKitProvider endpoint="/api/uploadkit">
               {tab === 'nextjs' && (
                 <UploadButton
                   route="imageUploader"
