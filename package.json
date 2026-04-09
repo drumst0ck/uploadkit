@@ -10,7 +10,8 @@
     "test": "turbo test",
     "seed": "tsx scripts/seed.ts",
     "verify-r2": "tsx scripts/verify-r2.ts",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "verify": "turbo lint && turbo typecheck && turbo test && turbo build"
   },
   "devDependencies": {
     "@changesets/cli": "latest",
