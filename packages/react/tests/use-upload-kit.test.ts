@@ -4,7 +4,7 @@ import React from 'react';
 import { UploadKitProvider } from '../src/context';
 import { useUploadKit } from '../src/use-upload-kit';
 
-// The @uploadkit/core mock is set up here.
+// The @uploadkitdev/core mock is set up here.
 // createProxyClient always returns this same mockClient object.
 // We create a stable reference here so tests can configure it before renderHook.
 const mockClient = {
@@ -13,7 +13,7 @@ const mockClient = {
   deleteFile: vi.fn(),
 };
 
-vi.mock('@uploadkit/core', () => ({
+vi.mock('@uploadkitdev/core', () => ({
   createUploadKit: vi.fn(() => mockClient),
   createProxyClient: vi.fn(() => mockClient),
   ProxyUploadKitClient: vi.fn(() => mockClient),

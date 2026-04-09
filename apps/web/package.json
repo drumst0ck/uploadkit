@@ -1,5 +1,5 @@
 {
-  "name": "@uploadkit/web",
+  "name": "@uploadkitdev/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,9 +10,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@uploadkit/react": "workspace:*",
-    "@uploadkit/shared": "workspace:*",
-    "@uploadkit/ui": "workspace:*",
+    "@uploadkitdev/react": "workspace:*",
+    "@uploadkitdev/shared": "workspace:*",
+    "@uploadkitdev/ui": "workspace:*",
     "lucide-react": "^1.7.0",
     "next": "latest",
     "react": "latest",
@@ -23,7 +23,7 @@
     "@tailwindcss/postcss": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@uploadkit/config": "workspace:*",
+    "@uploadkitdev/config": "workspace:*",
     "tailwindcss": "latest",
     "typescript": "latest"
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { UploadKitError } from '@uploadkit/shared';
+import { UploadKitError } from '@uploadkitdev/shared';
 
 // Mock the http module so no real network calls are made
 vi.mock('../src/http', () => ({

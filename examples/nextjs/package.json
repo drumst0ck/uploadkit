@@ -1,7 +1,7 @@
 {
-  "name": "@uploadkit/example-nextjs",
+  "name": "@uploadkitdev/example-nextjs",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "dev": "next dev -p 3010",
     "build": "next build",
@@ -11,8 +11,8 @@
     "next": "latest",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@uploadkit/next": "workspace:*",
-    "@uploadkit/react": "workspace:*"
+    "@uploadkitdev/next": "workspace:*",
+    "@uploadkitdev/react": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

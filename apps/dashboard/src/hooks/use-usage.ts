@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import { fetcher } from '../lib/fetcher';
-import type { Tier } from '@uploadkit/shared';
+import type { Tier } from '@uploadkitdev/shared';
 
 export interface UsageData {
   current: {

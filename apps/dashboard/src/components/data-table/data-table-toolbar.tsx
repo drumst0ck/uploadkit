@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Search } from 'lucide-react';
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@uploadkit/ui';
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@uploadkitdev/ui';
 import { BulkActionsBar } from '../file-browser/bulk-actions-bar';
 
 interface DataTableToolbarProps {

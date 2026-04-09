@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { connectDB } from '@uploadkit/db';
-import { User, Project, ApiKey, File, FileRouter, Subscription, UsageRecord } from '@uploadkit/db';
+import { connectDB } from '@uploadkitdev/db';
+import { User, Project, ApiKey, File, FileRouter, Subscription, UsageRecord } from '@uploadkitdev/db';
 
 async function seed() {
   console.log('Connecting to database...');

@@ -1,4 +1,4 @@
-import { UploadKitProvider, UploadButton, UploadDropzone } from '@uploadkit/react';
+import { UploadKitProvider, UploadButton, UploadDropzone } from '@uploadkitdev/react';
 
 export default function App() {
   return (

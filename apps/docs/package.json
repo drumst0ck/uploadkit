@@ -1,5 +1,5 @@
 {
-  "name": "@uploadkit/docs",
+  "name": "@uploadkitdev/docs",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -21,7 +21,7 @@
     "@types/mdx": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@uploadkit/config": "workspace:*",
+    "@uploadkitdev/config": "workspace:*",
     "tailwindcss": "latest",
     "@tailwindcss/postcss": "latest",
     "typescript": "latest"

@@ -2,9 +2,9 @@ import NextAuth, { type NextAuthResult } from 'next-auth';
 import type { DefaultSession } from 'next-auth';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import { authConfig } from './auth.config';
-import { getAuthMongoClient, connectDB, Project, FileRouter } from '@uploadkit/db';
+import { getAuthMongoClient, connectDB, Project, FileRouter } from '@uploadkitdev/db';
 import { nanoid } from 'nanoid';
-import { sendWelcomeEmail } from '@uploadkit/emails';
+import { sendWelcomeEmail } from '@uploadkitdev/emails';
 
 declare module 'next-auth' {
   interface Session {

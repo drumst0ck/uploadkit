@@ -3,8 +3,8 @@
 import * as React from 'react';
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
-import { Button } from '@uploadkit/ui';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkit/ui';
+import { Button } from '@uploadkitdev/ui';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkitdev/ui';
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();

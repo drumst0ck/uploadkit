@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { UploadKitProvider, UploadButton, UploadDropzone, UploadModal } from '@uploadkit/react';
+import { UploadKitProvider, UploadButton, UploadDropzone, UploadModal } from '@uploadkitdev/react';
 
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);

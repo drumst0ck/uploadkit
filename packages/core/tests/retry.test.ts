@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { withRetry } from '../src/retry';
-import { UploadKitError } from '@uploadkit/shared';
+import { UploadKitError } from '@uploadkitdev/shared';
 
 describe('withRetry', () => {
   beforeEach(() => {

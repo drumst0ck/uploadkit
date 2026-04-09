@@ -1,4 +1,4 @@
-import type { FileRouter } from '@uploadkit/next';
+import type { FileRouter } from '@uploadkitdev/next';
 
 export const uploadRouter = {
   imageUploader: {

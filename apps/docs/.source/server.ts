@@ -1,17 +1,22 @@
 // @ts-nocheck
-import * as __fd_glob_55 from "../content/docs/sdk/react/use-uploadkit.mdx?collection=docs"
-import * as __fd_glob_54 from "../content/docs/sdk/react/upload-modal.mdx?collection=docs"
-import * as __fd_glob_53 from "../content/docs/sdk/react/upload-dropzone.mdx?collection=docs"
-import * as __fd_glob_52 from "../content/docs/sdk/react/upload-button.mdx?collection=docs"
-import * as __fd_glob_51 from "../content/docs/sdk/react/theming.mdx?collection=docs"
-import * as __fd_glob_50 from "../content/docs/sdk/react/installation.mdx?collection=docs"
-import * as __fd_glob_49 from "../content/docs/sdk/react/file-preview.mdx?collection=docs"
-import * as __fd_glob_48 from "../content/docs/sdk/react/file-list.mdx?collection=docs"
-import * as __fd_glob_47 from "../content/docs/sdk/react/api-reference.mdx?collection=docs"
-import * as __fd_glob_46 from "../content/docs/sdk/next/type-safety.mdx?collection=docs"
-import * as __fd_glob_45 from "../content/docs/sdk/next/middleware.mdx?collection=docs"
-import * as __fd_glob_44 from "../content/docs/sdk/next/installation.mdx?collection=docs"
-import * as __fd_glob_43 from "../content/docs/sdk/next/file-router.mdx?collection=docs"
+import * as __fd_glob_60 from "../content/docs/sdk/react/use-uploadkit.mdx?collection=docs"
+import * as __fd_glob_59 from "../content/docs/sdk/react/upload-modal.mdx?collection=docs"
+import * as __fd_glob_58 from "../content/docs/sdk/react/upload-dropzone.mdx?collection=docs"
+import * as __fd_glob_57 from "../content/docs/sdk/react/upload-button.mdx?collection=docs"
+import * as __fd_glob_56 from "../content/docs/sdk/react/theming.mdx?collection=docs"
+import * as __fd_glob_55 from "../content/docs/sdk/react/progress.mdx?collection=docs"
+import * as __fd_glob_54 from "../content/docs/sdk/react/installation.mdx?collection=docs"
+import * as __fd_glob_53 from "../content/docs/sdk/react/file-preview.mdx?collection=docs"
+import * as __fd_glob_52 from "../content/docs/sdk/react/file-list.mdx?collection=docs"
+import * as __fd_glob_51 from "../content/docs/sdk/react/config-mode.mdx?collection=docs"
+import * as __fd_glob_50 from "../content/docs/sdk/react/before-upload.mdx?collection=docs"
+import * as __fd_glob_49 from "../content/docs/sdk/react/api-reference.mdx?collection=docs"
+import * as __fd_glob_48 from "../content/docs/sdk/next/type-safety.mdx?collection=docs"
+import * as __fd_glob_47 from "../content/docs/sdk/next/ssr-plugin.mdx?collection=docs"
+import * as __fd_glob_46 from "../content/docs/sdk/next/middleware.mdx?collection=docs"
+import * as __fd_glob_45 from "../content/docs/sdk/next/installation.mdx?collection=docs"
+import * as __fd_glob_44 from "../content/docs/sdk/next/file-router.mdx?collection=docs"
+import * as __fd_glob_43 from "../content/docs/sdk/next/backend-adapters.mdx?collection=docs"
 import * as __fd_glob_42 from "../content/docs/sdk/next/api-reference.mdx?collection=docs"
 import * as __fd_glob_41 from "../content/docs/sdk/core/upload.mdx?collection=docs"
 import * as __fd_glob_40 from "../content/docs/sdk/core/installation.mdx?collection=docs"
@@ -63,4 +68,4 @@ const create = server<typeof Config, import("fumadocs-mdx/runtime/types").Intern
   }
 }>({"doc":{"passthroughs":["extractedReferences"]}});
 
-export const docs = await create.docs("docs", "content/docs", {"meta.json": __fd_glob_0, "api-reference/meta.json": __fd_glob_1, "core-concepts/meta.json": __fd_glob_2, "dashboard/meta.json": __fd_glob_3, "getting-started/meta.json": __fd_glob_4, "guides/meta.json": __fd_glob_5, "sdk/meta.json": __fd_glob_6, "sdk/core/meta.json": __fd_glob_7, "sdk/next/meta.json": __fd_glob_8, "sdk/react/meta.json": __fd_glob_9, }, {"index.mdx": __fd_glob_10, "api-reference/authentication.mdx": __fd_glob_11, "api-reference/errors.mdx": __fd_glob_12, "api-reference/files.mdx": __fd_glob_13, "api-reference/projects.mdx": __fd_glob_14, "api-reference/rest-api.mdx": __fd_glob_15, "api-reference/upload.mdx": __fd_glob_16, "api-reference/webhooks.mdx": __fd_glob_17, "core-concepts/byos.mdx": __fd_glob_18, "core-concepts/file-routes.mdx": __fd_glob_19, "core-concepts/presigned-urls.mdx": __fd_glob_20, "core-concepts/security.mdx": __fd_glob_21, "dashboard/api-keys.mdx": __fd_glob_22, "dashboard/billing.mdx": __fd_glob_23, "dashboard/files.mdx": __fd_glob_24, "dashboard/overview.mdx": __fd_glob_25, "dashboard/projects.mdx": __fd_glob_26, "getting-started/api-only.mdx": __fd_glob_27, "getting-started/nextjs.mdx": __fd_glob_28, "getting-started/quickstart.mdx": __fd_glob_29, "getting-started/react.mdx": __fd_glob_30, "guides/avatar-upload.mdx": __fd_glob_31, "guides/custom-styling.mdx": __fd_glob_32, "guides/document-upload.mdx": __fd_glob_33, "guides/image-upload.mdx": __fd_glob_34, "guides/migration-from-uploadthing.mdx": __fd_glob_35, "guides/multipart-upload.mdx": __fd_glob_36, "sdk/core/api-reference.mdx": __fd_glob_37, "sdk/core/configuration.mdx": __fd_glob_38, "sdk/core/delete.mdx": __fd_glob_39, "sdk/core/installation.mdx": __fd_glob_40, "sdk/core/upload.mdx": __fd_glob_41, "sdk/next/api-reference.mdx": __fd_glob_42, "sdk/next/file-router.mdx": __fd_glob_43, "sdk/next/installation.mdx": __fd_glob_44, "sdk/next/middleware.mdx": __fd_glob_45, "sdk/next/type-safety.mdx": __fd_glob_46, "sdk/react/api-reference.mdx": __fd_glob_47, "sdk/react/file-list.mdx": __fd_glob_48, "sdk/react/file-preview.mdx": __fd_glob_49, "sdk/react/installation.mdx": __fd_glob_50, "sdk/react/theming.mdx": __fd_glob_51, "sdk/react/upload-button.mdx": __fd_glob_52, "sdk/react/upload-dropzone.mdx": __fd_glob_53, "sdk/react/upload-modal.mdx": __fd_glob_54, "sdk/react/use-uploadkit.mdx": __fd_glob_55, });
+export const docs = await create.docs("docs", "content/docs", {"meta.json": __fd_glob_0, "api-reference/meta.json": __fd_glob_1, "core-concepts/meta.json": __fd_glob_2, "dashboard/meta.json": __fd_glob_3, "getting-started/meta.json": __fd_glob_4, "guides/meta.json": __fd_glob_5, "sdk/meta.json": __fd_glob_6, "sdk/core/meta.json": __fd_glob_7, "sdk/next/meta.json": __fd_glob_8, "sdk/react/meta.json": __fd_glob_9, }, {"index.mdx": __fd_glob_10, "api-reference/authentication.mdx": __fd_glob_11, "api-reference/errors.mdx": __fd_glob_12, "api-reference/files.mdx": __fd_glob_13, "api-reference/projects.mdx": __fd_glob_14, "api-reference/rest-api.mdx": __fd_glob_15, "api-reference/upload.mdx": __fd_glob_16, "api-reference/webhooks.mdx": __fd_glob_17, "core-concepts/byos.mdx": __fd_glob_18, "core-concepts/file-routes.mdx": __fd_glob_19, "core-concepts/presigned-urls.mdx": __fd_glob_20, "core-concepts/security.mdx": __fd_glob_21, "dashboard/api-keys.mdx": __fd_glob_22, "dashboard/billing.mdx": __fd_glob_23, "dashboard/files.mdx": __fd_glob_24, "dashboard/overview.mdx": __fd_glob_25, "dashboard/projects.mdx": __fd_glob_26, "getting-started/api-only.mdx": __fd_glob_27, "getting-started/nextjs.mdx": __fd_glob_28, "getting-started/quickstart.mdx": __fd_glob_29, "getting-started/react.mdx": __fd_glob_30, "guides/avatar-upload.mdx": __fd_glob_31, "guides/custom-styling.mdx": __fd_glob_32, "guides/document-upload.mdx": __fd_glob_33, "guides/image-upload.mdx": __fd_glob_34, "guides/migration-from-uploadthing.mdx": __fd_glob_35, "guides/multipart-upload.mdx": __fd_glob_36, "sdk/core/api-reference.mdx": __fd_glob_37, "sdk/core/configuration.mdx": __fd_glob_38, "sdk/core/delete.mdx": __fd_glob_39, "sdk/core/installation.mdx": __fd_glob_40, "sdk/core/upload.mdx": __fd_glob_41, "sdk/next/api-reference.mdx": __fd_glob_42, "sdk/next/backend-adapters.mdx": __fd_glob_43, "sdk/next/file-router.mdx": __fd_glob_44, "sdk/next/installation.mdx": __fd_glob_45, "sdk/next/middleware.mdx": __fd_glob_46, "sdk/next/ssr-plugin.mdx": __fd_glob_47, "sdk/next/type-safety.mdx": __fd_glob_48, "sdk/react/api-reference.mdx": __fd_glob_49, "sdk/react/before-upload.mdx": __fd_glob_50, "sdk/react/config-mode.mdx": __fd_glob_51, "sdk/react/file-list.mdx": __fd_glob_52, "sdk/react/file-preview.mdx": __fd_glob_53, "sdk/react/installation.mdx": __fd_glob_54, "sdk/react/progress.mdx": __fd_glob_55, "sdk/react/theming.mdx": __fd_glob_56, "sdk/react/upload-button.mdx": __fd_glob_57, "sdk/react/upload-dropzone.mdx": __fd_glob_58, "sdk/react/upload-modal.mdx": __fd_glob_59, "sdk/react/use-uploadkit.mdx": __fd_glob_60, });

@@ -161,7 +161,7 @@ async function HeroSection() {
             className="font-mono text-sm"
             style={{ color: '#a1a1aa' }}
           >
-            $ pnpm add @uploadkit/next @uploadkit/react
+            $ pnpm add @uploadkitdev/next @uploadkitdev/react
           </code>
           <button
             type="button"

@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
 import { cn } from '../../lib/cn';
 
 interface Project {

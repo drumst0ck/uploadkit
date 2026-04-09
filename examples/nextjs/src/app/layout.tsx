@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { NextSSRPlugin, extractRouterConfig } from '@uploadkit/next';
-import '@uploadkit/react/styles.css';
+import { NextSSRPlugin, extractRouterConfig } from '@uploadkitdev/next';
+import '@uploadkitdev/react/styles.css';
 import { uploadRouter } from './api/uploadkit/[...uploadkit]/core';
 
 export const metadata = {

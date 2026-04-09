@@ -2,15 +2,15 @@ export const runtime = 'nodejs';
 
 import { HeadObjectCommand, S3ServiceException } from '@aws-sdk/client-s3';
 import { type NextRequest, NextResponse } from 'next/server';
-import { connectDB, File, FileRouter, UsageRecord, Subscription, User } from '@uploadkit/db';
-import { NotFoundError, TIER_LIMITS } from '@uploadkit/shared';
+import { connectDB, File, FileRouter, UsageRecord, Subscription, User } from '@uploadkitdev/db';
+import { NotFoundError, TIER_LIMITS } from '@uploadkitdev/shared';
 import { withApiKey } from '@/lib/with-api-key';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 import { UploadCompleteSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 import { enqueueWebhook } from '@/lib/qstash';
 import { sendMeterEvent, METER_STORAGE, METER_UPLOADS } from '@/lib/stripe-meters';
-import { sendUsageAlertEmail } from '@uploadkit/emails';
+import { sendUsageAlertEmail } from '@uploadkitdev/emails';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';

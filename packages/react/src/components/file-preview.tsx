@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import type { UploadResult } from '@uploadkit/core';
+import type { UploadResult } from '@uploadkitdev/core';
 import { useThumbnail } from '../hooks/use-thumbnail';
 import { mergeClass } from '../utils/merge-class';
 import { getFileTypeIcon } from '../utils/file-icons';

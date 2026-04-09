@@ -29,7 +29,7 @@ Use the `onUploadProgress` callback to track per-chunk progress and aggregate it
 'use client';
 
 import { useState } from 'react';
-import { UploadDropzone } from '@uploadkit/react';
+import { UploadDropzone } from '@uploadkitdev/react';
 
 export function VideoUploader() {
   const [progress, setProgress] = useState(0);
@@ -80,10 +80,10 @@ The `onUploadProgress` value is an integer from 0 to 100, aggregated across all 
 
 ## Using the core SDK directly
 
-For maximum control, use `@uploadkit/core` with the `onProgress` callback:
+For maximum control, use `@uploadkitdev/core` with the `onProgress` callback:
 
 ```typescript
-import { UploadKitClient } from '@uploadkit/core';
+import { UploadKitClient } from '@uploadkitdev/core';
 
 const client = new UploadKitClient({
   apiKey: process.env.UPLOADKIT_API_KEY!,
@@ -108,7 +108,7 @@ Users can cancel an in-progress upload. The SDK cleans up the partial multipart 
 ```tsx
 'use client';
 
-import { useUploadKit } from '@uploadkit/react';
+import { useUploadKit } from '@uploadkitdev/react';
 
 export function UploadWithCancel() {
   const { upload, abort, isUploading, progress } = useUploadKit({

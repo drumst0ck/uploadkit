@@ -31,7 +31,7 @@ UploadKit es una plataforma que permite a los desarrolladores integrar uploads d
 | Auth | Auth.js v5 / NextAuth v5 (GitHub + Google + Email magic link) |
 | Storage | Cloudflare R2 (principal) + AWS S3 compatible |
 | CDN | Cloudflare (gratis, delante de R2) |
-| SDK | TypeScript 5.x (latest), publicado en npm como `@uploadkit/react`, `@uploadkit/core` |
+| SDK | TypeScript 5.x (latest), publicado en npm como `@uploadkitdev/react`, `@uploadkitdev/core` |
 | Docs | Fumadocs (latest) con MDX |
 | Pagos | Stripe (Checkout + Billing Portal + Webhooks) |
 | Emails | Resend + React Email |
@@ -49,10 +49,10 @@ uploadkit/
 │   ├── docs/                 # Documentación con Fumadocs/MDX
 │   └── api/                  # API backend (puede ser parte de dashboard)
 ├── packages/
-│   ├── core/                 # @uploadkit/core - lógica de upload (sin UI)
-│   ├── react/                # @uploadkit/react - componentes React
-│   ├── next/                 # @uploadkit/next - helpers para Next.js (API route handler)
-│   ├── shared/               # @uploadkit/shared - tipos, utils, constantes
+│   ├── core/                 # @uploadkitdev/core - lógica de upload (sin UI)
+│   ├── react/                # @uploadkitdev/react - componentes React
+│   ├── next/                 # @uploadkitdev/next - helpers para Next.js (API route handler)
+│   ├── shared/               # @uploadkitdev/shared - tipos, utils, constantes
 │   ├── ui/                   # Componentes internos compartidos (shadcn-based)
 │   ├── db/                   # Mongoose models + connection
 │   └── config/               # ESLint, TypeScript, Tailwind configs compartidos
@@ -296,13 +296,13 @@ DELETE /api/v1/routers/:routerId
 
 ## 3. SDK — PACKAGES
 
-### 3.1 `@uploadkit/core`
+### 3.1 `@uploadkitdev/core`
 
 Paquete base sin dependencias de React. Lógica pura TypeScript.
 
 ```typescript
 // Ejemplo de API pública del core
-import { createUploadKit } from '@uploadkit/core';
+import { createUploadKit } from '@uploadkitdev/core';
 
 const uploadkit = createUploadKit({
   // Modo 1: Usar servicio gestionado UploadKit
@@ -344,7 +344,7 @@ await uploadkit.deleteFile('file-key');
 - Validación client-side (tipo, tamaño) antes de enviar
 - BYOS: generar presigned URLs localmente con @aws-sdk/s3-request-presigner
 
-### 3.2 `@uploadkit/react`
+### 3.2 `@uploadkitdev/react`
 
 Componentes React con diseño premium. **Estilo visual minimalista Apple/Vercel/Supabase.**
 
@@ -359,7 +359,7 @@ export {
   FilePreview,         // Preview de imagen/video/doc
   useUploadKit,        // Hook para control programático
   UploadKitProvider,   // Context provider
-} from '@uploadkit/react';
+} from '@uploadkitdev/react';
 ```
 
 **Diseño de componentes — Directrices:**
@@ -422,8 +422,8 @@ export {
 
 **Ejemplo de uso React:**
 ```tsx
-import { UploadDropzone, UploadKitProvider } from '@uploadkit/react';
-import '@uploadkit/react/styles.css';
+import { UploadDropzone, UploadKitProvider } from '@uploadkitdev/react';
+import '@uploadkitdev/react/styles.css';
 
 // En layout/provider
 <UploadKitProvider apiKey="uk_live_xxx">
@@ -449,13 +449,13 @@ import '@uploadkit/react/styles.css';
 />
 ```
 
-### 3.3 `@uploadkit/next`
+### 3.3 `@uploadkitdev/next`
 
 Helpers específicos para Next.js App Router.
 
 ```typescript
 // app/api/uploadkit/route.ts
-import { createUploadKitHandler } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
 import { z } from 'zod';
 
 const fileRouter = {
@@ -496,7 +496,7 @@ export const { GET, POST } = createUploadKitHandler({ router: fileRouter });
 
 ```typescript
 // En el cliente con tipado end-to-end
-import { generateReactHelpers } from '@uploadkit/react';
+import { generateReactHelpers } from '@uploadkitdev/react';
 import type { AppFileRouter } from '@/app/api/uploadkit/route';
 
 export const { useUploadKit, UploadButton, UploadDropzone } =
@@ -706,7 +706,7 @@ El quickstart debe mostrar que en menos de 2 minutos puedes tener uploads funcio
 
 ```bash
 # 1. Instalar
-pnpm add @uploadkit/next @uploadkit/react
+pnpm add @uploadkitdev/next @uploadkitdev/react
 
 # 2. Crear file router (app/api/uploadkit/route.ts) — 10 líneas
 # 3. Añadir provider — 3 líneas
@@ -812,21 +812,21 @@ Stripe webhook events a manejar:
 - [ ] Tests unitarios de la API
 
 ### FASE 2: SDK Core (Semana 3)
-- [ ] `@uploadkit/core`: upload, multipart, progress, retry, abort
-- [ ] `@uploadkit/core`: modo BYOS con credenciales S3/R2 propias
-- [ ] `@uploadkit/next`: createUploadKitHandler, fileRouter pattern
-- [ ] `@uploadkit/next`: tipado end-to-end con generics
+- [ ] `@uploadkitdev/core`: upload, multipart, progress, retry, abort
+- [ ] `@uploadkitdev/core`: modo BYOS con credenciales S3/R2 propias
+- [ ] `@uploadkitdev/next`: createUploadKitHandler, fileRouter pattern
+- [ ] `@uploadkitdev/next`: tipado end-to-end con generics
 - [ ] Tests del SDK
 
 ### FASE 3: React Components (Semana 4)
-- [ ] `@uploadkit/react`: UploadKitProvider + useUploadKit hook
-- [ ] `@uploadkit/react`: UploadButton con todos los estados
-- [ ] `@uploadkit/react`: UploadDropzone con drag&drop + previews
-- [ ] `@uploadkit/react`: UploadModal
-- [ ] `@uploadkit/react`: FileList + FilePreview
-- [ ] `@uploadkit/react`: Sistema de theming con CSS variables
-- [ ] `@uploadkit/react`: Dark mode
-- [ ] `@uploadkit/react`: styles.css bundle
+- [ ] `@uploadkitdev/react`: UploadKitProvider + useUploadKit hook
+- [ ] `@uploadkitdev/react`: UploadButton con todos los estados
+- [ ] `@uploadkitdev/react`: UploadDropzone con drag&drop + previews
+- [ ] `@uploadkitdev/react`: UploadModal
+- [ ] `@uploadkitdev/react`: FileList + FilePreview
+- [ ] `@uploadkitdev/react`: Sistema de theming con CSS variables
+- [ ] `@uploadkitdev/react`: Dark mode
+- [ ] `@uploadkitdev/react`: styles.css bundle
 - [ ] Storybook o playground para testear componentes
 - [ ] Publicar packages en npm (alpha)
 

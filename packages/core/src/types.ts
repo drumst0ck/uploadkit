@@ -1,4 +1,4 @@
-export type { UploadKitError } from '@uploadkit/shared';
+export type { UploadKitError } from '@uploadkitdev/shared';
 
 /** Controls how often onProgress callbacks are invoked during XHR uploads. */
 export type ProgressGranularity = 'coarse' | 'fine' | 'all';

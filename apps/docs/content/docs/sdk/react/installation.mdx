@@ -1,41 +1,41 @@
 ---
 title: Installation
-description: Add @uploadkit/react to your project and wrap your app with UploadKitProvider.
+description: Add @uploadkitdev/react to your project and wrap your app with UploadKitProvider.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-`@uploadkit/react` provides styled upload components, a headless hook, and helper utilities for building file upload UIs. It requires `@uploadkit/core` as a peer dependency.
+`@uploadkitdev/react` provides styled upload components, a headless hook, and helper utilities for building file upload UIs. It requires `@uploadkitdev/core` as a peer dependency.
 
 ## Install
 
 <Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
   <Tab value="pnpm">
     ```bash
-    pnpm add @uploadkit/react @uploadkit/core
+    pnpm add @uploadkitdev/react @uploadkitdev/core
     ```
   </Tab>
   <Tab value="npm">
     ```bash
-    npm install @uploadkit/react @uploadkit/core
+    npm install @uploadkitdev/react @uploadkitdev/core
     ```
   </Tab>
   <Tab value="yarn">
     ```bash
-    yarn add @uploadkit/react @uploadkit/core
+    yarn add @uploadkitdev/react @uploadkitdev/core
     ```
   </Tab>
 </Tabs>
 
-React 18 or 19 is required. If you are using Next.js, also install `@uploadkit/next` for the server-side route handler.
+React 18 or 19 is required. If you are using Next.js, also install `@uploadkitdev/next` for the server-side route handler.
 
 ## Wrap your app with UploadKitProvider
 
 Add `UploadKitProvider` at the root of your component tree (or the nearest ancestor of your upload UI). Point the `endpoint` prop at your local Next.js Route Handler — the API key lives there on the server and never reaches the browser:
 
 ```tsx title="app/layout.tsx"
-import { UploadKitProvider } from '@uploadkit/react';
+import { UploadKitProvider } from '@uploadkitdev/react';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

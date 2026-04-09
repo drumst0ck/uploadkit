@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@uploadkit/db", "@uploadkit/shared", "@uploadkit/config", "@uploadkit/ui", "@uploadkit/api", "@uploadkit/dashboard", "@uploadkit/web", "@uploadkit/docs"]
+  "ignore": ["@uploadkitdev/db", "@uploadkitdev/shared", "@uploadkitdev/config", "@uploadkitdev/ui", "@uploadkitdev/api", "@uploadkitdev/dashboard", "@uploadkitdev/web", "@uploadkitdev/docs"]
 }

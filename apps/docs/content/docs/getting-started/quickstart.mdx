@@ -17,22 +17,22 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ## Install packages
 
-Add `@uploadkit/next` (server-side handler) and `@uploadkit/react` (UI components) to your project:
+Add `@uploadkitdev/next` (server-side handler) and `@uploadkitdev/react` (UI components) to your project:
 
 <Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
   <Tab value="pnpm">
     ```bash
-    pnpm add @uploadkit/next @uploadkit/react
+    pnpm add @uploadkitdev/next @uploadkitdev/react
     ```
   </Tab>
   <Tab value="npm">
     ```bash
-    npm install @uploadkit/next @uploadkit/react
+    npm install @uploadkitdev/next @uploadkitdev/react
     ```
   </Tab>
   <Tab value="yarn">
     ```bash
-    yarn add @uploadkit/next @uploadkit/react
+    yarn add @uploadkitdev/next @uploadkitdev/react
     ```
   </Tab>
 </Tabs>
@@ -46,8 +46,8 @@ Add `@uploadkit/next` (server-side handler) and `@uploadkit/react` (UI component
 Create `app/api/uploadkit/[...uploadkit]/route.ts` and define which files your app accepts:
 
 ```typescript title="app/api/uploadkit/[...uploadkit]/route.ts"
-import { createUploadKitHandler } from '@uploadkit/next';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
+import type { FileRouter } from '@uploadkitdev/next';
 
 const router = {
   imageUploader: {
@@ -90,7 +90,7 @@ UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
 Wrap your root layout's children with `UploadKitProvider`, pointing it at the route handler you created in the previous step:
 
 ```tsx title="app/layout.tsx"
-import { UploadKitProvider } from '@uploadkit/react';
+import { UploadKitProvider } from '@uploadkitdev/react';
 
 export default function RootLayout({
   children,
@@ -118,7 +118,7 @@ export default function RootLayout({
 Drop `<UploadDropzone>` into any page and point it at your file route:
 
 ```tsx title="app/page.tsx"
-import { UploadDropzone } from '@uploadkit/react';
+import { UploadDropzone } from '@uploadkitdev/react';
 
 export default function Page() {
   return (

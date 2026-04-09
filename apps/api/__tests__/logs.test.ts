@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@uploadkit/db', () => ({
+vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   File: {
     find: vi.fn(),
@@ -47,7 +47,7 @@ vi.mock('@/lib/storage', () => ({
 }));
 
 import { GET } from '@/app/api/v1/logs/route';
-import { File, ApiKey, Subscription } from '@uploadkit/db';
+import { File, ApiKey, Subscription } from '@uploadkitdev/db';
 import { ratelimit } from '@/lib/rate-limit';
 
 const fakeProject = { _id: 'proj-logs', userId: 'user-logs', name: 'Logs Project' };

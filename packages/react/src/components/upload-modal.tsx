@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import type { UploadResult, ProgressGranularity } from '@uploadkit/core';
+import type { UploadResult, ProgressGranularity } from '@uploadkitdev/core';
 import { mergeClass } from '../utils/merge-class';
 import { UploadDropzone } from './upload-dropzone';
 

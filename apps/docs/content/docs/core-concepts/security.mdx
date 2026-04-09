@@ -29,7 +29,7 @@ Browser → /api/uploadkit (your server, holds UPLOADKIT_API_KEY) → api.upload
 The route handler created by `createUploadKitHandler` is where the API key lives:
 
 ```typescript title="app/api/uploadkit/route.ts"
-import { createUploadKitHandler } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
 
 export const { GET, POST } = createUploadKitHandler({
   router: fileRouter,

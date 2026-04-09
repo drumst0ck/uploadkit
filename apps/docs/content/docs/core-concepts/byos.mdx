@@ -19,8 +19,8 @@ Configure BYOS in `createUploadKitHandler` by passing a `storage` object with yo
 <Tabs items={['Cloudflare R2', 'AWS S3', 'MinIO']}>
   <Tab value="Cloudflare R2">
     ```typescript title="app/api/uploadkit/route.ts"
-    import { createUploadKitHandler } from '@uploadkit/next';
-    import type { FileRouter } from '@uploadkit/next';
+    import { createUploadKitHandler } from '@uploadkitdev/next';
+    import type { FileRouter } from '@uploadkitdev/next';
 
     const router = {
       imageUploader: {
@@ -55,8 +55,8 @@ Configure BYOS in `createUploadKitHandler` by passing a `storage` object with yo
   </Tab>
   <Tab value="AWS S3">
     ```typescript title="app/api/uploadkit/route.ts"
-    import { createUploadKitHandler } from '@uploadkit/next';
-    import type { FileRouter } from '@uploadkit/next';
+    import { createUploadKitHandler } from '@uploadkitdev/next';
+    import type { FileRouter } from '@uploadkitdev/next';
 
     const router = {
       documentUploader: {
@@ -87,8 +87,8 @@ Configure BYOS in `createUploadKitHandler` by passing a `storage` object with yo
   </Tab>
   <Tab value="MinIO">
     ```typescript title="app/api/uploadkit/route.ts"
-    import { createUploadKitHandler } from '@uploadkit/next';
-    import type { FileRouter } from '@uploadkit/next';
+    import { createUploadKitHandler } from '@uploadkitdev/next';
+    import type { FileRouter } from '@uploadkitdev/next';
 
     const router = {
       fileUploader: {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { auth } from '../../../../../../../auth';
-import { connectDB, Project, FileRouter } from '@uploadkit/db';
+import { connectDB, Project, FileRouter } from '@uploadkitdev/db';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,5 +1,5 @@
 import { forwardRef, useRef, useCallback, useState } from 'react';
-import type { UploadResult, ProgressGranularity } from '@uploadkit/core';
+import type { UploadResult, ProgressGranularity } from '@uploadkitdev/core';
 import { useUploadKitContext } from '../context';
 import { useDragState } from '../hooks/use-drag-state';
 import { useAutoDismiss } from '../hooks/use-auto-dismiss';

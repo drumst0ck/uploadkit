@@ -89,7 +89,7 @@ Multipart is triggered automatically when `file.size > 10_000_000`. Small files 
 Upload failures are automatically retried with exponential backoff. Configure the maximum number of retries in `UploadKitClient`:
 
 ```typescript
-import { UploadKitClient } from '@uploadkit/core';
+import { UploadKitClient } from '@uploadkitdev/core';
 
 const client = createProxyClient({
   endpoint: '/api/uploadkit', // your server holds the API key — never pass it to the browser

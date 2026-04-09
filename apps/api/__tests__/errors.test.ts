@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
-import { UploadKitError, UnauthorizedError, RateLimitError } from '@uploadkit/shared';
+import { UploadKitError, UnauthorizedError, RateLimitError } from '@uploadkitdev/shared';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 
 describe('serializeError', () => {

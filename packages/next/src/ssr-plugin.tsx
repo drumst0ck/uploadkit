@@ -42,7 +42,7 @@ type NextSSRPluginProps = {
  *
  * Usage (app/layout.tsx):
  * ```tsx
- * import { NextSSRPlugin, extractRouterConfig } from '@uploadkit/next/ssr';
+ * import { NextSSRPlugin, extractRouterConfig } from '@uploadkitdev/next/ssr';
  * import { uploadRouter } from './api/uploadkit/[...uploadkit]/route';
  *
  * export default function RootLayout({ children }) {

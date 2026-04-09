@@ -1,6 +1,6 @@
 import { createContext, useContext, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { createProxyClient, ProxyUploadKitClient } from '@uploadkit/core';
+import { createProxyClient, ProxyUploadKitClient } from '@uploadkitdev/core';
 
 export type UploadKitProviderProps = {
   /** Local endpoint URL for the uploadkit handler, e.g. "/api/uploadkit" */
@@ -44,7 +44,7 @@ export function UploadKitProvider({ endpoint, children }: UploadKitProviderProps
 }
 
 /**
- * useUploadKitContext — internal hook used by all @uploadkit/react components.
+ * useUploadKitContext — internal hook used by all @uploadkitdev/react components.
  * Throws a descriptive error if called outside <UploadKitProvider>.
  */
 export function useUploadKitContext(): UploadKitContextValue {

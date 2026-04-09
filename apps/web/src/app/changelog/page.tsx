@@ -49,12 +49,12 @@ export default function ChangelogPage() {
                     fees
                   </li>
                   <li>
-                    <code>@uploadkit/react</code> — <code>UploadButton</code>,{' '}
+                    <code>@uploadkitdev/react</code> — <code>UploadButton</code>,{' '}
                     <code>UploadDropzone</code>, and <code>UploadModal</code> components with CSS
                     custom property theming
                   </li>
                   <li>
-                    <code>@uploadkit/next</code> — Next.js App Router handler,{' '}
+                    <code>@uploadkitdev/next</code> — Next.js App Router handler,{' '}
                     <code>NextSSRPlugin</code>, and <code>withUk</code> Tailwind wrapper
                   </li>
                   <li>

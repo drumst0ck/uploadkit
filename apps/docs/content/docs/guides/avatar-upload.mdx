@@ -11,8 +11,8 @@ Avatar uploads have specific requirements: a single file, small size limit, and 
 ## 1. Configure the file route
 
 ```typescript title="app/api/uploadkit/route.ts"
-import { createUploadKitHandler } from '@uploadkit/next';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
+import type { FileRouter } from '@uploadkitdev/next';
 
 const router = {
   avatarUploader: {
@@ -58,7 +58,7 @@ export const { GET, POST } = createUploadKitHandler({ router });
 'use client';
 
 import { useState } from 'react';
-import { UploadButton } from '@uploadkit/react';
+import { UploadButton } from '@uploadkitdev/react';
 
 interface AvatarUploaderProps {
   currentAvatarUrl: string | null;
@@ -117,7 +117,7 @@ For a completely custom UI that looks like the circular avatar itself, use the `
 'use client';
 
 import { useRef } from 'react';
-import { useUploadKit } from '@uploadkit/react';
+import { useUploadKit } from '@uploadkitdev/react';
 
 export function CustomAvatarUpload({ onSuccess }: { onSuccess: (url: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);

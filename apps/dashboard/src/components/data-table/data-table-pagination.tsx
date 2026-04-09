@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@uploadkit/ui';
+import { Button } from '@uploadkitdev/ui';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface DataTablePaginationProps {

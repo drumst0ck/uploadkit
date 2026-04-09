@@ -1,8 +1,8 @@
 export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { connectDB, UsageRecord } from '@uploadkit/db';
-import { TIER_LIMITS } from '@uploadkit/shared';
+import { connectDB, UsageRecord } from '@uploadkitdev/db';
+import { TIER_LIMITS } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { serializeError } from '@/lib/errors';
 

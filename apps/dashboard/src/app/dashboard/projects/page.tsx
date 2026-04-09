@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Plus, FolderOpen } from 'lucide-react';
 import { auth } from '../../../../auth';
-import { connectDB, Project } from '@uploadkit/db';
-import { Button } from '@uploadkit/ui';
+import { connectDB, Project } from '@uploadkitdev/db';
+import { Button } from '@uploadkitdev/ui';
 import { CreateProjectDialog } from '../../../components/create-project-dialog';
 import { formatDate } from '../../../lib/format';
 

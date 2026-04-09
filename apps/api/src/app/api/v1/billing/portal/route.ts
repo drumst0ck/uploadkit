@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { connectDB, Subscription } from '@uploadkit/db';
+import { connectDB, Subscription } from '@uploadkitdev/db';
 import { stripe } from '../../../../../lib/stripe';
 import { serializeError, serializeValidationError } from '../../../../../lib/errors';
 

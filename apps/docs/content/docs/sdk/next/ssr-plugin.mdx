@@ -19,8 +19,8 @@ Add `NextSSRPlugin` to your root `layout.tsx`:
 
 ```tsx
 // app/layout.tsx
-import { NextSSRPlugin } from '@uploadkit/next/server';
-import { extractRouterConfig } from '@uploadkit/next';
+import { NextSSRPlugin } from '@uploadkitdev/next/server';
+import { extractRouterConfig } from '@uploadkitdev/next';
 import { ourFileRouter } from '@/app/api/uploadkit/[...uploadkit]/route';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -51,4 +51,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 1. `extractRouterConfig(ourFileRouter)` runs on the server at render time, producing a plain JSON-serializable object.
 2. `NextSSRPlugin` renders a `<script>` tag containing that config, injected into the HTML stream.
-3. On the client, `@uploadkit/react` reads the config from the script tag before React hydrates, so components initialize with the correct configuration immediately.
+3. On the client, `@uploadkitdev/react` reads the config from the script tag before React hydrates, so components initialize with the correct configuration immediately.

@@ -2,8 +2,8 @@ export const runtime = 'nodejs';
 
 import { AbortMultipartUploadCommand } from '@aws-sdk/client-s3';
 import { type NextRequest, NextResponse } from 'next/server';
-import { connectDB, File } from '@uploadkit/db';
-import { NotFoundError } from '@uploadkit/shared';
+import { connectDB, File } from '@uploadkitdev/db';
+import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey } from '@/lib/with-api-key';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 import { MultipartAbortSchema } from '@/lib/schemas';

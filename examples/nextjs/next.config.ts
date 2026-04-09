@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const config: NextConfig = {
-  transpilePackages: ['@uploadkit/react', '@uploadkit/next', '@uploadkit/core'],
+  transpilePackages: ['@uploadkitdev/react', '@uploadkitdev/next', '@uploadkitdev/core'],
 };
 
 export default config;

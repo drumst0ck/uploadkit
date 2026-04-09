@@ -4,7 +4,7 @@ import { CodeDemoClient } from './code-demo-client'
 // ── Code examples (hardcoded constants — safe for dangerouslySetInnerHTML) ──
 
 const NEXTJS_CODE = `// app/api/upload/route.ts
-import { createUploadKitHandler } from '@uploadkit/next'
+import { createUploadKitHandler } from '@uploadkitdev/next'
 
 const router = createUploadKitHandler({
   imageUploader: f({ image: { maxFileSize: '4MB' } })
@@ -17,8 +17,8 @@ const router = createUploadKitHandler({
 export const { GET, POST } = router`
 
 const REACT_CODE = `// In your React component
-import { UploadKitProvider, UploadDropzone } from '@uploadkit/react'
-import '@uploadkit/react/styles.css'
+import { UploadKitProvider, UploadDropzone } from '@uploadkitdev/react'
+import '@uploadkitdev/react/styles.css'
 
 export function MyUploader() {
   return (

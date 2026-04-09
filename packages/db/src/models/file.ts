@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Document, type Types } from 'mongoose';
-import { FILE_STATUSES } from '@uploadkit/shared';
-import type { FileStatus } from '@uploadkit/shared';
+import { FILE_STATUSES } from '@uploadkitdev/shared';
+import type { FileStatus } from '@uploadkitdev/shared';
 
 export interface IFile extends Document {
   key: string;

@@ -9,7 +9,7 @@
  * to version control (T-10-04). It is listed in .gitignore.
  *
  * To run authenticated E2E tests:
- * 1. Start the dashboard dev server: pnpm --filter @uploadkit/dashboard dev
+ * 1. Start the dashboard dev server: pnpm --filter @uploadkitdev/dashboard dev
  * 2. Get the magic link URL from the Auth.js console output
  * 3. Set E2E_MAGIC_LINK_URL=<url> in your environment
  * 4. Run: npx playwright test

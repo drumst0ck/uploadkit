@@ -27,7 +27,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
 import { Copy, Plus, Check } from 'lucide-react';
 import { fetcher } from '../lib/fetcher';
 import { formatDate } from '../lib/format';

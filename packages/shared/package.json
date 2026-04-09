@@ -1,5 +1,5 @@
 {
-  "name": "@uploadkit/shared",
+  "name": "@uploadkitdev/shared",
   "version": "0.1.0",
   "private": true,
   "sideEffects": false,
@@ -23,7 +23,7 @@
     "nanoid": "^5.1.7"
   },
   "devDependencies": {
-    "@uploadkit/config": "workspace:*",
+    "@uploadkitdev/config": "workspace:*",
     "tsup": "^8.5.1",
     "typescript": "latest",
     "vitest": "latest"

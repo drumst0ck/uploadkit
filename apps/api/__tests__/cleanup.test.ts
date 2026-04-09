@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@uploadkit/db', () => ({
+vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   File: {
     find: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock('@/lib/storage', () => ({
 }));
 
 import { GET } from '@/app/api/cron/cleanup/route';
-import { File } from '@uploadkit/db';
+import { File } from '@uploadkitdev/db';
 import { r2Client } from '@/lib/storage';
 
 const CRON_SECRET = 'test-cron-secret';

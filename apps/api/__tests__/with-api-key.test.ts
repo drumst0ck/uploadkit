@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 // Mock external dependencies before importing withApiKey
-vi.mock('@uploadkit/db', () => ({
+vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   ApiKey: {
     findOne: vi.fn(),
@@ -23,7 +23,7 @@ vi.mock('@/lib/rate-limit', () => ({
 }));
 
 import { withApiKey } from '@/lib/with-api-key';
-import { ApiKey, Subscription } from '@uploadkit/db';
+import { ApiKey, Subscription } from '@uploadkitdev/db';
 import { ratelimit } from '@/lib/rate-limit';
 
 function makeRequest(headers: Record<string, string> = {}): NextRequest {

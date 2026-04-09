@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 import { nanoid } from 'nanoid';
 import { auth } from '../../../../../../../auth';
-import { connectDB, Project, ApiKey } from '@uploadkit/db';
+import { connectDB, Project, ApiKey } from '@uploadkitdev/db';
 import mongoose from 'mongoose';
 
 export const dynamic = 'force-dynamic';

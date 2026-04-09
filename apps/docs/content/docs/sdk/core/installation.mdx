@@ -1,15 +1,15 @@
 ---
 title: Installation
-description: Add @uploadkit/core to your project and make your first upload.
+description: Add @uploadkitdev/core to your project and make your first upload.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-`@uploadkit/core` is a zero-dependency TypeScript SDK that works in Node.js, the browser, and Edge runtimes (Cloudflare Workers, Vercel Edge Functions). It handles single-part and multipart uploads, progress tracking, retries, and cancellation.
+`@uploadkitdev/core` is a zero-dependency TypeScript SDK that works in Node.js, the browser, and Edge runtimes (Cloudflare Workers, Vercel Edge Functions). It handles single-part and multipart uploads, progress tracking, retries, and cancellation.
 
 <Callout type="info">
-  If you are using **Next.js**, install `@uploadkit/next` and `@uploadkit/react` instead — they include everything from core plus the server handler and React components. See the [Next.js guide](/docs/getting-started/nextjs).
+  If you are using **Next.js**, install `@uploadkitdev/next` and `@uploadkitdev/react` instead — they include everything from core plus the server handler and React components. See the [Next.js guide](/docs/getting-started/nextjs).
 </Callout>
 
 ## Install
@@ -17,17 +17,17 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 <Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
   <Tab value="pnpm">
     ```bash
-    pnpm add @uploadkit/core
+    pnpm add @uploadkitdev/core
     ```
   </Tab>
   <Tab value="npm">
     ```bash
-    npm install @uploadkit/core
+    npm install @uploadkitdev/core
     ```
   </Tab>
   <Tab value="yarn">
     ```bash
-    yarn add @uploadkit/core
+    yarn add @uploadkitdev/core
     ```
   </Tab>
 </Tabs>
@@ -37,7 +37,7 @@ Zero external runtime dependencies. Works with Node.js 18+, all modern browsers,
 ## Minimum working example
 
 ```typescript
-import { createUploadKit } from '@uploadkit/core';
+import { createUploadKit } from '@uploadkitdev/core';
 
 const client = createUploadKit({ apiKey: 'uk_live_xxxxxxxxxxxxxxxxxxxxx' });
 

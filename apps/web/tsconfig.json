@@ -1,5 +1,5 @@
 {
-  "extends": "@uploadkit/config/typescript/nextjs",
+  "extends": "@uploadkitdev/config/typescript/nextjs",
   "compilerOptions": {
     "paths": { "@/*": ["./src/*"] }
   },

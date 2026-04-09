@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validateFile } from '../src/validation';
-import { UploadKitError } from '@uploadkit/shared';
+import { UploadKitError } from '@uploadkitdev/shared';
 
 // Helper to create a File with specific properties
 function makeFile(

@@ -2,7 +2,7 @@ export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
-import { connectDB, File } from '@uploadkit/db';
+import { connectDB, File } from '@uploadkitdev/db';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { PaginationSchema } from '@/lib/schemas';
 import { serializeValidationError, serializeError } from '@/lib/errors';

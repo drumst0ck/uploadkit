@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@uploadkit/db', () => ({
+vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   ApiKey: {
     findOne: vi.fn(),
@@ -34,7 +34,7 @@ vi.mock('@/lib/storage', () => ({
 
 import { GET } from '@/app/api/v1/files/route';
 import { DELETE } from '@/app/api/v1/files/[key]/route';
-import { ApiKey, Subscription, File, UsageRecord } from '@uploadkit/db';
+import { ApiKey, Subscription, File, UsageRecord } from '@uploadkitdev/db';
 import { ratelimit } from '@/lib/rate-limit';
 import { r2Client } from '@/lib/storage';
 

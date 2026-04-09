@@ -1,6 +1,6 @@
 ---
 title: Next.js App Router
-description: Complete setup guide for Next.js App Router with @uploadkit/next and @uploadkit/react.
+description: Complete setup guide for Next.js App Router with @uploadkitdev/next and @uploadkitdev/react.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
@@ -14,22 +14,22 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ## Installation
 
-Install both `@uploadkit/next` for the server-side handler and `@uploadkit/react` for UI components:
+Install both `@uploadkitdev/next` for the server-side handler and `@uploadkitdev/react` for UI components:
 
 <Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
   <Tab value="pnpm">
     ```bash
-    pnpm add @uploadkit/next @uploadkit/react
+    pnpm add @uploadkitdev/next @uploadkitdev/react
     ```
   </Tab>
   <Tab value="npm">
     ```bash
-    npm install @uploadkit/next @uploadkit/react
+    npm install @uploadkitdev/next @uploadkitdev/react
     ```
   </Tab>
   <Tab value="yarn">
     ```bash
-    yarn add @uploadkit/next @uploadkit/react
+    yarn add @uploadkitdev/next @uploadkitdev/react
     ```
   </Tab>
 </Tabs>
@@ -39,8 +39,8 @@ Install both `@uploadkit/next` for the server-side handler and `@uploadkit/react
 Create a Route Handler at `app/api/uploadkit/route.ts`. This is where you define every upload category your app supports, along with its constraints and server-side logic.
 
 ```typescript title="app/api/uploadkit/route.ts"
-import { createUploadKitHandler } from '@uploadkit/next';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
+import type { FileRouter } from '@uploadkitdev/next';
 import { auth } from '@/lib/auth'; // your Auth.js or Clerk auth helper
 
 const router = {
@@ -117,7 +117,7 @@ UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
 Wrap your root layout's `children` with `UploadKitProvider`, pointing it at the route handler you just created. The provider calls your local `/api/uploadkit` endpoint — your API key stays server-side and never reaches the browser:
 
 ```tsx title="app/layout.tsx"
-import { UploadKitProvider } from '@uploadkit/react';
+import { UploadKitProvider } from '@uploadkitdev/react';
 
 export default function RootLayout({
   children,
@@ -145,7 +145,7 @@ UploadKit ships three ready-made upload components. Use whichever fits your UI:
 A single button that opens the system file picker:
 
 ```tsx title="app/profile/page.tsx"
-import { UploadButton } from '@uploadkit/react';
+import { UploadButton } from '@uploadkitdev/react';
 
 export default function ProfilePage() {
   return (
@@ -167,7 +167,7 @@ export default function ProfilePage() {
 A drag-and-drop zone with a file picker fallback:
 
 ```tsx title="app/documents/page.tsx"
-import { UploadDropzone } from '@uploadkit/react';
+import { UploadDropzone } from '@uploadkitdev/react';
 
 export default function DocumentsPage() {
   return (
@@ -189,7 +189,7 @@ An accessible modal dialog triggered by a button:
 'use client';
 
 import { useState } from 'react';
-import { UploadModal } from '@uploadkit/react';
+import { UploadModal } from '@uploadkitdev/react';
 
 export default function SettingsPage() {
   const [open, setOpen] = useState(false);
@@ -246,7 +246,7 @@ For real-time updates in the client after upload completes, listen to the `onUpl
 Use `generateReactHelpers` to get a fully-typed version of the upload components bound to your specific router:
 
 ```typescript title="lib/uploadkit.ts"
-import { generateReactHelpers } from '@uploadkit/react';
+import { generateReactHelpers } from '@uploadkitdev/react';
 import type { FileRouter } from '@/app/api/uploadkit/route';
 
 // Re-export typed components — route prop is now typed to your route names

@@ -14,7 +14,7 @@ import {
   Route,
   ScrollText,
 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkit/ui';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkitdev/ui';
 import { cn } from '../../lib/cn';
 
 interface NavItem {

@@ -1,5 +1,5 @@
 {
-  "name": "@uploadkit/core",
+  "name": "@uploadkitdev/core",
   "version": "0.2.0",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -23,8 +23,8 @@
   "dependencies": {},
   "peerDependencies": {},
   "devDependencies": {
-    "@uploadkit/shared": "workspace:*",
-    "@uploadkit/config": "workspace:*",
+    "@uploadkitdev/shared": "workspace:*",
+    "@uploadkitdev/config": "workspace:*",
     "tsup": "latest",
     "typescript": "latest"
   }

@@ -1,8 +1,8 @@
 import { auth } from '../../../../auth';
 import { redirect } from 'next/navigation';
-import { connectDB, UsageRecord, Subscription } from '@uploadkit/db';
-import { TIER_LIMITS } from '@uploadkit/shared';
-import type { Tier } from '@uploadkit/shared';
+import { connectDB, UsageRecord, Subscription } from '@uploadkitdev/db';
+import { TIER_LIMITS } from '@uploadkitdev/shared';
+import type { Tier } from '@uploadkitdev/shared';
 import { UsageProgressBar } from '../../../components/usage-progress-bar';
 import { UsageBarChart } from '../../../components/charts/usage-bar-chart';
 import { formatBytes, formatNumber } from '../../../lib/format';

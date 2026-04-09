@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { createExpressHandler } from '@uploadkit/next/express';
-import type { FileRouter } from '@uploadkit/next';
+import { createExpressHandler } from '@uploadkitdev/next/express';
+import type { FileRouter } from '@uploadkitdev/next';
 
 const app = express();
 

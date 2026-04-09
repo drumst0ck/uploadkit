@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Complete API reference for @uploadkit/next — all types, functions, and utilities.
+description: Complete API reference for @uploadkitdev/next — all types, functions, and utilities.
 ---
 
 ## createUploadKitHandler
@@ -156,7 +156,7 @@ function parseFileSize(size: string | number): number
 Throws an `Error` if the format is invalid:
 
 ```typescript
-import { parseFileSize } from '@uploadkit/next';
+import { parseFileSize } from '@uploadkitdev/next';
 
 parseFileSize('4MB')     // 4194304
 parseFileSize('512KB')   // 524288
@@ -169,10 +169,10 @@ parseFileSize('4 megabytes') // Error: Invalid file size format
 
 ## generateReactHelpers (re-export)
 
-`@uploadkit/next` re-exports `generateReactHelpers` for type inference convenience. The actual implementation is in `@uploadkit/react`. See [Type Safety](/docs/sdk/next/type-safety) for usage.
+`@uploadkitdev/next` re-exports `generateReactHelpers` for type inference convenience. The actual implementation is in `@uploadkitdev/react`. See [Type Safety](/docs/sdk/next/type-safety) for usage.
 
 ```typescript
-import { generateReactHelpers } from '@uploadkit/react';
+import { generateReactHelpers } from '@uploadkitdev/react';
 import type { AppFileRouter } from './route';
 
 export const { UploadButton, UploadDropzone, UploadModal, useUploadKit } =

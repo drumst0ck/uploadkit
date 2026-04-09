@@ -1,4 +1,4 @@
-import { createUploadKitHandler } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
 import { uploadRouter } from './core';
 
 const handler = createUploadKitHandler({

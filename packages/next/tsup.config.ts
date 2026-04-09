@@ -14,7 +14,7 @@ export default defineConfig({
   external: [
     'next',
     'react',
-    '@uploadkit/core',
+    '@uploadkitdev/core',
     '@aws-sdk/client-s3',
     '@aws-sdk/s3-request-presigner',
     'server-only',

@@ -29,8 +29,8 @@ Browser                    Your server                    Storage
 A file router is a plain object whose values conform to `RouteConfig`. Use `satisfies FileRouter` to preserve the literal route name strings — this is what enables end-to-end type safety.
 
 ```typescript title="app/api/uploadkit/route.ts"
-import { createUploadKitHandler } from '@uploadkit/next';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
+import type { FileRouter } from '@uploadkitdev/next';
 
 const router = {
   imageUploader: {
@@ -156,7 +156,7 @@ Dashboard-defined routes support the same configuration (file types, size limits
 The `satisfies FileRouter` pattern preserves the exact string literal keys of your router object. When you call `generateReactHelpers<typeof router>()`, TypeScript infers those string literals as the allowed values for the `route` prop — invalid route names become compile-time errors.
 
 ```typescript title="lib/uploadkit.ts"
-import { generateReactHelpers } from '@uploadkit/react';
+import { generateReactHelpers } from '@uploadkitdev/react';
 import type { router } from '@/app/api/uploadkit/route';
 
 export const { UploadButton, UploadDropzone, useUploadKit } =

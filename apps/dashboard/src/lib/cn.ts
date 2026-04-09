@@ -1,2 +1,2 @@
-import { cn } from '@uploadkit/ui';
+import { cn } from '@uploadkitdev/ui';
 export { cn };

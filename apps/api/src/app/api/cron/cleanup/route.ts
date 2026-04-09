@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { DeleteObjectCommand, AbortMultipartUploadCommand } from '@aws-sdk/client-s3';
-import { connectDB, File } from '@uploadkit/db';
+import { connectDB, File } from '@uploadkitdev/db';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 
 export const runtime = 'nodejs';

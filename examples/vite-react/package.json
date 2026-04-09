@@ -1,7 +1,7 @@
 {
-  "name": "@uploadkit/example-vite",
+  "name": "@uploadkitdev/example-vite",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "dev": "concurrently \"vite\" \"tsx watch server.ts\"",
     "dev:client": "vite",
@@ -11,8 +11,8 @@
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@uploadkit/react": "workspace:*",
-    "@uploadkit/next": "workspace:*",
+    "@uploadkitdev/react": "workspace:*",
+    "@uploadkitdev/next": "workspace:*",
     "express": "^5.0.0",
     "cors": "^2.8.5"
   },

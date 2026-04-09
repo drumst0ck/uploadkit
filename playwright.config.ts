@@ -32,7 +32,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm --filter @uploadkit/dashboard dev',
+    command: 'pnpm --filter @uploadkitdev/dashboard dev',
     url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

@@ -1,14 +1,14 @@
 import type { FileRouter } from './types';
 
 /**
- * Type-safe React component factory stub for @uploadkit/next.
+ * Type-safe React component factory stub for @uploadkitdev/next.
  *
  * This function provides the TYPE DEFINITION for Phase 4.
- * Phase 5 (@uploadkit/react) replaces this stub with real component implementations.
+ * Phase 5 (@uploadkitdev/react) replaces this stub with real component implementations.
  *
  * @example
  * // In your server component or layout:
- * import { generateReactHelpers } from '@uploadkit/next';
+ * import { generateReactHelpers } from '@uploadkitdev/next';
  * import type { AppFileRouter } from './api/uploadkit/[...uploadkit]/route';
  *
  * export const { UploadButton, UploadDropzone, useUploadKit } = generateReactHelpers<AppFileRouter>();
@@ -19,7 +19,7 @@ export function generateReactHelpers<TRouter extends FileRouter>(): {
   UploadModal: React.ComponentType<{ route: keyof TRouter & string; [key: string]: unknown }>;
   useUploadKit: (route: keyof TRouter & string) => {
     // file: Blob is used here instead of File to avoid requiring the DOM lib
-    // in the library tsconfig. @uploadkit/react replaces this stub with the real type.
+    // in the library tsconfig. @uploadkitdev/react replaces this stub with the real type.
     upload: (file: { name: string; size: number; type: string }) => Promise<void>;
     progress: number;
     isUploading: boolean;
@@ -27,8 +27,8 @@ export function generateReactHelpers<TRouter extends FileRouter>(): {
   };
 } {
   throw new Error(
-    'generateReactHelpers requires @uploadkit/react. ' +
-    'Install it: pnpm add @uploadkit/react'
+    'generateReactHelpers requires @uploadkitdev/react. ' +
+    'Install it: pnpm add @uploadkitdev/react'
   );
 }
 

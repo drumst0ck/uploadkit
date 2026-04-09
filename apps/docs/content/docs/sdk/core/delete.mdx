@@ -1,6 +1,6 @@
 ---
 title: Deleting Files
-description: Delete uploaded files by their storage key using @uploadkit/core.
+description: Delete uploaded files by their storage key using @uploadkitdev/core.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
@@ -10,7 +10,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 Delete a file by its storage key. The key is returned in the `UploadResult` from `client.upload()`.
 
 ```typescript
-import { createUploadKit } from '@uploadkit/core';
+import { createUploadKit } from '@uploadkitdev/core';
 
 const client = createUploadKit({ apiKey: 'uk_live_xxxxxxxxxxxxxxxxxxxxx' });
 
@@ -55,7 +55,7 @@ await db.files.delete({ id: fileRecord.id });
 ## Error handling
 
 ```typescript
-import { createUploadKit, UploadKitError } from '@uploadkit/core';
+import { createUploadKit, UploadKitError } from '@uploadkitdev/core';
 
 try {
   await client.deleteFile(key);

@@ -8,8 +8,8 @@ description: Display a list of uploaded files with thumbnails and optional delet
 `FileList` renders an array of `UploadResult` objects as a styled list, where each row shows a thumbnail preview, filename, file size, and an optional delete button.
 
 ```tsx
-import { FileList } from '@uploadkit/react';
-import type { UploadResult } from '@uploadkit/react';
+import { FileList } from '@uploadkitdev/react';
+import type { UploadResult } from '@uploadkitdev/react';
 
 export default function FilesPage({ files }: { files: UploadResult[] }) {
   return (
@@ -40,8 +40,8 @@ export default function FilesPage({ files }: { files: UploadResult[] }) {
 'use client';
 
 import { useState } from 'react';
-import { FileList } from '@uploadkit/react';
-import type { UploadResult } from '@uploadkit/react';
+import { FileList } from '@uploadkitdev/react';
+import type { UploadResult } from '@uploadkitdev/react';
 
 export default function FilesPage() {
   const [files, setFiles] = useState<UploadResult[]>(initialFiles);
@@ -75,8 +75,8 @@ Combine `UploadDropzone` with `FileList` to show uploaded files:
 'use client';
 
 import { useState } from 'react';
-import { UploadDropzone, FileList } from '@uploadkit/react';
-import type { UploadResult } from '@uploadkit/react';
+import { UploadDropzone, FileList } from '@uploadkitdev/react';
+import type { UploadResult } from '@uploadkitdev/react';
 
 export default function UploaderPage() {
   const [files, setFiles] = useState<UploadResult[]>([]);

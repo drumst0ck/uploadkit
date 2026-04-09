@@ -1,7 +1,7 @@
-# @uploadkit/next
+# @uploadkitdev/next
 
-[![npm version](https://img.shields.io/npm/v/@uploadkit/next)](https://www.npmjs.com/package/@uploadkit/next)
-[![npm downloads](https://img.shields.io/npm/dm/@uploadkit/next)](https://www.npmjs.com/package/@uploadkit/next)
+[![npm version](https://img.shields.io/npm/v/@uploadkitdev/next)](https://www.npmjs.com/package/@uploadkitdev/next)
+[![npm downloads](https://img.shields.io/npm/dm/@uploadkitdev/next)](https://www.npmjs.com/package/@uploadkitdev/next)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml/badge.svg)](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml)
 
@@ -19,13 +19,13 @@ Next.js App Router adapter for UploadKit with typed file routes.
 
 ```bash
 # npm
-npm install @uploadkit/next
+npm install @uploadkitdev/next
 
 # pnpm
-pnpm add @uploadkit/next
+pnpm add @uploadkitdev/next
 
 # yarn
-yarn add @uploadkit/next
+yarn add @uploadkitdev/next
 ```
 
 **Peer dependency:** `next >= 14`
@@ -36,8 +36,8 @@ yarn add @uploadkit/next
 
 ```typescript
 // lib/upload.ts
-import { createUploadKitHandler } from '@uploadkit/next';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
+import type { FileRouter } from '@uploadkitdev/next';
 
 export const fileRouter = {
   imageUploader: {
@@ -65,7 +65,7 @@ export type OurFileRouter = typeof fileRouter;
 
 ```typescript
 // app/api/upload/route.ts
-import { createUploadKitHandler } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
 import { fileRouter } from '@/lib/upload';
 
 const { GET, POST } = createUploadKitHandler({
@@ -79,8 +79,8 @@ export { GET, POST };
 ### 3. Use in your React components
 
 ```typescript
-// In your client component (with @uploadkit/react installed)
-import { UploadButton } from '@uploadkit/react';
+// In your client component (with @uploadkitdev/react installed)
+import { UploadButton } from '@uploadkitdev/react';
 
 <UploadButton route="imageUploader" endpoint="/api/upload" />
 ```
@@ -112,7 +112,7 @@ A record where each key is a route name and the value is a `RouteConfig`:
 Generates type-safe component wrappers that infer route names from your `FileRouter`.
 
 ```typescript
-import { generateReactHelpers } from '@uploadkit/next';
+import { generateReactHelpers } from '@uploadkitdev/next';
 import type { OurFileRouter } from '@/lib/upload';
 
 export const { UploadButton, UploadDropzone } =
@@ -139,8 +139,8 @@ const { GET, POST } = createUploadKitHandler({
 ## Links
 
 - [Full documentation](https://docs.uploadkit.dev)
-- [Core SDK — @uploadkit/core](https://www.npmjs.com/package/@uploadkit/core)
-- [React components — @uploadkit/react](https://www.npmjs.com/package/@uploadkit/react)
+- [Core SDK — @uploadkitdev/core](https://www.npmjs.com/package/@uploadkitdev/core)
+- [React components — @uploadkitdev/react](https://www.npmjs.com/package/@uploadkitdev/react)
 
 ## License
 

@@ -1,5 +1,5 @@
 {
-  "extends": "@uploadkit/config/typescript/library",
+  "extends": "@uploadkitdev/config/typescript/library",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist"

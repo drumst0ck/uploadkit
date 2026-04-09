@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth, signOut } from '../../../auth';
-import { connectDB, Project } from '@uploadkit/db';
+import { connectDB, Project } from '@uploadkitdev/db';
 import { SidebarProvider } from '../../components/layout/sidebar';
 import { MobileMenuWrapper } from '../../components/layout/mobile-menu-wrapper';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@uploadkit/emails",
+  "name": "@uploadkitdev/emails",
   "version": "0.1.0",
   "private": true,
   "sideEffects": false,
@@ -27,7 +27,7 @@
     "react": "^19.0.0"
   },
   "devDependencies": {
-    "@uploadkit/config": "workspace:*",
+    "@uploadkitdev/config": "workspace:*",
     "@types/react": "latest",
     "tsup": "^8.5.1",
     "typescript": "latest"

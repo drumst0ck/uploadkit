@@ -9,7 +9,7 @@ import {
 import {
   Button,
   Checkbox,
-} from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
 import { Link2, ArrowUpDown, Trash2 } from 'lucide-react';
 import { DataTable } from '../data-table/data-table';
 import { DataTableToolbar } from '../data-table/data-table-toolbar';

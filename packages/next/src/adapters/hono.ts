@@ -7,7 +7,7 @@ import { createUploadKitHandler } from '../handler';
  *
  * Register like:
  * ```ts
- * import { createHonoHandler } from '@uploadkit/next/hono';
+ * import { createHonoHandler } from '@uploadkitdev/next/hono';
  * app.all('/api/uploadkit/*', createHonoHandler({ router, apiKey }));
  * ```
  *

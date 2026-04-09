@@ -29,7 +29,7 @@ export { useAutoDismiss } from './hooks/use-auto-dismiss';
 export { useThumbnail } from './hooks/use-thumbnail';
 
 // Types re-exported from core for convenience
-export type { UploadResult, ProxyClientConfig } from '@uploadkit/core';
+export type { UploadResult, ProxyClientConfig } from '@uploadkitdev/core';
 
 // Version
 export const VERSION = '0.1.0';

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@uploadkit/db', () => ({
+vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   Subscription: {
     findOneAndUpdate: vi.fn(),
@@ -22,12 +22,12 @@ vi.mock('@/lib/stripe', () => ({
   },
 }));
 
-vi.mock('@uploadkit/emails', () => ({
+vi.mock('@uploadkitdev/emails', () => ({
   sendInvoiceEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { POST } from '@/app/api/v1/webhooks/stripe/route';
-import { Subscription } from '@uploadkit/db';
+import { Subscription } from '@uploadkitdev/db';
 import { stripe } from '@/lib/stripe';
 
 const FAKE_WEBHOOK_SECRET = 'whsec_test_fake';

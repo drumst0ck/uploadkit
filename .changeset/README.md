@@ -6,7 +6,7 @@ We have a quick list of things for you, the maintainer:
 
 1. You'll need to add a `NPM_TOKEN` to your GitHub Secrets. Learn more about this step [here](https://github.com/changesets/action#with-publishing).
 
-2. You should run `pnpm changeset` when you want to release a new version of an SDK package (`@uploadkit/core`, `@uploadkit/react`, `@uploadkit/next`).
+2. You should run `pnpm changeset` when you want to release a new version of an SDK package (`@uploadkitdev/core`, `@uploadkitdev/react`, `@uploadkitdev/next`).
 
 3. If you need to release a one-off changeset without going through CI, you can run `pnpm changeset publish` locally.
 

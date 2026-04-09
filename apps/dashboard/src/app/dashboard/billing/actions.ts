@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { auth } from '../../../../auth';
-import { connectDB, Subscription, User } from '@uploadkit/db';
+import { connectDB, Subscription, User } from '@uploadkitdev/db';
 import { stripe } from '../../../lib/stripe';
 
 /**

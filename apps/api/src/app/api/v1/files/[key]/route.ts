@@ -2,8 +2,8 @@ export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { connectDB, File, UsageRecord } from '@uploadkit/db';
-import { NotFoundError } from '@uploadkit/shared';
+import { connectDB, File, UsageRecord } from '@uploadkitdev/db';
+import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { UpdateFileMetadataSchema } from '@/lib/schemas';
 import { serializeValidationError, serializeError } from '@/lib/errors';

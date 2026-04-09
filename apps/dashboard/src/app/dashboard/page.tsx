@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { HardDrive, ArrowUpDown, Upload, FileText } from 'lucide-react';
 import { auth } from '../../../auth';
-import { connectDB, UsageRecord, File, Project } from '@uploadkit/db';
+import { connectDB, UsageRecord, File, Project } from '@uploadkitdev/db';
 import { MetricCard } from '../../components/metric-card';
 import { UploadsAreaChart } from '../../components/charts/uploads-area-chart';
 import { formatBytes, formatDate, formatNumber } from '../../lib/format';
@@ -13,7 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
 
 // Force dynamic rendering — auth() and connectDB() require runtime env vars
 export const dynamic = 'force-dynamic';

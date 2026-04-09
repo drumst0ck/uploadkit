@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   Button,
-} from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
 import { Trash2 } from 'lucide-react';
 
 interface BulkActionsBarProps {

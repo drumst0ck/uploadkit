@@ -7,7 +7,7 @@ import { createUploadKitHandler } from '../handler';
  *
  * Register like:
  * ```ts
- * import { createFastifyHandler } from '@uploadkit/next/fastify';
+ * import { createFastifyHandler } from '@uploadkitdev/next/fastify';
  * fastify.all('/api/uploadkit/*', createFastifyHandler({ router, apiKey }));
  * ```
  *

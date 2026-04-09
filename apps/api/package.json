@@ -1,5 +1,5 @@
 {
-  "name": "@uploadkit/api",
+  "name": "@uploadkitdev/api",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -14,9 +14,9 @@
     "@aws-sdk/client-s3": "latest",
     "@aws-sdk/s3-request-presigner": "latest",
     "@sentry/nextjs": "latest",
-    "@uploadkit/db": "workspace:*",
-    "@uploadkit/emails": "workspace:*",
-    "@uploadkit/shared": "workspace:*",
+    "@uploadkitdev/db": "workspace:*",
+    "@uploadkitdev/emails": "workspace:*",
+    "@uploadkitdev/shared": "workspace:*",
     "@upstash/qstash": "latest",
     "@upstash/ratelimit": "latest",
     "@upstash/redis": "latest",
@@ -34,7 +34,7 @@
     "@types/bcryptjs": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@uploadkit/config": "workspace:*",
+    "@uploadkitdev/config": "workspace:*",
     "@vitest/coverage-v8": "latest",
     "tailwindcss": "latest",
     "typescript": "latest",

@@ -1,7 +1,7 @@
 # UploadKit — Vite + React Example
 
 Demonstrates UploadKit with a Vite + React frontend and an Express backend.
-The Express server uses `createExpressHandler` from `@uploadkit/next/express`.
+The Express server uses `createExpressHandler` from `@uploadkitdev/next/express`.
 
 ## Setup
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '../../../../../auth';
-import { connectDB, UsageRecord, File, Project } from '@uploadkit/db';
+import { connectDB, UsageRecord, File, Project } from '@uploadkitdev/db';
 
 export const dynamic = 'force-dynamic';
 

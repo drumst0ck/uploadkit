@@ -1,14 +1,14 @@
 {
-  "name": "@uploadkit/example-express",
+  "name": "@uploadkitdev/example-express",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "@uploadkit/core": "workspace:*",
-    "@uploadkit/next": "workspace:*",
+    "@uploadkitdev/core": "workspace:*",
+    "@uploadkitdev/next": "workspace:*",
     "express": "^5.0.0"
   },
   "devDependencies": {

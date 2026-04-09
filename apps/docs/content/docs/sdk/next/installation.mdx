@@ -1,13 +1,13 @@
 ---
 title: Installation
-description: Add @uploadkit/next and @uploadkit/react to your Next.js app.
+description: Add @uploadkitdev/next and @uploadkitdev/react to your Next.js app.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-`@uploadkit/next` provides the server-side route handler for Next.js App Router. Pair it with `@uploadkit/react` for the client-side UI components.
+`@uploadkitdev/next` provides the server-side route handler for Next.js App Router. Pair it with `@uploadkitdev/react` for the client-side UI components.
 
 <Steps>
 
@@ -18,17 +18,17 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 <Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
   <Tab value="pnpm">
     ```bash
-    pnpm add @uploadkit/next @uploadkit/react
+    pnpm add @uploadkitdev/next @uploadkitdev/react
     ```
   </Tab>
   <Tab value="npm">
     ```bash
-    npm install @uploadkit/next @uploadkit/react
+    npm install @uploadkitdev/next @uploadkitdev/react
     ```
   </Tab>
   <Tab value="yarn">
     ```bash
-    yarn add @uploadkit/next @uploadkit/react
+    yarn add @uploadkitdev/next @uploadkitdev/react
     ```
   </Tab>
 </Tabs>
@@ -58,8 +58,8 @@ UPLOADKIT_API_KEY=uk_live_xxxxxxxxxxxxxxxxxxxxx
 Create `app/api/uploadkit/[...uploadkit]/route.ts` and define your routes:
 
 ```typescript title="app/api/uploadkit/[...uploadkit]/route.ts"
-import { createUploadKitHandler } from '@uploadkit/next';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
+import type { FileRouter } from '@uploadkitdev/next';
 
 const fileRouter = {
   imageUploader: {
@@ -92,7 +92,7 @@ export const { GET, POST } = createUploadKitHandler({
 In your root layout, add `UploadKitProvider` pointing at the route handler you just created. Browser components call `/api/uploadkit` — your API key stays on the server:
 
 ```tsx title="app/layout.tsx"
-import { UploadKitProvider } from '@uploadkit/react';
+import { UploadKitProvider } from '@uploadkitdev/react';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -114,7 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ## Add an upload component
 
 ```tsx title="app/page.tsx"
-import { UploadButton } from '@uploadkit/react';
+import { UploadButton } from '@uploadkitdev/react';
 
 export default function Page() {
   return (

@@ -125,7 +125,7 @@ export function WelcomeEmail({ userName, loginUrl }: WelcomeEmailProps) {
               Get started in 2 minutes
             </Heading>
             <Text style={styles.codeBlock}>
-              npm install @uploadkit/react @uploadkit/next
+              npm install @uploadkitdev/react @uploadkitdev/next
             </Text>
             <Text style={styles.subtext}>
               Then head to the{' '}

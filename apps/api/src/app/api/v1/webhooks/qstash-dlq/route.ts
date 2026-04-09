@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { Receiver } from '@upstash/qstash';
-import { connectDB, File } from '@uploadkit/db';
+import { connectDB, File } from '@uploadkitdev/db';
 
 export const runtime = 'nodejs';
 

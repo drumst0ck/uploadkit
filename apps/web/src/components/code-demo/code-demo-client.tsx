@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { UploadKitProvider, UploadButton, UploadDropzone } from '@uploadkit/react'
-import '@uploadkit/react/styles.css'
+import { UploadKitProvider, UploadButton, UploadDropzone } from '@uploadkitdev/react'
+import '@uploadkitdev/react/styles.css'
 
 type Tab = 'nextjs' | 'react' | 'api'
 type Theme = 'dark' | 'light'

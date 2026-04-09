@@ -1,4 +1,4 @@
-import { UploadKitError } from '@uploadkit/shared';
+import { UploadKitError } from '@uploadkitdev/shared';
 import type { UploadKitConfig, UploadOptions, UploadResult, UploadRequestResponse } from './types';
 import { fetchApi } from './http';
 import { withRetry } from './retry';

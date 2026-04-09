@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Document, type Types } from 'mongoose';
-import { TIERS } from '@uploadkit/shared';
-import type { Tier, SubscriptionStatus } from '@uploadkit/shared';
+import { TIERS } from '@uploadkitdev/shared';
+import type { Tier, SubscriptionStatus } from '@uploadkitdev/shared';
 
 export interface ISubscription extends Document {
   userId: Types.ObjectId;

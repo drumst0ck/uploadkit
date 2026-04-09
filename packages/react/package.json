@@ -1,5 +1,5 @@
 {
-  "name": "@uploadkit/react",
+  "name": "@uploadkitdev/react",
   "version": "0.2.0",
   "sideEffects": [
     "*.css"
@@ -30,7 +30,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@uploadkit/core": "workspace:*"
+    "@uploadkitdev/core": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -41,8 +41,8 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@uploadkit/config": "workspace:*",
-    "@uploadkit/next": "workspace:*",
+    "@uploadkitdev/config": "workspace:*",
+    "@uploadkitdev/next": "workspace:*",
     "jsdom": "^29.0.2",
     "tsup": "latest",
     "typescript": "latest",

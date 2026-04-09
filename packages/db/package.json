@@ -1,5 +1,5 @@
 {
-  "name": "@uploadkit/db",
+  "name": "@uploadkitdev/db",
   "version": "0.1.0",
   "private": true,
   "main": "./dist/index.js",
@@ -21,12 +21,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@uploadkit/shared": "workspace:*",
+    "@uploadkitdev/shared": "workspace:*",
     "mongoose": "^9.4.1"
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
-    "@uploadkit/config": "workspace:*",
+    "@uploadkitdev/config": "workspace:*",
     "mongodb": "^7.1.1",
     "tsup": "^8.5.1",
     "typescript": "latest",

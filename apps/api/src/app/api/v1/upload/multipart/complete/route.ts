@@ -2,8 +2,8 @@ export const runtime = 'nodejs';
 
 import { CompleteMultipartUploadCommand } from '@aws-sdk/client-s3';
 import { type NextRequest, NextResponse } from 'next/server';
-import { connectDB, File, FileRouter, UsageRecord } from '@uploadkit/db';
-import { NotFoundError } from '@uploadkit/shared';
+import { connectDB, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
+import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey } from '@/lib/with-api-key';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 import { MultipartCompleteSchema } from '@/lib/schemas';

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@uploadkit/db', () => ({
+vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   ApiKey: {
     findOne: vi.fn(),
@@ -32,7 +32,7 @@ vi.mock('@/lib/storage', () => ({
 
 import { GET, POST } from '@/app/api/v1/projects/[id]/keys/route';
 import { DELETE } from '@/app/api/v1/keys/[keyId]/route';
-import { ApiKey, Subscription, Project } from '@uploadkit/db';
+import { ApiKey, Subscription, Project } from '@uploadkitdev/db';
 import { ratelimit } from '@/lib/rate-limit';
 
 // A valid MongoDB ObjectId for tests

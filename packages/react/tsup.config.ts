@@ -6,5 +6,5 @@ export default defineConfig({
   dts: true,
   clean: true,
   splitting: true,
-  external: ['react', 'react-dom', '@uploadkit/core', '@uploadkit/next'],
+  external: ['react', 'react-dom', '@uploadkitdev/core', '@uploadkitdev/next'],
 });

@@ -1,6 +1,6 @@
 ---
 title: Uploading Files
-description: Basic uploads, progress tracking, metadata, abort, and error handling with @uploadkit/core.
+description: Basic uploads, progress tracking, metadata, abort, and error handling with @uploadkitdev/core.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
@@ -10,7 +10,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 Call `client.upload()` with a `File` object and the route name defined in your server-side file router.
 
 ```typescript
-import { createUploadKit } from '@uploadkit/core';
+import { createUploadKit } from '@uploadkitdev/core';
 
 const client = createUploadKit({ apiKey: 'uk_live_xxxxxxxxxxxxxxxxxxxxx' });
 
@@ -91,10 +91,10 @@ cancelButton.addEventListener('click', () => controller.abort());
 
 ## Error handling
 
-`client.upload()` throws an `UploadKitError` on failure. Import it from `@uploadkit/core` for typed error handling.
+`client.upload()` throws an `UploadKitError` on failure. Import it from `@uploadkitdev/core` for typed error handling.
 
 ```typescript
-import { createUploadKit, UploadKitError } from '@uploadkit/core';
+import { createUploadKit, UploadKitError } from '@uploadkitdev/core';
 
 try {
   const result = await client.upload({ file, route: 'imageUploader' });

@@ -11,7 +11,7 @@ UploadKit ships adapters for Express, Fastify, and Hono. Each adapter wraps the 
 
 ```ts
 import express from 'express';
-import { createExpressHandler } from '@uploadkit/next/adapters/express';
+import { createExpressHandler } from '@uploadkitdev/next/adapters/express';
 import { ourFileRouter } from './file-router';
 
 const app = express();
@@ -31,7 +31,7 @@ app.use(
 
 ```ts
 import Fastify from 'fastify';
-import { createFastifyHandler } from '@uploadkit/next/adapters/fastify';
+import { createFastifyHandler } from '@uploadkitdev/next/adapters/fastify';
 import { ourFileRouter } from './file-router';
 
 const fastify = Fastify();
@@ -51,7 +51,7 @@ fastify.all(
 
 ```ts
 import { Hono } from 'hono';
-import { createHonoHandler } from '@uploadkit/next/adapters/hono';
+import { createHonoHandler } from '@uploadkitdev/next/adapters/hono';
 import { ourFileRouter } from './file-router';
 
 const app = new Hono();

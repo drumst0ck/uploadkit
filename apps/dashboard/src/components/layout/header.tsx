@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Menu, Search } from 'lucide-react';
-import { Button, Avatar, AvatarImage, AvatarFallback } from '@uploadkit/ui';
+import { Button, Avatar, AvatarImage, AvatarFallback } from '@uploadkitdev/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
 import { ThemeToggle } from '../theme-toggle';
 import { Breadcrumbs } from './breadcrumbs';
 import { useSidebar } from './sidebar';

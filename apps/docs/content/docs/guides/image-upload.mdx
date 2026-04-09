@@ -15,8 +15,8 @@ Define which file types and sizes your route accepts. In Next.js, this goes in y
 <Tabs groupId="framework" items={['Next.js', 'React (API key)']}>
   <Tab value="Next.js">
     ```typescript title="app/api/uploadkit/route.ts"
-    import { createUploadKitHandler } from '@uploadkit/next';
-    import type { FileRouter } from '@uploadkit/next';
+    import { createUploadKitHandler } from '@uploadkitdev/next';
+    import type { FileRouter } from '@uploadkitdev/next';
 
     const router = {
       imageUploader: {
@@ -58,7 +58,7 @@ Define which file types and sizes your route accepts. In Next.js, this goes in y
     ```tsx title="app/upload/page.tsx"
     'use client';
 
-    import { UploadDropzone } from '@uploadkit/react';
+    import { UploadDropzone } from '@uploadkitdev/react';
 
     export default function UploadPage() {
       return (
@@ -79,7 +79,7 @@ Define which file types and sizes your route accepts. In Next.js, this goes in y
     ```tsx
     'use client';
 
-    import { UploadDropzone } from '@uploadkit/react';
+    import { UploadDropzone } from '@uploadkitdev/react';
 
     export default function UploadPage() {
       return (
@@ -108,7 +108,7 @@ Use the `FilePreview` component to display thumbnails before and after upload:
 'use client';
 
 import { useState } from 'react';
-import { UploadDropzone, FilePreview } from '@uploadkit/react';
+import { UploadDropzone, FilePreview } from '@uploadkitdev/react';
 
 export default function UploadPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -133,7 +133,7 @@ export default function UploadPage() {
 }
 ```
 
-For in-progress thumbnail previews (before the upload completes), use the `FilePreview` component from `@uploadkit/react` — it generates thumbnails client-side via canvas.
+For in-progress thumbnail previews (before the upload completes), use the `FilePreview` component from `@uploadkitdev/react` — it generates thumbnails client-side via canvas.
 
 ## 4. Handle the upload result
 

@@ -50,7 +50,7 @@ function useUploadKit(route: string): {
 'use client';
 
 import { useRef } from 'react';
-import { useUploadKit } from '@uploadkit/react';
+import { useUploadKit } from '@uploadkitdev/react';
 
 export function CustomUploadForm() {
   const { upload, abort, reset, status, progress, error, result, isUploading } =
@@ -133,7 +133,7 @@ If your component unmounts while an upload is in progress, call `abort` in a cle
 
 ```tsx
 import { useEffect } from 'react';
-import { useUploadKit } from '@uploadkit/react';
+import { useUploadKit } from '@uploadkitdev/react';
 
 function UploadWidget() {
   const { upload, abort, isUploading } = useUploadKit('imageUploader');

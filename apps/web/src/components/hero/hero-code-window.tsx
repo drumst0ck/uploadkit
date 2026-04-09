@@ -3,7 +3,7 @@ import { HeroCodeWindowClient } from './hero-code-window-client'
 
 // Code samples shown in the hero code window
 const ROUTE_CODE = `// app/api/upload/route.ts
-import { createUploadKitHandler } from '@uploadkit/next'
+import { createUploadKitHandler } from '@uploadkitdev/next'
 
 const router = createUploadKitHandler({
   imageUploader: f({ image: { maxFileSize: '4MB' } })
@@ -19,8 +19,8 @@ const router = createUploadKitHandler({
 export const { GET, POST } = router`
 
 const PAGE_CODE = `// app/upload/page.tsx
-import { UploadKitProvider, UploadDropzone } from '@uploadkit/react'
-import '@uploadkit/react/styles.css'
+import { UploadKitProvider, UploadDropzone } from '@uploadkitdev/react'
+import '@uploadkitdev/react/styles.css'
 
 export default function UploadPage() {
   return (

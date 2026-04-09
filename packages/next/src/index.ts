@@ -4,7 +4,7 @@ export { createUploadKitHandler } from './handler';
 // SSR Plugin for Next.js App Router
 export { NextSSRPlugin, extractRouterConfig } from './ssr-plugin';
 
-// React helpers type stub (real implementation in @uploadkit/react)
+// React helpers type stub (real implementation in @uploadkitdev/react)
 export { generateReactHelpers } from './helpers';
 
 // Types

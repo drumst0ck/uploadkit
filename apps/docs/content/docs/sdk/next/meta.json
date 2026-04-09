@@ -1,4 +1,4 @@
 {
-  "title": "@uploadkit/next",
+  "title": "@uploadkitdev/next",
   "pages": ["installation", "file-router", "middleware", "type-safety", "ssr-plugin", "backend-adapters", "api-reference"]
 }

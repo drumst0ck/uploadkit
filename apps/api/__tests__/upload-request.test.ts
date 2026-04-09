@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 // Mock all external dependencies before importing route handlers
-vi.mock('@uploadkit/db', () => ({
+vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   ApiKey: {
     findOne: vi.fn(),
@@ -39,7 +39,7 @@ vi.mock('@/lib/presign', () => ({
 }));
 
 import { POST } from '@/app/api/v1/upload/request/route';
-import { ApiKey, Subscription, File, FileRouter, UsageRecord } from '@uploadkit/db';
+import { ApiKey, Subscription, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
 import { uploadRatelimit } from '@/lib/rate-limit';
 import { generatePresignedPutUrl } from '@/lib/presign';
 

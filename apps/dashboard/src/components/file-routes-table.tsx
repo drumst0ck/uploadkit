@@ -31,7 +31,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
 import { MoreHorizontal, Plus, Pencil, Trash2 } from 'lucide-react';
 import { fetcher } from '../lib/fetcher';
 import { formatBytes } from '../lib/format';

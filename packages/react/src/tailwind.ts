@@ -9,7 +9,7 @@ type TailwindConfig = {
  *
  * Usage (tailwind.config.ts):
  * ```ts
- * import { withUk } from '@uploadkit/react/tailwind';
+ * import { withUk } from '@uploadkitdev/react/tailwind';
  * export default withUk({ content: ['./src/**\/*.tsx'] });
  * ```
  *
@@ -25,7 +25,7 @@ export function withUk(config: TailwindConfig): TailwindConfig {
     ...config,
     content: [
       ...existingContent,
-      'node_modules/@uploadkit/react/dist/**/*.{js,mjs}',
+      'node_modules/@uploadkitdev/react/dist/**/*.{js,mjs}',
     ],
     plugins: [
       ...(config.plugins ?? []),

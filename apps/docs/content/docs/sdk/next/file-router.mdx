@@ -8,8 +8,8 @@ import { Callout } from 'fumadocs-ui/components/callout';
 The file router is a plain object where each key is a route name and each value is a `RouteConfig`. Define it with `satisfies FileRouter` and export it from your route handler file.
 
 ```typescript title="app/api/uploadkit/[...uploadkit]/route.ts"
-import { createUploadKitHandler } from '@uploadkit/next';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
+import type { FileRouter } from '@uploadkitdev/next';
 
 const fileRouter = {
   // Route for profile pictures

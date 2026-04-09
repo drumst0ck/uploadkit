@@ -1,4 +1,4 @@
-import { TIER_LIMITS } from '@uploadkit/shared'
+import { TIER_LIMITS } from '@uploadkitdev/shared'
 
 /**
  * Formats a byte count to a human-readable string.

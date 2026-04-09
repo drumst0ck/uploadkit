@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
-import { createUploadKit } from '@uploadkit/core';
-import { createExpressHandler } from '@uploadkit/next/express';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKit } from '@uploadkitdev/core';
+import { createExpressHandler } from '@uploadkitdev/next/express';
+import type { FileRouter } from '@uploadkitdev/next';
 
 const app = express();
 app.use(express.json());

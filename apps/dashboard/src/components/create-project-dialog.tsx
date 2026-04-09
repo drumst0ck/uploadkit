@@ -10,7 +10,7 @@ import {
   DialogTrigger,
   Button,
   Input,
-} from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
 import { useProjects } from '../hooks/use-projects';
 
 interface CreateProjectDialogProps {

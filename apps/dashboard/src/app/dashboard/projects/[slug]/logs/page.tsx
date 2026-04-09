@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { auth } from '../../../../../../auth';
-import { connectDB, Project } from '@uploadkit/db';
+import { connectDB, Project } from '@uploadkitdev/db';
 import { UploadLogsTable } from '../../../../../components/upload-logs-table';
 
 export const dynamic = 'force-dynamic';

@@ -13,7 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   Button,
-} from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
 
 interface SettingsFormProps {
   initialName: string;

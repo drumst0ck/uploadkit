@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@uploadkit/db', () => ({
+vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   ApiKey: {
     findOne: vi.fn(),
@@ -47,7 +47,7 @@ vi.mock('@/lib/qstash', () => ({
 import { POST as initPOST } from '@/app/api/v1/upload/multipart/init/route';
 import { POST as completePOST } from '@/app/api/v1/upload/multipart/complete/route';
 import { POST as abortPOST } from '@/app/api/v1/upload/multipart/abort/route';
-import { ApiKey, Subscription, File, FileRouter, UsageRecord } from '@uploadkit/db';
+import { ApiKey, Subscription, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
 import { uploadRatelimit } from '@/lib/rate-limit';
 import { r2Client } from '@/lib/storage';
 

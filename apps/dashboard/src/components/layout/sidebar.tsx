@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Sheet, SheetContent } from '@uploadkit/ui';
-import { TooltipProvider } from '@uploadkit/ui';
+import { Sheet, SheetContent } from '@uploadkitdev/ui';
+import { TooltipProvider } from '@uploadkitdev/ui';
 import { cn } from '../../lib/cn';
 import { Logo } from '../logo';
 import { SidebarNav } from './sidebar-nav';

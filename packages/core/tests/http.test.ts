@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fetchApi } from '../src/http';
-import { UploadKitError } from '@uploadkit/shared';
+import { UploadKitError } from '@uploadkitdev/shared';
 
 describe('fetchApi', () => {
   const BASE_URL = 'https://api.uploadkit.dev';

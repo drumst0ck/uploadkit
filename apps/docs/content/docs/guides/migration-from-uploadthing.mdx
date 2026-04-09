@@ -20,8 +20,8 @@ UploadKit is a direct UploadThing alternative built on the same presigned URL ap
 | `UTApi` | `createUploadKit()` (core SDK) | Server-side file operations |
 | `.middleware()` | `middleware: (ctx) => {}` | Inline function in route config |
 | `.onUploadComplete()` | `onUploadComplete: (args) => {}` | Inline function in route config |
-| `@uploadthing/next` | `@uploadkit/next` | Package rename |
-| `@uploadthing/react` | `@uploadkit/react` | Package rename |
+| `@uploadthing/next` | `@uploadkitdev/next` | Package rename |
+| `@uploadthing/react` | `@uploadkitdev/react` | Package rename |
 
 ## Key Differences
 
@@ -114,7 +114,7 @@ UploadThing requires per-component class overrides. UploadKit supports CSS custo
 pnpm remove uploadthing @uploadthing/next @uploadthing/react
 
 # Install UploadKit packages
-pnpm add @uploadkit/next @uploadkit/react
+pnpm add @uploadkitdev/next @uploadkitdev/react
 ```
 
 ### Step 2: Update the file router
@@ -143,8 +143,8 @@ pnpm add @uploadkit/next @uploadkit/react
   </Tab>
   <Tab value="After (UploadKit)">
     ```typescript title="app/api/uploadkit/route.ts"
-    import { createUploadKitHandler } from '@uploadkit/next';
-    import type { FileRouter } from '@uploadkit/next';
+    import { createUploadKitHandler } from '@uploadkitdev/next';
+    import type { FileRouter } from '@uploadkitdev/next';
 
     const router = {
       imageUploader: {
@@ -179,7 +179,7 @@ pnpm add @uploadkit/next @uploadkit/react
   </Tab>
   <Tab value="After (UploadKit)">
     ```tsx
-    import { UploadButton, UploadDropzone } from '@uploadkit/react';
+    import { UploadButton, UploadDropzone } from '@uploadkitdev/react';
 
     <UploadButton route="imageUploader" />
     <UploadDropzone route="imageUploader" />
@@ -227,7 +227,7 @@ Beyond the migration, UploadKit adds several capabilities that UploadThing does 
 
 **CSS variable theming** — One global CSS override styles all components. No need to copy class lists to every component.
 
-**Open-source SDK** — `@uploadkit/core`, `@uploadkit/react`, and `@uploadkit/next` are all MIT licensed and published on npm.
+**Open-source SDK** — `@uploadkitdev/core`, `@uploadkitdev/react`, and `@uploadkitdev/next` are all MIT licensed and published on npm.
 
 <Callout type="info">
   Need help with your migration? Open a [GitHub discussion](https://github.com/uploadkit/uploadkit/discussions) or reach out at support@uploadkit.dev.

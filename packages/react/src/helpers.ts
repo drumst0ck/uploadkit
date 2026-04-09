@@ -1,5 +1,5 @@
 import type React from 'react';
-import type { FileRouter } from '@uploadkit/next';
+import type { FileRouter } from '@uploadkitdev/next';
 import { UploadButton } from './components/upload-button';
 import { UploadDropzone } from './components/upload-dropzone';
 import { UploadModal } from './components/upload-modal';
@@ -12,9 +12,9 @@ import type { UploadModalProps } from './components/upload-modal';
  * generateReactHelpers — type-safe factory that constrains the `route` prop
  * to the literal keys defined in your TRouter file router.
  *
- * Usage (canonical import path is @uploadkit/react):
+ * Usage (canonical import path is @uploadkitdev/react):
  * ```tsx
- * import { generateReactHelpers } from '@uploadkit/react';
+ * import { generateReactHelpers } from '@uploadkitdev/react';
  * import type { AppFileRouter } from './api/uploadkit/[...uploadkit]/route';
  *
  * export const { UploadButton, UploadDropzone, UploadModal, useUploadKit } =

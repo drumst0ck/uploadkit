@@ -38,7 +38,7 @@ UploadKit (uploadkit.dev) is a File Uploads as a Service (FUaaS) platform for de
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
 | Tailwind CSS | 4.2.2 (latest) | Utility-first CSS | v4 drops `tailwind.config.js` for CSS-first config via `@theme`. Engine is 5x faster full builds, 100x faster incremental. Native CSS cascade layers, P3 color support. Use in dashboard and landing. |
-| CSS Custom Properties | native | SDK component theming | The only correct approach for `@uploadkit/react` components — consumers must be able to override vars (`--uk-accent`, `--uk-radius`) without fighting Tailwind's specificity. No Tailwind in the SDK packages. |
+| CSS Custom Properties | native | SDK component theming | The only correct approach for `@uploadkitdev/react` components — consumers must be able to override vars (`--uk-accent`, `--uk-radius`) without fighting Tailwind's specificity. No Tailwind in the SDK packages. |
 | Motion (formerly Framer Motion) | 12.27.x (latest) | Animations in landing/dashboard | Package renamed from `framer-motion` to `motion`, import from `motion/react`. v12 adds oklch/oklab color animation, hardware-accelerated scroll, layout animations. No breaking changes from Framer Motion. |
 ### Database
 | Technology | Version | Purpose | Why Recommended |
@@ -73,7 +73,7 @@ UploadKit (uploadkit.dev) is a File Uploads as a Service (FUaaS) platform for de
 ### SDK Bundling
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| tsup | 8.5.0 (latest) | Bundle `@uploadkit/core`, `@uploadkit/react`, `@uploadkit/next` | Built on esbuild. Zero-config dual ESM+CJS output with `.d.ts` declarations in one command. Tree-shaking works on ESM output. CJS output is not tree-shakeable — acceptable since most bundlers use ESM. The 2026 default for TypeScript library publishing. |
+| tsup | 8.5.0 (latest) | Bundle `@uploadkitdev/core`, `@uploadkitdev/react`, `@uploadkitdev/next` | Built on esbuild. Zero-config dual ESM+CJS output with `.d.ts` declarations in one command. Tree-shaking works on ESM output. CJS output is not tree-shakeable — acceptable since most bundlers use ESM. The 2026 default for TypeScript library publishing. |
 ### Monitoring & Observability
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
@@ -98,7 +98,7 @@ UploadKit (uploadkit.dev) is a File Uploads as a Service (FUaaS) platform for de
 | jose | latest | JWT signing/verification | API key JWT verification if needed; also used internally by Auth.js. Do not use `jsonwebtoken` (Node.js-only, no Edge support). |
 | bcryptjs | latest | API key hashing | Hash stored API keys. Use `bcryptjs` (pure JS) not `bcrypt` (native bindings fail in serverless). |
 | nanoid | latest | ID generation | Short unique IDs for file keys, API keys. Smaller than `uuid`, URL-safe, no crypto dependency issues. |
-| clsx + cva | latest | Conditional classnames | Dashboard and `@uploadkit/react` component variants. `cva` for typed variant definitions, `clsx` for merging. |
+| clsx + cva | latest | Conditional classnames | Dashboard and `@uploadkitdev/react` component variants. `cva` for typed variant definitions, `clsx` for merging. |
 | nuqs | latest | URL state management | Dashboard query params (active project, pagination, filters) — type-safe, SSR-compatible, works with App Router. Replaces manual `useSearchParams` wrangling. |
 | sharp | 0.33.x | Server-side image metadata | Extract dimensions/format from uploads server-side without full processing. Optional — v1 does client-side thumbnails via canvas in `FilePreview`. |
 | date-fns | latest | Date formatting | Format upload timestamps, usage period dates. Tree-shakeable, no moment.js. |

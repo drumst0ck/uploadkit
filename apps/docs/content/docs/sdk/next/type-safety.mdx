@@ -12,8 +12,8 @@ UploadKit provides end-to-end type safety: route names defined in your server-si
 In your route handler file, export the inferred type of your file router using `typeof`:
 
 ```typescript title="app/api/uploadkit/[...uploadkit]/route.ts"
-import { createUploadKitHandler } from '@uploadkit/next';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
+import type { FileRouter } from '@uploadkitdev/next';
 
 const fileRouter = {
   avatarUploader: {
@@ -44,7 +44,7 @@ export const { GET, POST } = createUploadKitHandler({
 In your client-side code, call `generateReactHelpers<AppFileRouter>()` to get typed versions of the components and hook:
 
 ```typescript title="lib/uploadkit.ts"
-import { generateReactHelpers } from '@uploadkit/react';
+import { generateReactHelpers } from '@uploadkitdev/react';
 import type { AppFileRouter } from '@/app/api/uploadkit/[...uploadkit]/route';
 
 export const { UploadButton, UploadDropzone, UploadModal, useUploadKit } =
@@ -53,7 +53,7 @@ export const { UploadButton, UploadDropzone, UploadModal, useUploadKit } =
 
 ## Step 3: Use the typed components
 
-Import from your helper module instead of from `@uploadkit/react` directly:
+Import from your helper module instead of from `@uploadkitdev/react` directly:
 
 ```tsx title="app/profile/page.tsx"
 'use client';

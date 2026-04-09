@@ -2,7 +2,7 @@ import { highlight } from '@/lib/shiki'
 
 // Hardcoded integration snippet — safe for dangerouslySetInnerHTML (T-08-01 accepted).
 // This is a constant, never user input.
-const CODE = `import { UploadButton } from "@uploadkit/react"
+const CODE = `import { UploadButton } from "@uploadkitdev/react"
 
 export default function Page() {
   return <UploadButton endpoint="imageUploader" />

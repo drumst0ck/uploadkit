@@ -3,9 +3,9 @@
 export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { connectDB, Subscription } from '@uploadkit/db';
+import { connectDB, Subscription } from '@uploadkitdev/db';
 import { stripe } from '@/lib/stripe';
-import { sendInvoiceEmail } from '@uploadkit/emails';
+import { sendInvoiceEmail } from '@uploadkitdev/emails';
 
 // Map Stripe subscription status strings to our SubscriptionStatus enum
 function mapStripeStatus(

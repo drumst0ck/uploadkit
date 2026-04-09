@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 import { type NextRequest, NextResponse } from 'next/server';
-import { connectDB, ApiKey, Subscription } from '@uploadkit/db';
-import type { IApiKey, IProject } from '@uploadkit/db';
-import { UnauthorizedError, RateLimitError } from '@uploadkit/shared';
-import type { Tier } from '@uploadkit/shared';
+import { connectDB, ApiKey, Subscription } from '@uploadkitdev/db';
+import type { IApiKey, IProject } from '@uploadkitdev/db';
+import { UnauthorizedError, RateLimitError } from '@uploadkitdev/shared';
+import type { Tier } from '@uploadkitdev/shared';
 import { ratelimit, uploadRatelimit } from './rate-limit';
 import { serializeError } from './errors';
 

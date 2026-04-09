@@ -7,7 +7,7 @@ import { createUploadKitHandler } from '../handler';
  *
  * Mount like:
  * ```ts
- * import { createExpressHandler } from '@uploadkit/next/express';
+ * import { createExpressHandler } from '@uploadkitdev/next/express';
  * app.all('/api/uploadkit/{*path}', createExpressHandler({ router, apiKey }));  // Express v5
  * app.all('/api/uploadkit/*', createExpressHandler({ router, apiKey }));        // Express v4
  * ```

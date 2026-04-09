@@ -1,10 +1,10 @@
-# @uploadkit/react
+# @uploadkitdev/react
 
-[![npm version](https://img.shields.io/npm/v/@uploadkit/react)](https://www.npmjs.com/package/@uploadkit/react)
-[![npm downloads](https://img.shields.io/npm/dm/@uploadkit/react)](https://www.npmjs.com/package/@uploadkit/react)
+[![npm version](https://img.shields.io/npm/v/@uploadkitdev/react)](https://www.npmjs.com/package/@uploadkitdev/react)
+[![npm downloads](https://img.shields.io/npm/dm/@uploadkitdev/react)](https://www.npmjs.com/package/@uploadkitdev/react)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml/badge.svg)](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml)
-[![Bundle size](https://img.shields.io/bundlephobia/minzip/@uploadkit/react)](https://bundlephobia.com/package/@uploadkit/react)
+[![Bundle size](https://img.shields.io/bundlephobia/minzip/@uploadkitdev/react)](https://bundlephobia.com/package/@uploadkitdev/react)
 
 Premium React upload components for UploadKit.
 
@@ -23,13 +23,13 @@ Premium React upload components for UploadKit.
 
 ```bash
 # npm
-npm install @uploadkit/react
+npm install @uploadkitdev/react
 
 # pnpm
-pnpm add @uploadkit/react
+pnpm add @uploadkitdev/react
 
 # yarn
-yarn add @uploadkit/react
+yarn add @uploadkitdev/react
 ```
 
 **Peer dependencies:** `react >= 18`, `react-dom >= 18`
@@ -37,14 +37,14 @@ yarn add @uploadkit/react
 Import the stylesheet in your app's root:
 
 ```typescript
-import '@uploadkit/react/styles.css';
+import '@uploadkitdev/react/styles.css';
 ```
 
 ## Quickstart
 
 ```typescript
-import { UploadKitProvider, UploadButton } from '@uploadkit/react';
-import '@uploadkit/react/styles.css';
+import { UploadKitProvider, UploadButton } from '@uploadkitdev/react';
+import '@uploadkitdev/react/styles.css';
 
 export function App() {
   return (
@@ -117,8 +117,8 @@ Dark mode example:
 ## Links
 
 - [Full documentation](https://docs.uploadkit.dev)
-- [Core SDK — @uploadkit/core](https://www.npmjs.com/package/@uploadkit/core)
-- [Next.js adapter — @uploadkit/next](https://www.npmjs.com/package/@uploadkit/next)
+- [Core SDK — @uploadkitdev/core](https://www.npmjs.com/package/@uploadkitdev/core)
+- [Next.js adapter — @uploadkitdev/next](https://www.npmjs.com/package/@uploadkitdev/next)
 
 ## License
 

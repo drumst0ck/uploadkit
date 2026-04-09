@@ -1,5 +1,5 @@
 import { useReducer, useCallback } from 'react';
-import type { UploadResult, ProgressGranularity } from '@uploadkit/core';
+import type { UploadResult, ProgressGranularity } from '@uploadkitdev/core';
 import { useUploadKitContext } from './context';
 
 type UploadExtraOptions = {

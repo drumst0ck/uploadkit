@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom';
 
-// Mock @uploadkit/core's createUploadKit to prevent real network calls
+// Mock @uploadkitdev/core's createUploadKit to prevent real network calls
 // and avoid needing a built dist/ artifact in test environments.
 // Each test can configure mockUpload behavior via vi.mocked(client.upload).
-vi.mock('@uploadkit/core', () => {
+vi.mock('@uploadkitdev/core', () => {
   const mockUpload = vi.fn();
   const mockListFiles = vi.fn();
   const mockDeleteFile = vi.fn();

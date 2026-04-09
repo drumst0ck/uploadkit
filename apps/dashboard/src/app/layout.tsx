@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { SWRProvider } from '../providers/swr-provider';
 import { ThemeProvider } from '../providers/theme-provider';
-import { TooltipProvider } from '@uploadkit/ui';
+import { TooltipProvider } from '@uploadkitdev/ui';
 
 export const metadata: Metadata = {
   title: 'UploadKit Dashboard',

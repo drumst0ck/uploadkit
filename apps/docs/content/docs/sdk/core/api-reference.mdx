@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Complete API reference for @uploadkit/core — all types, methods, and error codes.
+description: Complete API reference for @uploadkitdev/core — all types, methods, and error codes.
 ---
 
 ## createUploadKit
@@ -101,10 +101,10 @@ Permanently deletes the file with the given storage key. Returns `Promise<void>`
 
 ## UploadKitError
 
-Thrown by all client methods on API or network errors. Import from `@uploadkit/core`.
+Thrown by all client methods on API or network errors. Import from `@uploadkitdev/core`.
 
 ```typescript
-import { UploadKitError } from '@uploadkit/core';
+import { UploadKitError } from '@uploadkitdev/core';
 
 try {
   await client.upload({ file, route: 'imageUploader' });
@@ -168,6 +168,6 @@ Internal response from `POST /api/v1/upload/multipart/init` (files >10 MB).
 ## VERSION
 
 ```typescript
-import { VERSION } from '@uploadkit/core';
+import { VERSION } from '@uploadkitdev/core';
 // '0.1.0'
 ```

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
-vi.mock('@uploadkit/db', () => ({
+vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   ApiKey: {
     findOne: vi.fn(),
@@ -47,12 +47,12 @@ vi.mock('@/lib/stripe-meters', () => ({
   METER_UPLOADS: 'uploads',
 }));
 
-vi.mock('@uploadkit/emails', () => ({
+vi.mock('@uploadkitdev/emails', () => ({
   sendUsageAlertEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { POST } from '@/app/api/v1/upload/complete/route';
-import { ApiKey, Subscription, File, FileRouter, UsageRecord } from '@uploadkit/db';
+import { ApiKey, Subscription, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
 import { uploadRatelimit } from '@/lib/rate-limit';
 import { r2Client } from '@/lib/storage';
 

@@ -10,7 +10,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 `FilePreview` renders a 48×48 pixel thumbnail for a file. It accepts either a browser `File` object (pre-upload) or an `UploadResult` (post-upload).
 
 ```tsx
-import { FilePreview } from '@uploadkit/react';
+import { FilePreview } from '@uploadkitdev/react';
 
 // From a File object (before upload)
 <FilePreview file={selectedFile} />
@@ -49,7 +49,7 @@ Show a preview before the file is uploaded:
 'use client';
 
 import { useState } from 'react';
-import { FilePreview } from '@uploadkit/react';
+import { FilePreview } from '@uploadkitdev/react';
 
 export default function FilePicker() {
   const [file, setFile] = useState<File | null>(null);
@@ -78,7 +78,7 @@ For advanced use cases, you can use the `useThumbnail` hook directly to build yo
 
 ```tsx
 import { useRef } from 'react';
-import { useThumbnail } from '@uploadkit/react';
+import { useThumbnail } from '@uploadkitdev/react';
 
 function CustomPreview({ file }: { file: File }) {
   const containerRef = useRef<HTMLDivElement>(null);

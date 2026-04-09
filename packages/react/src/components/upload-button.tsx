@@ -1,6 +1,6 @@
 import { forwardRef, useRef, useEffect, useState } from 'react';
-import type { UploadResult } from '@uploadkit/core';
-import type { ProgressGranularity } from '@uploadkit/core';
+import type { UploadResult } from '@uploadkitdev/core';
+import type { ProgressGranularity } from '@uploadkitdev/core';
 import { useUploadKit } from '../use-upload-kit';
 import { mergeClass } from '../utils/merge-class';
 import { getUploadIcon } from '../utils/file-icons';

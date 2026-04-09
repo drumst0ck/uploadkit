@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '../../../../auth';
-import { connectDB, User } from '@uploadkit/db';
+import { connectDB, User } from '@uploadkitdev/db';
 import { SettingsForm } from '../../../components/settings-form';
 
 export const dynamic = 'force-dynamic';

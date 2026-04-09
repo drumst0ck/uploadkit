@@ -2,9 +2,9 @@ export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
-import { connectDB, Project, FileRouter } from '@uploadkit/db';
-import { TierLimitError } from '@uploadkit/shared';
-import { TIER_LIMITS } from '@uploadkit/shared';
+import { connectDB, Project, FileRouter } from '@uploadkitdev/db';
+import { TierLimitError } from '@uploadkitdev/shared';
+import { TIER_LIMITS } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { CreateProjectSchema } from '@/lib/schemas';
 import { serializeValidationError, serializeError } from '@/lib/errors';

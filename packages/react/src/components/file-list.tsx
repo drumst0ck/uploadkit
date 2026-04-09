@@ -1,4 +1,4 @@
-import type { UploadResult } from '@uploadkit/core';
+import type { UploadResult } from '@uploadkitdev/core';
 import { FilePreview } from './file-preview';
 import { mergeClass } from '../utils/merge-class';
 import { formatBytes } from '../utils/format-bytes';

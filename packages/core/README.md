@@ -1,10 +1,10 @@
-# @uploadkit/core
+# @uploadkitdev/core
 
-[![npm version](https://img.shields.io/npm/v/@uploadkit/core)](https://www.npmjs.com/package/@uploadkit/core)
-[![npm downloads](https://img.shields.io/npm/dm/@uploadkit/core)](https://www.npmjs.com/package/@uploadkit/core)
+[![npm version](https://img.shields.io/npm/v/@uploadkitdev/core)](https://www.npmjs.com/package/@uploadkitdev/core)
+[![npm downloads](https://img.shields.io/npm/dm/@uploadkitdev/core)](https://www.npmjs.com/package/@uploadkitdev/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml/badge.svg)](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml)
-[![Bundle size](https://img.shields.io/bundlephobia/minzip/@uploadkit/core)](https://bundlephobia.com/package/@uploadkit/core)
+[![Bundle size](https://img.shields.io/bundlephobia/minzip/@uploadkitdev/core)](https://bundlephobia.com/package/@uploadkitdev/core)
 
 Lightweight TypeScript client for UploadKit file uploads.
 
@@ -16,25 +16,25 @@ Lightweight TypeScript client for UploadKit file uploads.
 - **Retry with backoff** — configurable automatic retry on transient failures
 - **Abort support** — cancel in-flight uploads with `AbortSignal`
 - **BYOS compatible** — works with Bring Your Own Storage configuration
-- **Zero dependencies** — ships with no runtime deps; `@uploadkit/shared` is bundled
+- **Zero dependencies** — ships with no runtime deps; `@uploadkitdev/shared` is bundled
 
 ## Install
 
 ```bash
 # npm
-npm install @uploadkit/core
+npm install @uploadkitdev/core
 
 # pnpm
-pnpm add @uploadkit/core
+pnpm add @uploadkitdev/core
 
 # yarn
-yarn add @uploadkit/core
+yarn add @uploadkitdev/core
 ```
 
 ## Quickstart
 
 ```typescript
-import { createUploadKit } from '@uploadkit/core';
+import { createUploadKit } from '@uploadkitdev/core';
 
 const client = createUploadKit({ apiKey: 'uk_live_...' });
 
@@ -107,8 +107,8 @@ await client.upload({
 ## Links
 
 - [Full documentation](https://docs.uploadkit.dev)
-- [React components — @uploadkit/react](https://www.npmjs.com/package/@uploadkit/react)
-- [Next.js adapter — @uploadkit/next](https://www.npmjs.com/package/@uploadkit/next)
+- [React components — @uploadkitdev/react](https://www.npmjs.com/package/@uploadkitdev/react)
+- [Next.js adapter — @uploadkitdev/next](https://www.npmjs.com/package/@uploadkitdev/next)
 
 ## License
 

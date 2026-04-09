@@ -18,7 +18,7 @@ export type {
 } from './types';
 
 // Re-export UploadKitError for SDK consumers to use in catch blocks
-export { UploadKitError } from '@uploadkit/shared';
+export { UploadKitError } from '@uploadkitdev/shared';
 
 // Re-export the client class for advanced use cases
 export { UploadKitClient } from './client';

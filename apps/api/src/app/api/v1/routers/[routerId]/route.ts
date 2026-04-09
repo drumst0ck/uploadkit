@@ -2,8 +2,8 @@ export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
-import { connectDB, FileRouter, Project } from '@uploadkit/db';
-import { NotFoundError } from '@uploadkit/shared';
+import { connectDB, FileRouter, Project } from '@uploadkitdev/db';
+import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { UpdateFileRouterSchema } from '@/lib/schemas';
 import { serializeValidationError, serializeError } from '@/lib/errors';

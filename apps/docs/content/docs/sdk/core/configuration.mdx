@@ -1,13 +1,13 @@
 ---
 title: Configuration
-description: All UploadKitConfig options for @uploadkit/core.
+description: All UploadKitConfig options for @uploadkitdev/core.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
 ## Server-side vs browser usage
 
-`@uploadkit/core` provides two distinct factory functions depending on where your code runs:
+`@uploadkitdev/core` provides two distinct factory functions depending on where your code runs:
 
 | Usage | Factory | Where it runs | Auth |
 |-------|---------|---------------|------|
@@ -23,7 +23,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 Use this in Node.js scripts, Route Handlers, server actions, and Edge Functions:
 
 ```typescript
-import { createUploadKit } from '@uploadkit/core';
+import { createUploadKit } from '@uploadkitdev/core';
 
 const client = createUploadKit({
   apiKey: process.env.UPLOADKIT_API_KEY!, // server env only — never NEXT_PUBLIC_
@@ -37,7 +37,7 @@ const client = createUploadKit({
 Use this in client components and browser scripts. It calls your local backend endpoint, which holds the real API key:
 
 ```typescript
-import { createProxyClient } from '@uploadkit/core';
+import { createProxyClient } from '@uploadkitdev/core';
 
 const client = createProxyClient({
   endpoint: '/api/uploadkit', // your server — not the UploadKit API directly
@@ -59,7 +59,7 @@ Pass a `UploadKitConfig` object to `createUploadKit()`. Only `apiKey` is require
 Override all options for self-hosted or staging environments:
 
 ```typescript
-import { createUploadKit } from '@uploadkit/core';
+import { createUploadKit } from '@uploadkitdev/core';
 
 const client = createUploadKit({
   apiKey: process.env.UPLOADKIT_API_KEY!,
@@ -72,4 +72,4 @@ const client = createUploadKit({
 
 ## BYOS (Bring Your Own Storage)
 
-If you are using BYOS mode with your own S3/R2 bucket, configure your storage credentials in the server-side `@uploadkit/next` handler instead — the core client works identically from the browser regardless of storage mode. See the [BYOS guide](/docs/guides/byos) for details.
+If you are using BYOS mode with your own S3/R2 bucket, configure your storage credentials in the server-side `@uploadkitdev/next` handler instead — the core client works identically from the browser regardless of storage mode. See the [BYOS guide](/docs/guides/byos) for details.

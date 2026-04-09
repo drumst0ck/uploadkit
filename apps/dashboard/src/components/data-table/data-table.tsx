@@ -19,8 +19,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@uploadkit/ui';
-import { cn } from '@uploadkit/ui';
+} from '@uploadkitdev/ui';
+import { cn } from '@uploadkitdev/ui';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

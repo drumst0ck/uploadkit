@@ -1,6 +1,6 @@
 ---
 title: Theming
-description: Customize @uploadkit/react components with CSS custom properties.
+description: Customize @uploadkitdev/react components with CSS custom properties.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
@@ -134,7 +134,7 @@ For deeper customization, override CSS variables in your Tailwind theme:
 
 ## data-uk-element targeting
 
-Every rendered element in `@uploadkit/react` components has a `data-uk-element` attribute. You can use CSS attribute selectors to target and restyle specific elements without overriding CSS custom properties.
+Every rendered element in `@uploadkitdev/react` components has a `data-uk-element` attribute. You can use CSS attribute selectors to target and restyle specific elements without overriding CSS custom properties.
 
 ### Element names
 
@@ -183,7 +183,7 @@ Elements also carry a `data-state` attribute reflecting the current upload lifec
 
 ## Tailwind withUk wrapper
 
-For Tailwind CSS users, `@uploadkit/next` ships a `withUk` plugin that generates Tailwind variants matching the `data-uk-element` and `data-state` attributes.
+For Tailwind CSS users, `@uploadkitdev/next` ships a `withUk` plugin that generates Tailwind variants matching the `data-uk-element` and `data-state` attributes.
 
 ### Setup
 
@@ -192,14 +192,14 @@ Add `withUk` to your Tailwind CSS config:
 ```css
 /* globals.css (Tailwind v4) */
 @import "tailwindcss";
-@plugin "@uploadkit/next/tailwind";
+@plugin "@uploadkitdev/next/tailwind";
 ```
 
 Or for Tailwind v3:
 
 ```js
 // tailwind.config.js
-const { withUk } = require('@uploadkit/next/tailwind');
+const { withUk } = require('@uploadkitdev/next/tailwind');
 
 module.exports = withUk({
   content: ['./src/**/*.{ts,tsx}'],

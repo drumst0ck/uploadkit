@@ -6,8 +6,8 @@ import {
   UploadButton,
   UploadDropzone,
   UploadModal,
-} from '@uploadkit/react'
-import '@uploadkit/react/styles.css'
+} from '@uploadkitdev/react'
+import '@uploadkitdev/react/styles.css'
 
 type Theme = 'dark' | 'light'
 

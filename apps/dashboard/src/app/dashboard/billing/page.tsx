@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
 import { auth } from '../../../../auth';
-import { connectDB, Subscription } from '@uploadkit/db';
+import { connectDB, Subscription } from '@uploadkitdev/db';
 import { stripe } from '../../../lib/stripe';
 import { createCheckoutSession } from './actions';
-import { Button } from '@uploadkit/ui';
+import { Button } from '@uploadkitdev/ui';
 import { ManageBillingButton } from '../../../components/manage-billing-button';
-import type { Tier } from '@uploadkit/shared';
+import type { Tier } from '@uploadkitdev/shared';
 
 export const dynamic = 'force-dynamic';
 

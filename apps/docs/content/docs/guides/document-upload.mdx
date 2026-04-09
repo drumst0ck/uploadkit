@@ -11,8 +11,8 @@ Document uploads often require larger file size limits and more context about wh
 ## 1. Configure the file route
 
 ```typescript title="app/api/uploadkit/route.ts"
-import { createUploadKitHandler } from '@uploadkit/next';
-import type { FileRouter } from '@uploadkit/next';
+import { createUploadKitHandler } from '@uploadkitdev/next';
+import type { FileRouter } from '@uploadkitdev/next';
 
 const router = {
   documentUploader: {
@@ -58,7 +58,7 @@ export const { GET, POST } = createUploadKitHandler({ router });
 ```tsx title="components/DocumentDropzone.tsx"
 'use client';
 
-import { UploadDropzone } from '@uploadkit/react';
+import { UploadDropzone } from '@uploadkitdev/react';
 
 interface DocumentDropzoneProps {
   category: 'invoice' | 'contract' | 'report' | 'general';

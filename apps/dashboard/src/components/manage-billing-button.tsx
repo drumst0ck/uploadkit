@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Button } from '@uploadkit/ui';
+import { Button } from '@uploadkitdev/ui';
 import { createPortalSession } from '../app/dashboard/billing/actions';
 
 export function ManageBillingButton() {

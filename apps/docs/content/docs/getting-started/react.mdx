@@ -7,27 +7,27 @@ import { Callout } from 'fumadocs-ui/components/callout';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 <Callout type="info">
-  React/Vite apps use `@uploadkit/core` directly — file routes are defined in the UploadKit dashboard, not in code. For code-defined file routes with TypeScript inference, use the [Next.js adapter](/docs/getting-started/nextjs).
+  React/Vite apps use `@uploadkitdev/core` directly — file routes are defined in the UploadKit dashboard, not in code. For code-defined file routes with TypeScript inference, use the [Next.js adapter](/docs/getting-started/nextjs).
 </Callout>
 
 ## Installation
 
-Install `@uploadkit/core` for the upload client and `@uploadkit/react` for the UI components:
+Install `@uploadkitdev/core` for the upload client and `@uploadkitdev/react` for the UI components:
 
 <Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn']}>
   <Tab value="pnpm">
     ```bash
-    pnpm add @uploadkit/core @uploadkit/react
+    pnpm add @uploadkitdev/core @uploadkitdev/react
     ```
   </Tab>
   <Tab value="npm">
     ```bash
-    npm install @uploadkit/core @uploadkit/react
+    npm install @uploadkitdev/core @uploadkitdev/react
     ```
   </Tab>
   <Tab value="yarn">
     ```bash
-    yarn add @uploadkit/core @uploadkit/react
+    yarn add @uploadkitdev/core @uploadkitdev/react
     ```
   </Tab>
 </Tabs>
@@ -37,7 +37,7 @@ Install `@uploadkit/core` for the upload client and `@uploadkit/react` for the U
 `UploadKitProvider` communicates with a local backend endpoint that holds your API key server-side. Create a route in your backend framework (Express, Hono, Fastify, etc.) that proxies requests to the UploadKit API:
 
 ```typescript title="server/routes/uploadkit.ts"
-import { createUploadKitHandler } from '@uploadkit/core/server';
+import { createUploadKitHandler } from '@uploadkitdev/core/server';
 
 // Express example
 app.use('/api/uploadkit', createUploadKitHandler({
@@ -62,7 +62,7 @@ Wrap your app's root with `UploadKitProvider`, pointing it at your backend endpo
 ```tsx title="src/main.tsx"
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { UploadKitProvider } from '@uploadkit/react';
+import { UploadKitProvider } from '@uploadkitdev/react';
 import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -83,7 +83,7 @@ Once the provider is in place, you can drop upload components anywhere in your c
 ### UploadButton
 
 ```tsx title="src/components/AvatarUpload.tsx"
-import { UploadButton } from '@uploadkit/react';
+import { UploadButton } from '@uploadkitdev/react';
 
 export function AvatarUpload() {
   return (
@@ -103,7 +103,7 @@ export function AvatarUpload() {
 ### UploadDropzone
 
 ```tsx title="src/components/DocumentDropzone.tsx"
-import { UploadDropzone } from '@uploadkit/react';
+import { UploadDropzone } from '@uploadkitdev/react';
 
 export function DocumentDropzone() {
   return (
@@ -122,7 +122,7 @@ export function DocumentDropzone() {
 When you need full control over the upload UI — a custom progress bar, inline file list, or your own drag-and-drop area — use the `useUploadKit` hook directly:
 
 ```tsx title="src/components/CustomUploader.tsx"
-import { useUploadKit } from '@uploadkit/react';
+import { useUploadKit } from '@uploadkitdev/react';
 
 export function CustomUploader() {
   const { upload, files, isUploading } = useUploadKit({
@@ -154,10 +154,10 @@ export function CustomUploader() {
 
 ## Using the core client directly
 
-For maximum control, you can use `createProxyClient` from `@uploadkit/core` without any React dependency. The proxy client talks to your local backend endpoint (which holds the API key) rather than the UploadKit API directly:
+For maximum control, you can use `createProxyClient` from `@uploadkitdev/core` without any React dependency. The proxy client talks to your local backend endpoint (which holds the API key) rather than the UploadKit API directly:
 
 ```typescript title="src/lib/upload.ts"
-import { createProxyClient } from '@uploadkit/core';
+import { createProxyClient } from '@uploadkitdev/core';
 
 const client = createProxyClient({
   endpoint: '/api/uploadkit', // your backend endpoint, not the UploadKit API

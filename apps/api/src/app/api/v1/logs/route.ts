@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { File } from '@uploadkit/db';
+import { File } from '@uploadkitdev/db';
 import { LogsQuerySchema } from '@/lib/schemas';
 import { serializeValidationError } from '@/lib/errors';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';

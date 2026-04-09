@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TIER_LIMITS } from '@uploadkit/shared';
+import { TIER_LIMITS } from '@uploadkitdev/shared';
 
 // These tests verify the tier enforcement logic as expressed in the upload/request route.
 // We test the pure logic (arithmetic and comparisons) extracted from the route handler.
