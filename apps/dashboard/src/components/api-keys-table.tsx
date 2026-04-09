@@ -20,10 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   Input,
   Table,
   TableBody,
@@ -32,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from '@uploadkit/ui';
-import { Copy, MoreHorizontal, Plus, Check } from 'lucide-react';
+import { Copy, Plus, Check } from 'lucide-react';
 import { fetcher } from '../lib/fetcher';
 import { formatDate } from '../lib/format';
 
@@ -202,7 +198,7 @@ export function ApiKeysTable({ slug }: ApiKeysTableProps) {
               <TableHead>Key</TableHead>
               <TableHead>Last used</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead className="w-[50px]" />
+              <TableHead className="w-[120px]" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -241,51 +237,48 @@ export function ApiKeysTable({ slug }: ApiKeysTableProps) {
                     {formatDate(key.createdAt)}
                   </TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label="Key actions">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() =>
-                            navigator.clipboard.writeText(key.keyPrefix + '...').catch(() => undefined)
-                          }
-                        >
-                          <Copy className="mr-2 h-4 w-4" />
-                          Copy prefix
-                        </DropdownMenuItem>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onSelect={(e) => e.preventDefault()}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-zinc-500 hover:text-zinc-300"
+                        onClick={() =>
+                          navigator.clipboard.writeText(key.keyPrefix + '...').catch(() => undefined)
+                        }
+                        aria-label="Copy key prefix"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button
+                            type="button"
+                            className="text-xs font-medium text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded hover:bg-red-500/10"
+                          >
+                            Revoke
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Revoke this API key?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Any applications using this key will stop working immediately.
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => void handleRevoke(key._id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
-                              Revoke key
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Revoke this API key?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Any applications using this key will stop working immediately.
-                                This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => void handleRevoke(key._id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Revoke
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                              Revoke
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
