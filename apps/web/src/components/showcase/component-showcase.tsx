@@ -16,7 +16,7 @@ interface DemoPanel {
   component: (theme: Theme) => React.ReactNode
 }
 
-function ModalDemo({ theme }: { theme: Theme }) {
+function ModalDemo({ theme: _theme }: { theme: Theme }) {
   const [open, setOpen] = useState(false)
 
   return (

@@ -64,13 +64,13 @@ const fakeFileRouter = {
 function setupAuth() {
   vi.mocked(uploadRatelimit.limit).mockResolvedValue({
     success: true, limit: 30, remaining: 29, reset: Date.now() + 60000,
-    pending: Promise.resolve(), reason: 'cacheBlock', logs: [],
-  });
+    pending: Promise.resolve(), reason: 'cacheBlock',
+  } as any);
   vi.mocked(ApiKey.findOne).mockReturnValue({
     populate: vi.fn().mockResolvedValue(fakeApiKeyDoc),
   } as any);
   vi.mocked(ApiKey.updateOne).mockResolvedValue({} as any);
-  vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'PRO' }); // PRO to avoid storage limits
+  vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'PRO' } as any); // PRO to avoid storage limits
 }
 
 function makePost(url: string, body: object): NextRequest {

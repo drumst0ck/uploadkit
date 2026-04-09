@@ -11,7 +11,7 @@ export const authConfig: NextAuthConfig = {
     GitHub,
     Google,
     Resend({
-      from: 'UploadKit <noreply@uploadkit.dev>',
+      from: 'UploadKit <noreply@updates.uploadkit.dev>',
     }),
   ],
   callbacks: {

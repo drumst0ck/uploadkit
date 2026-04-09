@@ -38,13 +38,13 @@ const fakeApiKeyDoc = { _id: 'key-crud', projectId: fakeProject, keyHash: 'hash'
 function setupAuth() {
   vi.mocked(ratelimit.limit).mockResolvedValue({
     success: true, limit: 10, remaining: 9, reset: Date.now() + 60000,
-    pending: Promise.resolve(), reason: 'cacheBlock', logs: [],
-  });
+    pending: Promise.resolve(), reason: 'cacheBlock',
+  } as any);
   vi.mocked(ApiKey.findOne).mockReturnValue({
     populate: vi.fn().mockResolvedValue(fakeApiKeyDoc),
   } as any);
   vi.mocked(ApiKey.updateOne).mockResolvedValue({} as any);
-  vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'FREE' });
+  vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'FREE' } as any);
 }
 
 describe('GET /api/v1/projects', () => {
@@ -68,7 +68,7 @@ describe('GET /api/v1/projects', () => {
     expect(res.status).toBe(200);
     expect(body.projects).toHaveLength(2);
     // Verify scoped to authenticated user
-    const findCall = vi.mocked(Project.find).mock.calls[0]![0] as Record<string, unknown>;
+    const findCall = vi.mocked(Project.find).mock.calls[0]![0] as unknown as Record<string, unknown>;
     expect(findCall['userId']).toBe('user-crud');
   });
 });

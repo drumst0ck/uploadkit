@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { connectDB } from '@uploadkit/db';
 import { User, Project, ApiKey, File, FileRouter, Subscription, UsageRecord } from '@uploadkit/db';
 
@@ -25,12 +26,17 @@ async function seed() {
   });
 
   console.log('Creating test API key...');
+  const { createHash } = await import('crypto');
+  const plainKey = 'uk_test_seed_key_abc123def456';
+  const keyHash = createHash('sha256').update(plainKey).digest('hex');
   await ApiKey.create({
-    key: 'uk_test_seed_key_abc123def456',
+    keyPrefix: plainKey.slice(0, 12),
+    keyHash,
     name: 'Seed Test Key',
     projectId: project._id,
     isTest: true,
   });
+  console.log(`  API key: ${plainKey}`);
 
   console.log('Creating test file router...');
   await FileRouter.create({

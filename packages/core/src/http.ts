@@ -3,7 +3,7 @@ import { UploadKitError } from '@uploadkit/shared';
 interface FetchApiOptions {
   method?: string;
   body?: unknown;
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
 }
 
 /**
@@ -47,8 +47,8 @@ export async function fetchApi<T>(
     response = await fetch(url, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal,
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      ...(signal ? { signal } : {}),
     });
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {

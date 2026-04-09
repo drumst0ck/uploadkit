@@ -24,7 +24,7 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
 
   try {
     await resend.emails.send({
-      from: 'UploadKit <noreply@uploadkit.dev>',
+      from: 'UploadKit <noreply@updates.uploadkit.dev>',
       to,
       subject,
       html,

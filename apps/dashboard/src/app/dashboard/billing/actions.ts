@@ -32,7 +32,7 @@ export async function createCheckoutSession(priceId: string): Promise<never> {
   await connectDB();
 
   // Lazy Stripe Customer provisioning
-  let subscription = await Subscription.findOne({ userId });
+  const subscription = await Subscription.findOne({ userId });
   let stripeCustomerId = subscription?.stripeCustomerId;
 
   if (!stripeCustomerId) {

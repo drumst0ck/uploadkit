@@ -61,12 +61,11 @@ describe('withApiKey', () => {
       reset: Date.now() + 60000,
       pending: Promise.resolve(),
       reason: 'cacheBlock',
-      logs: [],
-    });
+    } as any);
     vi.mocked(ApiKey.findOne).mockReturnValue({
       populate: vi.fn().mockResolvedValue(fakeApiKey),
     } as any);
-    vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'FREE' });
+    vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'FREE' } as any);
   });
 
   it('returns 401 when Authorization header is missing', async () => {
@@ -99,8 +98,7 @@ describe('withApiKey', () => {
       reset: Date.now() + 30000,
       pending: Promise.resolve(),
       reason: 'cacheBlock',
-      logs: [],
-    });
+    } as any);
 
     const handler = vi.fn();
     const wrapped = withApiKey(handler);

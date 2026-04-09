@@ -5,8 +5,9 @@
  * Safe to run multiple times — checks for existing resources before creating.
  *
  * Usage:
- *   STRIPE_SECRET_KEY=sk_test_... npx tsx scripts/setup-stripe.ts
+ *   pnpm tsx scripts/setup-stripe.ts
  */
+import 'dotenv/config';
 
 import Stripe from 'stripe';
 

@@ -1,6 +1,10 @@
 import { redirect } from 'next/navigation';
 import { auth, signIn } from '../../../auth';
 
+// Force dynamic rendering — auth() reads the session cookie at runtime;
+// static prerendering would always see an unauthenticated state.
+export const dynamic = 'force-dynamic';
+
 // ─── Server Actions ───────────────────────────────────────────────────────────
 
 async function signInWithGitHub() {

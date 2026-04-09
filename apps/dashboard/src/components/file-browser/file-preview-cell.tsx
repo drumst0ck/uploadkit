@@ -13,7 +13,6 @@ interface FilePreviewCellProps {
 export function FilePreviewCell({ file }: FilePreviewCellProps) {
   if (file.type.startsWith('image/')) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={file.url ?? ''}
         alt={file.name}

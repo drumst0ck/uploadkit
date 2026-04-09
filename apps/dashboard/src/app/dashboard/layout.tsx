@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth, signOut } from '../../../auth';
 import { connectDB, Project } from '@uploadkit/db';
-import { Sidebar, SidebarProvider } from '../../components/layout/sidebar';
-import { Header } from '../../components/layout/header';
+import { SidebarProvider } from '../../components/layout/sidebar';
 import { MobileMenuWrapper } from '../../components/layout/mobile-menu-wrapper';
 
 // Force dynamic rendering — this layout calls auth() and connectDB() which

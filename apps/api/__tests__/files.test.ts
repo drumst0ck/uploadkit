@@ -44,13 +44,13 @@ const fakeApiKeyDoc = { _id: 'key-files', projectId: fakeProject, keyHash: 'hash
 function setupAuth() {
   vi.mocked(ratelimit.limit).mockResolvedValue({
     success: true, limit: 10, remaining: 9, reset: Date.now() + 60000,
-    pending: Promise.resolve(), reason: 'cacheBlock', logs: [],
-  });
+    pending: Promise.resolve(), reason: 'cacheBlock',
+  } as any);
   vi.mocked(ApiKey.findOne).mockReturnValue({
     populate: vi.fn().mockResolvedValue(fakeApiKeyDoc),
   } as any);
   vi.mocked(ApiKey.updateOne).mockResolvedValue({} as any);
-  vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'FREE' });
+  vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'FREE' } as any);
 }
 
 const fakeFiles = [
@@ -100,7 +100,7 @@ describe('GET /api/v1/files', () => {
 
     expect(res.status).toBe(200);
     // Verify File.find was called with the project filter from context
-    const findCall = vi.mocked(File.find).mock.calls[0]![0] as Record<string, unknown>;
+    const findCall = vi.mocked(File.find).mock.calls[0]![0] as unknown as Record<string, unknown>;
     expect(findCall['projectId']).toBe('proj-files');
   });
 

@@ -58,7 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await connectDB();
 
     // Lazy Stripe Customer provisioning: create customer if none exists
-    let subscription = await Subscription.findOne({ userId });
+    const subscription = await Subscription.findOne({ userId });
     let stripeCustomerId = subscription?.stripeCustomerId;
 
     if (!stripeCustomerId) {

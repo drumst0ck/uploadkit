@@ -2,6 +2,7 @@
   "extends": "@uploadkit/config/typescript/nextjs",
   "compilerOptions": {
     "declaration": false,
+    "declarationMap": false,
     "paths": {
       "@/*": ["./src/*"],
       "collections/*": ["./.source/*"]

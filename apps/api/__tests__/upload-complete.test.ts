@@ -76,13 +76,13 @@ const fakeUploadedFile = { ...fakeUploadingFile, status: 'UPLOADED' };
 function setupAuth() {
   vi.mocked(uploadRatelimit.limit).mockResolvedValue({
     success: true, limit: 30, remaining: 29, reset: Date.now() + 60000,
-    pending: Promise.resolve(), reason: 'cacheBlock', logs: [],
-  });
+    pending: Promise.resolve(), reason: 'cacheBlock',
+  } as any);
   vi.mocked(ApiKey.findOne).mockReturnValue({
     populate: vi.fn().mockResolvedValue(fakeApiKeyDoc),
   } as any);
   vi.mocked(ApiKey.updateOne).mockResolvedValue({} as any);
-  vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'FREE' });
+  vi.mocked(Subscription.findOne).mockResolvedValue({ tier: 'FREE' } as any);
 }
 
 function makePostRequest(body: object): NextRequest {

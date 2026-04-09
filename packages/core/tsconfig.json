@@ -1,7 +1,9 @@
 {
   "extends": "@uploadkit/config/typescript/library",
   "compilerOptions": {
-    "lib": ["ES2022", "DOM"]
+    "lib": ["ES2022", "DOM"],
+    "rootDir": "./src",
+    "outDir": "./dist"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

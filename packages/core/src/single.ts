@@ -62,8 +62,8 @@ export async function singleUpload(
 }
 
 interface XhrPutOptions {
-  onProgress?: (percentage: number) => void;
-  signal?: AbortSignal;
+  onProgress?: ((percentage: number) => void) | undefined;
+  signal?: AbortSignal | undefined;
 }
 
 function xhrPut(url: string, file: File, opts: XhrPutOptions = {}): Promise<void> {

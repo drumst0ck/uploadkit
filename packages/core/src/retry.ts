@@ -2,7 +2,7 @@ import { UploadKitError } from '@uploadkit/shared';
 
 interface RetryOptions {
   maxRetries?: number;
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
 }
 
 /**
