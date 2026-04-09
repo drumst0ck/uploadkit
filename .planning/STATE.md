@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: "Completed quick task 260409-k7l: post-launch polish — light mode fixes, changelog, SDK docs, E2E tests"
-last_updated: "2026-04-09T12:44:49.901Z"
+stopped_at: "Completed quick task 260409-kyy: create 3 SDK example projects"
+last_updated: "2026-04-09T13:13:15.935Z"
 last_activity: "2026-04-09 - Completed quick task 260409-jdo: Implement 7 UploadThing feature gaps — config.mode, onBeforeUploadBegin, data-uk-element/data-state, progress granularity, NextSSRPlugin, withUk, backend adapters"
 progress:
   total_phases: 10
@@ -205,6 +205,7 @@ Recent decisions affecting current work:
 - [Phase 10-testing-publishing-launch]: Changeset type is minor for all three SDK packages — initial publish uses versions already in package.json (0.1.0); changeset governs next release bump
 - [Phase quick-260409-k7l]: Use var(--popover)/var(--popover-foreground)/var(--border) without fallback values in portal inline styles — fallbacks were the source of the light mode regression
 - [Phase quick-260409-k7l]: bg-muted replaces bg-white/[0.02] for read-only fields — muted token is visible in both light and dark mode
+- [Phase quick-260409-kyy]: examples use workspace:* for all @uploadkit/* deps — symlinked from local packages, no npm registry needed
 
 ### Pending Todos
 
@@ -228,6 +229,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T13:02:07Z
-Stopped at: Completed quick task 260409-krl: restyle docs site — dark premium aesthetic
+Last session: 2026-04-09T13:13:12.844Z
+Stopped at: Completed quick task 260409-kyy: create 3 SDK example projects
 Resume file: None
