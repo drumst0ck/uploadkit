@@ -19,7 +19,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - [x] **Phase 7: Billing & Email** - Stripe Checkout, Billing Portal, metered overages, Resend transactional emails (completed 2026-04-08)
 - [x] **Phase 8: Landing & Pricing Pages** - Hero, code demo, feature grid, competitor table, pricing page (completed 2026-04-08)
 - [ ] **Phase 9: Documentation** - Fumadocs site, quickstart, SDK reference, API reference, guides
-- [ ] **Phase 10: Testing, Publishing & Launch** - Vitest unit tests, Playwright E2E, npm publish, launch readiness
+- [x] **Phase 10: Testing, Publishing & Launch** - Vitest unit tests, Playwright E2E, npm publish, launch readiness (completed 2026-04-09)
 
 ## Phase Details
 
@@ -185,7 +185,7 @@ Plans:
 - [x] 10-01-PLAN.md — API unit tests: withApiKey, errors, upload routes, CRUD, tier enforcement, Stripe webhooks
 - [x] 10-02-PLAN.md — SDK + React tests: core validation/single/multipart/http, React useUploadKit hook
 - [x] 10-03-PLAN.md — Playwright E2E: auth, upload, dashboard CRUD, billing, docs navigation
-- [ ] 10-04-PLAN.md — Publish prep: polished READMEs, changeset entry, verify script, CI update
+- [x] 10-04-PLAN.md — Publish prep: polished READMEs, changeset entry, verify script, CI update
 
 ## Progress
 
@@ -205,4 +205,4 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 7. Billing & Email | 4/4 | Complete   | 2026-04-08 |
 | 8. Landing & Pricing Pages | 3/3 | Complete   | 2026-04-08 |
 | 9. Documentation | 3/4 | In Progress|  |
-| 10. Testing, Publishing & Launch | 3/4 | In Progress|  |
+| 10. Testing, Publishing & Launch | 4/4 | Complete   | 2026-04-09 |
