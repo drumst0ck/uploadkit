@@ -1,0 +1,31 @@
+{
+  "name": "@uploadkit/example-vite",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"tsx watch server.ts\"",
+    "dev:client": "vite",
+    "dev:server": "tsx server.ts",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@uploadkit/react": "workspace:*",
+    "@uploadkit/next": "workspace:*",
+    "express": "^5.0.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0",
+    "concurrently": "^9.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/node": "^22.0.0",
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.0"
+  }
+}
