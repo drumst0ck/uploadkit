@@ -182,10 +182,10 @@ Plans:
   4. GitHub Actions CI run on main passes lint, type-check, unit tests, and build in under 5 minutes
 **Plans**: 4 plans
 Plans:
-- [ ] 01-01-PLAN.md — Monorepo skeleton, workspace config, shared configs, .env.example
-- [ ] 01-02-PLAN.md — packages/shared (types, constants, errors, utils) + packages/db (Mongoose models, cached connection)
-- [ ] 01-03-PLAN.md — R2 storage client, presigned URL utility, Upstash rate limiter, Sentry, seed script
-- [ ] 01-04-PLAN.md — Docker Compose, Dockerfiles, GitHub Actions CI/CD, Changesets config
+- [ ] 10-01-PLAN.md — API unit tests: withApiKey, errors, upload routes, CRUD, tier enforcement, Stripe webhooks
+- [ ] 10-02-PLAN.md — SDK + React tests: core validation/single/multipart/http, React useUploadKit hook
+- [ ] 10-03-PLAN.md — Playwright E2E: auth, upload, dashboard CRUD, billing, docs navigation
+- [ ] 10-04-PLAN.md — Publish prep: polished READMEs, changeset entry, verify script, CI update
 
 ## Progress
 
@@ -205,4 +205,4 @@ Note: Phase 8 (Landing & Pricing) depends on Phase 2 (Auth) rather than Phase 7,
 | 7. Billing & Email | 4/4 | Complete   | 2026-04-08 |
 | 8. Landing & Pricing Pages | 3/3 | Complete   | 2026-04-08 |
 | 9. Documentation | 3/4 | In Progress|  |
-| 10. Testing, Publishing & Launch | 0/? | Not started | - |
+| 10. Testing, Publishing & Launch | 0/4 | Not started | - |
