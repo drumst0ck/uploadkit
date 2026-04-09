@@ -8,7 +8,9 @@ export const authConfig: NextAuthConfig = {
     signIn: '/login',
   },
   providers: [
-    GitHub,
+    GitHub({
+      checks: ['state'],
+    }),
     Google,
     Resend({
       from: 'UploadKit <noreply@updates.uploadkit.dev>',
