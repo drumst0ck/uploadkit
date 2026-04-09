@@ -9,10 +9,8 @@ export const authConfig: NextAuthConfig = {
   },
   providers: [
     GitHub({
-      client: { token_endpoint_auth_method: 'client_secret_post' },
-      checks: ['state'],
-      token: 'https://github.com/login/oauth/access_token',
-      authorization: { params: { scope: 'read:user user:email' } },
+      clientId: process.env.AUTH_GITHUB_ID,
+      clientSecret: process.env.AUTH_GITHUB_SECRET,
     }),
     Google,
     Resend({
