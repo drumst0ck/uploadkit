@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 10-testing-publishing-launch 10-04-PLAN.md
-last_updated: "2026-04-09T05:01:16.242Z"
-last_activity: 2026-04-09
+stopped_at: "Completed quick task 260409-k7l: post-launch polish — light mode fixes, changelog, SDK docs, E2E tests"
+last_updated: "2026-04-09T12:44:49.901Z"
+last_activity: "2026-04-09 - Completed quick task 260409-jdo: Implement 7 UploadThing feature gaps — config.mode, onBeforeUploadBegin, data-uk-element/data-state, progress granularity, NextSSRPlugin, withUk, backend adapters"
 progress:
   total_phases: 10
   completed_phases: 10
@@ -203,6 +203,8 @@ Recent decisions affecting current work:
 - [Phase 10-testing-publishing-launch]: Magic link chosen as primary CI-friendly auth path; OAuth tests gated on env vars
 - [Phase 10-testing-publishing-launch]: Storage state written as empty JSON when E2E_MAGIC_LINK_URL absent so setup project does not block unauthenticated tests
 - [Phase 10-testing-publishing-launch]: Changeset type is minor for all three SDK packages — initial publish uses versions already in package.json (0.1.0); changeset governs next release bump
+- [Phase quick-260409-k7l]: Use var(--popover)/var(--popover-foreground)/var(--border) without fallback values in portal inline styles — fallbacks were the source of the light mode regression
+- [Phase quick-260409-k7l]: bg-muted replaces bg-white/[0.02] for read-only fields — muted token is visible in both light and dark mode
 
 ### Pending Todos
 
@@ -225,6 +227,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T11:50:47Z
-Stopped at: Completed quick task 260409-jdo: Implement 7 UploadThing feature gaps
+Last session: 2026-04-09T12:44:43.814Z
+Stopped at: Completed quick task 260409-k7l: post-launch polish — light mode fixes, changelog, SDK docs, E2E tests
 Resume file: None
