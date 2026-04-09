@@ -132,6 +132,116 @@ For deeper customization, override CSS variables in your Tailwind theme:
 }
 ```
 
+## data-uk-element targeting
+
+Every rendered element in `@uploadkit/react` components has a `data-uk-element` attribute. You can use CSS attribute selectors to target and restyle specific elements without overriding CSS custom properties.
+
+### Element names
+
+| Attribute value | Element |
+|-----------------|---------|
+| `uk-button` | The upload button |
+| `uk-dropzone` | The dropzone container |
+| `uk-modal` | The modal dialog |
+| `uk-file-list` | The list of staged/uploaded files |
+| `uk-file-item` | A single file row |
+| `uk-progress` | The progress bar track |
+| `uk-overlay` | The modal backdrop |
+
+### data-state values
+
+Elements also carry a `data-state` attribute reflecting the current upload lifecycle:
+
+| Value | Meaning |
+|-------|---------|
+| `idle` | No upload in progress |
+| `uploading` | Upload in progress |
+| `complete` | Upload finished successfully |
+| `error` | Upload failed |
+
+### Direct CSS targeting
+
+```css
+/* Style the button */
+[data-uk-element="uk-button"] {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 999px;
+}
+
+/* Style the dropzone when dragging */
+[data-uk-element="uk-dropzone"][data-state="uploading"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Style file items */
+[data-uk-element="uk-file-item"] {
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+```
+
+## Tailwind withUk wrapper
+
+For Tailwind CSS users, `@uploadkit/next` ships a `withUk` plugin that generates Tailwind variants matching the `data-uk-element` and `data-state` attributes.
+
+### Setup
+
+Add `withUk` to your Tailwind CSS config:
+
+```css
+/* globals.css (Tailwind v4) */
+@import "tailwindcss";
+@plugin "@uploadkit/next/tailwind";
+```
+
+Or for Tailwind v3:
+
+```js
+// tailwind.config.js
+const { withUk } = require('@uploadkit/next/tailwind');
+
+module.exports = withUk({
+  content: ['./src/**/*.{ts,tsx}'],
+  theme: { extend: {} },
+  plugins: [],
+});
+```
+
+### Available variants
+
+| Variant | Targets |
+|---------|---------|
+| `uk-button:` | `[data-uk-element="uk-button"]` |
+| `uk-dropzone:` | `[data-uk-element="uk-dropzone"]` |
+| `uk-modal:` | `[data-uk-element="uk-modal"]` |
+| `uk-file-list:` | `[data-uk-element="uk-file-list"]` |
+| `uk-file-item:` | `[data-uk-element="uk-file-item"]` |
+| `uk-progress:` | `[data-uk-element="uk-progress"]` |
+| `uk-overlay:` | `[data-uk-element="uk-overlay"]` |
+| `uk-idle:` | `[data-state="idle"]` |
+| `uk-uploading:` | `[data-state="uploading"]` |
+| `uk-complete:` | `[data-state="complete"]` |
+| `uk-error:` | `[data-state="error"]` |
+
+### Usage examples
+
+```tsx
+<UploadButton
+  route="imageUploader"
+  className="uk-button:rounded-full uk-button:bg-violet-600 uk-uploading:opacity-50"
+/>
+
+<UploadDropzone
+  route="imageUploader"
+  className="uk-error:border-red-500 uk-error:bg-red-50"
+/>
+```
+
+<Callout>
+  CSS custom properties (`--uk-accent`, `--uk-radius`, etc.) remain the recommended approach for color and spacing overrides. `data-uk-element` targeting is best suited for structural or layout changes that can't be expressed as token values.
+</Callout>
+
 ## CSS keyframes
 
 The package defines these animations (used internally):

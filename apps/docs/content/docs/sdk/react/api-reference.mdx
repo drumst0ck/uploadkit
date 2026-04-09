@@ -71,6 +71,9 @@ const UploadButton: React.ForwardRefExoticComponent<UploadButtonProps & React.Re
 | `disabled` | `boolean` | `false` | Disables the button. |
 | `className` | `string` | — | CSS class(es) for the outer wrapper. |
 | `appearance` | `Partial<Record<'button' \| 'progressBar' \| 'progressText', string>>` | — | CSS class overrides for inner elements. |
+| `config` | `{ mode?: 'auto' \| 'manual' }` | `{ mode: 'auto' }` | Controls when the upload begins after file selection. `auto` uploads immediately; `manual` stages files for user confirmation. |
+| `onBeforeUploadBegin` | `(files: File[]) => File[] \| Promise<File[]>` | — | Transform or filter files before upload. Return empty array to cancel. |
+| `uploadProgressGranularity` | `'coarse' \| 'fine' \| 'all'` | `'coarse'` | How frequently `onUploadProgress` is called during upload. |
 | `children` | `ReactNode` | — | Custom button label. |
 
 ---
@@ -94,6 +97,9 @@ const UploadDropzone: React.ForwardRefExoticComponent<UploadDropzoneProps & Reac
 | `onUploadError` | `(error: Error) => void` | — | Called when any file upload fails. |
 | `disabled` | `boolean` | `false` | Disables the dropzone. |
 | `className` | `string` | — | CSS class(es) for the outer wrapper. |
+| `config` | `{ mode?: 'auto' \| 'manual' }` | `{ mode: 'manual' }` | Controls when the upload begins after file selection. `manual` stages files with a confirm button; `auto` uploads immediately on drop or selection. |
+| `onBeforeUploadBegin` | `(files: File[]) => File[] \| Promise<File[]>` | — | Transform or filter files before upload. Return empty array to cancel. |
+| `uploadProgressGranularity` | `'coarse' \| 'fine' \| 'all'` | `'coarse'` | How frequently `onUploadProgress` is called during upload. |
 | `appearance` | `Partial<Record<'container' \| 'label' \| 'icon' \| 'fileItem' \| 'progressBar' \| 'button', string>>` | — | CSS class overrides for inner elements. |
 
 ---

@@ -1,0 +1,75 @@
+---
+title: Before Upload Hook
+description: Transform, filter, or validate files client-side before they are uploaded.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The `onBeforeUploadBegin` prop is called after the user selects files but before the presigned URL request is made. Use it to rename, filter, resize, or otherwise prepare files client-side.
+
+```ts
+onBeforeUploadBegin(files: File[]): File[] | Promise<File[]>
+```
+
+Return the array of files to upload. Return an empty array to cancel the upload entirely.
+
+## Example: rename files with a timestamp prefix
+
+```tsx
+<UploadButton
+  route="imageUploader"
+  onBeforeUploadBegin={(files) =>
+    files.map((f) => new File([f], `${Date.now()}-${f.name}`, { type: f.type }))
+  }
+/>
+```
+
+## Example: filter to only images
+
+```tsx
+<UploadDropzone
+  route="mediaUploader"
+  onBeforeUploadBegin={(files) => files.filter((f) => f.type.startsWith('image/'))}
+/>
+```
+
+## Example: client-side image resize (async)
+
+```tsx
+async function resizeImage(file: File, maxPx: number): Promise<File> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxPx / Math.max(bitmap.width, bitmap.height));
+  const canvas = Object.assign(document.createElement('canvas'), {
+    width: Math.round(bitmap.width * scale),
+    height: Math.round(bitmap.height * scale),
+  });
+  canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const blob = await new Promise<Blob>((res) =>
+    canvas.toBlob((b) => res(b!), file.type, 0.9)
+  );
+  return new File([blob], file.name, { type: file.type });
+}
+
+<UploadDropzone
+  route="imageUploader"
+  onBeforeUploadBegin={(files) => Promise.all(files.map((f) => resizeImage(f, 1920)))}
+/>
+```
+
+## Cancelling an upload
+
+Return an empty array to cancel the upload without an error:
+
+```tsx
+<UploadButton
+  route="imageUploader"
+  onBeforeUploadBegin={(files) => {
+    const confirmed = window.confirm(`Upload ${files.length} file(s)?`);
+    return confirmed ? files : [];
+  }}
+/>
+```
+
+<Callout type="warn">
+  Server-side validation in your FileRouter still runs — `onBeforeUploadBegin` is a convenience hook, not a security boundary. Never rely on client-side filtering alone to enforce file type or size restrictions.
+</Callout>

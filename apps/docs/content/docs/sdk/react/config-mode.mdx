@@ -1,0 +1,73 @@
+---
+title: Upload Modes
+description: Control when uploads begin with config.mode on UploadButton and UploadDropzone.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The `config` prop accepts a `{ mode: 'auto' | 'manual' }` object that controls when the upload begins after files are selected or dropped.
+
+## UploadButton modes
+
+| Mode | Behavior |
+|------|----------|
+| `auto` (default) | Upload fires immediately when the user selects files |
+| `manual` | Files are staged; a separate confirm button lets the user review before uploading |
+
+### Manual mode example
+
+```tsx
+import { UploadButton } from '@uploadkit/react';
+
+export default function Page() {
+  return (
+    <UploadButton
+      route="imageUploader"
+      config={{ mode: 'manual' }}
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+    />
+  );
+}
+```
+
+In `manual` mode, `UploadButton` renders the staged file count and a separate **Upload** confirm button. The user can deselect files before confirming.
+
+## UploadDropzone modes
+
+| Mode | Behavior |
+|------|----------|
+| `manual` (default) | Files dropped or selected are staged with an **Upload X files** button shown |
+| `auto` | Upload begins immediately on drop or file selection |
+
+### Auto mode example
+
+```tsx
+import { UploadDropzone } from '@uploadkit/react';
+
+export default function Page() {
+  return (
+    <UploadDropzone
+      route="documentUploader"
+      config={{ mode: 'auto' }}
+      onUploadComplete={(results) => {
+        console.log('All uploaded:', results.map((r) => r.url));
+      }}
+    />
+  );
+}
+```
+
+<Callout>
+  `manual` mode is recommended for multi-file workflows where users may want to review their selection before uploading. Use `auto` mode for single-file flows or drag-and-drop interfaces where immediacy improves the experience.
+</Callout>
+
+## Default modes summary
+
+| Component | Default mode |
+|-----------|-------------|
+| `UploadButton` | `auto` |
+| `UploadDropzone` | `manual` |
+
+The defaults match the most common usage patterns: buttons feel responsive when they act immediately, while dropzones benefit from the staging step when multiple files are involved.

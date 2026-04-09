@@ -1,0 +1,69 @@
+---
+title: Upload Progress
+description: Control progress reporting granularity for custom progress UIs.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The `uploadProgressGranularity` prop controls how frequently `onUploadProgress` is called during an upload.
+
+| Value | Behavior |
+|-------|----------|
+| `'coarse'` (default) | Progress reported at 0%, 25%, 50%, 75%, 100% |
+| `'fine'` | Every ~5% increment |
+| `'all'` | Every XHR progress event — highest frequency, use for smooth animated bars |
+
+## Basic usage
+
+```tsx
+import { useState } from 'react';
+import { UploadButton } from '@uploadkit/react';
+
+export default function Page() {
+  const [progress, setProgress] = useState(0);
+
+  return (
+    <div>
+      <UploadButton
+        route="imageUploader"
+        uploadProgressGranularity="all"
+        onUploadProgress={({ progress }) => setProgress(progress)}
+        onUploadComplete={() => setProgress(0)}
+      />
+      {progress > 0 && (
+        <div style={{ width: '100%', background: '#eee', borderRadius: 4 }}>
+          <div
+            style={{
+              width: `${progress}%`,
+              height: 4,
+              background: '#6366f1',
+              borderRadius: 4,
+              transition: 'width 80ms linear',
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## With UploadDropzone
+
+```tsx
+<UploadDropzone
+  route="documentUploader"
+  uploadProgressGranularity="fine"
+  onUploadProgress={({ progress }) => console.log(`${progress}%`)}
+/>
+```
+
+<Callout>
+  Use `'coarse'` (the default) unless you are rendering a custom animated progress bar. Frequent state updates from `'all'` can degrade upload performance and cause unnecessary re-renders in your React tree.
+</Callout>
+
+## Choosing the right value
+
+- **`'coarse'`** — default; suitable for showing a simple progress indicator with minimal overhead
+- **`'fine'`** — good for progress bars that should feel responsive without maximum update frequency
+- **`'all'`** — use only when you need a smooth, frame-rate animation tied directly to XHR events

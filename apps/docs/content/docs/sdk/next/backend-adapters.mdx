@@ -1,0 +1,93 @@
+---
+title: Backend Adapters
+description: Use UploadKit with Express, Fastify, or Hono — same FileRouter, different runtime.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+UploadKit ships adapters for Express, Fastify, and Hono. Each adapter wraps the same `createUploadKitHandler` but adapts the request/response interface for the target framework. Your FileRouter definition is identical across all adapters — swap the adapter without changing any frontend code.
+
+## Express
+
+```ts
+import express from 'express';
+import { createExpressHandler } from '@uploadkit/next/adapters/express';
+import { ourFileRouter } from './file-router';
+
+const app = express();
+
+app.use(
+  '/api/uploadkit',
+  createExpressHandler({
+    router: ourFileRouter,
+    config: {
+      uploadkitApiKey: process.env.UPLOADKIT_API_KEY,
+    },
+  })
+);
+```
+
+## Fastify
+
+```ts
+import Fastify from 'fastify';
+import { createFastifyHandler } from '@uploadkit/next/adapters/fastify';
+import { ourFileRouter } from './file-router';
+
+const fastify = Fastify();
+
+fastify.all(
+  '/api/uploadkit/*',
+  createFastifyHandler({
+    router: ourFileRouter,
+    config: {
+      uploadkitApiKey: process.env.UPLOADKIT_API_KEY,
+    },
+  })
+);
+```
+
+## Hono
+
+```ts
+import { Hono } from 'hono';
+import { createHonoHandler } from '@uploadkit/next/adapters/hono';
+import { ourFileRouter } from './file-router';
+
+const app = new Hono();
+
+app.all(
+  '/api/uploadkit/*',
+  createHonoHandler({
+    router: ourFileRouter,
+    config: {
+      uploadkitApiKey: process.env.UPLOADKIT_API_KEY,
+    },
+  })
+);
+```
+
+## Pointing React components at your adapter
+
+Set the `endpoint` prop (or configure `UploadKitProvider`) to the URL where your adapter is mounted:
+
+```tsx
+<UploadButton
+  route="imageUploader"
+  endpoint="/api/uploadkit"
+/>
+```
+
+This is identical to how you'd point components at a Next.js route handler — the adapter URL is the only thing that changes.
+
+<Callout>
+  All adapters share the same FileRouter definition — you can move from Next.js to Express (or any other supported framework) without changing your frontend components or your FileRouter.
+</Callout>
+
+## Config options
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `router` | `FileRouter` | Yes | Your application's file router. |
+| `config.uploadkitApiKey` | `string` | Yes | Your UploadKit API key (`uk_live_…`). Keep this server-side only. |
+| `config.isDev` | `boolean` | No | Enables verbose logging and skips signature verification for local development. |

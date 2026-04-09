@@ -1,0 +1,54 @@
+---
+title: NextSSRPlugin
+description: Prevent hydration mismatches and loading flashes in Next.js App Router.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## The problem
+
+Without `NextSSRPlugin`, components that read the file router config (such as accepted file types and max sizes) must fetch that configuration on the client after hydration. This causes a brief loading flash — the component renders in an indeterminate state until the config arrives.
+
+## The solution
+
+`NextSSRPlugin` pre-renders the file router config on the server and embeds it in the HTML. The client picks it up immediately with no extra round-trip and no hydration mismatch.
+
+## Setup
+
+Add `NextSSRPlugin` to your root `layout.tsx`:
+
+```tsx
+// app/layout.tsx
+import { NextSSRPlugin } from '@uploadkit/next/server';
+import { extractRouterConfig } from '@uploadkit/next';
+import { ourFileRouter } from '@/app/api/uploadkit/[...uploadkit]/route';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+`extractRouterConfig` strips the server-only middleware functions from the router definition, leaving only the serializable config (accepted types, max sizes, max files). This safe subset is what `NextSSRPlugin` embeds in the page.
+
+<Callout>
+  `NextSSRPlugin` is a Server Component. Import `ourFileRouter` from your server-side route handler file — never from a client component or a file that re-exports client components.
+</Callout>
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `routerConfig` | `RouterConfig` | Yes | Serializable config extracted from your file router via `extractRouterConfig`. |
+
+## How it works
+
+1. `extractRouterConfig(ourFileRouter)` runs on the server at render time, producing a plain JSON-serializable object.
+2. `NextSSRPlugin` renders a `<script>` tag containing that config, injected into the HTML stream.
+3. On the client, `@uploadkit/react` reads the config from the script tag before React hydrates, so components initialize with the correct configuration immediately.
