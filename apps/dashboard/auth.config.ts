@@ -16,7 +16,7 @@ export const authConfig: NextAuthConfig = {
     Resend({
       // Auth.js reads AUTH_RESEND_KEY by default; we use RESEND_API_KEY
       // everywhere else, so pass it explicitly to keep a single source.
-      apiKey: process.env.RESEND_API_KEY,
+      apiKey: process.env.RESEND_API_KEY!,
       from: 'UploadKit <noreply@updates.uploadkit.dev>',
     }),
   ],
