@@ -32,16 +32,6 @@ const columns: FooterColumn[] = [
       { label: 'GitHub', href: 'https://github.com/uploadkit/uploadkit', external: true },
     ],
   },
-  {
-    heading: 'Company',
-    links: [
-      { label: 'About', href: '/about' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Twitter', href: 'https://twitter.com/uploadkit', external: true },
-      { label: 'Discord', href: 'https://discord.gg/uploadkit', external: true },
-      { label: 'Status', href: 'https://status.uploadkit.dev', external: true },
-    ],
-  },
 ]
 
 export function Footer() {
