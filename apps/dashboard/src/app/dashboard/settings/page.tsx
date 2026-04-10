@@ -12,7 +12,7 @@ export default async function SettingsPage() {
   await connectDB();
 
   const user = await User.findById(session.user.id)
-    .select('name email image')
+    .select('name email image notifications')
     .lean();
 
   if (!user) redirect('/login');
@@ -29,6 +29,10 @@ export default async function SettingsPage() {
       <SettingsForm
         initialName={user.name ?? ''}
         email={user.email ?? ''}
+        initialNotifications={{
+          emailUsageAlerts: user.notifications?.emailUsageAlerts ?? true,
+          emailProductUpdates: user.notifications?.emailProductUpdates ?? false,
+        }}
       />
     </div>
   );

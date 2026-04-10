@@ -15,12 +15,18 @@ import {
   Button,
 } from '@uploadkitdev/ui';
 
+interface NotificationPrefs {
+  emailUsageAlerts: boolean;
+  emailProductUpdates: boolean;
+}
+
 interface SettingsFormProps {
   initialName: string;
   email: string;
+  initialNotifications: NotificationPrefs;
 }
 
-export function SettingsForm({ initialName, email }: SettingsFormProps) {
+export function SettingsForm({ initialName, email, initialNotifications }: SettingsFormProps) {
   const router = useRouter();
 
   // Profile form state
@@ -34,9 +40,53 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState('');
 
-  // Notification preferences (stored locally for now)
-  const [emailUsageAlerts, setEmailUsageAlerts] = React.useState(false);
-  const [emailProductUpdates, setEmailProductUpdates] = React.useState(false);
+  // Notification preferences — persisted via PUT /api/internal/settings
+  const [emailUsageAlerts, setEmailUsageAlerts] = React.useState(
+    initialNotifications.emailUsageAlerts,
+  );
+  const [emailProductUpdates, setEmailProductUpdates] = React.useState(
+    initialNotifications.emailProductUpdates,
+  );
+  const [notifStatus, setNotifStatus] = React.useState<'idle' | 'saving' | 'saved' | 'error'>(
+    'idle',
+  );
+  const savedTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    };
+  }, []);
+
+  async function saveNotifications(next: Partial<NotificationPrefs>) {
+    setNotifStatus('saving');
+    try {
+      const res = await fetch('/api/internal/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notifications: next }),
+      });
+      if (!res.ok) {
+        setNotifStatus('error');
+        return;
+      }
+      setNotifStatus('saved');
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+      savedTimeoutRef.current = setTimeout(() => setNotifStatus('idle'), 2000);
+    } catch {
+      setNotifStatus('error');
+    }
+  }
+
+  function handleToggleUsageAlerts(checked: boolean) {
+    setEmailUsageAlerts(checked);
+    void saveNotifications({ emailUsageAlerts: checked });
+  }
+
+  function handleToggleProductUpdates(checked: boolean) {
+    setEmailProductUpdates(checked);
+    void saveNotifications({ emailProductUpdates: checked });
+  }
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -140,13 +190,24 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
 
       {/* Notifications section */}
       <div className="rounded-xl border border-border bg-card p-6">
-        <h2 className="mb-5 text-sm font-medium text-foreground">Notifications</h2>
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-sm font-medium text-foreground">Notifications</h2>
+          {notifStatus === 'saving' && (
+            <span className="text-xs text-muted-foreground">Saving…</span>
+          )}
+          {notifStatus === 'saved' && (
+            <span className="text-xs text-emerald-400">Saved</span>
+          )}
+          {notifStatus === 'error' && (
+            <span className="text-xs text-red-400">Failed to save</span>
+          )}
+        </div>
         <div className="flex flex-col gap-4">
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
               checked={emailUsageAlerts}
-              onChange={(e) => setEmailUsageAlerts(e.target.checked)}
+              onChange={(e) => handleToggleUsageAlerts(e.target.checked)}
               className="mt-0.5 h-4 w-4 rounded border-border bg-accent accent-indigo-500"
             />
             <div>
@@ -161,7 +222,7 @@ export function SettingsForm({ initialName, email }: SettingsFormProps) {
             <input
               type="checkbox"
               checked={emailProductUpdates}
-              onChange={(e) => setEmailProductUpdates(e.target.checked)}
+              onChange={(e) => handleToggleProductUpdates(e.target.checked)}
               className="mt-0.5 h-4 w-4 rounded border-border bg-accent accent-indigo-500"
             />
             <div>

@@ -15,7 +15,7 @@ export async function GET() {
   await connectDB();
 
   const user = await User.findById(session.user.id)
-    .select('name email image')
+    .select('name email image notifications')
     .lean();
 
   if (!user) {
@@ -41,28 +41,62 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const name =
-    body !== null &&
-    typeof body === 'object' &&
-    'name' in body &&
-    typeof (body as { name: unknown }).name === 'string'
-      ? (body as { name: string }).name.trim()
-      : null;
+  if (body === null || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+  }
 
-  // T-06-14: validate name 1-100 chars
-  if (name === null || name.length === 0 || name.length > 100) {
-    return NextResponse.json(
-      { error: 'Name must be between 1 and 100 characters.' },
-      { status: 400 },
-    );
+  const obj = body as Record<string, unknown>;
+  const update: Record<string, unknown> = {};
+
+  if ('name' in obj) {
+    if (typeof obj['name'] !== 'string') {
+      return NextResponse.json({ error: 'Name must be a string.' }, { status: 400 });
+    }
+    const name = obj['name'].trim();
+    // T-06-14: validate name 1-100 chars
+    if (name.length === 0 || name.length > 100) {
+      return NextResponse.json(
+        { error: 'Name must be between 1 and 100 characters.' },
+        { status: 400 },
+      );
+    }
+    update['name'] = name;
+  }
+
+  if ('notifications' in obj) {
+    const n = obj['notifications'];
+    if (n === null || typeof n !== 'object') {
+      return NextResponse.json({ error: 'Invalid notifications payload.' }, { status: 400 });
+    }
+    const notif = n as Record<string, unknown>;
+    const next: Record<string, boolean> = {};
+    if ('emailUsageAlerts' in notif) {
+      if (typeof notif['emailUsageAlerts'] !== 'boolean') {
+        return NextResponse.json({ error: 'emailUsageAlerts must be boolean.' }, { status: 400 });
+      }
+      next['emailUsageAlerts'] = notif['emailUsageAlerts'];
+    }
+    if ('emailProductUpdates' in notif) {
+      if (typeof notif['emailProductUpdates'] !== 'boolean') {
+        return NextResponse.json({ error: 'emailProductUpdates must be boolean.' }, { status: 400 });
+      }
+      next['emailProductUpdates'] = notif['emailProductUpdates'];
+    }
+    for (const [k, v] of Object.entries(next)) {
+      update[`notifications.${k}`] = v;
+    }
+  }
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: 'No fields to update.' }, { status: 400 });
   }
 
   await connectDB();
 
   const updated = await User.findByIdAndUpdate(
     session.user.id,
-    { $set: { name } },
-    { new: true, select: 'name email image' },
+    { $set: update },
+    { new: true, select: 'name email image notifications' },
   ).lean();
 
   if (!updated) {

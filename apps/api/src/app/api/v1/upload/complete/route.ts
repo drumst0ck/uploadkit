@@ -110,7 +110,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
 
         if (prevStoragePercent < 0.8 && newStoragePercent >= 0.8) {
           const user = await User.findById(ctx.project.userId);
-          if (user?.email) {
+          if (user?.email && user.notifications?.emailUsageAlerts !== false) {
             void sendUsageAlertEmail(user.email, {
               userName: user.name ?? 'there',
               usagePercent: 80,
@@ -124,7 +124,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
         }
         if (prevStoragePercent < 1.0 && newStoragePercent >= 1.0) {
           const user = await User.findById(ctx.project.userId);
-          if (user?.email) {
+          if (user?.email && user.notifications?.emailUsageAlerts !== false) {
             void sendUsageAlertEmail(user.email, {
               userName: user.name ?? 'there',
               usagePercent: 100,
@@ -147,7 +147,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
 
         if (prevUploadPercent < 0.8 && newUploadPercent >= 0.8) {
           const user = await User.findById(ctx.project.userId);
-          if (user?.email) {
+          if (user?.email && user.notifications?.emailUsageAlerts !== false) {
             void sendUsageAlertEmail(user.email, {
               userName: user.name ?? 'there',
               usagePercent: 80,
@@ -161,7 +161,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
         }
         if (prevUploadPercent < 1.0 && newUploadPercent >= 1.0) {
           const user = await User.findById(ctx.project.userId);
-          if (user?.email) {
+          if (user?.email && user.notifications?.emailUsageAlerts !== false) {
             void sendUsageAlertEmail(user.email, {
               userName: user.name ?? 'there',
               usagePercent: 100,
