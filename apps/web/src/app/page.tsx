@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import {
   CloudUpload,
   HardDrive,
@@ -8,15 +7,15 @@ import {
   Zap,
   LayoutDashboard,
   Check,
-  ArrowRight,
-  Copy,
 } from 'lucide-react'
 import Navbar from '@/components/nav/navbar'
 import { Logo } from '@/components/logo'
 import { HeroCodeWindow } from '@/components/hero/hero-code-window'
+import { InstallCommand } from '@/components/hero/install-command'
 import { Footer } from '@/components/footer/footer'
+import { AnimatedButton } from '@/components/ui/animated-button'
 import { BlurText } from '@/components/react-bits/blur-text'
-import { Aurora } from '@/components/react-bits/aurora'
+import { DarkVeil } from '@/components/react-bits/dark-veil'
 import { SpotlightCard } from '@/components/react-bits/spotlight-card'
 
 export const metadata: Metadata = {
@@ -80,19 +79,19 @@ function JsonLd() {
 async function HeroSection() {
   return (
     <section
-      className="gradient-mesh relative overflow-hidden pb-24 pt-28 md:pb-32 md:pt-36"
+      className="relative overflow-hidden pb-24 pt-28 md:pb-32 md:pt-36"
       aria-labelledby="hero-headline"
     >
-      {/* Aurora WebGL background — sits behind gradient-mesh */}
+      {/* DarkVeil — full-section animated gradient background */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,black_0%,transparent_75%)]"
+        className="pointer-events-none absolute inset-0 opacity-70 [mask-image:linear-gradient(to_bottom,black_0%,black_70%,transparent_100%)]"
         aria-hidden="true"
       >
-        <Aurora
-          colorStops={['#6366f1', '#818cf8', '#3b82f6']}
-          amplitude={1.2}
-          blend={0.6}
-          speed={0.8}
+        <DarkVeil
+          speed={0.4}
+          hueShift={-25}
+          warpAmount={0.6}
+          noiseIntensity={0.02}
         />
       </div>
       <div className="relative mx-auto flex max-w-[1200px] flex-col items-center px-6 text-center">
@@ -116,7 +115,7 @@ async function HeroSection() {
         {/* Headline — BlurText staggered reveal */}
         <h1
           id="hero-headline"
-          className="mb-6 flex max-w-[720px] flex-col items-center font-display font-black leading-[1.05]"
+          className="mb-6 flex flex-col items-center font-display font-black leading-[1.05]"
           style={{
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(42px, 6vw, 68px)',
@@ -130,7 +129,7 @@ async function HeroSection() {
             delay={80}
             animateBy="words"
             direction="top"
-            className="justify-center"
+            className="justify-center whitespace-nowrap"
           />
           <BlurText
             as="span"
@@ -138,7 +137,7 @@ async function HeroSection() {
             delay={80}
             animateBy="words"
             direction="top"
-            className="justify-center"
+            className="justify-center whitespace-nowrap"
           />
         </h1>
 
@@ -153,53 +152,24 @@ async function HeroSection() {
 
         {/* CTAs */}
         <div className="mb-10 flex flex-col items-center gap-3 sm:flex-row">
-          <Link
+          <AnimatedButton
             href="https://app.uploadkit.dev/login"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_30px_-5px_rgba(250,250,250,0.4)] active:scale-[0.98]"
-            style={{ background: '#fafafa', color: '#09090b', boxShadow: '0 0 20px -5px rgba(250,250,250,0.3)' }}
+            variant="primary"
+            external
           >
             Start Building
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
-          <Link
+          </AnimatedButton>
+          <AnimatedButton
             href="https://docs.uploadkit.dev"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-6 py-2.5 text-sm font-medium transition-colors duration-200 hover:text-[var(--color-text-primary)] hover:bg-white/[0.06]"
-            style={{
-              border: '1px solid rgba(255,255,255,0.12)',
-              color: '#a1a1aa',
-            }}
+            variant="ghost"
+            external
           >
             Read the Docs
-          </Link>
+          </AnimatedButton>
         </div>
 
-        {/* Install command pill */}
-        <div
-          className="mb-14 flex items-center gap-3 rounded-full px-5 py-2.5"
-          style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-          }}
-        >
-          <code
-            className="font-mono text-sm"
-            style={{ color: '#a1a1aa' }}
-          >
-            $ pnpm add @uploadkitdev/next @uploadkitdev/react
-          </code>
-          <button
-            type="button"
-            aria-label="Copy install command"
-            className="flex-shrink-0 transition-all duration-200 hover:text-zinc-300 hover:bg-white/[0.06] rounded-md p-1 -m-1"
-            style={{ color: '#52525B' }}
-          >
-            <Copy className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
+        {/* Install command — client component with pm tabs + copy feedback */}
+        <InstallCommand />
 
         {/* Code window */}
         <div className="w-full max-w-[720px]">
@@ -474,25 +444,17 @@ function PricingSection() {
               </p>
 
               {/* CTA */}
-              {tier.featured ? (
-                <Link
+              <div className="mb-8">
+                <AnimatedButton
                   href={tier.ctaHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mb-8 w-full rounded-[var(--radius-sm)] py-2.5 text-center text-sm font-semibold transition-all duration-200 bg-indigo-600 text-white hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30"
+                  variant={tier.featured ? 'accent' : 'ghost'}
+                  external
+                  fullWidth
+                  showArrow={false}
                 >
                   {tier.cta}
-                </Link>
-              ) : (
-                <Link
-                  href={tier.ctaHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mb-8 w-full rounded-[var(--radius-sm)] py-2.5 text-center text-sm font-semibold transition-all duration-200 border border-white/[0.12] text-white hover:bg-white/[0.06] hover:border-white/[0.18]"
-                >
-                  {tier.cta}
-                </Link>
-              )}
+                </AnimatedButton>
+              </div>
 
               {/* Divider */}
               <div
@@ -554,16 +516,14 @@ function CtaSection() {
           <p className="mb-10 text-lg" style={{ color: '#71717A' }}>
             Start with 5GB free. No credit card required.
           </p>
-          <Link
+          <AnimatedButton
             href="https://app.uploadkit.dev/login"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-8 py-3 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_30px_-5px_rgba(250,250,250,0.4)] active:scale-[0.98]"
-            style={{ background: '#fafafa', color: '#09090b', boxShadow: '0 0 20px -5px rgba(250,250,250,0.3)' }}
+            variant="primary"
+            external
+            className="px-8 py-3"
           >
             Get Started Free
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          </AnimatedButton>
         </div>
       </div>
     </section>
