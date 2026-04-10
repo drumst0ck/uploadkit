@@ -1,0 +1,11 @@
+# UploadKit scheduled jobs — executed by supercronic inside the cron container.
+# Commands run via /bin/sh, so ${VAR} expands from container env.
+# API_URL and CRON_SECRET are injected by docker-compose.
+#
+# Format: minute hour day month weekday  command
+
+# Stale uploading-file cleanup — every hour at :00
+0 * * * * curl -fsS --max-time 55 -H "Authorization: Bearer ${CRON_SECRET}" "${API_URL}/api/cron/cleanup" || echo "[cron] cleanup failed"
+
+# Inactive-account cleanup — once a day at 03:00 UTC
+0 3 * * * curl -fsS --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "${API_URL}/api/cron/inactive-cleanup" || echo "[cron] inactive-cleanup failed"

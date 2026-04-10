@@ -85,6 +85,19 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
+  cron:
+    build:
+      context: .
+      dockerfile: docker/cron/Dockerfile
+    environment:
+      # Internal service DNS — api listens on :3000 inside the compose net
+      - API_URL=http://api:3000
+      - CRON_SECRET=${CRON_SECRET:-}
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   mongodb_data:
   redis_data:
