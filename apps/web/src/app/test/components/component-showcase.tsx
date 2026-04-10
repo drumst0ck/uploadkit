@@ -13,6 +13,14 @@ import {
   UploadButtonMagnetic,
   UploadAvatar,
   UploadInlineChat,
+  UploadProgressRadial,
+  UploadProgressBar,
+  UploadProgressStacked,
+  UploadProgressOrbit,
+  UploadCloudRain,
+  UploadBento,
+  UploadParticles,
+  UploadStepWizard,
 } from '@uploadkitdev/react';
 import '@uploadkitdev/react/styles.css';
 import { useState, type ReactNode } from 'react';
@@ -130,6 +138,60 @@ export function ComponentShowcase() {
               route={FAKE_ROUTE}
               placeholder="Message UploadKit…"
             />
+          </Card>
+        </Section>
+
+        <Section
+          title="Motion & Progress"
+          description="Eight motion-forward upload affordances. All animations via motion (optional peerDep) with CSS fallbacks."
+        >
+          <Card
+            name="UploadProgressRadial"
+            inspiration="Linear attachments · Apple Health activity ring"
+          >
+            <UploadProgressRadial route={FAKE_ROUTE} />
+          </Card>
+          <Card
+            name="UploadProgressBar"
+            inspiration="Vercel build logs · Linear CI bars"
+          >
+            <UploadProgressBar route={FAKE_ROUTE} />
+          </Card>
+          <Card
+            name="UploadProgressStacked"
+            inspiration="iOS AirDrop · Telegram multi-send"
+          >
+            <UploadProgressStacked route={FAKE_ROUTE} />
+          </Card>
+          <Card
+            name="UploadProgressOrbit"
+            inspiration="Arc browser · Raycast command palette"
+          >
+            <UploadProgressOrbit route={FAKE_ROUTE} />
+          </Card>
+          <Card
+            name="UploadCloudRain"
+            inspiration="iCloud sync · Dropbox onboarding"
+          >
+            <UploadCloudRain route={FAKE_ROUTE} />
+          </Card>
+          <Card
+            name="UploadBento"
+            inspiration="Apple iPadOS widgets · Raycast themes grid"
+          >
+            <UploadBento route={FAKE_ROUTE} />
+          </Card>
+          <Card
+            name="UploadParticles"
+            inspiration="Stripe 3DS loading · Vercel Ship hero"
+          >
+            <UploadParticles route={FAKE_ROUTE} />
+          </Card>
+          <Card
+            name="UploadStepWizard"
+            inspiration="Stripe Checkout · Apple Pay add card"
+          >
+            <UploadStepWizard route={FAKE_ROUTE} />
           </Card>
         </Section>
       </main>
