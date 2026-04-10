@@ -4,6 +4,7 @@ description: A dropzone with an animated conic-gradient mesh and cursor-follow s
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadDropzoneAurora } from '@/components/preview-components';
 
 A cinematic dropzone built around an animated conic-gradient aurora mesh and a cursor-follow specular highlight. The mesh scales up on drag-over and the gradient-clipped title gives the component an editorial feel.
 
@@ -12,6 +13,10 @@ A cinematic dropzone built around an animated conic-gradient aurora mesh and a c
 <Callout>
   `motion` is an **optional peerDependency**. Without it, the mesh rotates via a CSS keyframe fallback. `pnpm add motion` to upgrade to Motion's hardware-accelerated rotation and scale.
 </Callout>
+
+<ComponentPreview caption="Apple · Supabase — conic mesh + cursor halo">
+  <UploadDropzoneAurora route="demo" />
+</ComponentPreview>
 
 ## Basic usage
 

@@ -263,6 +263,148 @@ ChatGPT-style composer with a paperclip attach button and animated file chips. S
 
 ---
 
+## Motion & Progress variants
+
+Eight motion-forward upload affordances shipped in quick task 260410-kw3. All use CSS custom properties for theming, respect `prefers-reduced-motion`, and expose full ARIA progress semantics.
+
+### UploadProgressRadial
+
+```typescript
+const UploadProgressRadial: React.ForwardRefExoticComponent<UploadProgressRadialProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Activity-ring style radial progress with `pathLength` fill and a success splash. See [UploadProgressRadial](/docs/sdk/react/upload-progress-radial).
+
+#### UploadProgressRadialProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from the file router. |
+| `accept` | `string[]` | — | MIME types. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `size` | `number` | `120` | Diameter of the ring in pixels. |
+| `strokeWidth` | `number` | `6` | Ring stroke width. |
+| `label` | `string` | `'Upload'` | Center label when idle. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `className` | `string` | — | CSS class(es) for the outer wrapper. |
+
+---
+
+### UploadProgressBar
+
+```typescript
+const UploadProgressBar: React.ForwardRefExoticComponent<UploadProgressBarProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Horizontal progress bar with shimmer sweep, indeterminate state, and a bounce-check on success. See [UploadProgressBar](/docs/sdk/react/upload-progress-bar).
+
+#### UploadProgressBarProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** |
+| `accept` | `string[]` | — | MIME types. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Forwarded metadata. |
+| `indeterminate` | `boolean` | `false` | Force indeterminate sliding state. |
+| `showPercent` | `boolean` | `true` | Show percent label. |
+| `buttonLabel` | `string` | `'Select file'` | CTA label. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Success callback. |
+| `onUploadError` | `(error: Error) => void` | — | Failure callback. |
+| `className` | `string` | — | CSS class(es). |
+
+---
+
+### UploadProgressStacked
+
+```typescript
+const UploadProgressStacked: React.ForwardRefExoticComponent<UploadProgressStackedProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Multi-file vertical progress list where completed rows float to the top. Inspired by iOS AirDrop. See [UploadProgressStacked](/docs/sdk/react/upload-progress-stacked).
+
+#### UploadProgressStackedProps
+
+Same shape as `UploadDropzoneGlassProps` (route, accept, maxSize, maxFiles, metadata, onUploadComplete, onUploadError, className, children).
+
+---
+
+### UploadProgressOrbit
+
+```typescript
+const UploadProgressOrbit: React.ForwardRefExoticComponent<UploadProgressOrbitProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Circular orbit of satellites that collapse to the center as each upload completes. See [UploadProgressOrbit](/docs/sdk/react/upload-progress-orbit).
+
+#### UploadProgressOrbitProps
+
+Same shape as `UploadProgressStackedProps`, plus `radius?: number` (default `80`).
+
+---
+
+### UploadCloudRain
+
+```typescript
+const UploadCloudRain: React.ForwardRefExoticComponent<UploadCloudRainProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Cloud icon that fills as progress advances, with droplets raining down as files are picked. See [UploadCloudRain](/docs/sdk/react/upload-cloud-rain).
+
+#### UploadCloudRainProps
+
+Same shape as `UploadProgressStackedProps`.
+
+---
+
+### UploadBento
+
+```typescript
+const UploadBento: React.ForwardRefExoticComponent<UploadBentoProps & React.RefAttributes<HTMLDivElement>>
+```
+
+CSS grid bento layout — every third cell spans 2 columns. Inspired by Apple iPadOS widgets. See [UploadBento](/docs/sdk/react/upload-bento).
+
+#### UploadBentoProps
+
+Same shape as `UploadProgressStackedProps` (minus `children`), plus `columns?: number` (default `3`).
+
+---
+
+### UploadParticles
+
+```typescript
+const UploadParticles: React.ForwardRefExoticComponent<UploadParticlesProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Constellation of particles converging to the center as upload progress advances. Pure CSS transforms. See [UploadParticles](/docs/sdk/react/upload-particles).
+
+#### UploadParticlesProps
+
+Same shape as `UploadProgressStackedProps` (minus `children`), plus `particleCount?: number` (default `40`).
+
+---
+
+### UploadStepWizard
+
+```typescript
+const UploadStepWizard: React.ForwardRefExoticComponent<UploadStepWizardProps & React.RefAttributes<HTMLDivElement>>
+```
+
+5-stage single-file upload wizard (select → preview → confirm → upload → done). See [UploadStepWizard](/docs/sdk/react/upload-step-wizard).
+
+#### UploadStepWizardProps
+
+Same shape as `UploadAvatarProps` (minus `accept` default, `initialSrc`, `size`).
+
+<Callout>
+  All eight motion & progress variants use CSS fallbacks for their animations — `motion` is only required for the smooth layout reorders in `UploadProgressStacked` and `UploadBento`, and the `AnimatePresence`-driven transitions in `UploadStepWizard`.
+</Callout>
+
+---
+
 ## UploadModal
 
 ```typescript

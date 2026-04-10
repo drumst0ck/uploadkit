@@ -1,0 +1,69 @@
+---
+title: UploadBento
+description: A CSS grid bento layout where every third cell spans 2 columns — each cell is a mini upload card.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadBento } from '@/components/preview-components';
+
+A CSS grid bento layout where every third cell spans 2 columns (`grid-auto-flow: dense`). Each cell is a mini upload card with file icon, name, size, and a slim progress bar at the bottom. Completed cells reorder to the top with a Motion `layout` animation when the peer dep is installed.
+
+**Design inspiration:** Apple iPadOS homescreen widgets, Raycast themes grid.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, cells do not reorder — they stay in drop order. `pnpm add motion` to enable smooth grid reflow.
+</Callout>
+
+<ComponentPreview caption="Apple iPadOS · Raycast themes — bento grid">
+  <UploadBento route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadBento } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadBento
+      route="gallery"
+      accept={['image/*', 'video/*']}
+      maxFiles={12}
+      columns={3}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.length);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `columns` | `number` | `3` | Grid column count (applied via the `--uk-bento-cols` custom property). |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called when every accepted file has uploaded. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-bento-cols` | Number of columns (inline-styled from `columns` prop) |
+| `--uk-bg-secondary`, `--uk-border`, `--uk-text` | Container and cell chrome |
+| `--uk-progress-track`, `--uk-progress-fill` | Per-cell progress bar |
+| `--uk-success`, `--uk-error` | Border color on success / error |
+
+## Accessibility
+
+- Outer grid is `role="region"` with `aria-label="Upload bento grid"`
+- Each cell is `role="progressbar"` with per-file `aria-valuenow`
+- Focusable via keyboard; Enter and Space open the file picker
+- Respects `prefers-reduced-motion` — layout animations collapse to `0.01ms`

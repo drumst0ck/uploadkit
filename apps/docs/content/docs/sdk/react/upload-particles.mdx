@@ -1,0 +1,67 @@
+---
+title: UploadParticles
+description: A constellation of particles that converge to the center as upload progress advances.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadParticles } from '@/components/preview-components';
+
+A pure-CSS particle field where N randomly-scattered dots smoothly converge toward the center as upload progress advances. No canvas, no WebGL — just `transform: translate(...)` with a single CSS custom property (`--uk-progress`) driving the interpolation.
+
+**Design inspiration:** Stripe 3D Secure loading, Vercel Ship 2023 hero.
+
+<Callout>
+  `motion` is **not required** — particles animate via CSS `transform` transitions tied to a `--uk-progress` custom property set inline. Install `motion` only to extend with spring transitions.
+</Callout>
+
+<ComponentPreview caption="Stripe 3DS · Vercel Ship — particle convergence">
+  <UploadParticles route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadParticles } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadParticles
+      route="avatarUploader"
+      accept={['image/*']}
+      particleCount={60}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.length);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `particleCount` | `number` | `40` | Number of particles in the constellation. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called when every accepted file has uploaded. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-particle-color` | Particle fill color |
+| `--uk-primary` | Focus outline |
+| `--uk-border` | Outer ring border |
+
+## Accessibility
+
+- Outer container is `role="progressbar"` with the aggregate progress as `aria-valuenow`
+- Particles are decorative (`aria-hidden` inside the canvas)
+- Focusable via keyboard; Enter and Space open the file picker
+- Respects `prefers-reduced-motion` — particle transitions collapse to `0.01ms`

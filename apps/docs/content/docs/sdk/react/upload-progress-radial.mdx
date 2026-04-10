@@ -1,0 +1,77 @@
+---
+title: UploadProgressRadial
+description: A click-to-upload radial progress ring with a Motion pathLength fill and success splash.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadProgressRadial } from '@/components/preview-components';
+
+A single-file radial progress component: click the ring, pick a file, watch the stroke fill clockwise as it uploads, and get a subtle splash animation on success. The ring uses Motion's `pathLength` when the optional peer dep is installed, and falls back to `stroke-dashoffset` otherwise — both look identical at a glance.
+
+**Design inspiration:** Linear attachments, Apple Health activity ring.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the fill animates via `stroke-dashoffset`. `pnpm add motion` to swap to Motion's `pathLength` for a silkier feel.
+</Callout>
+
+<ComponentPreview caption="Linear · Apple Health — activity ring">
+  <UploadProgressRadial route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadProgressRadial } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadProgressRadial
+      route="imageUploader"
+      accept={['image/*']}
+      maxSize={5 * 1024 * 1024}
+      size={140}
+      strokeWidth={8}
+      label="Upload image"
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `size` | `number` | `120` | Diameter of the ring in pixels. |
+| `strokeWidth` | `number` | `6` | Ring stroke width in viewBox units (100). |
+| `label` | `string` | `'Upload'` | Idle center label. Replaced by file name while uploading and `'Done'` on success. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+
+`UploadProgressRadial` accepts a `ref` forwarded to the outer `<div>`.
+
+## Theming
+
+`UploadProgressRadial` reads these CSS custom properties:
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-progress-track` | Unfilled ring color |
+| `--uk-progress-fill` | Ring fill color (defaults to `--uk-primary`) |
+| `--uk-text`, `--uk-text-secondary` | Label colors |
+| `--uk-success` | Label color on success |
+
+## Accessibility
+
+- Outer element is `role="button"` with a dynamic `aria-label`
+- Inner label is `role="progressbar"` with `aria-valuemin`, `aria-valuemax`, and `aria-valuenow`
+- Focusable via keyboard; Enter and Space open the file picker
+- `focus-visible` outline uses `--uk-primary`
+- Respects `prefers-reduced-motion` — ring transitions and splash animation drop to `0.01ms`

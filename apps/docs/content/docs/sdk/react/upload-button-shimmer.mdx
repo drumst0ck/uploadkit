@@ -4,6 +4,7 @@ description: A high-contrast CTA upload button with a shimmer sweep and indigo g
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadButtonShimmer } from '@/components/preview-components';
 
 A high-conversion CTA button built around a continuous diagonal shimmer sweep, a subtle icon float, and an indigo glow on hover. Designed to sit in landing-page hero sections without looking out of place next to marketing copy.
 
@@ -12,6 +13,10 @@ A high-conversion CTA button built around a continuous diagonal shimmer sweep, a
 <Callout>
   `motion` is an **optional peerDependency**. Without it, the shimmer sweep and icon float fall back to pure CSS keyframes (`uk-shimmer-sweep`). `pnpm add motion` to swap them for Motion-driven animations.
 </Callout>
+
+<ComponentPreview caption="Vercel · Linear — shimmer sweep + glow">
+  <UploadButtonShimmer route="demo" />
+</ComponentPreview>
 
 ## Basic usage
 

@@ -4,6 +4,7 @@ description: A frosted-glass dropzone with hairline borders and an indigo glow h
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadDropzoneGlass } from '@/components/preview-components';
 
 A premium dropzone variant inspired by the product surfaces of **Vercel** and **Linear**: frosted glass over a soft noise texture, a 1px hairline border, and an indigo glow halo that wakes up the moment a file enters the drop region. Multi-file uploads stream in parallel (batches of 3) with an inline chip for each file.
 
@@ -12,6 +13,10 @@ A premium dropzone variant inspired by the product surfaces of **Vercel** and **
 <Callout>
   `motion` is an **optional peerDependency**. Without it, the component renders a static fallback with no glow animation. `pnpm add motion` to enable the glow transition.
 </Callout>
+
+<ComponentPreview caption="Vercel · Linear — frosted glass + indigo halo">
+  <UploadDropzoneGlass route="demo" />
+</ComponentPreview>
 
 ## Basic usage
 

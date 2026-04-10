@@ -4,6 +4,7 @@ description: A neobrutalist dropzone with thick borders, a hard shadow offset, a
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadDropzoneBrutal } from '@/components/preview-components';
 
 An unapologetic brutalist dropzone. Thick 3px black borders, a `6px 6px 0 0` hard shadow, and a stamp-down scale animation whenever a file is accepted. Uses a huge display headline (`clamp(36px, 6vw, 64px)`) so it doubles as a marketing hero.
 
@@ -12,6 +13,10 @@ An unapologetic brutalist dropzone. Thick 3px black borders, a `6px 6px 0 0` har
 <Callout>
   `motion` is an **optional peerDependency**. Without it, the stamp animation falls back to a CSS keyframe (`uk-brutal-stamp`) applied via the `.uk-brutal-stamped` class. `pnpm add motion` to upgrade to Motion's spring-backed scale.
 </Callout>
+
+<ComponentPreview caption="Neobrutalism — thick borders + hard shadow">
+  <UploadDropzoneBrutal route="demo" />
+</ComponentPreview>
 
 ## Basic usage
 

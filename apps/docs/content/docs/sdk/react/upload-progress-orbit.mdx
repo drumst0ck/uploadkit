@@ -1,0 +1,68 @@
+---
+title: UploadProgressOrbit
+description: A circular orbit of satellites (one per file) that draw into the center as each upload completes.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadProgressOrbit } from '@/components/preview-components';
+
+Each in-flight file becomes a satellite orbiting the center. As each upload progresses, its satellite collapses toward the center until it merges at 100%. The whole ring rotates via a CSS `uk-orbit-spin` keyframe, giving the UI a continuous sense of motion.
+
+**Design inspiration:** Arc browser toolbar, Raycast command palette.
+
+<Callout>
+  `motion` is an **optional peerDependency**. The orbit works fine without it — the ring rotation and satellite convergence are CSS-only. Install `motion` if you plan to extend with custom spring transitions.
+</Callout>
+
+<ComponentPreview caption="Arc · Raycast — orbital loader">
+  <UploadProgressOrbit route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadProgressOrbit } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadProgressOrbit
+      route="bulkUploader"
+      maxFiles={8}
+      radius={90}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.length);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `radius` | `number` | `80` | Orbit radius in pixels. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called when every accepted file has uploaded. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-primary` | Satellite color (uploading) |
+| `--uk-success` | Satellite color on completion |
+| `--uk-error` | Satellite color on failure |
+| `--uk-bg-secondary`, `--uk-border` | Center disc colors |
+
+## Accessibility
+
+- Outer container is `role="progressbar"` with the aggregate progress as `aria-valuenow`
+- Aggregate progress is the average of all in-flight file progresses
+- Focusable via keyboard; Enter and Space open the file picker
+- Respects `prefers-reduced-motion` — orbit rotation and satellite transitions collapse to `0.01ms`

@@ -4,6 +4,7 @@ description: A monospace terminal-style dropzone with a blinking cursor and tail
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadDropzoneTerminal } from '@/components/preview-components';
 
 A dropzone disguised as a terminal session. A blinking block cursor sits after the prompt line, and each dropped file streams into a `tail -f` style log with `[OK]`, `[..]`, and `[ERR]` tags. Perfect for developer-tooling landing pages and CLI-first products.
 
@@ -12,6 +13,10 @@ A dropzone disguised as a terminal session. A blinking block cursor sits after t
 <Callout>
   `motion` is an **optional peerDependency**. Without it, log lines appear instantly instead of sliding in. `pnpm add motion` to enable per-line enter animations.
 </Callout>
+
+<ComponentPreview caption="Raycast · Warp — mono prompt + tail log">
+  <UploadDropzoneTerminal route="demo" />
+</ComponentPreview>
 
 ## Basic usage
 

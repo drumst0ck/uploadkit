@@ -1,0 +1,71 @@
+---
+title: UploadProgressBar
+description: A horizontal progress bar with shimmer sweep, indeterminate state, and a bounce check on completion.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadProgressBar } from '@/components/preview-components';
+
+A straightforward horizontal progress variant: a "Select file" CTA on top, a pill-shaped track below, a shimmer sweep while uploading, an indeterminate sliding animation for the preparing phase, and a bounce-check reveal on success. Pair it with any layout.
+
+**Design inspiration:** Vercel build logs, Linear CI bars.
+
+<Callout>
+  `motion` is **not required** — the shimmer, indeterminate slide, and bounce-check are all pure CSS keyframes. Works identically whether `motion` is installed or not.
+</Callout>
+
+<ComponentPreview caption="Vercel · Linear — build log progress">
+  <UploadProgressBar route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadProgressBar } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadProgressBar
+      route="documentUploader"
+      accept={['application/pdf']}
+      maxSize={10 * 1024 * 1024}
+      buttonLabel="Pick a PDF"
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `indeterminate` | `boolean` | `false` | Force the indeterminate sliding animation (useful for pre-upload preparation phases). |
+| `showPercent` | `boolean` | `true` | Show the percent label below the bar. |
+| `buttonLabel` | `string` | `'Select file'` | CTA button label. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-progress-track` | Track background |
+| `--uk-progress-fill` | Bar fill color |
+| `--uk-progress-shimmer` | Shimmer sweep gradient |
+| `--uk-success` | Fill color on success |
+| `--uk-primary`, `--uk-primary-hover` | CTA button colors |
+
+## Accessibility
+
+- Track is `role="progressbar"` with `aria-valuemin`, `aria-valuemax`, and `aria-valuenow`
+- In indeterminate mode, `aria-valuenow` is omitted (per ARIA spec)
+- CTA button is a real `<button>` with `aria-label`
+- Respects `prefers-reduced-motion` — all animations collapse to `0.01ms`

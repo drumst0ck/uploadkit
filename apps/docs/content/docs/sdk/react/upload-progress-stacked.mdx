@@ -1,0 +1,75 @@
+---
+title: UploadProgressStacked
+description: A multi-file vertical progress list inspired by iOS AirDrop. Completed rows float to the top.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadProgressStacked } from '@/components/preview-components';
+
+A purpose-built multi-file progress list. Drop or select files, watch each row animate its own progress bar, and see completed rows float to the top with a Motion layout animation. Perfect for bulk-upload flows where users want to see their batch fly through.
+
+**Design inspiration:** iOS AirDrop transfer sheet, Telegram multi-send.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, rows simply stack without reordering. `pnpm add motion` to enable the smooth layout animation.
+</Callout>
+
+<ComponentPreview caption="iOS AirDrop · Telegram multi-send">
+  <UploadProgressStacked route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadProgressStacked } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadProgressStacked
+      route="bulkUploader"
+      maxFiles={10}
+      maxSize={20 * 1024 * 1024}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.length, 'files');
+      }}
+    >
+      Drop your bulk upload
+    </UploadProgressStacked>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. Supports wildcards: `'image/*'`. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called when every accepted file has uploaded. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+| `children` | `ReactNode` | — | Custom header title. |
+
+## Behavior
+
+- Files upload in parallel batches of 3 (`CONCURRENCY = 3`).
+- Completed rows are sorted to the top. Errored rows sink below active uploads.
+- When `motion` is installed, reorder transitions are smooth via `layout` + `layoutId`.
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-bg-secondary`, `--uk-border`, `--uk-text` | Panel colors |
+| `--uk-progress-track`, `--uk-progress-fill` | Row progress bar colors |
+| `--uk-primary` | Drag-over accent |
+| `--uk-success`, `--uk-error` | Row tint on success / error |
+
+## Accessibility
+
+- Header is `role="button"` and focusable
+- Each row is `role="progressbar"` with per-file `aria-label`
+- Respects `prefers-reduced-motion` — layout transitions collapse to `0.01ms`

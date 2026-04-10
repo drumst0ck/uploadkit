@@ -4,6 +4,7 @@ description: A circular avatar uploader with blur-up preview and an SVG progress
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadAvatar } from '@/components/preview-components';
 
 A purpose-built avatar uploader: click the circle, pick an image, watch an SVG progress ring animate around the edge as it uploads, and the selected file blurs-up into place as soon as the object URL is ready. Mirrors the pattern used in every best-in-class settings page.
 
@@ -12,6 +13,10 @@ A purpose-built avatar uploader: click the circle, pick an image, watch an SVG p
 <Callout>
   `motion` is an **optional peerDependency**. Without it, the progress ring animates via `stroke-dashoffset` instead of Motion's `pathLength` — visually identical, just less buttery. `pnpm add motion` to enable the Motion-driven ring.
 </Callout>
+
+<ComponentPreview caption="Linear · Notion · Apple ID — circular crop + progress ring">
+  <UploadAvatar route="demo" size={96} />
+</ComponentPreview>
 
 ## Basic usage
 

@@ -1,0 +1,69 @@
+---
+title: UploadCloudRain
+description: A cloud icon that fills as upload progress advances, with droplets raining down as files are picked.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadCloudRain } from '@/components/preview-components';
+
+A playful cloud illustration where aggregate upload progress fills the cloud from bottom to top. When files are selected, small droplets rain down past the cloud, each with a staggered animation delay so the whole thing feels alive. Perfect for onboarding, first-time upload flows, or landing pages where you want the upload surface to feel inviting.
+
+**Design inspiration:** iCloud sync animation, Dropbox onboarding.
+
+<Callout>
+  `motion` is **not required** — the rain drops and cloud fill are pure CSS keyframes. Install `motion` only if you want to extend with custom transitions.
+</Callout>
+
+<ComponentPreview caption="iCloud · Dropbox — sync animation">
+  <UploadCloudRain route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadCloudRain } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadCloudRain
+      route="avatarUploader"
+      accept={['image/*']}
+      maxFiles={5}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.length);
+      }}
+    >
+      Drop files into the cloud
+    </UploadCloudRain>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called when every accepted file has uploaded. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+| `children` | `ReactNode` | — | Custom caption below the cloud. |
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-cloud-stroke` | Cloud outline, fill tint, and droplet color |
+| `--uk-cloud-fill` | Cloud interior color (behind the progress fill) |
+| `--uk-bg-secondary`, `--uk-border`, `--uk-text-secondary` | Container chrome |
+
+## Accessibility
+
+- Container is `role="progressbar"` with the aggregate progress as `aria-valuenow`
+- Focusable via keyboard; Enter and Space open the file picker
+- Droplets are `aria-hidden`
+- Respects `prefers-reduced-motion` — rain animation and transitions collapse to `0.01ms`

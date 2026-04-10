@@ -4,6 +4,7 @@ description: A pill-shaped upload button that attracts toward the cursor with a 
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadButtonMagnetic } from '@/components/preview-components';
 
 A soft, pill-shaped upload button that leans toward the cursor using a Motion spring — the classic "magnetic" interaction popularized by Apple's product pages. Without `motion` installed, it falls back to a CSS hover scale so the component still feels alive.
 
@@ -12,6 +13,10 @@ A soft, pill-shaped upload button that leans toward the cursor using a Motion sp
 <Callout>
   `motion` is an **optional peerDependency**. Without it, the magnetic pull is disabled and the button uses a CSS hover scale instead. `pnpm add motion` to enable the spring-based cursor attraction.
 </Callout>
+
+<ComponentPreview caption="Apple — cursor-attracted spring scale">
+  <UploadButtonMagnetic route="demo" />
+</ComponentPreview>
 
 ## Basic usage
 

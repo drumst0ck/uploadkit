@@ -4,6 +4,7 @@ description: A ChatGPT-style composer with a paperclip attach button and animate
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadInlineChat } from '@/components/preview-components';
 
 A drop-in chat composer with a paperclip attach button, an inline text field, and animated chips for each staged file. Multiple files upload in parallel; chips can be removed mid-upload to cancel via `AbortController`. Inspired by modern AI chat interfaces.
 
@@ -12,6 +13,12 @@ A drop-in chat composer with a paperclip attach button, an inline text field, an
 <Callout>
   `motion` is an **optional peerDependency**. Without it, chips appear and disappear instantly instead of popping in/out. `pnpm add motion` to enable the scale + opacity animations.
 </Callout>
+
+<ComponentPreview caption="ChatGPT · Linear — composer with animated chips">
+  <div style={{ width: 420 }}>
+    <UploadInlineChat route="demo" placeholder="Message UploadKit…" />
+  </div>
+</ComponentPreview>
 
 ## Basic usage
 

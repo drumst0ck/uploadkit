@@ -1,0 +1,78 @@
+---
+title: UploadStepWizard
+description: A 5-stage single-file upload wizard — select, preview, confirm, upload, done.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadStepWizard } from '@/components/preview-components';
+
+A guided, 5-stage upload flow for cases where the upload is important and the user should deliberately commit. The five stages are:
+
+1. **Select** — click to open the file picker.
+2. **Preview** — thumbnail, filename, size, with Back / Next.
+3. **Confirm** — final confirmation step (Cancel / Confirm).
+4. **Upload** — live progress bar.
+5. **Done** — success check with "Upload another".
+
+**Design inspiration:** Stripe Checkout, Apple Pay "Add card" sheet.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, panels use a CSS `uk-stepwizard-slide-in` keyframe for the enter animation (no exit animation). `pnpm add motion` for `AnimatePresence`-driven enter/exit transitions.
+</Callout>
+
+<ComponentPreview caption="Stripe Checkout · Apple Pay — guided wizard">
+  <UploadStepWizard route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadStepWizard } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadStepWizard
+      route="documentUploader"
+      accept={['application/pdf']}
+      maxSize={20 * 1024 * 1024}
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+
+## Behavior
+
+- Object URLs created for image previews are revoked on unmount and on every stage reset.
+- The `'done'` stage's "Upload another" button resets the wizard to the `'select'` stage.
+- Non-image files show a blank thumbnail placeholder.
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-stepwizard-accent` | Dot and primary button color (defaults to `--uk-primary`) |
+| `--uk-progress-track`, `--uk-progress-fill` | Inline progress bar during the upload stage |
+| `--uk-success` | Completed dot color and check icon |
+| `--uk-bg`, `--uk-bg-secondary`, `--uk-border`, `--uk-text` | Panel chrome |
+
+## Accessibility
+
+- Outer container is `role="region"` with `aria-label="Upload wizard"`
+- Stage container is `aria-live="polite"` so stage transitions are announced
+- Upload progress bar is `role="progressbar"` with full ARIA values
+- Respects `prefers-reduced-motion` — panel transitions collapse to `0.01ms`
