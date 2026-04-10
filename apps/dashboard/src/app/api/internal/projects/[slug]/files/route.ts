@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { auth } from '../../../../../../../auth';
-import { connectDB, Project, File } from '@uploadkitdev/db';
+import { connectDB, Project, File, UsageRecord } from '@uploadkitdev/db';
+import { r2Client, R2_BUCKET } from '../../../../../../lib/storage';
 
 export const dynamic = 'force-dynamic';
 
@@ -120,24 +122,80 @@ export async function DELETE(
     .filter((id) => mongoose.isValidObjectId(id))
     .map((id) => new mongoose.Types.ObjectId(id));
 
-  const ownedCount = await File.countDocuments({
+  // Fetch the owned files with key + size so we can both delete from R2
+  // and decrement storage usage accurately.
+  const ownedFiles = await File.find({
     _id: { $in: validIds },
     projectId: project._id,
     deletedAt: null,
-  });
+  })
+    .select('_id key size')
+    .lean();
 
   // T-06-11: if any ID doesn't belong to this project, reject the whole request
-  if (ownedCount !== validIds.length) {
+  if (ownedFiles.length !== validIds.length) {
     return NextResponse.json(
       { error: 'One or more files not found or not accessible' },
       { status: 403 },
     );
   }
 
-  const result = await File.updateMany(
-    { _id: { $in: validIds }, projectId: project._id },
-    { $set: { deletedAt: new Date() } },
+  // Delete each object from R2 in parallel. DeleteObject is idempotent (204
+  // regardless of key existence) so only transient errors should fail here.
+  const r2Results = await Promise.allSettled(
+    ownedFiles.map((file) =>
+      r2Client.send(
+        new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: file.key }),
+      ),
+    ),
   );
 
-  return NextResponse.json({ deleted: result.modifiedCount });
+  // Only soft-delete the DB rows whose R2 object was successfully removed —
+  // leaves failing ones intact so the user can retry.
+  const successIds: mongoose.Types.ObjectId[] = [];
+  let reclaimedBytes = 0;
+  const failures: { id: string; key: string }[] = [];
+
+  r2Results.forEach((result, idx) => {
+    const file = ownedFiles[idx]!;
+    if (result.status === 'fulfilled') {
+      successIds.push(file._id);
+      reclaimedBytes += file.size ?? 0;
+    } else {
+      failures.push({ id: String(file._id), key: file.key });
+      console.warn(
+        `[files.delete] R2 DeleteObject failed for key=${file.key}:`,
+        result.reason,
+      );
+    }
+  });
+
+  if (successIds.length === 0) {
+    return NextResponse.json(
+      { error: 'Failed to delete files from storage', failures },
+      { status: 502 },
+    );
+  }
+
+  // Soft-delete DB rows + mark status DELETED (mirrors public v1 API)
+  await File.updateMany(
+    { _id: { $in: successIds }, projectId: project._id },
+    { $set: { deletedAt: new Date(), status: 'DELETED' } },
+  );
+
+  // Decrement storage usage for the current period (atomic $inc)
+  if (reclaimedBytes > 0) {
+    const period = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+    await UsageRecord.findOneAndUpdate(
+      { userId: project.userId, period },
+      { $inc: { storageUsed: -reclaimedBytes } },
+      { upsert: true },
+    );
+  }
+
+  return NextResponse.json({
+    deleted: successIds.length,
+    failed: failures.length,
+    reclaimedBytes,
+  });
 }
