@@ -1,36 +1,34 @@
 // auth.ts lives at the dashboard root (apps/dashboard/auth.ts).
 // The @/ alias maps to ./src/, so we use a relative path here.
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { handlers } from '../../../../../auth';
 
 const { GET: authGet, POST } = handlers;
 
 // Workaround for oauth4webapi@3.8.5 strict `iss` validation in the GitHub
-// OAuth callback. Some environments (proxies, GitHub App configs, or
-// RFC 9207 rollout) cause an `iss` query param to reach the callback URL
-// which oauth4webapi then compares against `as.issuer` — and since
-// Auth.js v5 falls back to "https://authjs.dev" for non-OIDC providers,
-// the comparison always fails.
+// OAuth callback. An `iss` query param reaches the callback URL (whether
+// from GitHub's RFC 9207 rollout, a proxy, or GitHub App config) and
+// oauth4webapi compares it against `as.issuer` — Auth.js falls back to
+// "https://authjs.dev" for non-OIDC providers, so the comparison fails.
 //
-// Strategy: log the full callback URL for diagnosis, then strip `iss`
-// before passing the request to Auth.js. The state CSRF check runs
-// unchanged because we don't touch that param.
-const GET = async (req: Request): Promise<Response> => {
+// Strategy: if `iss` is present on the GitHub callback, do an internal
+// 307 redirect to the same URL without it. The browser re-requests and
+// our handler passes it clean to Auth.js. State cookies survive the
+// redirect (same origin, same path).
+const GET = async (req: NextRequest): Promise<Response> => {
   const url = new URL(req.url);
 
-  if (url.pathname.includes('/callback/github')) {
-    // Diagnostic log — visible in Coolify container logs
-    console.log('[auth-debug] github callback URL:', url.toString());
-    console.log(
-      '[auth-debug] github callback params:',
-      Object.fromEntries(url.searchParams.entries()),
-    );
-
-    if (url.searchParams.has('iss')) {
-      const issValue = url.searchParams.get('iss');
-      console.log('[auth-debug] stripping iss param, value was:', issValue);
-      url.searchParams.delete('iss');
-      return authGet(new Request(url.toString(), req));
-    }
+  if (
+    url.pathname.includes('/callback/github') &&
+    url.searchParams.has('iss')
+  ) {
+    console.log('[auth-debug] stripping iss from github callback:', {
+      iss: url.searchParams.get('iss'),
+      allParams: Object.fromEntries(url.searchParams.entries()),
+    });
+    url.searchParams.delete('iss');
+    return NextResponse.redirect(url.toString(), 307);
   }
 
   return authGet(req);
