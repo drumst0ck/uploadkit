@@ -36,6 +36,8 @@ services:
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/uploadkit?authSource=admin
+      - AUTH_URL=${AUTH_URL:-https://app.uploadkit.dev}
+      - AUTH_TRUST_HOST=${AUTH_TRUST_HOST:-true}
       - AUTH_SECRET=${AUTH_SECRET}
       - AUTH_GITHUB_ID=${AUTH_GITHUB_ID}
       - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
