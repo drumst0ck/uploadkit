@@ -1,0 +1,78 @@
+---
+title: UploadButtonShimmer
+description: A high-contrast CTA upload button with a shimmer sweep and indigo glow on hover.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+A high-conversion CTA button built around a continuous diagonal shimmer sweep, a subtle icon float, and an indigo glow on hover. Designed to sit in landing-page hero sections without looking out of place next to marketing copy.
+
+**Design inspiration:** Vercel "Deploy" CTA, Linear sign-up button, Resend landing hero.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the shimmer sweep and icon float fall back to pure CSS keyframes (`uk-shimmer-sweep`). `pnpm add motion` to swap them for Motion-driven animations.
+</Callout>
+
+## Basic usage
+
+```tsx
+import { UploadButtonShimmer } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadButtonShimmer
+      route="imageUploader"
+      accept={['image/*']}
+      maxSize={4 * 1024 * 1024}
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+      onUploadError={(error) => {
+        console.error('Upload failed:', error.message);
+      }}
+    >
+      Upload your image
+    </UploadButtonShimmer>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types for the hidden file input. |
+| `maxSize` | `number` | — | Maximum file size in bytes. Client-side UX validation only. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called when an upload fails. |
+| `disabled` | `boolean` | `false` | Disables the button. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the `<button>` element. |
+| `children` | `ReactNode` | — | Custom label. Defaults to `"Upload file"`; during upload becomes `"Uploading {progress}%"`. |
+
+`UploadButtonShimmer` accepts a `ref` forwarded to the underlying `<button>` element.
+
+## Theming
+
+`UploadButtonShimmer` reads these CSS custom properties:
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-primary` | Button background fill |
+| `--uk-radius` | Border radius |
+| `--uk-font` | Font family |
+| `--uk-shimmer` | Shimmer sweep gradient (default is a 110° white translucent sweep) |
+| `--uk-glow` | `box-shadow` on hover |
+
+Override `--uk-shimmer` with your own `linear-gradient(...)` to retint the sweep.
+
+## Accessibility
+
+- `aria-busy` is set to `true` during upload
+- `aria-label` updates to `"Uploading {progress}%"` while uploading
+- The hidden file `<input>` is `aria-hidden="true"` and `tabIndex={-1}`
+- `focus-visible` uses a white outline at 2px offset (legible against the colored fill)
+- Respects `prefers-reduced-motion` — both the sweep and icon float collapse to `0.01ms`
+
+See the [Theming guide](/docs/sdk/react/theming) for token overrides and dark mode.

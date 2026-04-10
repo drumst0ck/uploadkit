@@ -1,0 +1,86 @@
+---
+title: UploadInlineChat
+description: A ChatGPT-style composer with a paperclip attach button and animated file chips.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+A drop-in chat composer with a paperclip attach button, an inline text field, and animated chips for each staged file. Multiple files upload in parallel; chips can be removed mid-upload to cancel via `AbortController`. Inspired by modern AI chat interfaces.
+
+**Design inspiration:** ChatGPT composer, Linear comment field, Slack message input.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, chips appear and disappear instantly instead of popping in/out. `pnpm add motion` to enable the scale + opacity animations.
+</Callout>
+
+## Basic usage
+
+```tsx
+import { UploadInlineChat } from '@uploadkitdev/react';
+
+export default function ChatPage() {
+  return (
+    <UploadInlineChat
+      route="chatAttachments"
+      accept={['image/*', 'application/pdf']}
+      maxFiles={4}
+      maxSize={25 * 1024 * 1024}
+      placeholder="Ask anything..."
+      onUploadComplete={(results) => {
+        console.log('Attached:', results.map((r) => r.url));
+      }}
+      onUploadError={(error) => {
+        console.error(error.message);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. Supports wildcards: `'image/*'`. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per selection. When set to `1`, the file input becomes single-select. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called when every accepted file has uploaded. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `placeholder` | `string` | `'Send a message...'` | Placeholder text for the inline message field. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+
+`UploadInlineChat` accepts a `ref` forwarded to the outer composer `<div>`.
+
+## Behavior
+
+- Each staged file is tracked with its own `AbortController`. Clicking the chip's remove button (`×`) aborts the upload if it is still in flight and removes the chip from the UI.
+- Uploads run in parallel (no batching) — chat attachments are typically few and small.
+- The text `<input>` is uncontrolled and does not send messages on its own; wire up your own submit handler if you need message send behavior.
+- Error chips render with a red tint based on `color-mix(in srgb, var(--uk-error) 18%, transparent)`.
+
+## Theming
+
+`UploadInlineChat` reads these CSS custom properties:
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-bg-secondary` | Composer background |
+| `--uk-border` | Composer border |
+| `--uk-text` / `--uk-text-secondary` | Text and placeholder colors |
+| `--uk-error` | Error chip tint color |
+| `--uk-font` | Font family |
+
+The chip container is horizontally scrollable and capped at `max-width: 320px` to prevent blowing out the composer width.
+
+## Accessibility
+
+- The attach button is a real `<button>` with `aria-label="Attach files"`
+- The text field has `aria-label="Message"`
+- Each chip remove button has `aria-label="Remove {filename}"`
+- The hidden file `<input>` is `aria-hidden="true"` and `tabIndex={-1}`
+- `focus-visible` outlines use `--uk-primary` at 2px offset
+- Respects `prefers-reduced-motion` — chip enter/exit animations collapse to near-zero duration
+
+See the [Theming guide](/docs/sdk/react/theming) for token overrides and dark mode.

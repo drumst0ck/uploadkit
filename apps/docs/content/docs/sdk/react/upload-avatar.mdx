@@ -1,0 +1,84 @@
+---
+title: UploadAvatar
+description: A circular avatar uploader with blur-up preview and an SVG progress ring.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+A purpose-built avatar uploader: click the circle, pick an image, watch an SVG progress ring animate around the edge as it uploads, and the selected file blurs-up into place as soon as the object URL is ready. Mirrors the pattern used in every best-in-class settings page.
+
+**Design inspiration:** Linear profile settings, Notion workspace icons, Apple ID avatar picker.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the progress ring animates via `stroke-dashoffset` instead of Motion's `pathLength` — visually identical, just less buttery. `pnpm add motion` to enable the Motion-driven ring.
+</Callout>
+
+## Basic usage
+
+```tsx
+import { UploadAvatar } from '@uploadkitdev/react';
+
+export default function SettingsPage() {
+  return (
+    <UploadAvatar
+      route="avatarUploader"
+      initialSrc="https://cdn.example.com/users/42/avatar.jpg"
+      size={96}
+      maxSize={2 * 1024 * 1024}
+      onUploadComplete={(result) => {
+        console.log('New avatar:', result.url);
+      }}
+      onUploadError={(error) => {
+        console.error(error.message);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | `['image/*']` | Accepted MIME types. Defaults to all images since this is an avatar uploader. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `initialSrc` | `string` | — | Initial image URL displayed before any upload. |
+| `size` | `number` | `96` | Width and height of the avatar in pixels. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. When the result includes a `url`, the avatar updates automatically. |
+| `onUploadError` | `(error: Error) => void` | — | Called when an upload fails. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+
+`UploadAvatar` accepts a `ref` forwarded to the outer `<div>` container. It does **not** accept `children` — the visual is entirely image-driven.
+
+## Behavior
+
+- On file select, a local object URL is created immediately so the user sees their image before the upload finishes (blur-up effect).
+- Object URLs are revoked on unmount to avoid memory leaks.
+- The progress ring appears only while `isUploading` is true or while progress is between 0 and 100.
+- When the server response includes a `url` field, the preview swaps to the final CDN URL.
+
+## Theming
+
+`UploadAvatar` reads these CSS custom properties:
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-primary` | Progress ring stroke color |
+| `--uk-bg-secondary` | Placeholder background when there is no image |
+| `--uk-border` | 1px border around the avatar |
+| `--uk-text-secondary` | Placeholder icon color |
+
+The unfilled portion of the ring uses a hardcoded `rgba(255, 255, 255, 0.15)` track.
+
+## Accessibility
+
+- `role="button"` with `aria-label="Change avatar"`
+- Focusable via keyboard; Enter and Space open the file picker
+- `aria-busy` is `true` during upload
+- The progress ring `<svg>` is `aria-hidden="true"` (progress is communicated via `aria-busy`, not the visual ring)
+- `focus-visible` outline uses `--uk-primary` at 2px offset
+- Respects `prefers-reduced-motion` — the ring, blur-up, and all transitions collapse to near-zero duration
+
+See the [Theming guide](/docs/sdk/react/theming) for token overrides and dark mode.

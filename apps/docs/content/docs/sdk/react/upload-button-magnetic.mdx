@@ -1,0 +1,75 @@
+---
+title: UploadButtonMagnetic
+description: A pill-shaped upload button that attracts toward the cursor with a spring.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+A soft, pill-shaped upload button that leans toward the cursor using a Motion spring — the classic "magnetic" interaction popularized by Apple's product pages. Without `motion` installed, it falls back to a CSS hover scale so the component still feels alive.
+
+**Design inspiration:** Apple product pages (iPhone, Mac), Awwwards-tier portfolio sites.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the magnetic pull is disabled and the button uses a CSS hover scale instead. `pnpm add motion` to enable the spring-based cursor attraction.
+</Callout>
+
+## Basic usage
+
+```tsx
+import { UploadButtonMagnetic } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadButtonMagnetic
+      route="avatarUploader"
+      accept={['image/jpeg', 'image/png']}
+      maxSize={2 * 1024 * 1024}
+      onUploadComplete={(result) => {
+        console.log('Avatar URL:', result.url);
+      }}
+    >
+      Upload avatar
+    </UploadButtonMagnetic>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types for the hidden file input. |
+| `maxSize` | `number` | — | Maximum file size in bytes. Client-side UX validation only. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called when an upload fails. |
+| `disabled` | `boolean` | `false` | Disables the button. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the `<button>` element. |
+| `children` | `ReactNode` | — | Custom label. Defaults to `"Upload file"`; during upload becomes `"Uploading {progress}%"`. |
+
+`UploadButtonMagnetic` accepts a `ref` forwarded to the underlying `<button>` element (either a plain `<button>` or Motion's `motion.button`, depending on whether `motion` is installed).
+
+## Theming
+
+`UploadButtonMagnetic` reads these CSS custom properties:
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-bg-secondary` | Button background (intentionally subtle — the motion carries the emphasis) |
+| `--uk-text` | Label color |
+| `--uk-border` | Pill border color |
+| `--uk-font` | Font family |
+| `--uk-primary` | `focus-visible` outline color |
+
+The pill radius is fixed at `999px` and the shadow on hover is `0 14px 40px -16px rgba(0, 0, 0, 0.35)`.
+
+## Accessibility
+
+- `aria-busy` is set to `true` during upload
+- `aria-label` updates to `"Uploading {progress}%"` while uploading
+- The hidden file `<input>` is `aria-hidden="true"` and `tabIndex={-1}`
+- `focus-visible` outline uses `--uk-primary` at 2px offset
+- Respects `prefers-reduced-motion` — the magnetic spring, hover scale, and shadow transitions all collapse to near-zero duration
+
+See the [Theming guide](/docs/sdk/react/theming) for token overrides and dark mode.
