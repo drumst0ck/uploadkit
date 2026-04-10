@@ -1,0 +1,74 @@
+---
+title: UploadDropzoneTerminal
+description: A monospace terminal-style dropzone with a blinking cursor and tail-style upload log.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+A dropzone disguised as a terminal session. A blinking block cursor sits after the prompt line, and each dropped file streams into a `tail -f` style log with `[OK]`, `[..]`, and `[ERR]` tags. Perfect for developer-tooling landing pages and CLI-first products.
+
+**Design inspiration:** Raycast, Warp, Vercel build logs.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, log lines appear instantly instead of sliding in. `pnpm add motion` to enable per-line enter animations.
+</Callout>
+
+## Basic usage
+
+```tsx
+import { UploadDropzoneTerminal } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadDropzoneTerminal
+      route="logUploader"
+      accept={['text/plain', 'application/json']}
+      maxSize={5 * 1024 * 1024}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.map((r) => r.key));
+      }}
+    >
+      drop files to upload
+    </UploadDropzoneTerminal>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. Supports wildcards: `'text/*'`. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. When set to `1`, the file input becomes single-select. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called when every accepted file has uploaded. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. The error is also shown as an `[ERR]` log line. |
+| `disabled` | `boolean` | `false` | Disables drag, click, and the hidden file input. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+| `children` | `ReactNode` | — | Custom prompt text. Defaults to `"drop files to upload"`. |
+
+`UploadDropzoneTerminal` accepts a `ref` forwarded to the outer `<div>`.
+
+## Theming
+
+`UploadDropzoneTerminal` reads these CSS custom properties:
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-terminal-bg` | Terminal background (default `#0a0a0b`) |
+| `--uk-terminal-fg` | Prompt and success text color (default `#4ade80`) |
+| `--uk-terminal-dim` | Border color when idle (default `#166534`) |
+
+The component uses a monospace font stack (`ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace`) directly rather than `--uk-font`, so it stays monospace even if you theme the base font.
+
+## Accessibility
+
+- `role="button"` with `aria-label="Drop files to upload"`
+- Focusable via keyboard; Enter and Space open the file picker
+- Log container uses `aria-live="polite"` so screen readers announce new upload events
+- `focus-visible` outline uses `--uk-terminal-fg` for on-brand focus
+- Respects `prefers-reduced-motion` — both the blinking cursor and log line animations collapse to near-zero duration
+
+See the [Theming guide](/docs/sdk/react/theming) for token overrides and dark mode.

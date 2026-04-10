@@ -1,0 +1,77 @@
+---
+title: UploadDropzoneAurora
+description: A dropzone with an animated conic-gradient mesh and cursor-follow specular highlight.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+A cinematic dropzone built around an animated conic-gradient aurora mesh and a cursor-follow specular highlight. The mesh scales up on drag-over and the gradient-clipped title gives the component an editorial feel.
+
+**Design inspiration:** Apple product pages, Supabase marketing hero.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the mesh rotates via a CSS keyframe fallback. `pnpm add motion` to upgrade to Motion's hardware-accelerated rotation and scale.
+</Callout>
+
+## Basic usage
+
+```tsx
+import { UploadDropzoneAurora } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadDropzoneAurora
+      route="heroUploader"
+      accept={['image/jpeg', 'image/png', 'image/webp']}
+      maxSize={20 * 1024 * 1024}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.map((r) => r.url));
+      }}
+    >
+      Drop your hero shot
+    </UploadDropzoneAurora>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. Supports wildcards: `'image/*'`. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. When set to `1`, the file input becomes single-select. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called when every accepted file has uploaded. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `disabled` | `boolean` | `false` | Disables drag, click, and the hidden file input. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+| `children` | `ReactNode` | — | Custom heading. Defaults to `"Drop files to upload"`. |
+
+`UploadDropzoneAurora` accepts a `ref` forwarded to the outer `<div>`.
+
+## Theming
+
+`UploadDropzoneAurora` reads these CSS custom properties:
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-radius` | Outer border radius |
+| `--uk-bg-secondary` | Container background behind the mesh |
+| `--uk-text` / `--uk-font` | Text color and font family |
+| `--uk-aurora-from` | Conic-gradient start stop (default `#6366f1`) |
+| `--uk-aurora-via` | Conic-gradient middle stop (default `#a855f7`) |
+| `--uk-aurora-to` | Conic-gradient end stop (default `#06b6d4`) |
+
+Change the three `--uk-aurora-*` tokens to retint the entire mesh to your brand palette.
+
+## Accessibility
+
+- `role="button"` with `aria-label="Drop files to upload"`
+- Focusable via keyboard; Enter and Space open the file picker
+- `focus-visible` outline uses `--uk-primary`
+- Respects `prefers-reduced-motion` — both the mesh rotation and scale transition drop to `0.01ms`
+- The cursor-follow highlight only tracks pointer input; it does not affect keyboard users
+
+See the [Theming guide](/docs/sdk/react/theming) for token overrides and dark mode.

@@ -1,0 +1,74 @@
+---
+title: UploadDropzoneBrutal
+description: A neobrutalist dropzone with thick borders, a hard shadow offset, and a stamp-down animation.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+An unapologetic brutalist dropzone. Thick 3px black borders, a `6px 6px 0 0` hard shadow, and a stamp-down scale animation whenever a file is accepted. Uses a huge display headline (`clamp(36px, 6vw, 64px)`) so it doubles as a marketing hero.
+
+**Design inspiration:** Neobrutalism on the web, Cash App marketing, Gumroad 2.0.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the stamp animation falls back to a CSS keyframe (`uk-brutal-stamp`) applied via the `.uk-brutal-stamped` class. `pnpm add motion` to upgrade to Motion's spring-backed scale.
+</Callout>
+
+## Basic usage
+
+```tsx
+import { UploadDropzoneBrutal } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadDropzoneBrutal
+      route="galleryUploader"
+      accept={['image/*']}
+      maxFiles={10}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.map((r) => r.url));
+      }}
+    >
+      DROP IT
+    </UploadDropzoneBrutal>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. Supports wildcards: `'image/*'`. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. When set to `1`, the file input becomes single-select. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called when every accepted file has uploaded. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `disabled` | `boolean` | `false` | Disables drag, click, and the hidden file input. |
+| `className` | `string` | — | Additional CSS class(es) merged onto the outer wrapper. |
+| `children` | `ReactNode` | — | Custom heading. Defaults to `"DROP IT"`. |
+
+`UploadDropzoneBrutal` accepts a `ref` forwarded to the outer wrapper (`motion.div` when animated, `div` otherwise).
+
+## Theming
+
+`UploadDropzoneBrutal` reads these CSS custom properties:
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-brutal-bg` | Fill color (default `#facc15` light, `#fde047` dark) |
+| `--uk-brutal-fg` | Text color (default `#0a0a0b`) |
+| `--uk-brutal-shadow` | Hard shadow offset (default `6px 6px 0 0 #000`) |
+| `--uk-font` | Font family (heading is uppercase, 800 weight) |
+
+The counter text updates to `{completed} / {total} done` as files progress.
+
+## Accessibility
+
+- `role="button"` with `aria-label="Drop files to upload"`
+- Focusable via keyboard; Enter and Space open the file picker
+- `focus-visible` uses a thick 3px black outline with a 4px offset to stay on-brand with the brutalist aesthetic
+- Respects `prefers-reduced-motion` — the stamp animation and transform transitions collapse to `0.01ms`
+
+See the [Theming guide](/docs/sdk/react/theming) for token overrides and dark mode.
