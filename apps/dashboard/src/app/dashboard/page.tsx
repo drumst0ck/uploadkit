@@ -5,7 +5,8 @@ import { auth } from '../../../auth';
 import { connectDB, UsageRecord, File, Project } from '@uploadkitdev/db';
 import { MetricCard } from '../../components/metric-card';
 import { UploadsAreaChart } from '../../components/charts/uploads-area-chart';
-import { formatBytes, formatDate, formatNumber } from '../../lib/format';
+import { BlurText } from '../../components/react-bits/blur-text';
+import { formatBytes, formatDate, splitBytes } from '../../lib/format';
 import {
   Table,
   TableBody,
@@ -102,35 +103,55 @@ export default async function DashboardPage() {
     return { value: pct, label: 'from last month' };
   }
 
+  const storage = splitBytes(usage?.storageUsed ?? 0);
+  const bandwidth = splitBytes(usage?.bandwidth ?? 0);
+
   return (
     <div className="space-y-8">
-      {/* Page header */}
+      {/* Page header — BlurText reveal */}
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
+        <BlurText
+          as="h1"
+          text="Overview"
+          delay={60}
+          animateBy="letters"
+          direction="top"
+          className="text-2xl font-semibold tracking-tight text-foreground"
+        />
       </div>
 
       {/* 4 Metric cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Storage Used"
-          value={formatBytes(usage?.storageUsed ?? 0)}
+          value={storage.value}
+          suffix={storage.unit}
+          decimals={1}
+          delay={0}
           icon={<HardDrive className="h-4 w-4" aria-hidden="true" />}
           trend={computeTrend(usage?.storageUsed ?? 0, prevUsage?.storageUsed ?? 0)}
         />
         <MetricCard
           label="Bandwidth"
-          value={formatBytes(usage?.bandwidth ?? 0)}
+          value={bandwidth.value}
+          suffix={bandwidth.unit}
+          decimals={1}
+          delay={0.1}
           icon={<ArrowUpDown className="h-4 w-4" aria-hidden="true" />}
           trend={computeTrend(usage?.bandwidth ?? 0, prevUsage?.bandwidth ?? 0)}
         />
         <MetricCard
           label="Uploads Today"
-          value={formatNumber(todayUploads)}
+          value={todayUploads}
+          decimals={0}
+          delay={0.2}
           icon={<Upload className="h-4 w-4" aria-hidden="true" />}
         />
         <MetricCard
           label="Total Files"
-          value={formatNumber(totalFiles)}
+          value={totalFiles}
+          decimals={0}
+          delay={0.3}
           icon={<FileText className="h-4 w-4" aria-hidden="true" />}
         />
       </div>

@@ -5,6 +5,8 @@ import { auth } from '../../../../auth';
 import { connectDB, Project } from '@uploadkitdev/db';
 import { Button } from '@uploadkitdev/ui';
 import { CreateProjectDialog } from '../../../components/create-project-dialog';
+import { BlurText } from '../../../components/react-bits/blur-text';
+import { StaggerList } from '../../../components/react-bits/stagger-list';
 import { formatDate } from '../../../lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -28,8 +30,15 @@ export default async function ProjectsPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Projects</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <BlurText
+            as="h1"
+            text="Projects"
+            delay={60}
+            animateBy="letters"
+            direction="top"
+            className="text-2xl font-semibold tracking-tight text-foreground"
+          />
+          <p className="mt-1 text-sm text-muted-foreground">
             Manage your upload projects and API keys.
           </p>
         </div>
@@ -59,22 +68,26 @@ export default async function ProjectsPage() {
           </CreateProjectDialog>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerList
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          stagger={0.06}
+          duration={0.4}
+        >
           {projects.map((project) => (
             <Link
               key={String(project._id)}
               href={`/dashboard/projects/${project.slug}`}
-              className="group rounded-xl border border-border bg-card p-6 transition-colors hover:border-border hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
+              className="group block rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-500/30 hover:bg-accent hover:shadow-lg hover:shadow-indigo-500/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
             >
               {/* Project avatar */}
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-lg font-semibold text-indigo-300 mb-4">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-lg font-semibold text-indigo-300 transition-transform duration-300 group-hover:scale-110">
                 {project.name[0]?.toUpperCase() ?? 'P'}
               </div>
 
-              <h2 className="text-base font-medium text-foreground group-hover:text-indigo-300 transition-colors mb-1 truncate">
+              <h2 className="mb-1 truncate text-base font-medium text-foreground transition-colors group-hover:text-indigo-300">
                 {project.name}
               </h2>
-              <p className="text-xs font-mono text-muted-foreground mb-3 truncate">
+              <p className="mb-3 truncate font-mono text-xs text-muted-foreground">
                 {project.slug}
               </p>
               <p className="text-xs text-muted-foreground">
@@ -82,7 +95,7 @@ export default async function ProjectsPage() {
               </p>
             </Link>
           ))}
-        </div>
+        </StaggerList>
       )}
     </div>
   );

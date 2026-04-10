@@ -1,31 +1,69 @@
+'use client';
+
 import * as React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '../lib/cn';
+import { CountUp } from './react-bits/count-up';
+import { SpotlightCard } from './react-bits/spotlight-card';
 
 export interface MetricCardProps {
   label: string;
-  value: string;
+  /** Raw numeric value — animated via CountUp on mount */
+  value: number;
+  /** Optional unit suffix (e.g. "GB", "MB"). Rendered after the number, no space. */
+  suffix?: string;
+  /** Decimal places to show. Defaults to 0 for integers, 1 for floats. */
+  decimals?: number;
+  /** Separator for thousands grouping. Default "," */
+  separator?: string;
   icon: React.ReactNode;
   trend?: {
     value: number;
     label: string;
   } | undefined;
+  /** Stagger delay (seconds) — enables cascading reveal when multiple cards render */
+  delay?: number;
 }
 
-export function MetricCard({ label, value, icon, trend }: MetricCardProps) {
+export function MetricCard({
+  label,
+  value,
+  suffix = '',
+  decimals,
+  separator = ',',
+  icon,
+  trend,
+  delay = 0,
+}: MetricCardProps) {
   const isPositive = trend && trend.value >= 0;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-lg shadow-black/20 transition-all duration-200 hover:border-border hover:shadow-xl hover:shadow-black/30 hover:-translate-y-0.5">
+    <SpotlightCard
+      spotlightColor="rgba(129, 140, 248, 0.18)"
+      className="rounded-xl border border-border bg-card p-5 shadow-lg shadow-black/20 transition-all duration-300 hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5"
+    >
       {/* Label + icon row */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex items-center justify-between">
         <span className="text-sm text-muted-foreground">{label}</span>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">{icon}</div>
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+          {icon}
+        </div>
       </div>
 
-      {/* Big number */}
-      <p className="text-2xl font-semibold text-foreground tracking-tight mb-1">
-        {value}
+      {/* Big animated number */}
+      <p className="mb-1 text-2xl font-semibold tracking-tight text-foreground">
+        <CountUp
+          to={value}
+          duration={1.6}
+          delay={delay}
+          separator={separator}
+          {...(decimals !== undefined ? { decimals } : {})}
+        />
+        {suffix && (
+          <span className="ml-1 text-base font-medium text-muted-foreground">
+            {suffix}
+          </span>
+        )}
       </p>
 
       {/* Trend indicator */}
@@ -47,6 +85,6 @@ export function MetricCard({ label, value, icon, trend }: MetricCardProps) {
           </span>
         </div>
       )}
-    </div>
+    </SpotlightCard>
   );
 }

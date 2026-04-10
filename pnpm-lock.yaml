@@ -178,6 +178,9 @@ importers:
       mongoose:
         specifier: ^9.4.1
         version: 9.4.1
+      motion:
+        specifier: ^12.38.0
+        version: 12.38.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       nanoid:
         specifier: ^5.1.7
         version: 5.1.7
@@ -193,6 +196,9 @@ importers:
       nodemailer:
         specifier: ^8.0.5
         version: 8.0.5
+      ogl:
+        specifier: ^1.0.11
+        version: 1.0.11
       react:
         specifier: latest
         version: 19.2.5

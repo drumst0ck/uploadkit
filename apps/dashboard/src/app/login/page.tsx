@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth, signIn } from '../../../auth';
+import { DarkVeil } from '../../components/react-bits/dark-veil';
 
 // Force dynamic rendering — auth() reads the session cookie at runtime;
 // static prerendering would always see an unauthenticated state.
@@ -59,8 +60,20 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const emailCTA = isSignUp ? 'Continue with email' : 'Send magic link';
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-[400px]">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
+      {/* DarkVeil animated background */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,black_0%,transparent_80%)]"
+        aria-hidden="true"
+      >
+        <DarkVeil
+          speed={0.35}
+          hueShift={-20}
+          warpAmount={0.5}
+          noiseIntensity={0.02}
+        />
+      </div>
+      <div className="relative z-10 w-full max-w-[400px]">
         {/* Brand */}
         <div className="mb-8 text-center">
           <span className="text-2xl font-bold tracking-tight text-foreground">

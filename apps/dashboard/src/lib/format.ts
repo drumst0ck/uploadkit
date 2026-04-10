@@ -16,3 +16,13 @@ export function formatDate(date: string | Date): string {
 export function formatNumber(n: number): string {
   return new Intl.NumberFormat('en-US').format(n);
 }
+
+/** Split bytes into { value, unit } for animated counters. */
+export function splitBytes(bytes: number, decimals = 1): { value: number; unit: string } {
+  if (bytes === 0) return { value: 0, unit: 'B' };
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const value = parseFloat((bytes / Math.pow(k, i)).toFixed(decimals));
+  return { value, unit: sizes[i] ?? 'B' };
+}
