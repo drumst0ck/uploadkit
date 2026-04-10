@@ -1,5 +1,13 @@
 # @uploadkitdev/core
 
+## 0.2.1
+
+### Patch Changes
+
+- Add MIT license (see `LICENSE`), author, homepage, repository and bugs
+  metadata to `package.json`. The npm landing page now shows proper license,
+  repo link and keywords.
+
 ## 0.2.0
 
 ### Minor Changes

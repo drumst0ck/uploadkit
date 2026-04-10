@@ -32,6 +32,80 @@ export default function ChangelogPage() {
           <div className="container">
             <article className="changelog-entry">
               <div className="changelog-entry-meta">
+                <time className="changelog-date" dateTime="2026-04-10">
+                  April 10, 2026
+                </time>
+                <span className="changelog-version">v0.2.1</span>
+              </div>
+
+              <div className="changelog-entry-body">
+                <h2 className="changelog-entry-title">
+                  Polish pass, storage reclaim &amp; MIT license
+                </h2>
+                <p className="changelog-entry-lead">
+                  A big quality-of-life release touching the landing, dashboard,
+                  publishing pipeline and cleanup infrastructure.
+                </p>
+                <ul className="changelog-entry-list">
+                  <li>
+                    SDK packages (<code>@uploadkitdev/core</code>,{' '}
+                    <code>@uploadkitdev/react</code>, <code>@uploadkitdev/next</code>)
+                    are now published under the <strong>MIT license</strong> with
+                    author, repository, homepage and keywords metadata — the npm
+                    landing page finally renders correctly
+                  </li>
+                  <li>
+                    Landing page polish: animated <code>DarkVeil</code> WebGL hero
+                    background, staggered <code>BlurText</code> headline,{' '}
+                    <code>SpotlightCard</code> cursor glow on feature cards, and a
+                    new install command with package-manager tabs and copy-to-
+                    clipboard feedback
+                  </li>
+                  <li>
+                    New <code>AnimatedButton</code> component powering every CTA on
+                    the site — sheen sweep on hover, cursor-tracking radial, icon
+                    translate on focus
+                  </li>
+                  <li>
+                    Dashboard gets the same treatment: metric cards now spring-
+                    animate to their values (<code>CountUp</code>) and glow on
+                    hover, project cards fade in with a cascading stagger, the{' '}
+                    <code>/login</code> page ships a dark animated background
+                  </li>
+                  <li>
+                    Bulk file delete in the dashboard now actually removes objects
+                    from R2 and decrements your usage counter — previously it only
+                    soft-marked the rows, leaving orphaned bytes in storage
+                  </li>
+                  <li>
+                    Account deletion now cleans the Auth.js <code>accounts</code>{' '}
+                    and <code>sessions</code> collections too — you can delete your
+                    account and log back in with the same provider without hitting
+                    a duplicate-key error
+                  </li>
+                  <li>
+                    New daily cron that reclaims storage from abandoned free-tier
+                    accounts: warning email at day 23 and file cleanup at day 30.
+                    Paid subscriptions are fully exempt as long as they&rsquo;re
+                    active
+                  </li>
+                  <li>
+                    Mobile fixes: the install command pill no longer overflows the
+                    viewport, the code window shrinks to fit small screens, and the
+                    navbar hamburger menu closes when you tap a link, on ESC, and
+                    anywhere you&rsquo;d expect
+                  </li>
+                  <li>
+                    Real sitemaps for both <code>uploadkit.dev</code> and{' '}
+                    <code>docs.uploadkit.dev</code> — every MDX docs page is now
+                    enumerated for Search Console
+                  </li>
+                </ul>
+              </div>
+            </article>
+
+            <article className="changelog-entry">
+              <div className="changelog-entry-meta">
                 <time className="changelog-date" dateTime="2026-04-09">
                   April 9, 2026
                 </time>
