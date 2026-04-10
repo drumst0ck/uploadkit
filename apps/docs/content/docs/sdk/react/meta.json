@@ -1,4 +1,25 @@
 {
   "title": "@uploadkitdev/react",
-  "pages": ["installation", "upload-button", "upload-dropzone", "upload-modal", "file-list", "file-preview", "use-uploadkit", "theming", "config-mode", "before-upload", "progress", "api-reference"]
+  "pages": [
+    "installation",
+    "upload-button",
+    "upload-button-shimmer",
+    "upload-button-magnetic",
+    "upload-dropzone",
+    "upload-dropzone-glass",
+    "upload-dropzone-aurora",
+    "upload-dropzone-terminal",
+    "upload-dropzone-brutal",
+    "upload-modal",
+    "file-list",
+    "file-preview",
+    "upload-avatar",
+    "upload-inline-chat",
+    "use-uploadkit",
+    "theming",
+    "config-mode",
+    "before-upload",
+    "progress",
+    "api-reference"
+  ]
 }

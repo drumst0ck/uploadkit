@@ -3,6 +3,8 @@ title: API Reference
 description: Complete API reference for @uploadkitdev/react — all components, hooks, and types.
 ---
 
+import { Callout } from 'fumadocs-ui/components/callout';
+
 ## UploadKitProvider
 
 Context provider. Wrap your app (or upload UI) with this to make the SDK client available to all child components and hooks.
@@ -101,6 +103,163 @@ const UploadDropzone: React.ForwardRefExoticComponent<UploadDropzoneProps & Reac
 | `onBeforeUploadBegin` | `(files: File[]) => File[] \| Promise<File[]>` | — | Transform or filter files before upload. Return empty array to cancel. |
 | `uploadProgressGranularity` | `'coarse' \| 'fine' \| 'all'` | `'coarse'` | How frequently `onUploadProgress` is called during upload. |
 | `appearance` | `Partial<Record<'container' \| 'label' \| 'icon' \| 'fileItem' \| 'progressBar' \| 'button', string>>` | — | CSS class overrides for inner elements. |
+
+---
+
+## UploadDropzoneGlass
+
+```typescript
+const UploadDropzoneGlass: React.ForwardRefExoticComponent<UploadDropzoneGlassProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Premium variant inspired by Vercel and Linear. Frosted glass, hairline borders, indigo glow halo on drag-over. See [UploadDropzoneGlass](/docs/sdk/react/upload-dropzone-glass) for the full guide.
+
+### UploadDropzoneGlassProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from the file router. |
+| `accept` | `string[]` | — | MIME types. Wildcards supported. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `maxFiles` | `number` | — | Max number of files per drop. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `disabled` | `boolean` | `false` | Disables drag, click, and the file input. |
+| `className` | `string` | — | CSS class(es) for the outer wrapper. |
+| `children` | `ReactNode` | — | Custom heading. |
+
+---
+
+## UploadDropzoneAurora
+
+```typescript
+const UploadDropzoneAurora: React.ForwardRefExoticComponent<UploadDropzoneAuroraProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Animated conic-gradient mesh with a cursor-follow specular highlight. See [UploadDropzoneAurora](/docs/sdk/react/upload-dropzone-aurora).
+
+### UploadDropzoneAuroraProps
+
+Same shape as `UploadDropzoneGlassProps` (route, accept, maxSize, maxFiles, metadata, onUploadComplete, onUploadError, disabled, className, children).
+
+---
+
+## UploadDropzoneTerminal
+
+```typescript
+const UploadDropzoneTerminal: React.ForwardRefExoticComponent<UploadDropzoneTerminalProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Monospace terminal-style dropzone with a blinking cursor and tail-style log. See [UploadDropzoneTerminal](/docs/sdk/react/upload-dropzone-terminal).
+
+### UploadDropzoneTerminalProps
+
+Same shape as `UploadDropzoneGlassProps`.
+
+---
+
+## UploadDropzoneBrutal
+
+```typescript
+const UploadDropzoneBrutal: React.ForwardRefExoticComponent<UploadDropzoneBrutalProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Neobrutalist dropzone with thick borders, a hard shadow offset, and a stamp-down animation. See [UploadDropzoneBrutal](/docs/sdk/react/upload-dropzone-brutal).
+
+### UploadDropzoneBrutalProps
+
+Same shape as `UploadDropzoneGlassProps`.
+
+---
+
+## UploadButtonShimmer
+
+```typescript
+const UploadButtonShimmer: React.ForwardRefExoticComponent<UploadButtonShimmerProps & React.RefAttributes<HTMLButtonElement>>
+```
+
+CTA upload button with a shimmer sweep and indigo glow on hover. See [UploadButtonShimmer](/docs/sdk/react/upload-button-shimmer).
+
+### UploadButtonShimmerProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from the file router. |
+| `accept` | `string[]` | — | MIME types for the file input. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `disabled` | `boolean` | `false` | Disables the button. |
+| `className` | `string` | — | CSS class(es) for the button. |
+| `children` | `ReactNode` | — | Custom label. |
+
+---
+
+## UploadButtonMagnetic
+
+```typescript
+const UploadButtonMagnetic: React.ForwardRefExoticComponent<UploadButtonMagneticProps & React.RefAttributes<HTMLButtonElement>>
+```
+
+Pill-shaped upload button that attracts toward the cursor with a Motion spring. See [UploadButtonMagnetic](/docs/sdk/react/upload-button-magnetic).
+
+### UploadButtonMagneticProps
+
+Same shape as `UploadButtonShimmerProps`.
+
+---
+
+## UploadAvatar
+
+```typescript
+const UploadAvatar: React.ForwardRefExoticComponent<UploadAvatarProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Circular avatar uploader with blur-up preview and an SVG progress ring. See [UploadAvatar](/docs/sdk/react/upload-avatar).
+
+### UploadAvatarProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from the file router. |
+| `accept` | `string[]` | `['image/*']` | MIME types. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `initialSrc` | `string` | — | Initial avatar image URL. |
+| `size` | `number` | `96` | Width and height in pixels. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `className` | `string` | — | CSS class(es) for the outer wrapper. |
+
+---
+
+## UploadInlineChat
+
+```typescript
+const UploadInlineChat: React.ForwardRefExoticComponent<UploadInlineChatProps & React.RefAttributes<HTMLDivElement>>
+```
+
+ChatGPT-style composer with a paperclip attach button and animated file chips. See [UploadInlineChat](/docs/sdk/react/upload-inline-chat).
+
+### UploadInlineChatProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from the file router. |
+| `accept` | `string[]` | — | MIME types. Wildcards supported. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `maxFiles` | `number` | — | Max number of files per selection. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called once per failed file. |
+| `placeholder` | `string` | `'Send a message...'` | Placeholder for the message field. |
+| `className` | `string` | — | CSS class(es) for the outer wrapper. |
+
+<Callout>
+  All eight premium variants above depend on `motion` as an **optional peerDependency**. Without it they render a static fallback; install it with `pnpm add motion` to enable the full animation set.
+</Callout>
 
 ---
 
