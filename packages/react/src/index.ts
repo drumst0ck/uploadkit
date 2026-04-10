@@ -44,6 +44,14 @@ export { UploadProgressStacked } from './components/upload-progress-stacked';
 export type { UploadProgressStackedProps } from './components/upload-progress-stacked';
 export { UploadProgressOrbit } from './components/upload-progress-orbit';
 export type { UploadProgressOrbitProps } from './components/upload-progress-orbit';
+export { UploadCloudRain } from './components/upload-cloud-rain';
+export type { UploadCloudRainProps } from './components/upload-cloud-rain';
+export { UploadBento } from './components/upload-bento';
+export type { UploadBentoProps } from './components/upload-bento';
+export { UploadParticles } from './components/upload-particles';
+export type { UploadParticlesProps } from './components/upload-particles';
+export { UploadStepWizard } from './components/upload-step-wizard';
+export type { UploadStepWizardProps } from './components/upload-step-wizard';
 
 // Helpers
 export { generateReactHelpers } from './helpers';
