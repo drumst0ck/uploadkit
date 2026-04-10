@@ -16,8 +16,57 @@ import {
   UploadModal as _UploadModal,
   FileList as _FileList,
   FilePreview as _FilePreview,
+  ProxyUploadKitClient,
 } from '@uploadkitdev/react';
 import type { UploadResult } from '@uploadkitdev/react';
+
+// --- Mock upload client for docs previews ---
+//
+// Simulates the full upload flow with synthesized progress events so
+// components animate authentically without hitting a server. Extends
+// ProxyUploadKitClient so it passes the nominal type check when injected
+// via <UploadKitProvider client={mock}>.
+//
+// Progress curve: 0 → 100 over ~2.4s with 12 ticks (fine granularity).
+export class MockProxyUploadKitClient extends ProxyUploadKitClient {
+  constructor() {
+    super({ endpoint: '/api/uploadkit-docs-noop' });
+  }
+
+  override async upload(options: {
+    file: File;
+    route: string;
+    metadata?: Record<string, unknown>;
+    onProgress?: (percentage: number) => void;
+    signal?: AbortSignal;
+  }): Promise<UploadResult> {
+    const { file, onProgress, signal } = options;
+    const steps = 12;
+    const stepDelay = 180;
+
+    for (let i = 1; i <= steps; i++) {
+      if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+      await new Promise<void>((resolve) => setTimeout(resolve, stepDelay));
+      const pct = Math.round((i / steps) * 100);
+      onProgress?.(pct);
+    }
+
+    return {
+      id: `mock-${Date.now()}`,
+      key: `demo/${file.name}`,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: URL.createObjectURL(file),
+      status: 'uploaded',
+      createdAt: new Date().toISOString(),
+    };
+  }
+}
+
+export function createMockClient(): ProxyUploadKitClient {
+  return new MockProxyUploadKitClient();
+}
 
 export {
   UploadButton,

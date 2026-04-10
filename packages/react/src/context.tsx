@@ -4,7 +4,13 @@ import { createProxyClient, ProxyUploadKitClient } from '@uploadkitdev/core';
 
 export type UploadKitProviderProps = {
   /** Local endpoint URL for the uploadkit handler, e.g. "/api/uploadkit" */
-  endpoint: string;
+  endpoint?: string;
+  /**
+   * Optional pre-built client instance. When provided, overrides `endpoint`.
+   * Primarily used by docs previews / tests that inject a mock client —
+   * production apps should use `endpoint`.
+   */
+  client?: ProxyUploadKitClient;
   children: ReactNode;
 };
 
@@ -26,14 +32,23 @@ const UploadKitContext = createContext<UploadKitContextValue | null>(null);
  * </UploadKitProvider>
  * ```
  */
-export function UploadKitProvider({ endpoint, children }: UploadKitProviderProps) {
+export function UploadKitProvider({ endpoint, client, children }: UploadKitProviderProps) {
   // useRef ensures the client is created exactly once per provider mount,
   // regardless of how many times the parent re-renders (prevents duplicate
   // upload state machines from re-instantiation on Strict Mode double-invoke).
   const clientRef = useRef<ProxyUploadKitClient | null>(null);
 
   if (clientRef.current === null) {
-    clientRef.current = createProxyClient({ endpoint });
+    if (client) {
+      clientRef.current = client;
+    } else {
+      if (!endpoint) {
+        throw new Error(
+          'UploadKitProvider requires either `endpoint` or `client`.',
+        );
+      }
+      clientRef.current = createProxyClient({ endpoint });
+    }
   }
 
   return (

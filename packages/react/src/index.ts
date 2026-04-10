@@ -66,6 +66,7 @@ export { useThumbnail } from './hooks/use-thumbnail';
 
 // Types re-exported from core for convenience
 export type { UploadResult, ProxyClientConfig } from '@uploadkitdev/core';
+export { ProxyUploadKitClient } from '@uploadkitdev/core';
 
 // Version
 export const VERSION = '0.1.0';
