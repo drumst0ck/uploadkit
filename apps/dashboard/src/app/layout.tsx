@@ -1,5 +1,5 @@
 import '@/lib/env';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { SWRProvider } from '../providers/swr-provider';
 import { ThemeProvider } from '../providers/theme-provider';
@@ -9,6 +9,12 @@ export const metadata: Metadata = {
   title: 'UploadKit Dashboard',
   description: 'Manage file uploads, projects, and billing on UploadKit.',
   icons: { icon: '/favicon.svg' },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
