@@ -95,7 +95,27 @@
   .uk-modal *,
   .uk-preview,
   .uk-preview *,
-  .uk-error-toast {
+  .uk-error-toast,
+  .uk-dropzone-glass,
+  .uk-dropzone-glass *,
+  .uk-dropzone-aurora,
+  .uk-dropzone-aurora *,
+  .uk-dropzone-aurora__mesh,
+  .uk-dropzone-terminal,
+  .uk-dropzone-terminal *,
+  .uk-dropzone-brutal,
+  .uk-dropzone-brutal *,
+  .uk-btn-shimmer,
+  .uk-btn-shimmer *,
+  .uk-btn-shimmer::after,
+  .uk-btn-magnetic,
+  .uk-btn-magnetic *,
+  .uk-avatar,
+  .uk-avatar *,
+  .uk-avatar__ring,
+  .uk-inline-chat,
+  .uk-inline-chat *,
+  .uk-inline-chat__chip {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
@@ -502,3 +522,619 @@
 .uk-dropzone__submit:hover { background: var(--uk-primary-hover); }
 .uk-dropzone__submit:disabled { opacity: 0.5; cursor: not-allowed; }
 .uk-dropzone__submit:focus-visible { outline: 2px solid var(--uk-primary); outline-offset: 2px; }
+
+/* ============================================================
+   PREMIUM VARIANTS — extended tokens + per-variant components.
+   Each block below was added in quick task 260410-ju7.
+   Inspired by: Vercel, Linear, Apple, Supabase, Raycast, brutalism.
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   PREMIUM TOKENS — appended after the base token layer so the
+   base palette stays untouched.
+   ---------------------------------------------------------- */
+:root {
+  --uk-glow: 0 0 80px -20px rgba(99, 102, 241, 0.5);
+  --uk-aurora-from: #6366f1;
+  --uk-aurora-via: #a855f7;
+  --uk-aurora-to: #06b6d4;
+  --uk-shimmer: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  --uk-brutal-shadow: 6px 6px 0 0 #000;
+  --uk-brutal-bg: #facc15;
+  --uk-brutal-fg: #0a0a0b;
+  --uk-terminal-bg: #0a0a0b;
+  --uk-terminal-fg: #4ade80;
+  --uk-terminal-dim: #166534;
+  --uk-noise-opacity: 0.04;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --uk-glow: 0 0 100px -10px rgba(99, 102, 241, 0.7);
+    --uk-brutal-bg: #fde047;
+    --uk-noise-opacity: 0.06;
+  }
+}
+
+[data-theme="dark"],
+.dark {
+  --uk-glow: 0 0 100px -10px rgba(99, 102, 241, 0.7);
+  --uk-brutal-bg: #fde047;
+  --uk-noise-opacity: 0.06;
+}
+
+/* ----------------------------------------------------------
+   KEYFRAMES — premium variants
+   ---------------------------------------------------------- */
+@keyframes uk-aurora-rotate {
+  from { transform: rotate(0deg) scale(1.4); }
+  to   { transform: rotate(360deg) scale(1.4); }
+}
+
+@keyframes uk-terminal-blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes uk-shimmer-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes uk-brutal-stamp {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+
+@keyframes uk-chip-pop {
+  0%   { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ----------------------------------------------------------
+   1. UploadDropzoneGlass — frosted glass + indigo glow
+   ---------------------------------------------------------- */
+.uk-dropzone-glass {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  border-radius: var(--uk-radius);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  color: var(--uk-text);
+  font-family: var(--uk-font);
+  cursor: pointer;
+  transition: box-shadow 320ms ease-out, transform 320ms ease-out;
+  box-sizing: border-box;
+}
+
+.uk-dropzone-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--uk-noise-opacity);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.9'/></svg>");
+  mix-blend-mode: overlay;
+}
+
+.uk-dropzone-glass[data-state="dragging"] {
+  box-shadow: var(--uk-glow);
+  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.uk-dropzone-glass:focus-visible {
+  outline: 2px solid var(--uk-primary);
+  outline-offset: 2px;
+}
+
+.uk-dropzone-glass__title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.uk-dropzone-glass__subtitle {
+  font-size: 13px;
+  color: var(--uk-text-secondary);
+  margin: 0;
+}
+
+.uk-dropzone-glass__list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.uk-dropzone-glass__chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+}
+
+.uk-dropzone-glass__chip-bar {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.uk-dropzone-glass__chip-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--uk-primary);
+  transition: width 220ms ease-out;
+}
+
+/* ----------------------------------------------------------
+   2. UploadDropzoneAurora — animated conic mesh + cursor halo
+   ---------------------------------------------------------- */
+.uk-dropzone-aurora {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--uk-radius);
+  padding: 48px 40px;
+  background: var(--uk-bg-secondary);
+  color: var(--uk-text);
+  font-family: var(--uk-font);
+  cursor: pointer;
+  isolation: isolate;
+  box-sizing: border-box;
+}
+
+.uk-dropzone-aurora__mesh {
+  position: absolute;
+  inset: -40%;
+  z-index: 0;
+  background: conic-gradient(
+    from 90deg at 50% 50%,
+    var(--uk-aurora-from),
+    var(--uk-aurora-via),
+    var(--uk-aurora-to),
+    var(--uk-aurora-from)
+  );
+  filter: blur(60px);
+  opacity: 0.45;
+  will-change: transform;
+  animation: uk-aurora-rotate 18s linear infinite;
+  pointer-events: none;
+}
+
+.uk-dropzone-aurora[data-state="dragging"] .uk-dropzone-aurora__mesh {
+  opacity: 0.7;
+}
+
+.uk-dropzone-aurora__highlight {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+.uk-dropzone-aurora__inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.uk-dropzone-aurora__title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  background: linear-gradient(110deg, #fff, rgba(255, 255, 255, 0.7));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.uk-dropzone-aurora__subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.uk-dropzone-aurora__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.uk-dropzone-aurora__chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 12px;
+  backdrop-filter: blur(8px);
+}
+
+/* ----------------------------------------------------------
+   3. UploadDropzoneTerminal — mono prompt + tail-style log
+   ---------------------------------------------------------- */
+.uk-dropzone-terminal {
+  font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
+  background: var(--uk-terminal-bg);
+  color: var(--uk-terminal-fg);
+  border: 1px solid var(--uk-terminal-dim);
+  border-radius: 8px;
+  padding: 20px;
+  min-height: 200px;
+  cursor: pointer;
+  box-sizing: border-box;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.uk-dropzone-terminal:focus-visible {
+  outline: 2px solid var(--uk-terminal-fg);
+  outline-offset: 2px;
+}
+
+.uk-dropzone-terminal[data-state="dragging"] {
+  border-color: var(--uk-terminal-fg);
+  box-shadow: 0 0 0 1px var(--uk-terminal-fg) inset;
+}
+
+.uk-dropzone-terminal__prompt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.uk-dropzone-terminal__cursor {
+  display: inline-block;
+  margin-left: 4px;
+  animation: uk-terminal-blink 1s step-end infinite;
+}
+
+.uk-dropzone-terminal__log {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.uk-dropzone-terminal__line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.uk-dropzone-terminal__line[data-state="error"] { color: #f87171; }
+.uk-dropzone-terminal__line[data-state="uploading"] { color: var(--uk-terminal-fg); opacity: 0.85; }
+.uk-dropzone-terminal__line[data-state="success"] { color: var(--uk-terminal-fg); }
+
+/* ----------------------------------------------------------
+   4. UploadDropzoneBrutal — brutalist hard shadow + stamp
+   ---------------------------------------------------------- */
+.uk-dropzone-brutal {
+  background: var(--uk-brutal-bg);
+  color: var(--uk-brutal-fg);
+  border: 3px solid #000;
+  border-radius: 0;
+  box-shadow: var(--uk-brutal-shadow);
+  padding: 32px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  font-family: var(--uk-font);
+  transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uk-dropzone-brutal:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 0 #000;
+}
+
+.uk-dropzone-brutal[data-state="dragging"] {
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0 0 #000;
+}
+
+.uk-dropzone-brutal:focus-visible {
+  outline: 3px solid #000;
+  outline-offset: 4px;
+}
+
+.uk-brutal-stamped {
+  animation: uk-brutal-stamp 200ms ease-out;
+}
+
+.uk-dropzone-brutal__title {
+  font-size: clamp(36px, 6vw, 64px);
+  line-height: 0.9;
+  margin: 0;
+}
+
+.uk-dropzone-brutal__counter {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ----------------------------------------------------------
+   5. UploadButtonShimmer — Vercel/Linear CTA shimmer
+   ---------------------------------------------------------- */
+.uk-btn-shimmer {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--uk-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--uk-radius);
+  padding: 12px 24px;
+  font-family: var(--uk-font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: box-shadow 240ms ease-out, transform 240ms ease-out;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.uk-btn-shimmer:hover {
+  box-shadow: var(--uk-glow);
+  transform: translateY(-1px);
+}
+
+.uk-btn-shimmer:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.uk-btn-shimmer:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.uk-btn-shimmer__sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--uk-shimmer);
+  transform: translateX(-100%);
+  animation: uk-shimmer-sweep 1.8s ease-in-out infinite;
+}
+
+.uk-btn-shimmer__label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ----------------------------------------------------------
+   6. UploadButtonMagnetic — Apple-style magnetic pill
+   ---------------------------------------------------------- */
+.uk-btn-magnetic {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--uk-bg-secondary);
+  color: var(--uk-text);
+  border: 1px solid var(--uk-border);
+  border-radius: 999px;
+  padding: 14px 28px;
+  font-family: var(--uk-font);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  will-change: transform;
+  transition: box-shadow 200ms ease-out, transform 200ms ease-out;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.uk-btn-magnetic:hover {
+  box-shadow: 0 14px 40px -16px rgba(0, 0, 0, 0.35);
+  transform: scale(1.02);
+}
+
+.uk-btn-magnetic:focus-visible {
+  outline: 2px solid var(--uk-primary);
+  outline-offset: 2px;
+}
+
+.uk-btn-magnetic:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ----------------------------------------------------------
+   7. UploadAvatar — circular crop + SVG progress ring
+   ---------------------------------------------------------- */
+.uk-avatar {
+  position: relative;
+  display: inline-block;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--uk-bg-secondary);
+  border: 1px solid var(--uk-border);
+  cursor: pointer;
+}
+
+.uk-avatar:focus-visible {
+  outline: 2px solid var(--uk-primary);
+  outline-offset: 2px;
+}
+
+.uk-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: filter 400ms ease-out;
+}
+
+.uk-avatar__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--uk-text-secondary);
+}
+
+.uk-avatar__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+
+.uk-avatar__ring circle {
+  transition: stroke-dashoffset 220ms ease-out;
+}
+
+/* ----------------------------------------------------------
+   8. UploadInlineChat — composer attach pattern
+   ---------------------------------------------------------- */
+.uk-inline-chat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--uk-bg-secondary);
+  border: 1px solid var(--uk-border);
+  border-radius: 12px;
+  font-family: var(--uk-font);
+  box-sizing: border-box;
+}
+
+.uk-inline-chat__attach {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--uk-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 160ms ease-out, color 160ms ease-out;
+}
+
+.uk-inline-chat__attach:hover {
+  background: rgba(127, 127, 127, 0.12);
+  color: var(--uk-text);
+}
+
+.uk-inline-chat__attach:focus-visible {
+  outline: 2px solid var(--uk-primary);
+  outline-offset: 2px;
+}
+
+.uk-inline-chat__chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 320px;
+}
+
+.uk-inline-chat__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(127, 127, 127, 0.12);
+  color: var(--uk-text);
+  font-size: 12px;
+  white-space: nowrap;
+  animation: uk-chip-pop 180ms ease-out;
+}
+
+.uk-inline-chat__chip[data-state="error"] {
+  background: color-mix(in srgb, var(--uk-error) 18%, transparent);
+  color: var(--uk-error);
+}
+
+.uk-inline-chat__chip-progress {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.uk-inline-chat__chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.uk-inline-chat__chip-remove:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.uk-inline-chat__field {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--uk-text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.uk-inline-chat__field::placeholder {
+  color: var(--uk-text-secondary);
+}
