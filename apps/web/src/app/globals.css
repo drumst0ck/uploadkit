@@ -128,24 +128,27 @@ h3 {
    Hero code block — Shiki overrides
    Tailwind preflight resets pre/code; restore here.
    ───────────────────────────────────────────────── */
-.hero-code pre {
+.hero-code pre,
+.hero-code-panel pre {
   margin: 0;
   padding: 0;
   background: transparent !important;
-  font-size: 0.875rem;
-  line-height: 1.7;
+  font-size: inherit;
+  line-height: 1.65;
   tab-size: 2;
   overflow-x: auto;
 }
 
-.hero-code pre code {
+.hero-code pre code,
+.hero-code-panel pre code {
   font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', ui-monospace, monospace;
   font-size: inherit;
   background: transparent !important;
 }
 
 /* Shiki token colors preserved — override any Tailwind reset */
-.hero-code .shiki span {
+.hero-code .shiki span,
+.hero-code-panel .shiki span {
   color: var(--shiki-default, inherit);
 }
 

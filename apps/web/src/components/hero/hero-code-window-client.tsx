@@ -39,8 +39,8 @@ export function HeroCodeWindowClient({ routeHtml, pageHtml }: HeroCodeWindowClie
           borderColor: 'rgba(255,255,255,0.06)',
         }}
       >
-        {/* Traffic light dots */}
-        <div className="flex items-center gap-1.5 px-4 py-3">
+        {/* Traffic light dots — hidden on mobile to save space */}
+        <div className="hidden items-center gap-1.5 px-4 py-3 sm:flex">
           <span className="inline-block h-3 w-3 rounded-full" style={{ background: '#ff5f57' }} aria-hidden="true" />
           <span className="inline-block h-3 w-3 rounded-full" style={{ background: '#febc2e' }} aria-hidden="true" />
           <span className="inline-block h-3 w-3 rounded-full" style={{ background: '#28c840' }} aria-hidden="true" />
@@ -55,7 +55,7 @@ export function HeroCodeWindowClient({ routeHtml, pageHtml }: HeroCodeWindowClie
               aria-selected={activeTab === tab.id}
               aria-controls={`hero-code-panel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
-              className="border-b-2 px-4 py-3 text-xs font-medium transition-colors duration-150"
+              className="border-b-2 px-3 py-2.5 text-xs font-medium transition-colors duration-150 sm:px-4 sm:py-3"
               style={
                 activeTab === tab.id
                   ? {
@@ -80,7 +80,7 @@ export function HeroCodeWindowClient({ routeHtml, pageHtml }: HeroCodeWindowClie
       <div
         id={`hero-code-panel-${activeTab}`}
         role="tabpanel"
-        className="overflow-x-auto p-5 text-sm"
+        className="hero-code-panel overflow-x-auto p-3 text-[11px] leading-relaxed sm:p-5 sm:text-sm"
         style={{ maxHeight: '340px', overflowY: 'auto' }}
         // Safe: HTML from Shiki highlighting hardcoded string constants (no user input)
         dangerouslySetInnerHTML={{ __html: htmlMap[activeTab] }}

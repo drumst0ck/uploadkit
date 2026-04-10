@@ -32,7 +32,7 @@ export function InstallCommand() {
   }, [current.cmd])
 
   return (
-    <div className="group relative mb-14 inline-flex flex-col items-stretch">
+    <div className="group relative mb-14 flex w-full max-w-full flex-col items-stretch sm:inline-flex sm:w-auto sm:max-w-[min(100%,640px)]">
       {/* Package manager tabs */}
       <div
         className="flex items-center gap-1 self-center rounded-t-xl border border-b-0 px-1 pt-1"
@@ -72,7 +72,7 @@ export function InstallCommand() {
 
       {/* Pill */}
       <div
-        className="relative flex items-center gap-3 overflow-hidden rounded-2xl px-5 py-3 transition-colors duration-300 group-hover:border-white/20"
+        className="relative flex w-full min-w-0 items-center gap-2 overflow-hidden rounded-2xl px-3 py-2.5 transition-colors duration-300 group-hover:border-white/20 sm:gap-3 sm:px-5 sm:py-3"
         style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -98,27 +98,34 @@ export function InstallCommand() {
           )}
         </AnimatePresence>
 
-        <span
-          className="flex-shrink-0 select-none font-mono text-sm"
-          style={{ color: '#52525B' }}
-          aria-hidden="true"
+        {/* Scrollable command area — overflows horizontally on small screens
+            without breaking the pill container */}
+        <div
+          className="relative z-10 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: 'none' }}
         >
-          $
-        </span>
-
-        <AnimatePresence mode="wait">
-          <motion.code
-            key={current.id}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="relative z-10 whitespace-nowrap font-mono text-sm"
-            style={{ color: '#d4d4d8' }}
+          <span
+            className="flex-shrink-0 select-none font-mono text-xs sm:text-sm"
+            style={{ color: '#52525B' }}
+            aria-hidden="true"
           >
-            {current.cmd}
-          </motion.code>
-        </AnimatePresence>
+            $
+          </span>
+
+          <AnimatePresence mode="wait">
+            <motion.code
+              key={current.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="whitespace-nowrap font-mono text-xs sm:text-sm"
+              style={{ color: '#d4d4d8' }}
+            >
+              {current.cmd}
+            </motion.code>
+          </AnimatePresence>
+        </div>
 
         <button
           type="button"
