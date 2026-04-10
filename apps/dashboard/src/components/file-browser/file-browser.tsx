@@ -10,7 +10,7 @@ import {
   Button,
   Checkbox,
 } from '@uploadkitdev/ui';
-import { Link2, ArrowUpDown, Trash2 } from 'lucide-react';
+import { Link2, ArrowUpDown, Trash2, Check } from 'lucide-react';
 import { DataTable } from '../data-table/data-table';
 import { DataTableToolbar } from '../data-table/data-table-toolbar';
 import { DataTablePagination } from '../data-table/data-table-pagination';
@@ -44,6 +44,14 @@ export function FileBrowser({ slug }: FileBrowserProps) {
   const [typeFilter, setTypeFilter] = React.useState('');
   const [cursorStack, setCursorStack] = React.useState<string[]>([]);
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+  const [copiedId, setCopiedId] = React.useState<string | null>(null);
+  const copyTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   // Current cursor = top of stack, empty string = first page
   const currentCursor = cursorStack[cursorStack.length - 1] ?? '';
@@ -106,8 +114,15 @@ export function FileBrowser({ slug }: FileBrowserProps) {
     }
   };
 
-  const handleCopyUrl = (url: string) => {
-    navigator.clipboard.writeText(url).catch(() => undefined);
+  const handleCopyUrl = async (fileId: string, url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      return;
+    }
+    setCopiedId(fileId);
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    copyTimeoutRef.current = setTimeout(() => setCopiedId(null), 1500);
   };
 
   const handleDeleteSingle = async (fileId: string) => {
@@ -222,11 +237,20 @@ export function FileBrowser({ slug }: FileBrowserProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-            onClick={() => handleCopyUrl(row.original.url)}
-            aria-label="Copy file URL"
+            className={`h-8 w-8 ${
+              copiedId === row.original._id
+                ? 'text-emerald-400 hover:text-emerald-400'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => handleCopyUrl(row.original._id, row.original.url)}
+            aria-label={copiedId === row.original._id ? 'Copied!' : 'Copy file URL'}
+            title={copiedId === row.original._id ? 'Copied!' : 'Copy file URL'}
           >
-            <Link2 className="h-4 w-4" />
+            {copiedId === row.original._id ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Link2 className="h-4 w-4" />
+            )}
           </Button>
           <Button
             variant="ghost"
