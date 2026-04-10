@@ -15,6 +15,7 @@ import { DataTable } from '../data-table/data-table';
 import { DataTableToolbar } from '../data-table/data-table-toolbar';
 import { DataTablePagination } from '../data-table/data-table-pagination';
 import { FilePreviewCell } from './file-preview-cell';
+import { DashboardUploadDropzone } from './dashboard-upload-dropzone';
 import { useFiles, type FileRecord } from '../../hooks/use-files';
 import { formatBytes, formatDate } from '../../lib/format';
 
@@ -243,6 +244,7 @@ export function FileBrowser({ slug }: FileBrowserProps) {
 
   return (
     <div className="space-y-4">
+      <DashboardUploadDropzone slug={slug} onUploadComplete={() => mutate()} />
       <DataTableToolbar
         onSearch={handleSearch}
         onTypeFilter={handleTypeFilter}
