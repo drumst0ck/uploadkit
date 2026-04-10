@@ -1,6 +1,16 @@
 {
   "name": "uploadkit",
   "private": true,
+  "license": "MIT",
+  "author": "Drumst0ck",
+  "homepage": "https://uploadkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drumst0ck/uploadkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/drumst0ck/uploadkit/issues"
+  },
   "packageManager": "pnpm@10.26.2",
   "scripts": {
     "build": "turbo build",

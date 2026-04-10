@@ -1,6 +1,27 @@
 {
   "name": "@uploadkitdev/core",
   "version": "0.2.0",
+  "description": "UploadKit core SDK — type-safe presigned URL client for browser, Node and Edge runtimes.",
+  "license": "MIT",
+  "author": "Drumst0ck",
+  "homepage": "https://uploadkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drumst0ck/uploadkit.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/drumst0ck/uploadkit/issues"
+  },
+  "keywords": [
+    "upload",
+    "file-upload",
+    "uploadkit",
+    "s3",
+    "r2",
+    "presigned-url",
+    "typescript"
+  ],
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -13,7 +34,9 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "README.md"
   ],
   "scripts": {
     "build": "tsup",

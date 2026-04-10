@@ -2,6 +2,7 @@
   "name": "@uploadkitdev/config",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "exports": {
     "./eslint": "./eslint/index.js",
     "./typescript/base": "./typescript/tsconfig.base.json",

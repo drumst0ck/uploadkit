@@ -1,6 +1,29 @@
 {
   "name": "@uploadkitdev/next",
   "version": "0.2.0",
+  "description": "UploadKit Next.js server integration — createUploadKitHandler, file router, presigned URL generation, and Express/Fastify/Hono adapters.",
+  "license": "MIT",
+  "author": "Drumst0ck",
+  "homepage": "https://uploadkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drumst0ck/uploadkit.git",
+    "directory": "packages/next"
+  },
+  "bugs": {
+    "url": "https://github.com/drumst0ck/uploadkit/issues"
+  },
+  "keywords": [
+    "upload",
+    "file-upload",
+    "nextjs",
+    "uploadkit",
+    "s3",
+    "r2",
+    "presigned-url",
+    "file-router",
+    "typescript"
+  ],
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -33,7 +56,9 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "README.md"
   ],
   "scripts": {
     "build": "tsup",

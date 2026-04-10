@@ -2,6 +2,7 @@
   "name": "@uploadkitdev/emails",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
