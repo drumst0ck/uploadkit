@@ -15,6 +15,9 @@ import Navbar from '@/components/nav/navbar'
 import { Logo } from '@/components/logo'
 import { HeroCodeWindow } from '@/components/hero/hero-code-window'
 import { Footer } from '@/components/footer/footer'
+import { BlurText } from '@/components/react-bits/blur-text'
+import { Aurora } from '@/components/react-bits/aurora'
+import { SpotlightCard } from '@/components/react-bits/spotlight-card'
 
 export const metadata: Metadata = {
   title: 'UploadKit — The developer platform for file uploads',
@@ -80,7 +83,19 @@ async function HeroSection() {
       className="gradient-mesh relative overflow-hidden pb-24 pt-28 md:pb-32 md:pt-36"
       aria-labelledby="hero-headline"
     >
-      <div className="mx-auto flex max-w-[1200px] flex-col items-center px-6 text-center">
+      {/* Aurora WebGL background — sits behind gradient-mesh */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,black_0%,transparent_75%)]"
+        aria-hidden="true"
+      >
+        <Aurora
+          colorStops={['#6366f1', '#818cf8', '#3b82f6']}
+          amplitude={1.2}
+          blend={0.6}
+          speed={0.8}
+        />
+      </div>
+      <div className="relative mx-auto flex max-w-[1200px] flex-col items-center px-6 text-center">
         {/* Beta badge */}
         <div
           className="mb-8 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium"
@@ -98,10 +113,10 @@ async function HeroSection() {
           Now in beta — 5GB free forever
         </div>
 
-        {/* Headline */}
+        {/* Headline — BlurText staggered reveal */}
         <h1
           id="hero-headline"
-          className="mb-6 max-w-[720px] font-display font-black leading-[1.05]"
+          className="mb-6 flex max-w-[720px] flex-col items-center font-display font-black leading-[1.05]"
           style={{
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(42px, 6vw, 68px)',
@@ -109,9 +124,22 @@ async function HeroSection() {
             color: 'var(--color-text-primary)',
           }}
         >
-          The developer platform
-          <br />
-          for file uploads
+          <BlurText
+            as="span"
+            text="The developer platform"
+            delay={80}
+            animateBy="words"
+            direction="top"
+            className="justify-center"
+          />
+          <BlurText
+            as="span"
+            text="for file uploads"
+            delay={80}
+            animateBy="words"
+            direction="top"
+            className="justify-center"
+          />
         </h1>
 
         {/* Subline */}
@@ -256,15 +284,13 @@ function FeaturesSection() {
           </h2>
         </div>
 
-        {/* 3×2 grid */}
+        {/* 3×2 grid — SpotlightCard hover */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(({ icon: Icon, title, description }) => (
-            <div
+            <SpotlightCard
               key={title}
-              className="flex flex-col gap-4 rounded-[var(--radius-md)] p-6 border border-white/[0.06] transition-all duration-200 hover:border-white/[0.12] hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30"
-              style={{
-                background: '#0C0C0F',
-              }}
+              spotlightColor="rgba(129, 140, 248, 0.22)"
+              className="flex flex-col gap-4 rounded-[var(--radius-md)] border border-white/[0.06] bg-[#0C0C0F] p-6 transition-colors duration-300 hover:border-white/[0.14]"
             >
               {/* Icon container */}
               <div
@@ -282,7 +308,7 @@ function FeaturesSection() {
               <p className="text-sm leading-relaxed" style={{ color: '#52525B' }}>
                 {description}
               </p>
-            </div>
+            </SpotlightCard>
           ))}
         </div>
       </div>

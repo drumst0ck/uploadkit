@@ -14,7 +14,9 @@
     "@uploadkitdev/shared": "workspace:*",
     "@uploadkitdev/ui": "workspace:*",
     "lucide-react": "^1.7.0",
+    "motion": "^12.38.0",
     "next": "latest",
+    "ogl": "^1.0.11",
     "react": "latest",
     "react-dom": "latest",
     "shiki": "^4.0.2"
