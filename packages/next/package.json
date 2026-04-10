@@ -1,6 +1,6 @@
 {
   "name": "@uploadkitdev/next",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "UploadKit Next.js server integration — createUploadKitHandler, file router, presigned URL generation, and Express/Fastify/Hono adapters.",
   "license": "MIT",
   "author": "Drumst0ck",

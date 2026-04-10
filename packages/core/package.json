@@ -1,6 +1,6 @@
 {
   "name": "@uploadkitdev/core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "UploadKit core SDK — type-safe presigned URL client for browser, Node and Edge runtimes.",
   "license": "MIT",
   "author": "Drumst0ck",
