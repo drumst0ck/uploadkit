@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Types } from 'mongoose';
 import { auth } from '../../../../../auth';
-import { connectDB, User, Project, File, ApiKey } from '@uploadkitdev/db';
+import {
+  connectDB,
+  getAuthMongoClient,
+  User,
+  Project,
+  File,
+  ApiKey,
+} from '@uploadkitdev/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -137,6 +145,18 @@ export async function DELETE() {
     await ApiKey.deleteMany({ projectId: { $in: projectIds } });
     await Project.deleteMany({ userId });
   }
+
+  // Clean up Auth.js adapter collections (accounts + sessions).
+  // These live outside Mongoose — deleting the user alone leaves orphaned
+  // OAuth account links, which breaks re-signin with E11000 duplicate key
+  // errors on the provider_providerAccountId unique index.
+  const authClient = await getAuthMongoClient();
+  const authDb = authClient.db();
+  const userObjectId = new Types.ObjectId(userId);
+  await Promise.all([
+    authDb.collection('accounts').deleteMany({ userId: userObjectId }),
+    authDb.collection('sessions').deleteMany({ userId: userObjectId }),
+  ]);
 
   await User.findByIdAndDelete(userId);
 
