@@ -3,6 +3,12 @@ title: FileList
 description: Display a list of uploaded files with thumbnails and optional delete actions.
 ---
 
+import { FileListDemo } from '@/components/preview-components';
+
+<ComponentPreview caption="3 sample files · try delete">
+  <FileListDemo />
+</ComponentPreview>
+
 ## Overview
 
 `FileList` renders an array of `UploadResult` objects as a styled list, where each row shows a thumbnail preview, filename, file size, and an optional delete button.
