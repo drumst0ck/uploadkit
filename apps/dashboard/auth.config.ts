@@ -8,7 +8,10 @@ export const authConfig: NextAuthConfig = {
     signIn: '/login',
   },
   providers: [
-    GitHub,
+    // GitHub sends `iss=https://github.com/login/oauth` in the callback
+    // (RFC 9207). Without matching the provider's `issuer`, oauth4webapi
+    // rejects the callback because Auth.js falls back to "https://authjs.dev".
+    GitHub({ issuer: 'https://github.com/login/oauth' }),
     Google,
     Resend({
       from: 'UploadKit <noreply@updates.uploadkit.dev>',
