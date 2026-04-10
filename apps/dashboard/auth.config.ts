@@ -14,6 +14,9 @@ export const authConfig: NextAuthConfig = {
     GitHub({ issuer: 'https://github.com/login/oauth' }),
     Google,
     Resend({
+      // Auth.js reads AUTH_RESEND_KEY by default; we use RESEND_API_KEY
+      // everywhere else, so pass it explicitly to keep a single source.
+      apiKey: process.env.RESEND_API_KEY,
       from: 'UploadKit <noreply@updates.uploadkit.dev>',
     }),
   ],
