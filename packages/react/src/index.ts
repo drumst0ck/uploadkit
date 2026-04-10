@@ -35,6 +35,16 @@ export type { UploadAvatarProps } from './components/upload-avatar';
 export { UploadInlineChat } from './components/upload-inline-chat';
 export type { UploadInlineChatProps } from './components/upload-inline-chat';
 
+// Motion & progress variants (quick task 260410-kw3)
+export { UploadProgressRadial } from './components/upload-progress-radial';
+export type { UploadProgressRadialProps } from './components/upload-progress-radial';
+export { UploadProgressBar } from './components/upload-progress-bar';
+export type { UploadProgressBarProps } from './components/upload-progress-bar';
+export { UploadProgressStacked } from './components/upload-progress-stacked';
+export type { UploadProgressStackedProps } from './components/upload-progress-stacked';
+export { UploadProgressOrbit } from './components/upload-progress-orbit';
+export type { UploadProgressOrbitProps } from './components/upload-progress-orbit';
+
 // Helpers
 export { generateReactHelpers } from './helpers';
 
