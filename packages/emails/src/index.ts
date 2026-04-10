@@ -3,11 +3,20 @@ import { render } from '@react-email/render';
 import { WelcomeEmail, type WelcomeEmailProps } from './templates/welcome';
 import { UsageAlertEmail, type UsageAlertEmailProps } from './templates/usage-alert';
 import { InvoiceEmail, type InvoiceEmailProps } from './templates/invoice';
+import {
+  InactiveWarningEmail,
+  type InactiveWarningEmailProps,
+} from './templates/inactive-warning';
 import { sendEmail } from './lib/send';
 
 // Re-export raw template components for preview / testing
-export { WelcomeEmail, UsageAlertEmail, InvoiceEmail };
-export type { WelcomeEmailProps, UsageAlertEmailProps, InvoiceEmailProps };
+export { WelcomeEmail, UsageAlertEmail, InvoiceEmail, InactiveWarningEmail };
+export type {
+  WelcomeEmailProps,
+  UsageAlertEmailProps,
+  InvoiceEmailProps,
+  InactiveWarningEmailProps,
+};
 
 /**
  * Send the welcome email to a newly registered user.
@@ -39,5 +48,20 @@ export async function sendInvoiceEmail(to: string, props: InvoiceEmailProps): Pr
   const subject =
     props.type === 'paid' ? 'Payment received' : 'Payment failed — action required';
   const html = await render(InvoiceEmail(props));
+  await sendEmail({ to, subject, html });
+}
+
+/**
+ * Send the inactive-account warning email (free-tier, 7 days before cleanup).
+ * Fire-and-forget — never throws.
+ */
+export async function sendInactiveWarningEmail(
+  to: string,
+  props: InactiveWarningEmailProps,
+): Promise<void> {
+  const subject = `Your UploadKit files will be deleted in ${props.daysUntilDeletion} day${
+    props.daysUntilDeletion === 1 ? '' : 's'
+  }`;
+  const html = await render(InactiveWarningEmail(props));
   await sendEmail({ to, subject, html });
 }

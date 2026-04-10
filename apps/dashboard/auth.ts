@@ -2,7 +2,13 @@ import NextAuth, { type NextAuthResult } from 'next-auth';
 import type { DefaultSession } from 'next-auth';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import { authConfig } from './auth.config';
-import { getAuthMongoClient, connectDB, Project, FileRouter } from '@uploadkitdev/db';
+import {
+  getAuthMongoClient,
+  connectDB,
+  Project,
+  FileRouter,
+  User,
+} from '@uploadkitdev/db';
 import { nanoid } from 'nanoid';
 import { sendWelcomeEmail } from '@uploadkitdev/emails';
 
@@ -55,6 +61,21 @@ const result: NextAuthResult = NextAuth(async () => {
             userName: user.name ?? 'there',
             loginUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.uploadkit.dev'}/dashboard`,
           });
+        }
+      },
+      // Track activity for the inactive-cleanup cron. Also resets the
+      // warning flag so a user who comes back and goes inactive again will
+      // receive a fresh warning email on the next cycle.
+      async signIn({ user }) {
+        if (!user?.id) return;
+        try {
+          await connectDB();
+          await User.updateOne(
+            { _id: user.id },
+            { $set: { lastLoginAt: new Date(), inactiveWarningSentAt: null } },
+          );
+        } catch (err) {
+          console.warn('[auth.signIn] failed to update lastLoginAt:', err);
         }
       },
     },
