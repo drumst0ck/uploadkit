@@ -135,22 +135,36 @@ export function DarkVeil({
 
     const start = performance.now()
     let frame = 0
+    let visible = true
 
     const loop = () => {
-      program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed
-      program.uniforms.uHueShift.value = hueShift
-      program.uniforms.uNoise.value = noiseIntensity
-      program.uniforms.uScan.value = scanlineIntensity
-      program.uniforms.uScanFreq.value = scanlineFrequency
-      program.uniforms.uWarp.value = warpAmount
-      renderer.render({ scene: mesh })
+      if (visible) {
+        program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed
+        program.uniforms.uHueShift.value = hueShift
+        program.uniforms.uNoise.value = noiseIntensity
+        program.uniforms.uScan.value = scanlineIntensity
+        program.uniforms.uScanFreq.value = scanlineFrequency
+        program.uniforms.uWarp.value = warpAmount
+        renderer.render({ scene: mesh })
+      }
       frame = requestAnimationFrame(loop)
     }
+
+    // Pause the render loop when the canvas is off-screen to avoid
+    // saturating the GPU with the heavy CPPN shader.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visible = !!entry?.isIntersecting
+      },
+      { threshold: 0 },
+    )
+    observer.observe(canvas)
 
     loop()
 
     return () => {
       cancelAnimationFrame(frame)
+      observer.disconnect()
       window.removeEventListener('resize', resize)
     }
   }, [hueShift, noiseIntensity, scanlineIntensity, speed, scanlineFrequency, warpAmount, resolutionScale])
