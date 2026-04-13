@@ -1,5 +1,6 @@
 'use client'
 
+import '@uploadkitdev/react/styles.css'
 import { useState, useMemo, useRef, type ReactNode } from 'react'
 import {
   UploadKitProvider,
