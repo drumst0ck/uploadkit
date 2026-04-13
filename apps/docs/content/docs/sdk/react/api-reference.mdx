@@ -173,6 +173,34 @@ Same shape as `UploadDropzoneGlassProps`.
 
 ---
 
+## UploadDropzoneMinimal
+
+```typescript
+const UploadDropzoneMinimal: React.ForwardRefExoticComponent<UploadDropzoneMinimalProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Stripe/Resend-inspired ultra-clean dropzone with subtle border pulse on drag and staggered file chip entrances. See [UploadDropzoneMinimal](/docs/sdk/react/upload-dropzone-minimal).
+
+### UploadDropzoneMinimalProps
+
+Same shape as `UploadDropzoneGlassProps`.
+
+---
+
+## UploadDropzoneNeon
+
+```typescript
+const UploadDropzoneNeon: React.ForwardRefExoticComponent<UploadDropzoneNeonProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Cyberpunk/neon dropzone with glowing border traces, scanline overlay, and monospace typography. See [UploadDropzoneNeon](/docs/sdk/react/upload-dropzone-neon).
+
+### UploadDropzoneNeonProps
+
+Same shape as `UploadDropzoneGlassProps`. Additional CSS custom properties: `--uk-neon-glow`, `--uk-neon-bg`, `--uk-neon-border`.
+
+---
+
 ## UploadButtonShimmer
 
 ```typescript
@@ -208,6 +236,34 @@ Pill-shaped upload button that attracts toward the cursor with a Motion spring. 
 ### UploadButtonMagneticProps
 
 Same shape as `UploadButtonShimmerProps`.
+
+---
+
+## UploadButtonPulse
+
+```typescript
+const UploadButtonPulse: React.ForwardRefExoticComponent<UploadButtonPulseProps & React.RefAttributes<HTMLButtonElement>>
+```
+
+Apple-style calm pulsing pill button with radial ring animation and whileTap squeeze. See [UploadButtonPulse](/docs/sdk/react/upload-button-pulse).
+
+### UploadButtonPulseProps
+
+Same shape as `UploadButtonShimmerProps`.
+
+---
+
+## UploadButtonGradient
+
+```typescript
+const UploadButtonGradient: React.ForwardRefExoticComponent<UploadButtonGradientProps & React.RefAttributes<HTMLButtonElement>>
+```
+
+Instagram/TikTok-style button with a continuously rotating conic gradient border ring. See [UploadButtonGradient](/docs/sdk/react/upload-button-gradient).
+
+### UploadButtonGradientProps
+
+Same shape as `UploadButtonShimmerProps`. Additional CSS custom properties: `--uk-gradient-from`, `--uk-gradient-via`, `--uk-gradient-to`.
 
 ---
 
@@ -399,8 +455,103 @@ const UploadStepWizard: React.ForwardRefExoticComponent<UploadStepWizardProps & 
 
 Same shape as `UploadAvatarProps` (minus `accept` default, `initialSrc`, `size`).
 
+### UploadProgressWave
+
+```typescript
+const UploadProgressWave: React.ForwardRefExoticComponent<UploadProgressWaveProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Spotify/SoundCloud-style audio waveform that fills left-to-right as progress increases. See [UploadProgressWave](/docs/sdk/react/upload-progress-wave).
+
+#### UploadProgressWaveProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** |
+| `accept` | `string[]` | — | MIME types. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Forwarded metadata. |
+| `bars` | `number` | `24` | Number of waveform bars. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Success callback. |
+| `onUploadError` | `(error: Error) => void` | — | Failure callback. |
+| `className` | `string` | — | CSS class(es). |
+
+---
+
+### UploadProgressLiquid
+
+```typescript
+const UploadProgressLiquid: React.ForwardRefExoticComponent<UploadProgressLiquidProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Apple-style liquid fill container with dual sine-wave surfaces that rise as progress advances. See [UploadProgressLiquid](/docs/sdk/react/upload-progress-liquid).
+
+#### UploadProgressLiquidProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** |
+| `accept` | `string[]` | — | MIME types. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Forwarded metadata. |
+| `width` | `number` | `160` | Container width in px. |
+| `height` | `number` | `200` | Container height in px. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Success callback. |
+| `onUploadError` | `(error: Error) => void` | — | Failure callback. |
+| `className` | `string` | — | CSS class(es). |
+
+---
+
+## Multi-file Visualizers
+
+### UploadGalleryGrid
+
+```typescript
+const UploadGalleryGrid: React.ForwardRefExoticComponent<UploadGalleryGridProps & React.RefAttributes<HTMLDivElement>>
+```
+
+Pinterest-style image gallery grid where thumbnails appear as files upload, each with a circular progress overlay. See [UploadGalleryGrid](/docs/sdk/react/upload-gallery-grid).
+
+#### UploadGalleryGridProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** |
+| `accept` | `string[]` | `['image/*']` | MIME types (defaults to images). |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `maxFiles` | `number` | — | Max number of files. |
+| `columns` | `number` | `3` | Grid column count. |
+| `metadata` | `Record<string, unknown>` | — | Forwarded metadata. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Success callback. |
+| `onUploadError` | `(error: Error) => void` | — | Failure callback. |
+| `className` | `string` | — | CSS class(es). |
+
+---
+
+### UploadTimeline
+
+```typescript
+const UploadTimeline: React.ForwardRefExoticComponent<UploadTimelineProps & React.RefAttributes<HTMLDivElement>>
+```
+
+GitHub/Linear-style vertical timeline with status dots and inline progress per file. See [UploadTimeline](/docs/sdk/react/upload-timeline).
+
+#### UploadTimelineProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** |
+| `accept` | `string[]` | — | MIME types. |
+| `maxSize` | `number` | — | Max file size in bytes. |
+| `maxFiles` | `number` | — | Max number of files. |
+| `metadata` | `Record<string, unknown>` | — | Forwarded metadata. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Success callback. |
+| `onUploadError` | `(error: Error) => void` | — | Failure callback. |
+| `className` | `string` | — | CSS class(es). |
+| `children` | `ReactNode` | — | Override drop zone label. |
+
 <Callout>
-  All eight motion & progress variants use CSS fallbacks for their animations — `motion` is only required for the smooth layout reorders in `UploadProgressStacked` and `UploadBento`, and the `AnimatePresence`-driven transitions in `UploadStepWizard`.
+  All motion & progress variants and multi-file visualizers use CSS fallbacks for their animations — `motion` is only required for the smooth layout reorders in `UploadProgressStacked` and `UploadBento`, and the `AnimatePresence`-driven transitions in `UploadStepWizard`.
 </Callout>
 
 ---

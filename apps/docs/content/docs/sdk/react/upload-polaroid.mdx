@@ -1,0 +1,66 @@
+---
+title: UploadPolaroid
+description: A Pinterest/VSCO-inspired photo stack where images appear as rotated polaroid cards that "develop" from white as they upload.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadPolaroid } from '@/components/preview-components';
+
+Drop images and watch them appear as slightly rotated polaroid cards. Each card starts white and gradually "develops" to reveal the image as upload progress advances — like a real polaroid coming to life. Hover the stack to fan cards out.
+
+**Design inspiration:** Pinterest boards, VSCO collections, instant photography.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, cards appear with CSS transitions. `pnpm add motion` for spring scale-in entrances.
+</Callout>
+
+<ComponentPreview caption="Pinterest · VSCO — polaroid stack" simulateFiles={4}>
+  <UploadPolaroid route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadPolaroid } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadPolaroid
+      route="galleryUploader"
+      accept={['image/*']}
+      maxFiles={8}
+      onUploadComplete={(results) => {
+        console.log('Photos:', results.map((r) => r.url));
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on individual file failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+## Visual states
+
+| State | Appearance |
+|-------|-----------|
+| Empty | Dashed border, upload icon, "Drop photos here" |
+| Developing | White overlay fades as progress crosses 50% |
+| Success | Full image visible, green status badge |
+| Hover | Cards fan out with translateX stagger |
+
+## Accessibility
+
+- Container is `role="button"` with keyboard support
+- Blob URLs revoked on unmount
+- Respects `prefers-reduced-motion`

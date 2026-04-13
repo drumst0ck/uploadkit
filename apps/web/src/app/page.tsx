@@ -17,6 +17,7 @@ import { AnimatedButton } from '@/components/ui/animated-button'
 import { BlurText } from '@/components/react-bits/blur-text'
 import { DarkVeil } from '@/components/react-bits/dark-veil'
 import { SpotlightCard } from '@/components/react-bits/spotlight-card'
+import { LandingShowcase } from '@/components/showcase/landing-showcase'
 
 export const metadata: Metadata = {
   title: 'UploadKit — The developer platform for file uploads',
@@ -287,6 +288,56 @@ function FeaturesSection() {
 }
 
 // ─────────────────────────────────────────────────────────
+// Component Showcase Section
+// ─────────────────────────────────────────────────────────
+
+function ShowcaseSection() {
+  return (
+    <section
+      id="components"
+      className="py-24 md:py-32"
+      aria-labelledby="showcase-headline"
+    >
+      <div className="mx-auto max-w-[1200px] px-6">
+        {/* Header */}
+        <div className="mb-16 flex flex-col items-center text-center">
+          <p
+            className="mb-4 text-xs font-semibold uppercase tracking-[0.14em]"
+            style={{ color: '#818cf8' }}
+          >
+            Components
+          </p>
+          <h2
+            id="showcase-headline"
+            className="font-display text-4xl font-black leading-tight md:text-5xl"
+            style={{
+              fontFamily: 'var(--font-display)',
+              letterSpacing: '-0.02em',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            40+ upload components.
+            <br />
+            Pick your style.
+          </h2>
+          <p
+            className="mt-4 max-w-[520px] text-lg"
+            style={{ color: '#71717A', lineHeight: '1.75' }}
+          >
+            From minimal Stripe-style dropzones to 3D envelopes and vinyl
+            records. Every component is themeable, accessible, and works with
+            or without Motion.
+          </p>
+        </div>
+      </div>
+
+      {/* Showcase — full width for the grid layout */}
+      <LandingShowcase />
+    </section>
+  )
+}
+
+// ─────────────────────────────────────────────────────────
 // Pricing Section
 // ─────────────────────────────────────────────────────────
 
@@ -542,6 +593,7 @@ export default async function WebPage() {
       <main>
         <HeroSection />
         <FeaturesSection />
+        <ShowcaseSection />
         <PricingSection />
         <CtaSection />
       </main>

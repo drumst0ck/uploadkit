@@ -1,0 +1,76 @@
+---
+title: UploadButtonPulse
+description: An Apple-style calm pulsing upload button with radial ring animation and squeeze-on-click feedback.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadButtonPulse } from '@/components/preview-components';
+
+A pill-shaped button that breathes with a gentle radial pulse while idle, squeezes on click, and shows inline progress during upload. Calm, confident, Apple-like.
+
+**Design inspiration:** Apple action buttons, iOS share sheet.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the pulse uses a CSS keyframe. `pnpm add motion` for spring-based `whileTap` squeeze and smoother ring animation.
+</Callout>
+
+<ComponentPreview caption="Apple — calm radial pulse">
+  <UploadButtonPulse route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadButtonPulse } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadButtonPulse
+      route="imageUploader"
+      accept={['image/*']}
+      maxSize={5 * 1024 * 1024}
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `disabled` | `boolean` | `false` | Disables the button. |
+| `className` | `string` | — | Additional CSS class(es). |
+| `children` | `ReactNode` | `'Upload file'` | Button label. |
+
+`UploadButtonPulse` accepts a `ref` forwarded to the `<button>`.
+
+## Visual states
+
+| State | Appearance |
+|-------|-----------|
+| `idle` | Soft radial pulse ring expands and fades every 2.4s |
+| `uploading` | Pulse stops, label shows "Uploading N%" |
+| `success` | Background transitions to green, label shows "Done" |
+| `error` | Label shows error briefly |
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-primary` | Button background and pulse ring color |
+| `--uk-success` | Background on success |
+
+## Accessibility
+
+- Native `<button>` element with `aria-busy` during upload
+- `focus-visible` outline
+- Respects `prefers-reduced-motion` — pulse animation drops to `0.01ms`

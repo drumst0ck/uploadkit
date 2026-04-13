@@ -1,0 +1,79 @@
+---
+title: UploadButtonGradient
+description: An Instagram/TikTok-style button with a continuously rotating conic gradient border ring.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadButtonGradient } from '@/components/preview-components';
+
+A button wrapped in a spinning conic gradient — orange, pink, and purple hues rotate continuously around the border. The inner surface is dark, letting the gradient bleed through on hover. During upload the rotation accelerates.
+
+**Design inspiration:** Instagram stories ring, TikTok UI, Figma gradient buttons.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the rotation uses CSS `@keyframes`. `pnpm add motion` for smoother rotation speed transitions between states.
+</Callout>
+
+<ComponentPreview caption="Instagram · TikTok — rotating gradient ring">
+  <UploadButtonGradient route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadButtonGradient } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadButtonGradient
+      route="imageUploader"
+      accept={['image/*']}
+      maxSize={10 * 1024 * 1024}
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+    >
+      Share file
+    </UploadButtonGradient>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `disabled` | `boolean` | `false` | Disables the button. |
+| `className` | `string` | — | Additional CSS class(es). |
+| `children` | `ReactNode` | `'Upload file'` | Button label. |
+
+`UploadButtonGradient` accepts a `ref` forwarded to the `<button>`.
+
+## Theming
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--uk-gradient-from` | `#f97316` | First gradient stop (orange) |
+| `--uk-gradient-via` | `#ec4899` | Middle gradient stop (pink) |
+| `--uk-gradient-to` | `#8b5cf6` | Last gradient stop (purple) |
+| `--uk-bg` | `#0a0a0b` | Inner button surface |
+| `--uk-text` | `#fafafa` | Label color |
+
+```tsx
+{/* Blue-to-teal variant */}
+<div style={{ '--uk-gradient-from': '#3b82f6', '--uk-gradient-via': '#06b6d4', '--uk-gradient-to': '#10b981' } as React.CSSProperties}>
+  <UploadButtonGradient route="imageUploader" />
+</div>
+```
+
+## Accessibility
+
+- Native `<button>` element with `aria-busy` during upload
+- Gradient pseudo-element is purely decorative
+- Respects `prefers-reduced-motion` — rotation animation pauses

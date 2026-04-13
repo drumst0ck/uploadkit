@@ -1,0 +1,74 @@
+---
+title: UploadBlueprint
+description: A technical blueprint/schematic-styled dropzone with grid lines, crosshairs, corner brackets, and monospace file readouts.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadBlueprint } from '@/components/preview-components';
+
+A dropzone styled like a technical drawing — dark blue background, white grid lines, crosshair markers, L-bracket corners, and monospace file status readouts using block characters for progress. Perfect for developer tools and engineering platforms.
+
+**Design inspiration:** Figma Dev Mode, CAD/engineering tools, technical schematics.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, corners expand via CSS transitions. `pnpm add motion` for spring-animated corner brackets and `AnimatePresence` file entries.
+</Callout>
+
+<ComponentPreview caption="Figma · CAD — technical blueprint" simulateFiles={3}>
+  <UploadBlueprint route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadBlueprint } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadBlueprint
+      route="fileUploader"
+      accept={['image/*', 'application/pdf']}
+      maxSize={50 * 1024 * 1024}
+      onUploadComplete={(results) => {
+        console.log('Schematic uploaded:', results.map((r) => r.url));
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+| `children` | `ReactNode` | — | Override the title. |
+
+## Theming
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--uk-blueprint-bg` | `#0d1b2a` | Background color |
+| `--uk-blueprint-grid` | `rgba(255,255,255,0.06)` | Grid line color |
+| `--uk-blueprint-accent` | `#4cc9f0` | Accent for crosshairs, corners, text |
+
+## File readout format
+
+```
+> mountain-photo.jpg .... 2.4MB [████████░░] 78%
+> report.pdf ............ 1.1MB [OK]
+> broken.zip ............ 500KB [ERR]
+```
+
+## Accessibility
+
+- `role="button"` with keyboard support
+- Corner brackets animate outward on drag
+- Respects `prefers-reduced-motion`

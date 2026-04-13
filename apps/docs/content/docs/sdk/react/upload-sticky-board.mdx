@@ -1,0 +1,69 @@
+---
+title: UploadStickyBoard
+description: A Miro/FigJam-inspired corkboard where each uploaded file becomes a colored sticky note with random tilt.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadStickyBoard } from '@/components/preview-components';
+
+Each uploaded file becomes a pastel-colored sticky note on a warm corkboard surface. Notes have random rotations, corner folds, and hover lift effects. Colors cycle through yellow, red, green, blue, purple, and orange. Playful and collaborative.
+
+**Design inspiration:** Miro, FigJam, physical sticky notes.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, notes appear with CSS transforms. `pnpm add motion` for spring-based entrance with rotation and `whileHover` lift.
+</Callout>
+
+<ComponentPreview caption="Miro · FigJam — sticky note board" simulateFiles={4}>
+  <UploadStickyBoard route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadStickyBoard } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadStickyBoard
+      route="noteUploader"
+      maxFiles={12}
+      onUploadComplete={(results) => {
+        console.log('Notes posted:', results.length);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+## Note colors
+
+Colors cycle through: yellow (`#fef08a`), red (`#fca5a5`), green (`#86efac`), blue (`#93c5fd`), purple (`#c4b5fd`), orange (`#fdba74`).
+
+## Visual details
+
+- Corkboard surface with warm tan background
+- Each note: 100x100px, random rotation -6 to +6 degrees
+- Corner fold in top-right for tactile feel
+- Status dot: uploading (blue), success (green), error (red)
+- Progress bar at bottom of each note
+- Hover: lift effect with stronger shadow
+
+## Accessibility
+
+- Board is `role="button"` with keyboard support
+- "Add note" button in bottom-right
+- Respects `prefers-reduced-motion`

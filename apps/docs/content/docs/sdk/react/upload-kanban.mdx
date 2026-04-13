@@ -1,0 +1,67 @@
+---
+title: UploadKanban
+description: A Trello/Linear CI/CD-style pipeline board where files move through Queued → Uploading → Complete columns.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadKanban } from '@/components/preview-components';
+
+Files move through visible pipeline stages rendered as columns. Drop files into the Queued column, watch them animate into Uploading, and land in Complete. Failed files get their own Error column with retry buttons.
+
+**Design inspiration:** Trello, Linear issues, Vercel deployment pipeline.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, cards appear in the correct column instantly. `pnpm add motion` for smooth `layoutId` cross-column transitions.
+</Callout>
+
+<ComponentPreview caption="Trello · Linear — kanban pipeline" simulateFiles={4}>
+  <UploadKanban route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadKanban } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadKanban
+      route="documentUploader"
+      maxFiles={10}
+      onUploadComplete={(results) => {
+        console.log('Pipeline complete:', results.length);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+## Columns
+
+| Column | Accent | Content |
+|--------|--------|---------|
+| Queued | `--uk-border` | Files waiting to upload |
+| Uploading | `--uk-primary` | Active uploads with progress bar |
+| Complete | `--uk-success` | Successfully uploaded files |
+| Error | `--uk-error` | Failed files with retry button |
+
+The Error column only appears when there are failed uploads.
+
+## Accessibility
+
+- Queued column and container accept drag-drop and click
+- Cards have `role="listitem"` semantics
+- Respects `prefers-reduced-motion`

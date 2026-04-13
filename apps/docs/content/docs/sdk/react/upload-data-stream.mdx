@@ -1,0 +1,68 @@
+---
+title: UploadDataStream
+description: A Matrix/Warp-inspired data stream visualizer with falling characters that accelerate during upload.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadDataStream } from '@/components/preview-components';
+
+Columns of hex characters rain down like the Matrix. While idle, streams are slow and dim. During upload, they accelerate and brighten proportional to progress. A center overlay shows filename, percentage, and real-time throughput (`2.3 MB/s`).
+
+**Design inspiration:** The Matrix, Warp terminal, htop.
+
+<Callout>
+  The rain animation uses CSS `@keyframes` — no Motion dependency required. Streams dim automatically when `prefers-reduced-motion` is set.
+</Callout>
+
+<ComponentPreview caption="Matrix · Warp — data stream" simulateFiles={3}>
+  <UploadDataStream route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadDataStream } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadDataStream
+      route="fileUploader"
+      columns={24}
+      onUploadComplete={(results) => {
+        console.log('Stream complete:', results.length);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `columns` | `number` | `20` | Number of character stream columns. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+## Theming
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--uk-stream-color` | `#00ff41` | Character and accent color |
+| `--uk-stream-bg` | `#0a0a0a` | Background |
+
+## Throughput display
+
+Real-time upload speed is calculated from a 2-second sliding window of byte samples and displayed as `↑ 2.3 MB/s`.
+
+## Accessibility
+
+- Container accepts drag-drop and click
+- `aria-live` region for status announcements
+- Respects `prefers-reduced-motion` — streams stop animating

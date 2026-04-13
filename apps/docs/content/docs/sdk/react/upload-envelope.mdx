@@ -1,0 +1,67 @@
+---
+title: UploadEnvelope
+description: A WeTransfer-inspired 3D envelope that opens its flap on drag-over, accepts files, and seals with a wax stamp on completion.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadEnvelope } from '@/components/preview-components';
+
+A skeuomorphic envelope with CSS 3D perspective transforms. The flap opens when you drag over it, files visually "slide in", and a wax seal with a checkmark appears when all uploads complete. Charming and memorable.
+
+**Design inspiration:** WeTransfer, physical mail metaphor.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the flap uses CSS transitions. `pnpm add motion` for spring-physics flap opening and wax seal bounce-in.
+</Callout>
+
+<ComponentPreview caption="WeTransfer — 3D envelope" simulateFiles={3}>
+  <UploadEnvelope route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadEnvelope } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadEnvelope
+      route="fileUploader"
+      maxFiles={5}
+      onUploadComplete={(results) => {
+        console.log('Sealed:', results.length, 'files');
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+| `children` | `ReactNode` | — | Override the caption. |
+
+## Visual states
+
+| State | Appearance |
+|-------|-----------|
+| Idle | Envelope closed, "Drop files into the envelope" |
+| Drag-over | Flap opens via rotateX(180deg) with perspective |
+| Uploading | Flap open, progress fill rises in envelope body |
+| Complete | Wax seal appears with checkmark, flap closes |
+
+## Accessibility
+
+- `role="button"` with keyboard Enter/Space support
+- `aria-live` caption region
+- Decorative elements are `aria-hidden`
+- Respects `prefers-reduced-motion`

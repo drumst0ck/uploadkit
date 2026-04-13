@@ -1,0 +1,77 @@
+---
+title: UploadProgressWave
+description: A Spotify/SoundCloud-inspired audio waveform that fills left-to-right as your file uploads.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadProgressWave } from '@/components/preview-components';
+
+A row of vertical bars shaped like an audio waveform. Bars fill from left to right as progress increases — unfilled bars pulse gently while waiting. On success, all bars bounce in a staggered celebration.
+
+**Design inspiration:** Spotify now-playing visualizer, SoundCloud waveform.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, bars transition color via CSS. `pnpm add motion` for spring-based `scaleY` bounces and idle pulses.
+</Callout>
+
+<ComponentPreview caption="Spotify · SoundCloud — waveform fill">
+  <UploadProgressWave route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadProgressWave } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadProgressWave
+      route="audioUploader"
+      accept={['audio/*']}
+      bars={32}
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `bars` | `number` | `24` | Number of waveform bars. More bars = denser waveform. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+`UploadProgressWave` accepts a `ref` forwarded to the outer `<div>`.
+
+## Theming
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--uk-wave-fill` | `var(--uk-primary)` | Filled bar color |
+| `--uk-wave-track` | `rgba(255,255,255,0.08)` | Unfilled bar color |
+| `--uk-text-secondary` | — | Filename label below the waveform |
+
+## Visual states
+
+| State | Appearance |
+|-------|-----------|
+| `idle` | All bars at track color, gentle ambient pulse |
+| `uploading` | Bars fill left-to-right, unfilled bars pulse faster |
+| `success` | All bars filled, staggered bounce celebration |
+| `error` | Bars reset to track color |
+
+## Accessibility
+
+- Container is `role="button"` — click opens file picker, keyboard accessible
+- Inner bars carry `role="progressbar"` with `aria-valuenow`
+- Screen reader live region announces state changes
+- Respects `prefers-reduced-motion`

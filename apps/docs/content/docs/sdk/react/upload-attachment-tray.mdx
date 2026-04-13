@@ -1,0 +1,70 @@
+---
+title: UploadAttachmentTray
+description: A Discord/iMessage-style horizontal scrollable strip of file thumbnails with progress rings and remove buttons.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadAttachmentTray } from '@/components/preview-components';
+
+A horizontal tray of 72px thumbnail cards that scrolls as more files are added. Each card shows a live image preview (or file-type icon), a circular progress ring overlay during upload, and a remove button. Designed to sit below a text input or chat composer.
+
+**Design inspiration:** Discord file attachments, iMessage, WhatsApp.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, cards appear instantly. `pnpm add motion` for spring scale-in entrances and `AnimatePresence` exit animations.
+</Callout>
+
+<ComponentPreview caption="Discord · iMessage — attachment tray" simulateFiles={4}>
+  <UploadAttachmentTray route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadAttachmentTray } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <div>
+      <textarea placeholder="Type a message..." />
+      <UploadAttachmentTray
+        route="chatUploader"
+        accept={['image/*', 'application/pdf']}
+        maxFiles={10}
+        onUploadComplete={(results) => {
+          console.log('Attached:', results.map((r) => r.url));
+        }}
+      />
+    </div>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+## Card anatomy
+
+Each 72x72 card shows:
+- **Image files:** blob URL thumbnail as background-image
+- **Other files:** centered file-type SVG icon
+- **Upload overlay:** dark overlay with 28px SVG progress ring
+- **Remove button:** 18px circle in top-right corner (red on hover)
+- **Error state:** red border + alert icon
+
+## Accessibility
+
+- Attach button opens file picker
+- Scroll snap for smooth horizontal navigation
+- Blob URLs revoked on unmount
+- Respects `prefers-reduced-motion`

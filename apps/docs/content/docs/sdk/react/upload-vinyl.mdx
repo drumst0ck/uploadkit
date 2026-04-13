@@ -1,0 +1,64 @@
+---
+title: UploadVinyl
+description: A Spotify/Bandcamp-inspired vinyl record that spins during upload, with grooves that fill as progress advances.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadVinyl } from '@/components/preview-components';
+
+A circular vinyl disc with concentric SVG grooves. Drop an audio file and the record starts spinning — grooves progressively fill with color as upload advances. A tonearm on the side angles inward during playback. On completion, the spin decelerates to a stop.
+
+**Design inspiration:** Spotify now-playing, Bandcamp, vinyl record players.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the disc spins via CSS keyframes. `pnpm add motion` for smooth deceleration on completion.
+</Callout>
+
+<ComponentPreview caption="Spotify · Bandcamp — vinyl record">
+  <UploadVinyl route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadVinyl } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadVinyl
+      route="audioUploader"
+      accept={['audio/*']}
+      size={220}
+      onUploadComplete={(result) => {
+        console.log('Track uploaded:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | `['audio/*']` | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `size` | `number` | `200` | Disc diameter in pixels. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+## Theming
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--uk-vinyl-color` | `var(--uk-primary)` | Groove fill and label color |
+| `--uk-vinyl-bg` | `#1a1a1a` | Disc background |
+
+## Accessibility
+
+- `role="button"` with keyboard support
+- Tonearm and grooves are decorative (`aria-hidden`)
+- Respects `prefers-reduced-motion` — spin animation disabled

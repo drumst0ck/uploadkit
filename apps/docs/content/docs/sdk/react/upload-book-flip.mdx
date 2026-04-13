@@ -1,0 +1,63 @@
+---
+title: UploadBookFlip
+description: An Issuu/Apple Books-style 3D book with page-flip animation during upload progress.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadBookFlip } from '@/components/preview-components';
+
+A 3D book rendered with CSS perspective transforms. Drop a document and watch pages flip as upload advances — progress is narrated as "Page 3 of 12...". The cover shows the filename on success with a green checkmark. The book tilts on hover for interactive depth.
+
+**Design inspiration:** Issuu, Apple Books, FlipHTML5.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, page-flip uses CSS keyframes. `pnpm add motion` for spring-based flip and hover tilt.
+</Callout>
+
+<ComponentPreview caption="Issuu · Apple Books — 3D page flip">
+  <UploadBookFlip route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadBookFlip } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadBookFlip
+      route="documentUploader"
+      accept={['application/pdf', 'image/*']}
+      maxSize={50 * 1024 * 1024}
+      onUploadComplete={(result) => {
+        console.log('Document ready:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | `['application/pdf', 'image/*']` | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+## 3D structure
+
+- **Cover:** `--uk-primary` background, linen texture, rounded right edge
+- **Spine:** 8px strip on left, CSS `rotateY(90deg)` transform
+- **Pages:** 3 stacked layers creating thickness
+- **Flip animation:** Pages rotate -180deg around the spine axis
+
+## Accessibility
+
+- `role="button"` with keyboard support
+- 3D transforms are decorative
+- Respects `prefers-reduced-motion` — flip animation disabled

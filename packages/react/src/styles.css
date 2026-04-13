@@ -131,7 +131,49 @@
   .uk-particles,
   .uk-particles *,
   .uk-step-wizard,
-  .uk-step-wizard * {
+  .uk-step-wizard *,
+  .uk-dropzone-minimal,
+  .uk-dropzone-minimal *,
+  .uk-dropzone-neon,
+  .uk-dropzone-neon *,
+  .uk-btn-pulse,
+  .uk-btn-pulse *,
+  .uk-btn-gradient-wrap,
+  .uk-btn-gradient-wrap *,
+  .uk-btn-gradient,
+  .uk-btn-gradient *,
+  .uk-progress-wave,
+  .uk-progress-wave *,
+  .uk-progress-liquid,
+  .uk-progress-liquid *,
+  .uk-gallery-grid,
+  .uk-gallery-grid *,
+  .uk-timeline,
+  .uk-timeline *,
+  .uk-polaroid,
+  .uk-polaroid *,
+  .uk-kanban,
+  .uk-kanban *,
+  .uk-notification-panel,
+  .uk-notification-panel *,
+  .uk-source-tabs,
+  .uk-source-tabs *,
+  .uk-envelope,
+  .uk-envelope *,
+  .uk-blueprint,
+  .uk-blueprint *,
+  .uk-vinyl,
+  .uk-vinyl *,
+  .uk-data-stream,
+  .uk-data-stream *,
+  .uk-attachment-tray,
+  .uk-attachment-tray *,
+  .uk-scanner,
+  .uk-scanner *,
+  .uk-book-flip,
+  .uk-book-flip *,
+  .uk-sticky-board,
+  .uk-sticky-board * {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
@@ -1944,4 +1986,160 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ----------------------------------------------------------
+   UploadDropzoneMinimal — Stripe/Resend-inspired ultra-clean
+   dropzone. No gradients, no shadows. Thin 1px border with a
+   spring-animated accent ring on drag-over. File chips are
+   pill-shaped with a hairline progress bar at the bottom edge.
+   ---------------------------------------------------------- */
+.uk-dropzone-minimal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  border-radius: var(--uk-radius);
+  /* Static 1px border — motion overlay handles drag-over accent */
+  border: 1px solid var(--uk-border);
+  background: var(--uk-bg);
+  color: var(--uk-text);
+  font-family: var(--uk-font);
+  text-align: center;
+  cursor: pointer;
+  box-sizing: border-box;
+  /* Only transition border-color for the no-motion fallback path */
+  transition: border-color var(--uk-transition);
+}
+
+/* Static drag-over fallback — used when motion is unavailable
+   or prefers-reduced-motion is active */
+.uk-dropzone-minimal[data-state="dragging"] {
+  border-color: var(--uk-primary);
+  box-shadow: 0 0 0 4px rgba(0, 112, 243, 0.08);
+}
+
+.uk-dropzone-minimal:focus-visible {
+  outline: 2px solid var(--uk-primary);
+  outline-offset: 2px;
+}
+
+.uk-dropzone-minimal[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Title — 14px / 500 weight, tight letter-spacing */
+.uk-dropzone-minimal__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--uk-text);
+  line-height: 1.4;
+}
+
+/* Subtitle — 12px, secondary color for accept/size hints */
+.uk-dropzone-minimal__subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: var(--uk-text-secondary);
+  line-height: 1.5;
+}
+
+/* File chip list — full width, small gap between pills */
+.uk-dropzone-minimal__list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+/* Individual file chip — rounded-full pill, thin border */
+.uk-dropzone-minimal__chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px 9px; /* extra 2px bottom padding for the progress bar */
+  border-radius: 999px;
+  background: var(--uk-bg-secondary);
+  border: 1px solid var(--uk-border);
+  font-size: 12px;
+  color: var(--uk-text);
+  overflow: hidden;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.uk-dropzone-minimal__chip[data-state="success"] {
+  border-color: color-mix(in srgb, var(--uk-success) 40%, var(--uk-border));
+}
+
+.uk-dropzone-minimal__chip[data-state="error"] {
+  border-color: color-mix(in srgb, var(--uk-error) 40%, var(--uk-border));
+}
+
+/* Status indicator dot — 6px circle, color driven by data-state */
+.uk-dropzone-minimal__chip-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--uk-border);
+  transition: background var(--uk-transition);
+}
+
+.uk-dropzone-minimal__chip-dot[data-state="uploading"] {
+  background: var(--uk-primary);
+}
+
+.uk-dropzone-minimal__chip-dot[data-state="success"] {
+  background: var(--uk-success);
+}
+
+.uk-dropzone-minimal__chip-dot[data-state="error"] {
+  background: var(--uk-error);
+}
+
+/* File name — fills remaining space, truncates with ellipsis */
+.uk-dropzone-minimal__chip-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* File size — fixed-width tabular numerals, muted */
+.uk-dropzone-minimal__chip-size {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--uk-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Progress bar — 2px rail pinned to the bottom edge of the chip */
+.uk-dropzone-minimal__chip-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.uk-dropzone-minimal__chip-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--uk-primary);
+  border-radius: 0 999px 999px 0;
+  transition: width 220ms ease-out;
 }

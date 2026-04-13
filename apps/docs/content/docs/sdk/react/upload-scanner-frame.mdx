@@ -1,0 +1,67 @@
+---
+title: UploadScannerFrame
+description: A Stripe Identity-style document scanner with corner brackets, sweep line, and viewfinder frame.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadScannerFrame } from '@/components/preview-components';
+
+A viewfinder-style frame with L-shaped corner brackets that guide document alignment. A scan line sweeps top-to-bottom while idle. Upload an image and see it appear inside the frame with a progress overlay, then a "Verified" checkmark on success.
+
+**Design inspiration:** Stripe Identity, banking KYC flows, passport scanners.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the sweep line and corners use CSS transitions. `pnpm add motion` for spring-animated corner expansion on drag.
+</Callout>
+
+<ComponentPreview caption="Stripe Identity — document scanner">
+  <UploadScannerFrame route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadScannerFrame } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadScannerFrame
+      route="idUploader"
+      accept={['image/*']}
+      frameAspect="landscape"
+      label="Scan ID document"
+      onUploadComplete={(result) => {
+        console.log('Document scanned:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | `['image/*']` | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `frameAspect` | `'portrait' \| 'landscape' \| 'square'` | `'landscape'` | Frame aspect ratio. |
+| `label` | `string` | `'Scan document'` | Instruction label. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+## Theming
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--uk-scanner-accent` | `var(--uk-primary)` | Corner brackets and sweep line |
+| `--uk-scanner-bg` | `#0a0a0b` | Background |
+
+## Accessibility
+
+- `role="button"` with keyboard support
+- Corner brackets animate outward on drag-over
+- Sweep line is decorative (`aria-hidden`)
+- Respects `prefers-reduced-motion` — sweep line pauses

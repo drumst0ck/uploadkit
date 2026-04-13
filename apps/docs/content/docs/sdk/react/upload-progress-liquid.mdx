@@ -1,0 +1,83 @@
+---
+title: UploadProgressLiquid
+description: An Apple-style liquid fill container with dual sine-wave surfaces that rise as your file uploads.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadProgressLiquid } from '@/components/preview-components';
+
+A rounded vessel that fills with animated liquid as your file uploads. Two overlapping sine-wave SVG paths at different phases create an organic, lava-lamp-like surface. The water rises smoothly from 0% to 100%.
+
+**Design inspiration:** Apple liquid animations, iOS battery charging.
+
+<Callout>
+  The wave animation uses CSS `@keyframes` only — no Motion dependency required. The sine-wave paths translate horizontally to simulate fluid motion.
+</Callout>
+
+<ComponentPreview caption="Apple — liquid fill vessel">
+  <UploadProgressLiquid route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadProgressLiquid } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadProgressLiquid
+      route="videoUploader"
+      accept={['video/*']}
+      width={180}
+      height={220}
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `width` | `number` | `160` | Container width in pixels. |
+| `height` | `number` | `200` | Container height in pixels. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+`UploadProgressLiquid` accepts a `ref` forwarded to the outer `<div>`.
+
+## Theming
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--uk-liquid-fill` | `var(--uk-primary)` | Liquid color (rendered at two opacity layers) |
+| `--uk-bg` | — | Container background |
+| `--uk-border` | — | Container border |
+| `--uk-text`, `--uk-text-secondary` | — | Label and filename colors |
+| `--uk-success` | — | Liquid tint on completion |
+| `--uk-error` | — | Border tint on failure |
+
+## Visual states
+
+| State | Appearance |
+|-------|-----------|
+| `idle` | Upload arrow icon + "Click to upload" caption |
+| `uploading` | Liquid rises, waves oscillate, large percentage label |
+| `success` | Liquid fills to top, tints green briefly, checkmark icon |
+| `error` | Border turns red, X icon |
+
+## Accessibility
+
+- Container is `role="button"` — click opens file picker
+- Keyboard accessible via Enter and Space
+- `aria-busy` and `aria-label` reflect current state
+- Wave SVGs are `aria-hidden`
+- Respects `prefers-reduced-motion` — wave animations pause

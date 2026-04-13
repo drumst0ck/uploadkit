@@ -1,0 +1,77 @@
+---
+title: UploadDropzoneNeon
+description: A cyberpunk-themed dropzone with neon glow border traces, scanline overlay, and monospace typography.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadDropzoneNeon } from '@/components/preview-components';
+
+Dark backgrounds, neon green glow, scanline textures, monospace typography — a dropzone that feels like a terminal from the future. The border traces with neon light on drag-over and file entries slide in from the left.
+
+**Design inspiration:** Cyberpunk 2077, TRON Legacy, Warp terminal.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, glow transitions use CSS only. `pnpm add motion` for smoother box-shadow springs and slide-in file entries.
+</Callout>
+
+<ComponentPreview caption="Cyberpunk · TRON — neon wireframe" simulateFiles={3}>
+  <UploadDropzoneNeon route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadDropzoneNeon } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadDropzoneNeon
+      route="imageUploader"
+      accept={['image/*']}
+      maxFiles={5}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.map((r) => r.url));
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload successfully. |
+| `onUploadError` | `(error: Error) => void` | — | Called on individual file failure. |
+| `disabled` | `boolean` | `false` | Disables the dropzone. |
+| `className` | `string` | — | Additional CSS class(es) for the outer wrapper. |
+| `children` | `ReactNode` | — | Override the default label text. |
+
+`UploadDropzoneNeon` accepts a `ref` forwarded to the outer `<div>`.
+
+## Theming
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--uk-neon-glow` | `#00ff88` | Primary neon color for borders, text, progress |
+| `--uk-neon-bg` | `#0a0f0a` | Container background |
+| `--uk-neon-border` | `rgba(0,255,136,0.15)` | Default border color |
+
+```tsx
+{/* Swap to cyan neon */}
+<div style={{ '--uk-neon-glow': '#00e5ff', '--uk-neon-bg': '#050a0f', '--uk-neon-border': 'rgba(0,229,255,0.15)' } as React.CSSProperties}>
+  <UploadDropzoneNeon route="imageUploader" />
+</div>
+```
+
+## Accessibility
+
+- `role="button"` with `aria-label` and `aria-disabled`
+- Focusable via keyboard; Enter and Space open the file picker
+- Scanline overlay is `aria-hidden` and `pointer-events: none`
+- Respects `prefers-reduced-motion`

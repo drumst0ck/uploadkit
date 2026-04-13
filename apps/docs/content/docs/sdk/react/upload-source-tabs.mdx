@@ -1,0 +1,66 @@
+---
+title: UploadSourceTabs
+description: A Cloudinary/Uppy-style compact card with tabbed upload sources — Device, URL, and Clipboard.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadSourceTabs } from '@/components/preview-components';
+
+A compact card component with pill tabs to switch between upload sources. The **Device** tab offers drag-drop and file picker, **URL** lets users paste a remote file URL, and **Clipboard** supports Ctrl+V paste uploads.
+
+**Design inspiration:** Cloudinary Upload Widget, Uppy Dashboard.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, the tab indicator snaps. `pnpm add motion` for a sliding `layoutId` tab indicator.
+</Callout>
+
+<ComponentPreview caption="Cloudinary · Uppy — multi-source tabs">
+  <UploadSourceTabs route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadSourceTabs } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadSourceTabs
+      route="imageUploader"
+      accept={['image/*']}
+      tabs={['device', 'url', 'clipboard']}
+      onUploadComplete={(result) => {
+        console.log('Uploaded from any source:', result.url);
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `tabs` | `('device' \| 'url' \| 'clipboard')[]` | All three | Which source tabs to show. |
+| `onUploadComplete` | `(result: UploadResult) => void` | — | Called after successful upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+## Tab panels
+
+| Tab | Interaction |
+|-----|-------------|
+| Device | Drag-drop zone + click to browse |
+| URL | Paste field + Upload button (fetches URL as blob) |
+| Clipboard | Focus area, Ctrl+V/Cmd+V to paste files/images |
+
+## Accessibility
+
+- `role="tablist"` / `role="tab"` / `role="tabpanel"` ARIA pattern
+- `aria-selected`, `aria-controls`, `aria-labelledby`
+- `aria-live` region for upload status
+- Respects `prefers-reduced-motion`

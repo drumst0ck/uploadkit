@@ -1,0 +1,84 @@
+---
+title: UploadTimeline
+description: A GitHub/Linear-style vertical timeline where each file gets a status node with inline progress.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadTimeline } from '@/components/preview-components';
+
+A vertical timeline with status dots and inline progress bars for each file. Nodes slide in from the left as files are added. The status dot pulses while uploading, shows a checkmark on success, or an X on error.
+
+**Design inspiration:** GitHub PR timeline, Linear activity feed, Vercel deployment log.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, transitions use CSS. `pnpm add motion` for spring slide-in entrances and smooth progress bar fills.
+</Callout>
+
+<ComponentPreview caption="GitHub · Linear — activity timeline" simulateFiles={3}>
+  <UploadTimeline route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadTimeline } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadTimeline
+      route="documentUploader"
+      accept={['application/pdf', 'image/*']}
+      maxFiles={10}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.map((r) => r.url));
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload successfully. |
+| `onUploadError` | `(error: Error) => void` | — | Called on individual file failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+| `children` | `ReactNode` | — | Override the drop zone label. |
+
+`UploadTimeline` accepts a `ref` forwarded to the outer `<div>`.
+
+## Timeline node anatomy
+
+Each file appears as a node on the timeline:
+
+```
+  ●  mountain-sunrise.jpg          ← status dot + filename
+  │  2.4 MB                        ← file size
+  │  ████████████░░░░  72%         ← progress bar
+  │  uploading...                  ← timestamp/status text
+  │
+```
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-primary` | Uploading dot color and progress fill |
+| `--uk-border` | Vertical line and idle dot color |
+| `--uk-text`, `--uk-text-secondary` | Filename, size, and timestamp colors |
+| `--uk-success` | Success dot and checkmark |
+| `--uk-error` | Error dot and X icon |
+
+## Accessibility
+
+- Drop zone node is `role="button"` — click opens file picker
+- Keyboard accessible via Enter and Space
+- Status dots use `aria-label` reflecting current state
+- Progress bars have `role="progressbar"` with `aria-valuenow`
+- Respects `prefers-reduced-motion` — dot pulse and slide-in animations disabled

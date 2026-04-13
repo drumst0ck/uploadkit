@@ -1,0 +1,63 @@
+---
+title: UploadNotificationPanel
+description: A Google Drive-style floating notification panel for background uploads with collapse/expand and per-file progress.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadNotificationPanel } from '@/components/preview-components';
+
+A fixed-position floating panel that manages uploads in the background. Collapses to a small pill showing "N uploads in progress" with a circular indicator, expands to reveal per-file progress bars with cancel buttons. Completed files auto-dismiss.
+
+**Design inspiration:** Google Drive upload panel, macOS Finder copy dialog.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, expand/collapse snaps. `pnpm add motion` for smooth height animations and `AnimatePresence` file row transitions.
+</Callout>
+
+<ComponentPreview caption="Google Drive — floating upload manager" simulateFiles={3}>
+  <UploadNotificationPanel route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadNotificationPanel } from '@uploadkitdev/react';
+
+export default function App() {
+  return (
+    <>
+      {/* Your app content */}
+      <UploadNotificationPanel
+        route="fileUploader"
+        position="bottom-right"
+        onUploadComplete={(results) => {
+          console.log('Background uploads done:', results.length);
+        }}
+      />
+    </>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `metadata` | `Record<string, unknown>` | — | Metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload. |
+| `onUploadError` | `(error: Error) => void` | — | Called on failure. |
+| `position` | `'bottom-right' \| 'bottom-left'` | `'bottom-right'` | Panel position. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+The component also exposes `addFiles(files: File[])` via ref (`UploadNotificationPanelHandle`) so other components can programmatically enqueue uploads.
+
+## Accessibility
+
+- Panel has `role="region"` with `aria-label`
+- `aria-live` region announces upload count changes
+- Collapse/expand button is keyboard accessible
+- Respects `prefers-reduced-motion`

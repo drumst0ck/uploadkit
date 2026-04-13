@@ -1,0 +1,73 @@
+---
+title: UploadDropzoneMinimal
+description: A Stripe/Resend-inspired ultra-clean dropzone with subtle border animations and pill-shaped file chips.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadDropzoneMinimal } from '@/components/preview-components';
+
+A multi-file dropzone stripped to its essence — thin 1px borders, generous whitespace, monochrome palette with a single accent color. The border pulses subtly on drag-over and file chips fade in with a stagger.
+
+**Design inspiration:** Stripe Checkout, Resend, Linear settings.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, transitions use CSS only. `pnpm add motion` for spring-animated chip entrances and border glow.
+</Callout>
+
+<ComponentPreview caption="Stripe · Resend — ultra-minimal" simulateFiles={3}>
+  <UploadDropzoneMinimal route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadDropzoneMinimal } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadDropzoneMinimal
+      route="imageUploader"
+      accept={['image/*']}
+      maxFiles={5}
+      onUploadComplete={(results) => {
+        console.log('Uploaded:', results.map((r) => r.url));
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | — | Accepted MIME types. Supports wildcards: `'image/*'`. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files per drop or selection. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload successfully. |
+| `onUploadError` | `(error: Error) => void` | — | Called on individual file failure. |
+| `disabled` | `boolean` | `false` | Disables the dropzone. |
+| `className` | `string` | — | Additional CSS class(es) for the outer wrapper. |
+| `children` | `ReactNode` | — | Override the default label text. |
+
+`UploadDropzoneMinimal` accepts a `ref` forwarded to the outer `<div>`.
+
+## Theming
+
+| Variable | Purpose |
+|----------|---------|
+| `--uk-primary` | Drag-over border color and progress bar fill |
+| `--uk-bg` | Container background |
+| `--uk-bg-secondary` | File chip background |
+| `--uk-border` | Default border color |
+| `--uk-text`, `--uk-text-secondary` | Label and subtitle colors |
+| `--uk-success`, `--uk-error` | Chip border tint on completion/failure |
+
+## Accessibility
+
+- `role="button"` with `aria-label` and `aria-disabled`
+- Focusable via keyboard; Enter and Space open the file picker
+- `focus-visible` outline uses `--uk-primary`
+- Respects `prefers-reduced-motion`

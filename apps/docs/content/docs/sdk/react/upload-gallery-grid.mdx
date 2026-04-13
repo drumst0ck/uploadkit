@@ -1,0 +1,83 @@
+---
+title: UploadGalleryGrid
+description: A Pinterest-style image gallery grid where thumbnails appear as files upload, each with a circular progress overlay.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadGalleryGrid } from '@/components/preview-components';
+
+Drop images and watch them appear in a responsive grid. Each cell shows a live thumbnail (via `URL.createObjectURL`) with a dark overlay and circular progress ring that fades away on completion. Perfect for image-heavy upload flows.
+
+**Design inspiration:** Pinterest, Instagram gallery, iCloud photo upload.
+
+<Callout>
+  `motion` is an **optional peerDependency**. Without it, cells fade in via CSS transitions. `pnpm add motion` for spring scale-in entrances and `AnimatePresence` overlay removal.
+</Callout>
+
+<ComponentPreview caption="Pinterest · Instagram — gallery grid" simulateFiles={4}>
+  <UploadGalleryGrid route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadGalleryGrid } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadGalleryGrid
+      route="galleryUploader"
+      accept={['image/*']}
+      maxFiles={12}
+      columns={4}
+      onUploadComplete={(results) => {
+        console.log('Gallery:', results.map((r) => r.url));
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | — | **Required.** Route name from your file router. |
+| `accept` | `string[]` | `['image/*']` | Accepted MIME types. Defaults to images only. |
+| `maxSize` | `number` | — | Maximum file size in bytes. |
+| `maxFiles` | `number` | — | Maximum number of files. |
+| `columns` | `number` | `3` | Number of grid columns. |
+| `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(results: UploadResult[]) => void` | — | Called after all files upload successfully. |
+| `onUploadError` | `(error: Error) => void` | — | Called on individual file failure. |
+| `className` | `string` | — | Additional CSS class(es). |
+
+`UploadGalleryGrid` accepts a `ref` forwarded to the outer `<div>`.
+
+## Theming
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--uk-gallery-cols` | `3` | Grid column count (also configurable via `columns` prop) |
+| `--uk-primary` | — | Progress ring fill color |
+| `--uk-border` | — | Empty state border |
+| `--uk-text`, `--uk-text-secondary` | — | Empty state label colors |
+| `--uk-success` | — | Checkmark color on completion |
+| `--uk-error` | — | Error icon overlay color |
+
+## Visual states
+
+| State | Appearance |
+|-------|-----------|
+| Empty | Dashed border spanning all columns, upload icon + "Drop images here" |
+| Uploading | Thumbnail grid with dark overlay + circular SVG progress ring per cell |
+| Success | Overlay fades out, full-brightness image |
+| Error | Overlay stays with error icon |
+
+## Accessibility
+
+- Empty state is `role="button"` — click opens file picker
+- Grid cells have `alt` text derived from filename
+- Progress ring has `role="progressbar"` with `aria-valuenow`
+- Blob URLs are revoked on unmount (no memory leaks)
+- Respects `prefers-reduced-motion`
