@@ -68,6 +68,68 @@ const RING_CY = RING_SIZE / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 // ---------------------------------------------------------------------------
+// Inline style constants
+// ---------------------------------------------------------------------------
+
+const cellStyle: React.CSSProperties = {
+  aspectRatio: '1',
+  borderRadius: '8px',
+  overflow: 'hidden',
+  position: 'relative',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundColor: 'var(--uk-bg-secondary)',
+};
+
+function overlayStyle(isError: boolean): React.CSSProperties {
+  return {
+    position: 'absolute',
+    inset: 0,
+    background: isError ? 'rgba(239,68,68,0.2)' : 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    borderRadius: 'inherit',
+  };
+}
+
+const ringTrackStyle: React.CSSProperties = {
+  fill: 'none',
+  stroke: 'rgba(255,255,255,0.2)',
+  strokeWidth: 3,
+};
+
+const ringFillStyle: React.CSSProperties = {
+  fill: 'none',
+  stroke: 'var(--uk-primary)',
+  strokeWidth: 3,
+  strokeLinecap: 'round',
+  transform: 'rotate(-90deg)',
+  transformOrigin: 'center',
+};
+
+const pctStyle: React.CSSProperties = {
+  fontSize: '10px',
+  color: 'white',
+  fontVariantNumeric: 'tabular-nums',
+};
+
+const addBtnStyle: React.CSSProperties = {
+  aspectRatio: '1',
+  borderRadius: '8px',
+  border: '2px dashed var(--uk-border)',
+  background: 'transparent',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  color: 'var(--uk-text-secondary)',
+  transition: 'all 200ms ease-out',
+};
+
+// ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
 
@@ -76,28 +138,26 @@ function ProgressRingStatic({ progress }: { progress: number }) {
   const dashOffset = RING_CIRCUMFERENCE * (1 - Math.min(Math.max(progress, 0), 100) / 100);
   return (
     <svg
-      className="uk-gallery-grid__ring-svg"
       viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
       width={RING_SIZE}
       height={RING_SIZE}
       aria-hidden="true"
     >
       <circle
-        className="uk-gallery-grid__ring-track"
         cx={RING_CX}
         cy={RING_CY}
         r={RING_RADIUS}
         strokeWidth={RING_STROKE}
+        style={ringTrackStyle}
       />
       <circle
-        className="uk-gallery-grid__ring-fill"
         cx={RING_CX}
         cy={RING_CY}
         r={RING_RADIUS}
         strokeWidth={RING_STROKE}
         strokeDasharray={RING_CIRCUMFERENCE}
         strokeDashoffset={dashOffset}
-        style={{ transition: 'stroke-dashoffset 220ms ease-out' }}
+        style={{ ...ringFillStyle, transition: 'stroke-dashoffset 220ms ease-out' }}
       />
     </svg>
   );
@@ -107,7 +167,6 @@ function ProgressRingStatic({ progress }: { progress: number }) {
 function ErrorIcon() {
   return (
     <svg
-      className="uk-gallery-grid__error-icon"
       viewBox="0 0 24 24"
       width={28}
       height={28}
@@ -129,7 +188,6 @@ function ErrorIcon() {
 function UploadIcon() {
   return (
     <svg
-      className="uk-gallery-grid__upload-icon"
       viewBox="0 0 24 24"
       width={36}
       height={36}
@@ -283,13 +341,17 @@ export const UploadGalleryGrid = forwardRef<HTMLDivElement, UploadGalleryGridPro
 
       const MotionCircle = m.motion.circle as React.ElementType;
 
+      const thumbnailStyle: React.CSSProperties = {
+        ...cellStyle,
+        ...(entry.thumbnailUrl ? { backgroundImage: `url(${entry.thumbnailUrl})` } : {}),
+      };
+
       return (
         <Div
           key={entry.id}
-          className="uk-gallery-grid__cell"
           role="img"
           aria-label={`${entry.file.name} — ${entry.status}`}
-          style={entry.thumbnailUrl ? { backgroundImage: `url(${entry.thumbnailUrl})` } : undefined}
+          style={thumbnailStyle}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 320, damping: 28 }}
@@ -297,7 +359,7 @@ export const UploadGalleryGrid = forwardRef<HTMLDivElement, UploadGalleryGridPro
           <AnimatePresence>
             {entry.status !== 'success' && (
               <m.motion.div
-                className={`uk-gallery-grid__overlay${entry.status === 'error' ? ' uk-gallery-grid__overlay--error' : ''}`}
+                style={overlayStyle(entry.status === 'error')}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -308,34 +370,33 @@ export const UploadGalleryGrid = forwardRef<HTMLDivElement, UploadGalleryGridPro
                   <ErrorIcon />
                 ) : (
                   <svg
-                    className="uk-gallery-grid__ring-svg"
                     viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
                     width={RING_SIZE}
                     height={RING_SIZE}
                     aria-hidden="true"
                   >
                     <circle
-                      className="uk-gallery-grid__ring-track"
                       cx={RING_CX}
                       cy={RING_CY}
                       r={RING_RADIUS}
                       strokeWidth={RING_STROKE}
+                      style={ringTrackStyle}
                     />
                     <MotionCircle
-                      className="uk-gallery-grid__ring-fill"
                       cx={RING_CX}
                       cy={RING_CY}
                       r={RING_RADIUS}
                       strokeWidth={RING_STROKE}
                       pathLength={1}
                       strokeDasharray="1 1"
+                      style={ringFillStyle}
                       animate={{ pathLength: entry.progress / 100 }}
                       transition={{ duration: 0.22, ease: 'easeOut' }}
                     />
                   </svg>
                 )}
                 {entry.status === 'uploading' && (
-                  <span className="uk-gallery-grid__pct">{entry.progress}%</span>
+                  <span style={pctStyle}>{entry.progress}%</span>
                 )}
               </m.motion.div>
             )}
@@ -346,18 +407,22 @@ export const UploadGalleryGrid = forwardRef<HTMLDivElement, UploadGalleryGridPro
 
     // Static cell (no motion)
     function renderCellStatic(entry: FileEntry) {
+      const thumbnailStyle: React.CSSProperties = {
+        ...cellStyle,
+        ...(entry.thumbnailUrl ? { backgroundImage: `url(${entry.thumbnailUrl})` } : {}),
+      };
+
       return (
         <div
           key={entry.id}
-          className="uk-gallery-grid__cell"
           role="img"
           aria-label={`${entry.file.name} — ${entry.status}`}
           data-status={entry.status}
-          style={entry.thumbnailUrl ? { backgroundImage: `url(${entry.thumbnailUrl})` } : undefined}
+          style={thumbnailStyle}
         >
           {entry.status !== 'success' && (
             <div
-              className={`uk-gallery-grid__overlay${entry.status === 'error' ? ' uk-gallery-grid__overlay--error' : ''}`}
+              style={overlayStyle(entry.status === 'error')}
               aria-hidden="true"
             >
               {entry.status === 'error' ? (
@@ -366,7 +431,7 @@ export const UploadGalleryGrid = forwardRef<HTMLDivElement, UploadGalleryGridPro
                 <ProgressRingStatic progress={entry.progress} />
               )}
               {entry.status === 'uploading' && (
-                <span className="uk-gallery-grid__pct">{entry.progress}%</span>
+                <span style={pctStyle}>{entry.progress}%</span>
               )}
             </div>
           )}
@@ -393,19 +458,54 @@ export const UploadGalleryGrid = forwardRef<HTMLDivElement, UploadGalleryGridPro
     // Render
     // ------------------------------------------------------------------
 
+    const containerStyle: React.CSSProperties = {
+      display: 'grid',
+      gridTemplateColumns: `repeat(${columns}, 1fr)`,
+      gap: '8px',
+      minHeight: '200px',
+      width: '100%',
+    };
+
+    const emptyStateStyle: React.CSSProperties = {
+      gridColumn: `span ${columns}`,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '12px',
+      padding: '40px 20px',
+      border: '2px dashed var(--uk-border)',
+      borderRadius: '12px',
+      cursor: 'pointer',
+      color: 'var(--uk-text-secondary)',
+      transition: 'border-color 200ms ease-out',
+    };
+
+    const emptyTitleStyle: React.CSSProperties = {
+      fontSize: '14px',
+      fontWeight: 500,
+      color: 'var(--uk-text)',
+      margin: 0,
+    };
+
+    const emptyHintStyle: React.CSSProperties = {
+      fontSize: '12px',
+      color: 'var(--uk-text-secondary)',
+      margin: 0,
+    };
+
     return (
       <div
         ref={ref}
         className={mergeClass('uk-gallery-grid', className)}
         data-uk-element="container"
         data-state={containerState}
-        style={{ '--uk-gallery-cols': columns } as React.CSSProperties}
+        style={containerStyle}
         {...handlers}
       >
         {/* Empty state — spans all columns, acts as the primary drop zone */}
         {!hasFiles && (
           <div
-            className="uk-gallery-grid__empty"
             role="button"
             tabIndex={0}
             aria-label="Drop images here or click to browse"
@@ -416,11 +516,11 @@ export const UploadGalleryGrid = forwardRef<HTMLDivElement, UploadGalleryGridPro
                 openPicker();
               }
             }}
-            style={{ gridColumn: `span ${columns}` }}
+            style={emptyStateStyle}
           >
             <UploadIcon />
-            <p className="uk-gallery-grid__empty-title">Drop images here</p>
-            <p className="uk-gallery-grid__empty-hint">
+            <p style={emptyTitleStyle}>Drop images here</p>
+            <p style={emptyHintStyle}>
               {accept.join(', ')}
               {maxSize !== undefined ? ` · up to ${formatBytes(maxSize)}` : ''}
               {maxFiles !== undefined ? ` · max ${maxFiles} files` : ''}
@@ -437,9 +537,9 @@ export const UploadGalleryGrid = forwardRef<HTMLDivElement, UploadGalleryGridPro
         {hasFiles && (
           <button
             type="button"
-            className="uk-gallery-grid__add-btn"
             aria-label="Add more images"
             onClick={openPicker}
+            style={addBtnStyle}
           >
             <svg
               viewBox="0 0 24 24"

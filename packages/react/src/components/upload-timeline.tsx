@@ -60,6 +60,25 @@ function formatTimestamp(status: FileEntry['status'], addedAt: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Inline style helpers
+// ---------------------------------------------------------------------------
+
+function dotBackground(status: FileEntry['status'] | 'dropzone'): string {
+  if (status === 'uploading') return 'var(--uk-primary, #6366f1)';
+  if (status === 'success') return 'var(--uk-success, #22c55e)';
+  if (status === 'error') return 'var(--uk-error, #ef4444)';
+  if (status === 'dropzone') return 'var(--uk-border, rgba(255,255,255,0.08))';
+  // idle
+  return 'var(--uk-border, rgba(255,255,255,0.08))';
+}
+
+function progressFillBackground(status: FileEntry['status']): string {
+  if (status === 'success') return 'var(--uk-success, #22c55e)';
+  if (status === 'error') return 'var(--uk-error, #ef4444)';
+  return 'var(--uk-primary, #6366f1)';
+}
+
+// ---------------------------------------------------------------------------
 // Sub-components — StatusDot
 // ---------------------------------------------------------------------------
 
@@ -70,8 +89,37 @@ type StatusDotProps = {
   m: any;
 };
 
+const dotStyle: React.CSSProperties = {
+  width: 12,
+  height: 12,
+  borderRadius: '50%',
+  position: 'relative',
+  flexShrink: 0,
+  marginLeft: 10,
+  zIndex: 1,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'white',
+};
+
 function StatusDot({ status, animated, m }: StatusDotProps) {
-  const baseClass = 'uk-timeline__dot';
+  const style: React.CSSProperties = {
+    ...dotStyle,
+    background: dotBackground(status),
+  };
+
+  const svgCheck = (
+    <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ width: 8, height: 8 }}>
+      <path d="M2 5.5L4 7.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+
+  const svgX = (
+    <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ width: 8, height: 8 }}>
+      <path d="M3 3L7 7M7 3L3 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
 
   if (animated && m) {
     const MotionDiv = m.motion.div;
@@ -87,43 +135,26 @@ function StatusDot({ status, animated, m }: StatusDotProps) {
 
     return (
       <MotionDiv
-        className={mergeClass(baseClass, `${baseClass}--${status}`)}
+        // Keep class name so reduced-motion CSS selectors can target it if needed
+        className={`uk-timeline__dot uk-timeline__dot--${status}`}
+        style={style}
         aria-hidden="true"
         {...pulseProps}
       >
-        {status === 'success' && (
-          <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M2 5.5L4 7.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-        {status === 'error' && (
-          <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M3 3L7 7M7 3L3 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        )}
+        {status === 'success' && svgCheck}
+        {status === 'error' && svgX}
       </MotionDiv>
     );
   }
 
   return (
     <div
-      className={mergeClass(
-        baseClass,
-        `${baseClass}--${status}`,
-        status === 'uploading' ? `${baseClass}--pulse` : undefined,
-      )}
+      className={`uk-timeline__dot uk-timeline__dot--${status}${status === 'uploading' ? ' uk-timeline__dot--pulse' : ''}`}
+      style={style}
       aria-hidden="true"
     >
-      {status === 'success' && (
-        <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M2 5.5L4 7.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-      {status === 'error' && (
-        <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M3 3L7 7M7 3L3 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      )}
+      {status === 'success' && svgCheck}
+      {status === 'error' && svgX}
     </div>
   );
 }
@@ -145,12 +176,34 @@ function ProgressBar({ progress, status, animated, m }: ProgressBarProps) {
 
   const fillWidth = `${status === 'success' ? 100 : progress}%`;
 
+  const trackStyle: React.CSSProperties = {
+    height: 3,
+    width: '100%',
+    background: 'var(--uk-border, rgba(255,255,255,0.08))',
+    borderRadius: 2,
+    overflow: 'hidden',
+  };
+
+  const fillStyle: React.CSSProperties = {
+    height: '100%',
+    background: progressFillBackground(status),
+    borderRadius: 2,
+  };
+
   if (animated && m) {
     const MotionDiv = m.motion.div;
     return (
-      <div className="uk-timeline__progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+      <div
+        className="uk-timeline__progress"
+        style={trackStyle}
+        role="progressbar"
+        aria-valuenow={progress}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
         <MotionDiv
           className={`uk-timeline__progress-fill uk-timeline__progress-fill--${status}`}
+          style={fillStyle}
           animate={{ width: fillWidth }}
           transition={{ duration: 0.28, ease: 'easeOut' }}
         />
@@ -159,10 +212,17 @@ function ProgressBar({ progress, status, animated, m }: ProgressBarProps) {
   }
 
   return (
-    <div className="uk-timeline__progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+    <div
+      className="uk-timeline__progress"
+      style={trackStyle}
+      role="progressbar"
+      aria-valuenow={progress}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
       <div
         className={`uk-timeline__progress-fill uk-timeline__progress-fill--${status}`}
-        style={{ width: fillWidth, transition: 'width 280ms ease-out' }}
+        style={{ ...fillStyle, width: fillWidth, transition: 'width 280ms ease-out' }}
       />
     </div>
   );
@@ -183,21 +243,69 @@ type FileNodeProps = {
 function FileNode({ entry, index, animated, m }: FileNodeProps) {
   const timestamp = formatTimestamp(entry.status, entry.addedAt);
 
-  const content = (
-    <div className="uk-timeline__node" data-status={entry.status}>
-      {/* Connector segment — the vertical line piece above this dot */}
-      <div className="uk-timeline__connector" aria-hidden="true" />
+  const nodeStyle: React.CSSProperties = {
+    display: 'flex',
+    gap: 12,
+    padding: '8px 0',
+    position: 'relative',
+    alignItems: 'flex-start',
+  };
 
-      {/* Status dot sits on the vertical line */}
+  const contentStyle: React.CSSProperties = {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    paddingLeft: 8,
+  };
+
+  const fileInfoStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: 6,
+    minWidth: 0,
+  };
+
+  const filenameStyle: React.CSSProperties = {
+    fontSize: 13,
+    fontWeight: 500,
+    color: 'var(--uk-text, rgba(255,255,255,0.9))',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    minWidth: 0,
+    flex: '1 1 0',
+  };
+
+  const filesizeStyle: React.CSSProperties = {
+    fontSize: 11,
+    color: 'var(--uk-text-secondary, rgba(255,255,255,0.4))',
+    flexShrink: 0,
+  };
+
+  const metaStyle: React.CSSProperties = {
+    fontSize: 11,
+    color: 'var(--uk-text-secondary, rgba(255,255,255,0.4))',
+  };
+
+  const errorStyle: React.CSSProperties = {
+    fontSize: 11,
+    color: 'var(--uk-error, #ef4444)',
+  };
+
+  const content = (
+    <div className="uk-timeline__node" style={nodeStyle} data-status={entry.status}>
+      {/* Status dot sits on the vertical track */}
       <StatusDot status={entry.status} animated={animated} m={m} />
 
       {/* File metadata to the right */}
-      <div className="uk-timeline__content">
-        <div className="uk-timeline__file-info">
-          <span className="uk-timeline__filename" title={entry.file.name}>
+      <div className="uk-timeline__content" style={contentStyle}>
+        <div className="uk-timeline__file-info" style={fileInfoStyle}>
+          <span className="uk-timeline__filename" style={filenameStyle} title={entry.file.name}>
             {entry.file.name}
           </span>
-          <span className="uk-timeline__filesize">{formatBytes(entry.file.size)}</span>
+          <span className="uk-timeline__filesize" style={filesizeStyle}>{formatBytes(entry.file.size)}</span>
         </div>
 
         <ProgressBar
@@ -207,9 +315,9 @@ function FileNode({ entry, index, animated, m }: FileNodeProps) {
           m={m}
         />
 
-        <div className="uk-timeline__meta">
+        <div className="uk-timeline__meta" style={metaStyle}>
           {entry.error ? (
-            <span className="uk-timeline__error-msg">{entry.error}</span>
+            <span className="uk-timeline__error-msg" style={errorStyle}>{entry.error}</span>
           ) : (
             <span className="uk-timeline__timestamp">{timestamp}</span>
           )}
@@ -325,6 +433,49 @@ export const UploadTimeline = forwardRef<HTMLDivElement, UploadTimelineProps>(
 
     const isEmpty = files.length === 0;
 
+    // Styles for the drop zone node
+    const dropZoneNodeStyle: React.CSSProperties = {
+      display: 'flex',
+      gap: 12,
+      padding: '8px 0',
+      position: 'relative',
+      alignItems: 'flex-start',
+      cursor: 'pointer',
+      outline: 'none',
+    };
+
+    const dropZoneDotStyle: React.CSSProperties = {
+      ...dotStyle,
+      background: isDragging
+        ? 'var(--uk-primary, #6366f1)'
+        : 'var(--uk-border, rgba(255,255,255,0.08))',
+      border: '1px dashed var(--uk-border, rgba(255,255,255,0.16))',
+      transition: 'background 200ms ease-out',
+    };
+
+    const dropZoneContentStyle: React.CSSProperties = {
+      flex: 1,
+      minWidth: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+      paddingLeft: 8,
+    };
+
+    const dropZoneLabelStyle: React.CSSProperties = {
+      fontSize: 13,
+      fontWeight: 500,
+      color: isDragging
+        ? 'var(--uk-primary, #6366f1)'
+        : 'var(--uk-text-secondary, rgba(255,255,255,0.4))',
+      transition: 'color 200ms ease-out',
+    };
+
+    const dropZoneHintStyle: React.CSSProperties = {
+      fontSize: 11,
+      color: 'var(--uk-text-secondary, rgba(255,255,255,0.3))',
+    };
+
     // Drop zone node — always rendered at the bottom of the timeline
     const dropZoneNode = (
       <div
@@ -333,6 +484,7 @@ export const UploadTimeline = forwardRef<HTMLDivElement, UploadTimelineProps>(
           'uk-timeline__node--dropzone',
           isDragging ? 'uk-timeline__node--dragging' : undefined,
         )}
+        style={dropZoneNodeStyle}
         role="button"
         tabIndex={0}
         aria-label="Drop files or click to upload"
@@ -344,23 +496,28 @@ export const UploadTimeline = forwardRef<HTMLDivElement, UploadTimelineProps>(
           }
         }}
       >
-        {!isEmpty && <div className="uk-timeline__connector" aria-hidden="true" />}
-
         {/* Upload icon dot */}
-        <div className="uk-timeline__dot uk-timeline__dot--dropzone" aria-hidden="true">
-          <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <div
+          className="uk-timeline__dot uk-timeline__dot--dropzone"
+          style={dropZoneDotStyle}
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ width: 8, height: 8, color: 'var(--uk-text-secondary, rgba(255,255,255,0.4))' }}>
             <path d="M5 7V3M5 3L3 5M5 3L7 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
 
-        <div className="uk-timeline__content uk-timeline__content--dropzone">
+        <div
+          className="uk-timeline__content uk-timeline__content--dropzone"
+          style={dropZoneContentStyle}
+        >
           {children ?? (
             <>
-              <span className="uk-timeline__dropzone-label">
-                {isDragging ? 'Release to upload' : 'Drop files or click to upload'}
+              <span className="uk-timeline__dropzone-label" style={dropZoneLabelStyle}>
+                {isDragging ? 'Release to upload' : isEmpty ? 'Drop files or click to upload' : 'Add more files'}
               </span>
               {(accept || maxSize) && (
-                <span className="uk-timeline__dropzone-hint">
+                <span className="uk-timeline__dropzone-hint" style={dropZoneHintStyle}>
                   {[
                     accept ? accept.join(', ') : null,
                     maxSize ? `max ${formatBytes(maxSize)}` : null,
@@ -375,10 +532,28 @@ export const UploadTimeline = forwardRef<HTMLDivElement, UploadTimelineProps>(
       </div>
     );
 
+    const containerStyle: React.CSSProperties = {
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      width: '100%',
+    };
+
+    const trackStyle: React.CSSProperties = {
+      position: 'absolute',
+      left: 15,
+      top: 0,
+      bottom: 0,
+      width: 2,
+      background: 'var(--uk-border, rgba(255,255,255,0.08))',
+      borderRadius: 1,
+    };
+
     return (
       <div
         ref={ref}
         className={mergeClass('uk-timeline', className)}
+        style={containerStyle}
         data-uk-element="container"
         data-state={
           isDragging
@@ -392,8 +567,8 @@ export const UploadTimeline = forwardRef<HTMLDivElement, UploadTimelineProps>(
         aria-label="File upload timeline"
         {...handlers}
       >
-        {/* Vertical line — absolutely positioned, spans full container height */}
-        <div className="uk-timeline__track" aria-hidden="true" />
+        {/* Vertical track — absolutely positioned, spans full container height */}
+        <div className="uk-timeline__track" style={trackStyle} aria-hidden="true" />
 
         {/* File entries */}
         {files.map((entry, index) => (

@@ -118,16 +118,72 @@ function ProgressRing({ progress }: { progress: number }) {
 }
 
 // ---------------------------------------------------------------------------
-// AttachButton — dashed card that opens the file picker
+// EmptyDropZone — full-width dashed bar shown when no files are attached
 // ---------------------------------------------------------------------------
 
-function AttachButton({
-  onClick,
-  empty,
-}: {
-  onClick: () => void;
-  empty: boolean;
-}) {
+function EmptyDropZone({ onClick }: { onClick: () => void }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      type="button"
+      aria-label="Attach files"
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="uk-attachment-tray__empty-zone"
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        width: '100%',
+        height: CARD_SIZE,
+        borderRadius: 8,
+        border: `1.5px dashed ${hovered ? 'var(--uk-primary, #6366f1)' : 'var(--uk-border, rgba(255,255,255,0.18))'}`,
+        background: 'var(--uk-bg-secondary, rgba(255,255,255,0.04))',
+        color: hovered ? 'var(--uk-primary, #6366f1)' : 'var(--uk-text-secondary, #a1a1aa)',
+        cursor: 'pointer',
+        transition: 'border-color 0.18s ease, color 0.18s ease',
+        outline: 'none',
+        boxSizing: 'border-box',
+        // Opacity keeps the bg subtle — distinct from the hover state of the border
+        opacity: hovered ? 1 : 0.9,
+      }}
+      onFocus={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.boxShadow =
+          '0 0 0 2px var(--uk-primary, #6366f1)';
+      }}
+      onBlur={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+      }}
+    >
+      {/* Paperclip icon */}
+      <span
+        dangerouslySetInnerHTML={{ __html: PAPERCLIP_SVG }}
+        style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+      />
+      {/* Hint label */}
+      <span
+        style={{
+          fontSize: 13,
+          fontWeight: 450,
+          letterSpacing: '0.01em',
+          lineHeight: 1.4,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        Click to attach files or drag &amp; drop
+      </span>
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AttachButton — compact dashed card shown alongside file cards in the tray
+// ---------------------------------------------------------------------------
+
+function AttachButton({ onClick }: { onClick: () => void }) {
   const [hovered, setHovered] = useState(false);
   return (
     <button
@@ -154,11 +210,9 @@ function AttachButton({
         cursor: 'pointer',
         transition: 'border-color 0.18s ease, background 0.18s ease, color 0.18s ease',
         outline: 'none',
-        // Ensure focus is visible for a11y
         boxSizing: 'border-box',
         scrollSnapAlign: 'start',
       }}
-      // focus-visible ring
       onFocus={(e) => {
         (e.currentTarget as HTMLButtonElement).style.boxShadow =
           '0 0 0 2px var(--uk-primary, #6366f1)';
@@ -172,24 +226,6 @@ function AttachButton({
         dangerouslySetInnerHTML={{ __html: PAPERCLIP_SVG }}
         style={{ display: 'flex', alignItems: 'center' }}
       />
-      {empty && (
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 500,
-            letterSpacing: '0.01em',
-            lineHeight: 1.2,
-            textAlign: 'center',
-            // Width keeps label from expanding the card
-            maxWidth: CARD_SIZE - 12,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          Attach files
-        </span>
-      )}
     </button>
   );
 }
@@ -508,45 +544,46 @@ export const UploadAttachmentTray = forwardRef<HTMLDivElement, UploadAttachmentT
           gap: 0,
         }}
       >
-        {/* Tray scroll area — visible only when there are files */}
-        <div
-          className="uk-attachment-tray__scroll"
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'flex-end',
-            gap: 8,
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            padding: hasFiles ? '8px 0 4px' : '0',
-            scrollSnapType: 'x mandatory',
-            // Thin custom scrollbar
-            scrollbarWidth: 'thin',
-            scrollbarColor:
-              'rgba(255,255,255,0.15) transparent',
-          }}
-          // Webkit scrollbar: thin and styled
-          // (applied via a style tag trick — but since this is inline-style only
-          // we annotate it; browsers that support scrollbarWidth=thin are enough)
-        >
-          {/* Attach button — always first in the tray row */}
-          <AttachButton onClick={openPicker} empty={!hasFiles} />
+        {hasFiles ? (
+          /* Tray scroll area — horizontal row with compact attach button + file cards */
+          <div
+            className="uk-attachment-tray__scroll"
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'flex-end',
+              gap: 8,
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              padding: '8px 0 4px',
+              scrollSnapType: 'x mandatory',
+              // Thin custom scrollbar
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(255,255,255,0.15) transparent',
+            }}
+          >
+            {/* Compact attach button — sits first in the scroll row */}
+            <AttachButton onClick={openPicker} />
 
-          {/* File cards */}
-          {animated ? (
-            <m.AnimatePresence initial={false}>
-              {files.map((entry) => (
-                <CardWrapper key={entry.id} entry={entry}>
-                  <AttachmentCard entry={entry} onRemove={removeEntry} />
-                </CardWrapper>
-              ))}
-            </m.AnimatePresence>
-          ) : (
-            files.map((entry) => (
-              <AttachmentCard key={entry.id} entry={entry} onRemove={removeEntry} />
-            ))
-          )}
-        </div>
+            {/* File cards */}
+            {animated ? (
+              <m.AnimatePresence initial={false}>
+                {files.map((entry) => (
+                  <CardWrapper key={entry.id} entry={entry}>
+                    <AttachmentCard entry={entry} onRemove={removeEntry} />
+                  </CardWrapper>
+                ))}
+              </m.AnimatePresence>
+            ) : (
+              files.map((entry) => (
+                <AttachmentCard key={entry.id} entry={entry} onRemove={removeEntry} />
+              ))
+            )}
+          </div>
+        ) : (
+          /* Empty state — full-width dashed drop zone with contextual hint */
+          <EmptyDropZone onClick={openPicker} />
+        )}
 
         {/* Hidden file input */}
         <input

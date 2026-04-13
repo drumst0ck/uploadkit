@@ -1,40 +1,30 @@
 'use client'
 
-import { useState, useMemo, type ReactNode } from 'react'
+import { useState, useMemo, useRef, type ReactNode } from 'react'
 import {
   UploadKitProvider,
   ProxyUploadKitClient,
   UploadDropzoneGlass,
   UploadDropzoneAurora,
-  UploadDropzoneTerminal,
-  UploadDropzoneBrutal,
-  UploadDropzoneMinimal,
   UploadDropzoneNeon,
+  UploadDropzoneMinimal,
   UploadButtonShimmer,
-  UploadButtonMagnetic,
-  UploadButtonPulse,
   UploadButtonGradient,
   UploadProgressRadial,
   UploadProgressWave,
   UploadProgressLiquid,
   UploadCloudRain,
-  UploadParticles,
   UploadVinyl,
   UploadEnvelope,
   UploadBlueprint,
   UploadDataStream,
   UploadScannerFrame,
-  UploadBookFlip,
-  UploadPolaroid,
   UploadKanban,
-  UploadStickyBoard,
-  UploadTimeline,
-  UploadAttachmentTray,
 } from '@uploadkitdev/react'
 import type { UploadResult } from '@uploadkitdev/react'
 
 // ─────────────────────────────────────────────────────────
-// Mock client — identical to the docs preview mock
+// Mock client
 // ─────────────────────────────────────────────────────────
 
 class MockClient extends ProxyUploadKitClient {
@@ -70,51 +60,148 @@ class MockClient extends ProxyUploadKitClient {
 }
 
 // ─────────────────────────────────────────────────────────
-// Component registry
+// Curated component list — only the most visually striking
 // ─────────────────────────────────────────────────────────
 
-type ComponentEntry = {
+type ShowcaseEntry = {
   id: string
-  name: string
-  tag: string
+  label: string
+  description: string
   multiFile: boolean
+  stageHeight: number
   render: () => ReactNode
 }
 
-const COMPONENTS: ComponentEntry[] = [
-  // Premium dropzones
-  { id: 'glass', name: 'Glass', tag: 'Dropzone', multiFile: true, render: () => <UploadDropzoneGlass route="demo" /> },
-  { id: 'aurora', name: 'Aurora', tag: 'Dropzone', multiFile: true, render: () => <UploadDropzoneAurora route="demo" /> },
-  { id: 'terminal', name: 'Terminal', tag: 'Dropzone', multiFile: true, render: () => <UploadDropzoneTerminal route="demo" /> },
-  { id: 'brutal', name: 'Brutal', tag: 'Dropzone', multiFile: true, render: () => <UploadDropzoneBrutal route="demo" /> },
-  { id: 'minimal', name: 'Minimal', tag: 'Dropzone', multiFile: true, render: () => <UploadDropzoneMinimal route="demo" /> },
-  { id: 'neon', name: 'Neon', tag: 'Dropzone', multiFile: true, render: () => <UploadDropzoneNeon route="demo" /> },
-  { id: 'blueprint', name: 'Blueprint', tag: 'Themed', multiFile: true, render: () => <UploadBlueprint route="demo" /> },
-  { id: 'data-stream', name: 'Data Stream', tag: 'Themed', multiFile: true, render: () => <UploadDataStream route="demo" columns={16} /> },
-  { id: 'envelope', name: 'Envelope', tag: 'Themed', multiFile: true, render: () => <UploadEnvelope route="demo" /> },
-  { id: 'sticky-board', name: 'Sticky Board', tag: 'Themed', multiFile: true, render: () => <UploadStickyBoard route="demo" /> },
-  // Buttons
-  { id: 'shimmer', name: 'Shimmer', tag: 'Button', multiFile: false, render: () => <UploadButtonShimmer route="demo" /> },
-  { id: 'magnetic', name: 'Magnetic', tag: 'Button', multiFile: false, render: () => <UploadButtonMagnetic route="demo" /> },
-  { id: 'pulse', name: 'Pulse', tag: 'Button', multiFile: false, render: () => <UploadButtonPulse route="demo" /> },
-  { id: 'gradient', name: 'Gradient', tag: 'Button', multiFile: false, render: () => <UploadButtonGradient route="demo" /> },
-  // Progress
-  { id: 'radial', name: 'Radial', tag: 'Progress', multiFile: false, render: () => <UploadProgressRadial route="demo" size={140} /> },
-  { id: 'wave', name: 'Wave', tag: 'Progress', multiFile: false, render: () => <UploadProgressWave route="demo" bars={28} /> },
-  { id: 'liquid', name: 'Liquid', tag: 'Progress', multiFile: false, render: () => <UploadProgressLiquid route="demo" width={140} height={180} /> },
-  { id: 'vinyl', name: 'Vinyl', tag: 'Specialty', multiFile: false, render: () => <UploadVinyl route="demo" size={180} /> },
-  { id: 'scanner', name: 'Scanner', tag: 'Specialty', multiFile: false, render: () => <UploadScannerFrame route="demo" frameAspect="landscape" /> },
-  { id: 'book-flip', name: 'Book Flip', tag: 'Specialty', multiFile: false, render: () => <UploadBookFlip route="demo" /> },
-  // Multi-file visualizers
-  { id: 'cloud-rain', name: 'Cloud Rain', tag: 'Visualizer', multiFile: true, render: () => <UploadCloudRain route="demo" /> },
-  { id: 'particles', name: 'Particles', tag: 'Visualizer', multiFile: true, render: () => <UploadParticles route="demo" /> },
-  { id: 'polaroid', name: 'Polaroid', tag: 'Visualizer', multiFile: true, render: () => <UploadPolaroid route="demo" /> },
-  { id: 'kanban', name: 'Kanban', tag: 'Visualizer', multiFile: true, render: () => <UploadKanban route="demo" /> },
-  { id: 'timeline', name: 'Timeline', tag: 'Visualizer', multiFile: true, render: () => <UploadTimeline route="demo" /> },
-  { id: 'attachment-tray', name: 'Attachment Tray', tag: 'Visualizer', multiFile: true, render: () => <UploadAttachmentTray route="demo" /> },
+const SHOWCASE: ShowcaseEntry[] = [
+  {
+    id: 'glass',
+    label: 'Glass',
+    description: 'Frosted glass with indigo glow halo',
+    multiFile: true,
+    stageHeight: 320,
+    render: () => <UploadDropzoneGlass route="demo" />,
+  },
+  {
+    id: 'aurora',
+    label: 'Aurora',
+    description: 'Animated conic-gradient mesh',
+    multiFile: true,
+    stageHeight: 320,
+    render: () => <UploadDropzoneAurora route="demo" />,
+  },
+  {
+    id: 'neon',
+    label: 'Neon',
+    description: 'Cyberpunk glow traces and scanlines',
+    multiFile: true,
+    stageHeight: 320,
+    render: () => <UploadDropzoneNeon route="demo" />,
+  },
+  {
+    id: 'minimal',
+    label: 'Minimal',
+    description: 'Stripe-inspired ultra-clean dropzone',
+    multiFile: true,
+    stageHeight: 300,
+    render: () => <UploadDropzoneMinimal route="demo" />,
+  },
+  {
+    id: 'blueprint',
+    label: 'Blueprint',
+    description: 'Technical schematic with crosshairs',
+    multiFile: true,
+    stageHeight: 340,
+    render: () => <UploadBlueprint route="demo" />,
+  },
+  {
+    id: 'data-stream',
+    label: 'Data Stream',
+    description: 'Matrix-style character rain',
+    multiFile: true,
+    stageHeight: 340,
+    render: () => <UploadDataStream route="demo" columns={16} />,
+  },
+  {
+    id: 'envelope',
+    label: 'Envelope',
+    description: '3D envelope with wax seal',
+    multiFile: true,
+    stageHeight: 380,
+    render: () => <UploadEnvelope route="demo" />,
+  },
+  {
+    id: 'kanban',
+    label: 'Kanban',
+    description: 'Pipeline columns: Queued → Done',
+    multiFile: true,
+    stageHeight: 360,
+    render: () => <UploadKanban route="demo" />,
+  },
+  {
+    id: 'shimmer',
+    label: 'Shimmer',
+    description: 'Shimmer sweep with indigo glow',
+    multiFile: false,
+    stageHeight: 200,
+    render: () => <UploadButtonShimmer route="demo" />,
+  },
+  {
+    id: 'gradient',
+    label: 'Gradient',
+    description: 'Rotating conic gradient ring',
+    multiFile: false,
+    stageHeight: 200,
+    render: () => <UploadButtonGradient route="demo" />,
+  },
+  {
+    id: 'radial',
+    label: 'Radial',
+    description: 'Activity-ring progress with splash',
+    multiFile: false,
+    stageHeight: 260,
+    render: () => <UploadProgressRadial route="demo" size={150} />,
+  },
+  {
+    id: 'wave',
+    label: 'Wave',
+    description: 'Audio waveform fills left-to-right',
+    multiFile: false,
+    stageHeight: 220,
+    render: () => <UploadProgressWave route="demo" bars={28} />,
+  },
+  {
+    id: 'liquid',
+    label: 'Liquid',
+    description: 'Sine-wave liquid fill vessel',
+    multiFile: false,
+    stageHeight: 320,
+    render: () => <UploadProgressLiquid route="demo" width={150} height={200} />,
+  },
+  {
+    id: 'vinyl',
+    label: 'Vinyl',
+    description: 'Spinning record with groove fill',
+    multiFile: false,
+    stageHeight: 300,
+    render: () => <UploadVinyl route="demo" size={200} />,
+  },
+  {
+    id: 'scanner',
+    label: 'Scanner',
+    description: 'ID viewfinder with sweep line',
+    multiFile: false,
+    stageHeight: 320,
+    render: () => <UploadScannerFrame route="demo" frameAspect="landscape" />,
+  },
+  {
+    id: 'cloud-rain',
+    label: 'Cloud Rain',
+    description: 'Cloud fills as files upload',
+    multiFile: true,
+    stageHeight: 320,
+    render: () => <UploadCloudRain route="demo" />,
+  },
 ]
-
-const TAGS = ['All', 'Dropzone', 'Themed', 'Button', 'Progress', 'Specialty', 'Visualizer'] as const
 
 // ─────────────────────────────────────────────────────────
 // Fake file helper
@@ -142,123 +229,75 @@ function triggerFakeUpload(container: HTMLElement, count: number) {
 }
 
 // ─────────────────────────────────────────────────────────
-// Landing Showcase Component
+// Component
 // ─────────────────────────────────────────────────────────
 
 export function LandingShowcase() {
   const [activeId, setActiveId] = useState('glass')
-  const [activeTag, setActiveTag] = useState<string>('All')
-  const stageRef = useState<HTMLDivElement | null>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
   const mockClient = useMemo(() => new MockClient(), [])
 
-  const active = COMPONENTS.find((c) => c.id === activeId) ?? COMPONENTS[0]!
-  const filtered = activeTag === 'All' ? COMPONENTS : COMPONENTS.filter((c) => c.tag === activeTag)
+  const active = SHOWCASE.find((c) => c.id === activeId) ?? SHOWCASE[0]!
 
   return (
-    <div
-      className="mx-auto grid max-w-[1200px] gap-6 px-6 lg:grid-cols-[280px_1fr]"
-    >
-      {/* ─── Sidebar: filter tabs + component list ─── */}
-      <div className="flex flex-col gap-4">
-        {/* Tag filter pills */}
-        <div className="flex flex-wrap gap-2">
-          {TAGS.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => {
-                setActiveTag(tag)
-                // If current active component is not in the new filter, switch to first
-                if (tag !== 'All') {
-                  const inFilter = COMPONENTS.find((c) => c.tag === tag && c.id === activeId)
-                  if (!inFilter) {
-                    const first = COMPONENTS.find((c) => c.tag === tag)
-                    if (first) setActiveId(first.id)
-                  }
-                }
-              }}
-              className="rounded-full px-3 py-1 text-xs font-medium transition-all duration-200"
-              style={{
-                background: activeTag === tag ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${activeTag === tag ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.06)'}`,
-                color: activeTag === tag ? '#a5b4fc' : '#71717a',
-              }}
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
-
-        {/* Component list */}
-        <div
-          className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-x-visible lg:pb-0"
-          style={{ maxHeight: 'calc(100vh - 300px)' }}
-        >
-          {filtered.map((comp) => (
+    <div className="mx-auto flex max-w-[1200px] flex-col gap-8 px-6">
+      {/* ─── Selector: horizontal pill grid ─── */}
+      <div className="flex flex-wrap justify-center gap-2">
+        {SHOWCASE.map((comp) => {
+          const isActive = activeId === comp.id
+          return (
             <button
               key={comp.id}
               type="button"
               onClick={() => setActiveId(comp.id)}
-              className="flex flex-shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-200"
+              className="group relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
               style={{
-                background: activeId === comp.id
-                  ? 'rgba(99,102,241,0.1)'
-                  : 'transparent',
-                border: `1px solid ${activeId === comp.id ? 'rgba(99,102,241,0.25)' : 'transparent'}`,
+                background: isActive
+                  ? 'rgba(99,102,241,0.15)'
+                  : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${isActive ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                color: isActive ? '#c7d2fe' : '#52525b',
+                boxShadow: isActive ? '0 0 20px -6px rgba(99,102,241,0.3)' : 'none',
               }}
             >
-              <span
-                className="flex h-2 w-2 flex-shrink-0 rounded-full"
-                style={{
-                  background: activeId === comp.id ? '#818cf8' : 'rgba(255,255,255,0.12)',
-                  boxShadow: activeId === comp.id ? '0 0 8px rgba(129,140,248,0.5)' : 'none',
-                }}
-              />
-              <span
-                className="text-sm font-medium whitespace-nowrap"
-                style={{ color: activeId === comp.id ? '#e0e7ff' : '#71717a' }}
-              >
-                {comp.name}
-              </span>
-              <span
-                className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium"
-                style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  color: '#52525b',
-                  border: '1px solid rgba(255,255,255,0.04)',
-                }}
-              >
-                {comp.tag}
-              </span>
+              {isActive && (
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: '#818cf8', boxShadow: '0 0 6px #818cf8' }}
+                />
+              )}
+              {comp.label}
             </button>
-          ))}
-        </div>
+          )
+        })}
       </div>
 
       {/* ─── Preview stage ─── */}
       <div
-        className="relative flex min-h-[400px] items-center justify-center overflow-hidden rounded-2xl"
+        className="relative flex items-center justify-center overflow-hidden rounded-2xl transition-[min-height] duration-300 ease-out"
         style={{
-          background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(99,102,241,0.1), transparent 60%), #08080a',
+          minHeight: active.stageHeight,
+          background:
+            'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(99,102,241,0.1), transparent 60%), #08080a',
           border: '1px solid rgba(255,255,255,0.06)',
         }}
       >
         <UploadKitProvider client={mockClient}>
           <div
-            ref={(el) => { stageRef[1](el) }}
-            className="flex w-full max-w-[560px] items-center justify-center p-8"
+            ref={stageRef}
+            className="flex w-full max-w-[600px] items-center justify-center p-6 md:p-10"
           >
             {active.render()}
           </div>
         </UploadKitProvider>
 
-        {/* Simulate upload button */}
+        {/* Simulate button */}
         <button
           type="button"
           onClick={() => {
-            if (stageRef[0]) triggerFakeUpload(stageRef[0], active.multiFile ? 3 : 1)
+            if (stageRef.current) triggerFakeUpload(stageRef.current, active.multiFile ? 3 : 1)
           }}
-          className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.02em] transition-all duration-150"
+          className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide transition-all duration-150"
           style={{
             border: '1px solid rgba(99,102,241,0.35)',
             background: 'rgba(99,102,241,0.12)',
@@ -268,7 +307,7 @@ export function LandingShowcase() {
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)'
-            e.currentTarget.style.background = 'rgba(99,102,241,0.2)'
+            e.currentTarget.style.background = 'rgba(99,102,241,0.22)'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = 'rgba(99,102,241,0.35)'
@@ -284,29 +323,39 @@ export function LandingShowcase() {
           Simulate
         </button>
 
-        {/* Component name badge */}
-        <div
-          className="absolute bottom-3 left-4 flex items-center gap-2"
-        >
+        {/* Component description */}
+        <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
           <span
-            className="text-[11px] font-medium uppercase tracking-[0.04em]"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
+            className="text-xs font-medium"
+            style={{ color: 'rgba(255,255,255,0.4)' }}
           >
-            {active.name}
+            {active.description}
+          </span>
+          <span
+            className="text-[11px] tabular-nums"
+            style={{ color: 'rgba(255,255,255,0.2)' }}
+          >
+            {SHOWCASE.indexOf(active) + 1} / {SHOWCASE.length}
           </span>
         </div>
+      </div>
 
-        {/* Component count badge */}
-        <div
-          className="absolute bottom-3 right-4"
+      {/* ─── "See all" link ─── */}
+      <div className="flex justify-center">
+        <a
+          href="https://docs.uploadkit.dev/docs/sdk/react/upload-dropzone-glass"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-sm font-medium transition-colors duration-200"
+          style={{ color: '#71717a' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#a5b4fc' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#71717a' }}
         >
-          <span
-            className="text-[11px] font-medium"
-            style={{ color: 'rgba(255,255,255,0.25)' }}
-          >
-            {COMPONENTS.length} components
-          </span>
-        </div>
+          Explore all 40+ components in the docs
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+          </svg>
+        </a>
       </div>
     </div>
   )

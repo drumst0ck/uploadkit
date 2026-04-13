@@ -1,7 +1,7 @@
-// UploadEnvelope — WeTransfer-inspired 3D envelope component. The flap opens
-// on drag-over (rotateX perspective animation), files slide into the body, a
-// wax seal appears on completion. CSS custom properties for full theming. All
-// styling via inline styles — zero Tailwind dependency (SDK constraint).
+// UploadEnvelope — WeTransfer-inspired envelope component built with SVG.
+// The envelope is drawn as a single SVG with a body, flap, and fold line.
+// On drag/upload the flap animates open. A wax seal appears on completion.
+// All styling via inline styles — zero Tailwind dependency (SDK constraint).
 
 import { forwardRef, useCallback, useRef, useState } from 'react';
 import type { UploadResult } from '@uploadkitdev/core';
@@ -54,7 +54,6 @@ function validate(file: File, accept?: string[], maxSize?: number): string | nul
   return null;
 }
 
-// Status dot SVG inline — tiny, no dep
 function StatusDot({ status }: { status: FileEntry['status'] }) {
   const color =
     status === 'success'
@@ -62,7 +61,7 @@ function StatusDot({ status }: { status: FileEntry['status'] }) {
       : status === 'error'
         ? 'var(--uk-error, #ef4444)'
         : status === 'uploading'
-          ? 'var(--uk-accent, #6366f1)'
+          ? 'var(--uk-primary, #6366f1)'
           : 'var(--uk-text-secondary, #71717a)';
   return (
     <span
@@ -74,34 +73,31 @@ function StatusDot({ status }: { status: FileEntry['status'] }) {
         borderRadius: '50%',
         backgroundColor: color,
         flexShrink: 0,
-        marginTop: 1,
-        ...(status === 'uploading'
-          ? { boxShadow: `0 0 0 2px color-mix(in srgb, ${color} 30%, transparent)` }
-          : {}),
       }}
     />
   );
 }
 
-// Checkmark SVG for the wax seal
-const CheckIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 16 16"
-    fill="none"
-    aria-hidden="true"
-    style={{ display: 'block' }}
-  >
-    <path
-      d="M3.5 8.5L6.5 11.5L12.5 5"
-      stroke="white"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+// ---------------------------------------------------------------------------
+// SVG Envelope visual — simple flat illustration, no 3D transforms
+// ---------------------------------------------------------------------------
+
+// Dimensions: 280 x 180 viewBox
+const W = 280;
+const H = 180;
+const FOLD_Y = 70; // where the flap meets the body
+
+// Body: rectangle from fold line to bottom with rounded bottom corners
+const BODY_PATH = `M0,${FOLD_Y} L0,${H - 8} Q0,${H} 8,${H} L${W - 8},${H} Q${W},${H} ${W},${H - 8} L${W},${FOLD_Y} Z`;
+
+// Flap CLOSED: triangle from fold corners pointing DOWN into the body
+const FLAP_CLOSED = `M0,${FOLD_Y} L${W / 2},${FOLD_Y + 55} L${W},${FOLD_Y} Z`;
+
+// Flap OPEN: triangle from fold corners pointing UP above the envelope
+const FLAP_OPEN = `M0,${FOLD_Y} L${W / 2},${FOLD_Y - 58} L${W},${FOLD_Y} Z`;
+
+// Inner fold lines (V shape visible inside body when flap is open)
+const INNER_V = `M0,${FOLD_Y} L${W / 2},${FOLD_Y + 50} L${W},${FOLD_Y}`;
 
 // ---------------------------------------------------------------------------
 // Component
@@ -121,10 +117,7 @@ export const UploadEnvelope = forwardRef<HTMLDivElement, UploadEnvelopeProps>(
     const reduced = useReducedMotionSafe();
     const animated = m !== null && !reduced;
 
-    // -----------------------------------------------------------------------
-    // Upload logic
-    // -----------------------------------------------------------------------
-
+    // Upload logic — same as all multi-file components
     const processFiles = useCallback(
       async (incoming: File[]) => {
         const trimmed = maxFiles !== undefined ? incoming.slice(0, maxFiles) : incoming;
@@ -188,241 +181,55 @@ export const UploadEnvelope = forwardRef<HTMLDivElement, UploadEnvelopeProps>(
       inputRef.current?.click();
     }
 
-    // -----------------------------------------------------------------------
     // Derived state
-    // -----------------------------------------------------------------------
-
     const totalFiles = files.length;
-    const allDone = totalFiles > 0 && files.every((f) => f.status === 'success' || f.status === 'error');
     const allSuccess = totalFiles > 0 && files.every((f) => f.status === 'success');
     const isUploading = files.some((f) => f.status === 'uploading');
-
-    // Overall progress: average across all files
     const overallProgress =
       totalFiles > 0 ? Math.round(files.reduce((sum, f) => sum + f.progress, 0) / totalFiles) : 0;
 
-    // Flap is open when dragging, uploading, or done
-    const flapOpen = isDragging || isUploading || allDone;
+    // Flap opens when dragging or uploading
+    const flapOpen = isDragging || isUploading || (totalFiles > 0 && files.some((f) => f.status !== 'idle'));
 
-    // -----------------------------------------------------------------------
-    // Styles
-    // -----------------------------------------------------------------------
-
-    // Envelope container — perspective gives the 3D context for the flap
-    const containerStyle: React.CSSProperties = {
-      perspective: '800px',
-      width: 280,
-      height: 200,
-      position: 'relative',
-      cursor: 'pointer',
-      userSelect: 'none',
-      // Allow container to be an accessible button surface
-      outline: 'none',
-    };
-
-    // The sealed envelope body — bottom 60% of the container
-    const bodyStyle: React.CSSProperties = {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: '60%', // 120px of the 200px container
-      background: 'var(--uk-bg-secondary, #1c1c1e)',
-      border: '1px solid var(--uk-border, rgba(255,255,255,0.08))',
-      borderRadius: '0 0 8px 8px',
-      // Subtle inner shadow simulates envelope depth
-      boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.18)',
-      overflow: 'hidden',
-    };
-
-    // Progress fill — rises from bottom of the body
-    const progressFillStyle: React.CSSProperties = {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: `${overallProgress}%`,
-      background:
-        'linear-gradient(to top, color-mix(in srgb, var(--uk-accent, #6366f1) 30%, transparent), transparent)',
-      transition: animated ? undefined : 'height 0.3s ease',
-      pointerEvents: 'none',
-    };
-
-    // Envelope "inside" visible when flap is open — sits at the top of the body
-    const insideStyle: React.CSSProperties = {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      padding: '8px 12px',
-      fontSize: 11,
-      color: 'var(--uk-text-secondary, #71717a)',
-      letterSpacing: '0.02em',
-      // The inside content peeks out from under the flap
-      zIndex: 1,
-    };
-
-    // Flap wrapper — spans the top 40% of the container + overlaps the body
-    // by a few pixels to close the seam. transform-style: preserve-3d ensures
-    // the child clip-path element participates in the 3D stack.
-    const flapWrapperStyle: React.CSSProperties = {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      // 40% of 200px = 80px, + 4px overlap
-      height: 'calc(40% + 4px)',
-      transformOrigin: 'top center',
-      transformStyle: 'preserve-3d',
-      // When not animated (no Motion), use CSS transition
-      transition: animated ? undefined : 'transform 0.4s ease',
-      transform: flapOpen ? 'rotateX(180deg)' : 'rotateX(0deg)',
-      zIndex: 2,
-    };
-
-    // The visual flap — a rectangle whose bottom half is clipped to a triangle
-    // pointing downward (like a real envelope flap). The clip-path approach
-    // renders a clean hard edge without overflow: hidden cutting off the body.
-    const flapFaceStyle: React.CSSProperties = {
-      position: 'absolute',
-      inset: 0,
-      // Triangle shape: top-left → top-right → bottom-center
-      clipPath: 'polygon(0 0, 100% 0, 100% 40%, 50% 100%, 0 40%)',
-      background: 'var(--uk-bg-tertiary, #141416)',
-      // Hairline border on the visible edges via gradient overlay trick
-      // A real border can't follow a clip-path, so we use box-shadow carefully
-      // (it gets clipped too) — instead we use a pseudo-border via outline
-      // on the wrapper or accept the seamless look.
-    };
-
-    // Fold shadow line — the crease at the base of the flap
-    const foldLineStyle: React.CSSProperties = {
-      position: 'absolute',
-      bottom: -1,
-      left: 0,
-      right: 0,
-      height: 1,
-      background: 'var(--uk-border, rgba(255,255,255,0.08))',
-      zIndex: 3,
-    };
-
-    // Wax seal — centered on the flap fold line, appears when all uploads succeed
-    const waxSealStyle: React.CSSProperties = {
-      position: 'absolute',
-      // Center horizontally; align vertically to straddle the envelope fold
-      // The fold is at 40% height (80px from top of 200px container).
-      bottom: 'calc(60% - 16px)', // 16px = half of 32px seal diameter
-      left: '50%',
-      transform: 'translateX(-50%)',
-      width: 32,
-      height: 32,
-      borderRadius: '50%',
-      background: 'var(--uk-success, #22c55e)',
-      boxShadow: '0 0 0 3px var(--uk-bg-secondary, #1c1c1e), 0 0 0 4px var(--uk-success, #22c55e)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 4,
-      // CSS fallback scale when Motion not available
-      transition: animated ? undefined : 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease',
-      ...(animated
-        ? {} // Motion handles the transform
-        : {
-            opacity: allSuccess ? 1 : 0,
-            transform: `translateX(-50%) scale(${allSuccess ? 1 : 0})`,
-          }),
-    };
-
-    // Caption below the envelope
-    const captionStyle: React.CSSProperties = {
-      marginTop: 12,
-      fontSize: 12,
-      color: 'var(--uk-text-secondary, #71717a)',
-      textAlign: 'center',
-      letterSpacing: '0.01em',
-    };
-
-    // File list below envelope
-    const fileListStyle: React.CSSProperties = {
-      marginTop: 10,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 4,
-      width: 280,
-    };
-
-    const fileRowStyle: React.CSSProperties = {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      fontSize: 11,
-      color: 'var(--uk-text-primary, #fafafa)',
-      padding: '3px 0',
-    };
-
-    const fileNameStyle: React.CSSProperties = {
-      flex: '0 1 auto',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      maxWidth: 200,
-    };
-
-    const fileSizeStyle: React.CSSProperties = {
-      color: 'var(--uk-text-secondary, #71717a)',
-      flexShrink: 0,
-      marginLeft: 'auto',
-    };
-
-    // Focus ring for accessibility
-    const focusRingStyle: React.CSSProperties = {
-      position: 'absolute',
-      inset: -3,
-      borderRadius: 10,
-      border: '2px solid var(--uk-accent, #6366f1)',
-      opacity: 0,
-      pointerEvents: 'none',
-      transition: 'opacity 0.15s ease',
-    };
-
-    // -----------------------------------------------------------------------
     // Caption text
-    // -----------------------------------------------------------------------
-
     let caption: string;
     if (allSuccess) {
-      caption =
-        totalFiles === 1
-          ? '1 file uploaded'
-          : `${totalFiles} files uploaded`;
+      caption = totalFiles === 1 ? '1 file sent' : `${totalFiles} files sent`;
     } else if (isUploading) {
-      caption = `Uploading${totalFiles > 1 ? ` ${totalFiles} files` : ''}… ${overallProgress}%`;
+      caption = `Sending${totalFiles > 1 ? ` ${totalFiles} files` : ''}… ${overallProgress}%`;
     } else if (isDragging) {
-      caption = 'Drop to seal the envelope';
+      caption = 'Release to send';
     } else if (totalFiles > 0) {
       caption = `${totalFiles} file${totalFiles !== 1 ? 's' : ''} queued`;
     } else {
-      caption = children ? String(children) : 'Drop files into the envelope';
+      caption = children ? String(children) : 'Drop files to send';
     }
 
-    // -----------------------------------------------------------------------
-    // Render
-    // -----------------------------------------------------------------------
+    // Progress fill height inside body (from bottom of body to fold line)
+    const bodyHeight = H - FOLD_Y;
+    const fillHeight = (overallProgress / 100) * bodyHeight;
+
+    // Colors
+    const bodyFill = 'var(--uk-bg-secondary, #18181b)';
+    const flapFill = '#1e1e24';
+    const borderColor = isDragging
+      ? 'var(--uk-primary, #6366f1)'
+      : 'rgba(255,255,255,0.1)';
+    const accentColor = 'var(--uk-primary, #6366f1)';
 
     return (
       <div
-        style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}
+        style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
         className={mergeClass('uk-envelope', className)}
         data-uk-element="envelope"
       >
-        {/* Envelope 3D stage */}
+        {/* SVG Envelope */}
         <div
           ref={ref}
-          className="uk-envelope__stage"
-          style={containerStyle}
           role="button"
           tabIndex={0}
           aria-label={caption}
+          style={{ cursor: 'pointer', outline: 'none', width: W, height: H, position: 'relative' }}
           {...handlers}
           onClick={openPicker}
           onKeyDown={(e) => {
@@ -431,137 +238,191 @@ export const UploadEnvelope = forwardRef<HTMLDivElement, UploadEnvelopeProps>(
               openPicker();
             }
           }}
-          // Focus ring via CSS :focus-visible would require a stylesheet; we
-          // handle it inline with onFocus/onBlur toggling a ref's style.
-          onFocus={(e) => {
-            const ring = e.currentTarget.querySelector<HTMLElement>('.uk-envelope__focus-ring');
-            if (ring) ring.style.opacity = '1';
-          }}
-          onBlur={(e) => {
-            const ring = e.currentTarget.querySelector<HTMLElement>('.uk-envelope__focus-ring');
-            if (ring) ring.style.opacity = '0';
-          }}
         >
-          {/* Accessibility focus ring */}
-          <span className="uk-envelope__focus-ring" aria-hidden="true" style={focusRingStyle} />
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            width={W}
+            height={H}
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            style={{ display: 'block' }}
+          >
+            {/* Body */}
+            <path d={BODY_PATH} fill={bodyFill} stroke={borderColor} strokeWidth={1.2} />
 
-          {/* Envelope body — lower 60% */}
-          <div className="uk-envelope__body" style={bodyStyle}>
-            {/* Inside text — visible when flap is open */}
-            <div className="uk-envelope__inside" style={insideStyle} aria-hidden="true">
-              {isDragging && !totalFiles
-                ? 'Ready to receive'
-                : totalFiles > 0
-                  ? `${totalFiles} file${totalFiles !== 1 ? 's' : ''} ready`
-                  : null}
-            </div>
+            {/* Progress fill inside body — clip to body shape */}
+            <defs>
+              <clipPath id="uk-env-body-clip">
+                <path d={BODY_PATH} />
+              </clipPath>
+            </defs>
+            <rect
+              x={0}
+              y={H - fillHeight}
+              width={W}
+              height={fillHeight}
+              fill={accentColor}
+              opacity={0.15}
+              clipPath="url(#uk-env-body-clip)"
+              style={{ transition: 'y 0.3s ease, height 0.3s ease' }}
+            />
 
-            {/* Progress fill — rises from the bottom */}
-            {animated ? (
-              <m.motion.div
-                className="uk-envelope__progress-fill"
-                style={{ ...progressFillStyle, height: undefined }}
-                animate={{ height: `${overallProgress}%` }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-                aria-hidden="true"
-              />
-            ) : (
-              <div
-                className="uk-envelope__progress-fill"
-                style={progressFillStyle}
-                aria-hidden="true"
-              />
+            {/* Inner V fold lines */}
+            <path
+              d={INNER_V}
+              stroke={borderColor}
+              strokeWidth={0.8}
+              opacity={0.5}
+            />
+
+            {/* Center content — upload icon or progress text */}
+            {!isUploading && !allSuccess && totalFiles === 0 && (
+              <g transform={`translate(${W / 2}, ${FOLD_Y + 48})`} opacity={0.4}>
+                <path
+                  d="M-8,4 L0,-4 L8,4 M0,-4 L0,10"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                  style={{ color: 'var(--uk-text, #fafafa)' }}
+                />
+              </g>
             )}
-          </div>
-
-          {/* Flap wrapper — top 40% + a small overlap, rotates open/closed */}
-          {animated ? (
-            <m.motion.div
-              className="uk-envelope__flap-wrapper"
-              style={{ ...flapWrapperStyle, transform: undefined }}
-              animate={{ rotateX: flapOpen ? 180 : 0 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              aria-hidden="true"
-            >
-              <div className="uk-envelope__flap-face" style={flapFaceStyle} />
-              {/* Fold crease line rendered on the back face (visible when flap is open) */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: 3,
-                  left: 0,
-                  right: 0,
-                  height: 1,
-                  background: 'var(--uk-border, rgba(255,255,255,0.08))',
-                }}
-              />
-            </m.motion.div>
-          ) : (
-            <div className="uk-envelope__flap-wrapper" style={flapWrapperStyle} aria-hidden="true">
-              <div className="uk-envelope__flap-face" style={flapFaceStyle} />
-              <div style={foldLineStyle} />
-            </div>
-          )}
-
-          {/* Wax seal — appears centered on the fold when all uploads succeed */}
-          {animated ? (
-            <m.motion.div
-              className="uk-envelope__wax-seal"
-              style={{ ...waxSealStyle, transform: undefined }}
-              initial={{ scale: 0, x: '-50%', opacity: 0 }}
-              animate={
-                allSuccess
-                  ? { scale: 1, x: '-50%', opacity: 1 }
-                  : { scale: 0, x: '-50%', opacity: 0 }
-              }
-              transition={{ type: 'spring', stiffness: 400, damping: 18 }}
-              aria-label="Upload complete"
-            >
-              <CheckIcon />
-            </m.motion.div>
-          ) : (
-            allSuccess && (
-              <div
-                className="uk-envelope__wax-seal"
-                style={waxSealStyle}
-                role="img"
-                aria-label="Upload complete"
+            {isUploading && (
+              <text
+                x={W / 2}
+                y={FOLD_Y + 52}
+                textAnchor="middle"
+                fill="var(--uk-text, #fafafa)"
+                fontSize={16}
+                fontWeight={600}
+                fontFamily="var(--uk-font, system-ui)"
+                style={{ fontVariantNumeric: 'tabular-nums' }}
               >
-                <CheckIcon />
-              </div>
-            )
+                {overallProgress}%
+              </text>
+            )}
+
+            {/* Flap — switches between closed (pointing down) and open (pointing up) */}
+            <path
+              d={flapOpen ? FLAP_OPEN : FLAP_CLOSED}
+              fill={flapFill}
+              stroke={borderColor}
+              strokeWidth={1.2}
+              style={{ transition: 'd 0.4s ease' }}
+            />
+
+            {/* Fold line (horizontal, on top of everything) */}
+            <line
+              x1={0}
+              y1={FOLD_Y}
+              x2={W}
+              y2={FOLD_Y}
+              stroke={borderColor}
+              strokeWidth={1}
+            />
+          </svg>
+
+          {/* Wax seal — HTML element positioned on top of the SVG */}
+          {allSuccess && (
+            <div
+              style={{
+                position: 'absolute',
+                top: FOLD_Y - 18,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                background: 'var(--uk-success, #22c55e)',
+                boxShadow: '0 0 0 3px var(--uk-bg, #0a0a0b), 0 0 0 5px var(--uk-success, #22c55e), 0 4px 12px rgba(0,0,0,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 5,
+              }}
+              aria-label="All files sent"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path
+                  d="M4 9.5L7.5 13L14 5.5"
+                  stroke="white"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
           )}
         </div>
 
         {/* Caption */}
-        <p className="uk-envelope__caption" style={captionStyle} aria-live="polite">
+        <p
+          style={{
+            margin: 0,
+            fontSize: 13,
+            fontWeight: 500,
+            color: 'var(--uk-text-secondary, #71717a)',
+            textAlign: 'center',
+            letterSpacing: '0.01em',
+          }}
+          aria-live="polite"
+        >
           {caption}
         </p>
 
         {/* File list */}
         {files.length > 0 && (
           <ul
-            className="uk-envelope__file-list"
-            style={fileListStyle}
+            style={{
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              width: W,
+            }}
             aria-label="Queued files"
             role="list"
           >
             {files.map((f) => (
-              <li key={f.id} className="uk-envelope__file-row" style={{ ...fileRowStyle, listStyle: 'none' }}>
+              <li
+                key={f.id}
+                style={{
+                  listStyle: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 11,
+                  color: 'var(--uk-text, #fafafa)',
+                  padding: '3px 0',
+                }}
+              >
                 <StatusDot status={f.status} />
-                <span style={fileNameStyle} title={f.file.name}>
+                <span
+                  style={{
+                    flex: '0 1 auto',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: 200,
+                  }}
+                  title={f.file.name}
+                >
                   {f.file.name}
                 </span>
-                {f.error ? (
-                  <span
-                    style={{ ...fileSizeStyle, color: 'var(--uk-error, #ef4444)', fontSize: 10 }}
-                    title={f.error.message}
-                  >
-                    failed
-                  </span>
-                ) : (
-                  <span style={fileSizeStyle}>{formatBytes(f.file.size)}</span>
-                )}
+                <span
+                  style={{
+                    color: f.error ? 'var(--uk-error, #ef4444)' : 'var(--uk-text-secondary, #71717a)',
+                    flexShrink: 0,
+                    marginLeft: 'auto',
+                    fontSize: 10,
+                  }}
+                >
+                  {f.error ? 'failed' : formatBytes(f.file.size)}
+                </span>
               </li>
             ))}
           </ul>

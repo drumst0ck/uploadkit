@@ -36,8 +36,6 @@ export type UploadNotificationPanelProps = {
   onUploadError?: (error: Error) => void;
   /** Additional CSS class(es) for the panel wrapper */
   className?: string;
-  /** Panel anchor corner. Default: 'bottom-right' */
-  position?: 'bottom-right' | 'bottom-left';
 };
 
 /** Imperative handle — allows parent components to programmatically enqueue files */
@@ -93,25 +91,6 @@ function IconCheck({ size = 14 }: { size?: number }) {
   );
 }
 
-function IconChevronDown({ size = 16 }: { size?: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  );
-}
-
 function IconPlus({ size = 14 }: { size?: number }) {
   return (
     <svg
@@ -149,47 +128,6 @@ function IconUploadCloud({ size = 28 }: { size?: number }) {
       <polyline points="16 16 12 12 8 16" />
       <line x1="12" y1="12" x2="12" y2="21" />
       <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
-    </svg>
-  );
-}
-
-// ─── Circular progress ring for collapsed pill ────────────────────────────────
-
-function CircularProgress({ percent, size = 20 }: { percent: number; size?: number }) {
-  const radius = (size - 4) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percent / 100) * circumference;
-
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      aria-hidden="true"
-      style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}
-    >
-      {/* Track */}
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke="var(--uk-border)"
-        strokeWidth="2"
-      />
-      {/* Fill */}
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke="var(--uk-accent, #6366f1)"
-        strokeWidth="2"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        style={{ transition: 'stroke-dashoffset 0.3s ease' }}
-      />
     </svg>
   );
 }
@@ -429,18 +367,18 @@ function FileRow({ entry, onCancel, onDismiss, motion: m, reduceMotion }: FileRo
 // ─── Main component ───────────────────────────────────────────────────────────
 
 /**
- * UploadNotificationPanel — a floating, collapsible upload manager panel
- * inspired by Google Drive / macOS Finder background-upload notifications.
+ * UploadNotificationPanel — an inline upload manager panel that sits in the
+ * document flow inside its parent container.
  *
  * Architecture:
- *  - Positioned fixed in a corner of the viewport (default: bottom-right).
- *  - Collapsed state: pill showing active upload count + aggregate circular progress.
- *  - Expanded state: card with per-file rows, add button, and collapse toggle.
+ *  - Renders inline (position: relative) at 320px wide — no fixed positioning.
+ *    This makes it work correctly inside doc previews, landing showcases, etc.
+ *  - Always visible: when there are no files, shows a compact empty-state drop zone.
  *  - Accepts files via drag-and-drop OR the "+" file picker button.
  *  - Exposes `addFiles(files: File[])` via useImperativeHandle for programmatic use.
  *  - Concurrent uploads: max 3 in-flight at a time (same pattern as UploadDropzone).
  *  - Completed files auto-dismiss after 3 s.
- *  - Motion (optional peer dep): expand/collapse height + file row slide-from-right.
+ *  - Motion (optional peer dep): file row slide-from-right animation.
  */
 export const UploadNotificationPanel = forwardRef<
   UploadNotificationPanelHandle,
@@ -456,14 +394,12 @@ export const UploadNotificationPanel = forwardRef<
       onUploadComplete,
       onUploadError,
       className,
-      position = 'bottom-right',
     },
     ref,
   ) => {
     const { client } = useUploadKitContext();
     const inputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<FileEntry[]>([]);
-    const [isExpanded, setIsExpanded] = useState(false);
 
     const m = useOptionalMotion();
     const reduceMotion = useReducedMotionSafe();
@@ -585,8 +521,6 @@ export const UploadNotificationPanel = forwardRef<
 
         if (accepted.length === 0) return;
 
-        // Auto-expand panel when files are added
-        setIsExpanded(true);
         setFiles((prev) => [...prev, ...accepted]);
 
         await runBatchUploads(accepted);
@@ -635,64 +569,63 @@ export const UploadNotificationPanel = forwardRef<
       e.target.value = '';
     }
 
-    // ── Derived state for collapsed pill ──────────────────────────────────────
-
-    const uploadingFiles = files.filter((f) => f.status === 'uploading');
-    const activeCount = uploadingFiles.length;
-    const aggregateProgress =
-      activeCount > 0
-        ? Math.round(uploadingFiles.reduce((sum, f) => sum + f.progress, 0) / activeCount)
-        : 0;
-
-    // Hide panel entirely when there are no files and not dragging
-    if (files.length === 0 && !isDragging) return null;
-
-    // ── Position styles ───────────────────────────────────────────────────────
-
-    const positionStyle: React.CSSProperties =
-      position === 'bottom-left'
-        ? { bottom: '16px', left: '16px' }
-        : { bottom: '16px', right: '16px' };
-
-    // ── Expand/collapse content (with optional Motion) ────────────────────────
+    // ── Motion helpers ────────────────────────────────────────────────────────
 
     const AnimatePresence = m?.AnimatePresence ?? null;
     const MDiv = m?.motion?.div ?? null;
 
-    const expandedContent = (
+    // ── Render ────────────────────────────────────────────────────────────────
+
+    return (
       <div
-        className="uk-notification-panel__card"
+        className={mergeClass('uk-notification-panel', className)}
+        data-uk-element="notification-panel"
+        // Drag-and-drop applied to the whole wrapper so dropping anywhere on the panel works
+        {...dragHandlers}
         style={{
-          background: 'var(--uk-bg)',
-          border: '1px solid var(--uk-border)',
-          borderRadius: '12px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-          overflow: 'hidden',
-          width: '100%',
+          // Inline positioning — sits in document flow inside the parent container.
+          // Use position: relative so the DragOverlay (absolute) is clipped correctly.
+          position: 'relative',
+          display: 'inline-block',
+          width: '320px',
         }}
       >
-        {/* Card header */}
+        {/* Card — always visible */}
         <div
-          className="uk-notification-panel__header"
+          className="uk-notification-panel__card"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '10px 12px',
-            borderBottom: '1px solid var(--uk-border)',
+            background: 'var(--uk-bg)',
+            border: '1px solid var(--uk-border)',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            overflow: 'hidden',
+            width: '100%',
+            // Relative so DragOverlay can be positioned inside
+            position: 'relative',
           }}
         >
-          <span
+          {/* Card header */}
+          <div
+            className="uk-notification-panel__header"
             style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: 'var(--uk-text)',
-              letterSpacing: '-0.01em',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 12px',
+              borderBottom: '1px solid var(--uk-border)',
             }}
           >
-            Uploads
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span
+              style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                color: 'var(--uk-text)',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Uploads
+            </span>
+
             {/* Add files button */}
             <button
               type="button"
@@ -715,170 +648,74 @@ export const UploadNotificationPanel = forwardRef<
             >
               <IconPlus size={12} />
             </button>
-
-            {/* Collapse button */}
-            <button
-              type="button"
-              onClick={() => setIsExpanded(false)}
-              aria-label="Collapse upload panel"
-              aria-expanded="true"
-              className="uk-notification-panel__collapse-btn"
-              style={{
-                background: 'none',
-                border: '1px solid var(--uk-border)',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                color: 'var(--uk-text-secondary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '24px',
-                height: '24px',
-                transition: 'color 0.15s ease, border-color 0.15s ease',
-              }}
-            >
-              <IconChevronDown size={14} />
-            </button>
           </div>
-        </div>
 
-        {/* File rows */}
-        <div
-          className="uk-notification-panel__file-list"
-          style={{ maxHeight: '240px', overflowY: 'auto' }}
-          role="list"
-          aria-label="Upload queue"
-          aria-live="polite"
-        >
-          {files.length === 0 ? (
-            <div
-              style={{
-                padding: '20px 12px',
-                textAlign: 'center',
-                color: 'var(--uk-text-secondary)',
-                fontSize: '12px',
-              }}
-            >
-              Drop files here or click + to add
-            </div>
-          ) : AnimatePresence && MDiv && !reduceMotion ? (
-            <AnimatePresence initial={false}>
-              {files.map((entry) => (
+          {/* File list — empty state when no files queued */}
+          <div
+            className="uk-notification-panel__file-list"
+            style={{ maxHeight: '240px', overflowY: 'auto' }}
+            role="list"
+            aria-label="Upload queue"
+            aria-live="polite"
+          >
+            {files.length === 0 ? (
+              // Empty state — always shown when there are no files
+              <div
+                className="uk-notification-panel__empty-state"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '28px 16px',
+                  color: 'var(--uk-text-secondary)',
+                  textAlign: 'center',
+                }}
+              >
+                <span style={{ opacity: 0.4 }}>
+                  <IconUploadCloud size={28} />
+                </span>
+                <span
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: 'var(--uk-text-secondary)',
+                  }}
+                >
+                  Drop files here or click + to add
+                </span>
+              </div>
+            ) : AnimatePresence && MDiv && !reduceMotion ? (
+              <AnimatePresence initial={false}>
+                {files.map((entry) => (
+                  <FileRow
+                    key={entry.id}
+                    entry={entry}
+                    onCancel={cancelFile}
+                    onDismiss={dismissFile}
+                    motion={m}
+                    reduceMotion={reduceMotion}
+                  />
+                ))}
+              </AnimatePresence>
+            ) : (
+              files.map((entry) => (
                 <FileRow
                   key={entry.id}
                   entry={entry}
                   onCancel={cancelFile}
                   onDismiss={dismissFile}
-                  motion={m}
-                  reduceMotion={reduceMotion}
+                  motion={null}
+                  reduceMotion={true}
                 />
-              ))}
-            </AnimatePresence>
-          ) : (
-            files.map((entry) => (
-              <FileRow
-                key={entry.id}
-                entry={entry}
-                onCancel={cancelFile}
-                onDismiss={dismissFile}
-                motion={null}
-                reduceMotion={true}
-              />
-            ))
-          )}
+              ))
+            )}
+          </div>
+
+          {/* Drag-over overlay rendered inside the card */}
+          <DragOverlay visible={isDragging} />
         </div>
-
-        {/* Drag-over overlay rendered inside the card */}
-        <DragOverlay visible={isDragging} />
-      </div>
-    );
-
-    const collapsedPill = (
-      <button
-        type="button"
-        className="uk-notification-panel__pill"
-        onClick={() => setIsExpanded(true)}
-        aria-label={`${activeCount} upload${activeCount !== 1 ? 's' : ''} in progress — click to expand`}
-        aria-expanded="false"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'var(--uk-bg-secondary)',
-          border: '1px solid var(--uk-border)',
-          borderRadius: '999px',
-          padding: '8px 16px',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          cursor: 'pointer',
-          color: 'var(--uk-text)',
-          fontSize: '13px',
-          fontWeight: 500,
-          whiteSpace: 'nowrap',
-          transition: 'border-color 0.15s ease',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-        }}
-      >
-        <CircularProgress percent={aggregateProgress} size={20} />
-        <span>
-          {activeCount > 0
-            ? `${activeCount} upload${activeCount !== 1 ? 's' : ''} in progress`
-            : `${files.length} file${files.length !== 1 ? 's' : ''} queued`}
-        </span>
-      </button>
-    );
-
-    // ── Render ────────────────────────────────────────────────────────────────
-
-    return (
-      <div
-        className={mergeClass('uk-notification-panel', className)}
-        data-uk-element="notification-panel"
-        data-position={position}
-        data-expanded={isExpanded ? 'true' : 'false'}
-        // Drag-and-drop applied to the whole wrapper so dropping anywhere on the panel works
-        {...dragHandlers}
-        style={{
-          position: 'fixed',
-          ...positionStyle,
-          zIndex: 9999,
-          width: '320px',
-          // Relative so the DragOverlay can be positioned inside the card
-          // (DragOverlay uses absolute; we need the card to be relative — it is)
-        }}
-      >
-        {isExpanded ? (
-          // Expanded card — optionally animated
-          MDiv && !reduceMotion ? (
-            <MDiv
-              key="panel-expanded"
-              initial={{ opacity: 0, y: 12, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.96 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              style={{ position: 'relative' }}
-            >
-              {expandedContent}
-            </MDiv>
-          ) : (
-            <div style={{ position: 'relative' }}>{expandedContent}</div>
-          )
-        ) : (
-          // Collapsed pill — optionally animated
-          MDiv && !reduceMotion ? (
-            <MDiv
-              key="panel-collapsed"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              {collapsedPill}
-            </MDiv>
-          ) : (
-            collapsedPill
-          )
-        )}
 
         {/* Hidden file input for the "+" picker button */}
         <input
