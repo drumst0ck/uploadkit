@@ -243,10 +243,7 @@ export const UploadStickyBoard = forwardRef<HTMLDivElement, UploadStickyBoardPro
         background: entry.color,
         // Fold in top-right corner: gradient triangle creates the effect without
         // pseudo-elements (which aren't possible in inline styles).
-        backgroundImage: [
-          boardBg,
-          `linear-gradient(225deg, ${foldColor} 0px, ${foldColor} 6px, transparent 6px)`,
-        ].join(', '),
+        backgroundImage: `linear-gradient(225deg, ${foldColor} 0px, ${foldColor} 6px, transparent 6px)`,
         boxShadow: '2px 2px 6px rgba(0,0,0,0.15)',
         borderRadius: 2,
         fontFamily: "'Caveat', cursive, sans-serif",
@@ -261,9 +258,8 @@ export const UploadStickyBoard = forwardRef<HTMLDivElement, UploadStickyBoardPro
         flexShrink: 0,
       };
 
-      const hoverStyle: React.CSSProperties = {
-        ...noteStyle,
-        transform: `rotate(${entry.rotation}deg) translateY(-2px)`,
+      const hoverMotion = {
+        y: -2,
         boxShadow: '4px 6px 14px rgba(0,0,0,0.22)',
       };
 
@@ -355,7 +351,7 @@ export const UploadStickyBoard = forwardRef<HTMLDivElement, UploadStickyBoardPro
             animate={{ opacity: 1, scale: 1, rotate: entry.rotation }}
             exit={{ opacity: 0, scale: 0.4, rotate: entry.rotation + 8 }}
             transition={{ type: 'spring', stiffness: 340, damping: 22 }}
-            whileHover={hoverStyle}
+            whileHover={hoverMotion}
             {...commonProps}
           >
             {noteContent}

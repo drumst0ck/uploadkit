@@ -335,9 +335,9 @@ export const UploadSourceTabs = forwardRef<HTMLDivElement, UploadSourceTabsProps
     // ── Shared styles ──────────────────────────────────────────────────────
 
     const containerStyle: React.CSSProperties = {
-      border: '1px solid var(--uk-border)',
+      border: '1px solid var(--uk-border, rgba(255,255,255,0.08))',
       borderRadius: '12px',
-      background: 'var(--uk-bg)',
+      background: 'var(--uk-bg, #0a0a0b)',
       overflow: 'hidden',
       width: '100%',
       maxWidth: '400px',
@@ -348,8 +348,8 @@ export const UploadSourceTabs = forwardRef<HTMLDivElement, UploadSourceTabsProps
     const tabBarStyle: React.CSSProperties = {
       display: 'flex',
       flexDirection: 'row',
-      borderBottom: '1px solid var(--uk-border)',
-      background: 'var(--uk-bg-secondary, var(--uk-bg))',
+      borderBottom: '1px solid var(--uk-border, rgba(255,255,255,0.08))',
+      background: 'var(--uk-bg-secondary, #141416)',
       position: 'relative',
     };
 
@@ -366,14 +366,14 @@ export const UploadSourceTabs = forwardRef<HTMLDivElement, UploadSourceTabsProps
       left: 0,
       right: 0,
       height: '3px',
-      background: 'var(--uk-border)',
+      background: 'var(--uk-border, rgba(255,255,255,0.08))',
       overflow: 'hidden',
     };
 
     const progressBarFillStyle: React.CSSProperties = {
       height: '100%',
       width: `${progress}%`,
-      background: 'var(--uk-primary)',
+      background: 'var(--uk-primary, #6366f1)',
       transition: 'width 200ms ease-out',
       borderRadius: '0 2px 2px 0',
     };
@@ -393,10 +393,10 @@ export const UploadSourceTabs = forwardRef<HTMLDivElement, UploadSourceTabsProps
         outline: 'none',
         position: 'relative',
         // Active state: color + border-bottom indicator
-        color: isActive ? 'var(--uk-primary)' : 'var(--uk-text-secondary)',
+        color: isActive ? 'var(--uk-primary, #6366f1)' : 'var(--uk-text-secondary, #a1a1aa)',
         // Static fallback indicator (shown when motion not available)
         borderBottom: !canAnimate && isActive
-          ? '2px solid var(--uk-primary)'
+          ? '2px solid var(--uk-primary, #6366f1)'
           : '2px solid transparent',
         // Offset so the active border sits on top of the tab bar's bottom border
         marginBottom: '-1px',

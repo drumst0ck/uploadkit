@@ -437,7 +437,7 @@ export const UploadKanban = forwardRef<HTMLDivElement, UploadKanbanProps>(
         fontWeight: 600,
         color: count > 0 ? 'var(--uk-text-primary, #fafafa)' : 'var(--uk-text-secondary, #71717a)',
         background: count > 0
-          ? 'var(--uk-bg, rgba(255,255,255,0.06))'
+          ? 'rgba(255,255,255,0.08)'
           : 'transparent',
         border: '1px solid var(--uk-border, rgba(255,255,255,0.06))',
         borderRadius: 4,
