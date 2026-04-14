@@ -1,6 +1,6 @@
 {
   "name": "@uploadkitdev/mcp",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "mcpName": "io.github.drumst0ck/uploadkit",
   "description": "Model Context Protocol server for UploadKit — gives AI coding assistants (Claude Code, Cursor, Windsurf) full knowledge of the UploadKit SDK, its 40+ components, route handlers, and BYOS setup.",
   "license": "MIT",

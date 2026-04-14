@@ -1,5 +1,11 @@
 # @uploadkitdev/mcp
 
+## 0.5.2
+
+### Patch Changes
+
+- Improve tool definition quality for Glama's TDQS evaluation. Every tool description now explicitly covers purpose, when-to-use triggers, side-effect stance (all read-only / idempotent), and return shape. Every parameter documents its type, format, allowed values, default, and realistic examples.
+
 ## 0.5.1
 
 ### Patch Changes
