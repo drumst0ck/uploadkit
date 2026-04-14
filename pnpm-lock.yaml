@@ -554,6 +554,28 @@ importers:
         specifier: latest
         version: 6.0.2
 
+  packages/mcp-core:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: latest
+        version: 1.29.0(zod@4.3.6)
+      zod:
+        specifier: latest
+        version: 4.3.6
+    devDependencies:
+      '@types/node':
+        specifier: latest
+        version: 25.6.0
+      '@uploadkitdev/config':
+        specifier: workspace:*
+        version: link:../config
+      tsup:
+        specifier: latest
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@6.0.2)
+      typescript:
+        specifier: latest
+        version: 6.0.2
+
   packages/next:
     dependencies:
       '@aws-sdk/client-s3':
