@@ -4,6 +4,11 @@ description: UploadKit is a file upload service for developers. Add beautiful, t
 ---
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
+import { Callout } from 'fumadocs-ui/components/callout';
+
+<Callout title="New: UploadKit MCP server">
+  Give Claude Code, Cursor, Windsurf, or Zed first-class knowledge of every UploadKit component and scaffold. Install with `npx -y @uploadkitdev/mcp` — no API key required. [Setup guide →](/docs/guides/mcp)
+</Callout>
 
 ## What is UploadKit?
 
@@ -19,6 +24,7 @@ You get managed cloud storage powered by Cloudflare R2, a global CDN, an open-so
 - **End-to-end type safety** — Define file routes once in TypeScript; the client and server stay in sync automatically.
 - **Direct uploads** — Files go straight from the browser to storage via presigned URLs. No server bottleneck.
 - **Dashboard** — Manage projects, browse files, create API keys, and track usage in one place.
+- **AI-assistant ready** — Official MCP server exposes UploadKit's 40+ components and scaffolds to Claude Code, Cursor, Windsurf, and Zed. See [`@uploadkitdev/mcp`](/docs/guides/mcp).
 
 ## Quick Links
 
@@ -42,5 +48,10 @@ You get managed cloud storage powered by Cloudflare R2, a global CDN, an open-so
     href="/docs/guides/image-upload"
     title="Guides"
     description="Step-by-step guides for common upload scenarios."
+  />
+  <Card
+    href="/docs/guides/mcp"
+    title="AI Assistants (MCP)"
+    description="Let Claude Code, Cursor, Windsurf, and Zed generate UploadKit code with first-class knowledge of every component."
   />
 </Cards>
