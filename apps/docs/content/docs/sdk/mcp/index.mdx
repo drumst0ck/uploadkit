@@ -1,0 +1,247 @@
+---
+title: '@uploadkitdev/mcp'
+description: Reference for the UploadKit MCP server — stdio and remote HTTP transports, 11 tools exposed to AI assistants, resources, and protocol details.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+`@uploadkitdev/mcp` is the official [Model Context Protocol](https://modelcontextprotocol.io) server for UploadKit. Once connected to an MCP-aware AI assistant, it exposes UploadKit's component catalog, scaffolds, and full docs as queryable tools.
+
+**For an end-to-end setup walkthrough, see the [MCP guide](/docs/guides/mcp).** This page is the formal reference for what the server exposes over the wire.
+
+## Transports
+
+| Transport | Endpoint | Session | Recommended for |
+|-----------|----------|---------|-----------------|
+| stdio | spawned via `npx -y @uploadkitdev/mcp` | stateless | Claude Code, Cursor, Windsurf, Zed, Continue, CI |
+| Streamable HTTP | `POST https://api.uploadkit.dev/api/v1/mcp` | stateless (`sessionIdGenerator: undefined`) | ChatGPT custom connectors, Claude.ai web, Smithery, any remote MCP host |
+
+Both transports serve identical `serverInfo`, tools, and resources — the protocol surface is the same.
+
+### `serverInfo`
+
+```json
+{
+  "name": "uploadkit",
+  "version": "0.x.y",
+  "protocolVersion": "2024-11-05",
+  "capabilities": {
+    "tools": {},
+    "resources": {}
+  }
+}
+```
+
+### Health check (HTTP only)
+
+```
+GET https://api.uploadkit.dev/api/v1/mcp/health
+```
+
+Returns:
+
+```json
+{ "status": "ok", "version": "0.5.2", "tools": 11 }
+```
+
+---
+
+## Tools
+
+Every tool is **read-only** and **idempotent**. None require authentication or write to external state.
+
+| Tool | Purpose |
+|------|---------|
+| [`list_components`](#list_components) | List every UploadKit React component, optionally filtered by category |
+| [`get_component`](#get_component) | Full metadata + usage example for one component |
+| [`search_components`](#search_components) | Fuzzy keyword search across the component catalog |
+| [`get_install_command`](#get_install_command) | Correct install command for pnpm / npm / yarn / bun |
+| [`scaffold_route_handler`](#scaffold_route_handler) | Generate `app/api/uploadkit/[...uploadkit]/route.ts` |
+| [`scaffold_provider`](#scaffold_provider) | Snippet wiring `<UploadKitProvider>` into `layout.tsx` |
+| [`get_byos_config`](#get_byos_config) | Env + handler config for S3 / R2 / GCS / B2 |
+| [`get_quickstart`](#get_quickstart) | End-to-end Next.js quickstart walkthrough |
+| [`search_docs`](#search_docs) | Full-text search across 88+ docs pages |
+| [`get_doc`](#get_doc) | Full markdown content of one docs page |
+| [`list_docs`](#list_docs) | Enumerate all docs pages |
+
+---
+
+### `list_components`
+
+List every React upload component with name, category, description, and design inspiration.
+
+**Input:**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `category` | `'classic' \| 'dropzone' \| 'button' \| 'progress' \| 'motion' \| 'specialty' \| 'gallery'` | No | Narrow to one category. Omit for all. |
+
+**Returns:** `{ count: number, components: Array<{ name, category, description, inspiration }> }`
+
+---
+
+### `get_component`
+
+Fetch full metadata and a ready-to-paste TSX usage example for one component.
+
+**Input:**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | Yes | Exact PascalCase component name. Case-sensitive. |
+
+**Returns:** `{ name, category, description, inspiration, usage }`, or a not-found message with the 5 closest matches.
+
+---
+
+### `search_components`
+
+Fuzzy search across the component catalog by keyword, inspiration, or use case.
+
+**Input:**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `query` | `string` | Yes | Free-text query. Case-insensitive substring match. |
+
+**Returns:** `{ query, count, matches: Array<{ name, category, description, inspiration }> }`
+
+---
+
+### `get_install_command`
+
+Return the install command for a given package manager.
+
+**Input:**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `packageManager` | `'pnpm' \| 'npm' \| 'yarn' \| 'bun'` | No | Default: `'pnpm'`. |
+| `packages` | `string[]` | No | Default: `['@uploadkitdev/react', '@uploadkitdev/next']`. |
+
+**Returns:** a single-line shell command string.
+
+---
+
+### `scaffold_route_handler`
+
+Generate the TypeScript source for a Next.js App Router upload route handler with a typed file router.
+
+**Input:**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `routeName` | `string` | Yes | File router key (what consumers pass as the `route` prop). |
+| `maxFileSize` | `string` | No | e.g. `'4MB'`, `'1GB'`. Default: `'4MB'`. |
+| `allowedTypes` | `string[]` | No | MIME types. Default: `['image/*']`. |
+| `maxFileCount` | `number` | No | Default: `1`. |
+
+**Returns:** markdown with the target path and a fenced TypeScript block containing the complete file.
+
+---
+
+### `scaffold_provider`
+
+Return the JSX snippet that wraps the Next.js root layout with `<UploadKitProvider>`.
+
+**Input:** none.
+
+**Returns:** explanatory note + fenced tsx code block for `app/layout.tsx`.
+
+---
+
+### `get_byos_config`
+
+Generate Bring-Your-Own-Storage configuration for a specific provider.
+
+**Input:**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `provider` | `'s3' \| 'r2' \| 'gcs' \| 'b2'` | Yes | Storage backend. |
+
+**Returns:** provider-specific notes, `.env` variables, and the handler code as plain text.
+
+---
+
+### `get_quickstart`
+
+Return the complete Next.js quickstart guide.
+
+**Input:** none.
+
+**Returns:** markdown document covering install, env, handler, provider, first component, and optional BYOS.
+
+---
+
+### `search_docs`
+
+Full-text keyword search across every docs page (bundled index, no network call).
+
+**Input:**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `query` | `string` | Yes | Free-text query. Multi-word AND with per-field weighting. |
+| `limit` | `number` | No | Max results. Default: `8`. Range: 1-50. |
+
+**Returns:** `{ query, count, indexGeneratedAt, matches: Array<{ path, url, title, description, snippet, score }> }` sorted by score desc.
+
+---
+
+### `get_doc`
+
+Return the full markdown content of one docs page.
+
+**Input:**
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `path` | `string` | Yes | Page path relative to `/docs`, without leading slash or `.mdx` (e.g. `'core-concepts/byos'`). |
+
+**Returns:** formatted text — title, description, source URL, and body markdown.
+
+---
+
+### `list_docs`
+
+Enumerate every docs page.
+
+**Input:** none.
+
+**Returns:** `{ count, generatedAt, pages: Array<{ path, url, title, description }> }` sorted alphabetically.
+
+---
+
+## Resources
+
+| URI | Description |
+|-----|-------------|
+| `uploadkit://catalog` | JSON catalog of every component (same data served by `list_components`) |
+| `uploadkit://quickstart` | Markdown quickstart (same as `get_quickstart`) |
+| `uploadkit://docs` | JSON index of every docs page |
+
+Resources are readable via the MCP `resources/list` and `resources/read` methods.
+
+---
+
+## Protocol details
+
+- **MCP spec version:** `2024-11-05`
+- **Transport versions supported:** stdio, Streamable HTTP (2025-03-26 spec)
+- **Session mode:** stateless — server generates no `Mcp-Session-Id` and does not require clients to echo one
+- **CORS (HTTP only):** `*` for `Access-Control-Allow-Origin` (read-only tools, no credentials). Exposed headers: `Mcp-Session-Id`, `MCP-Protocol-Version`
+- **Runtime (HTTP only):** Node.js 18+ (not Edge)
+
+<Callout type="info">
+  The HTTP endpoint lives at `api.uploadkit.dev/api/v1/mcp` — the same origin as the UploadKit REST API. Despite the shared origin, the MCP endpoint performs zero database lookups, zero auth checks, and has no tools that read user-scoped data. It is a pure catalog + docs surface.
+</Callout>
+
+## Links
+
+- **npm:** [@uploadkitdev/mcp](https://www.npmjs.com/package/@uploadkitdev/mcp)
+- **Source:** [github.com/drumst0ck/uploadkit/tree/master/packages/mcp](https://github.com/drumst0ck/uploadkit/tree/master/packages/mcp)
+- **Changelog:** [packages/mcp/CHANGELOG.md](https://github.com/drumst0ck/uploadkit/blob/master/packages/mcp/CHANGELOG.md)
+- **Official MCP Registry:** `io.github.drumst0ck/uploadkit` on [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io)
+- **Glama:** [glama.ai/mcp/servers/drumst0ck/uploadkit](https://glama.ai/mcp/servers/drumst0ck/uploadkit)
+- **Setup guide:** [/docs/guides/mcp](/docs/guides/mcp)

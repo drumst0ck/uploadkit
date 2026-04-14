@@ -32,6 +32,99 @@ export default function ChangelogPage() {
           <div className="container">
             <article className="changelog-entry">
               <div className="changelog-entry-meta">
+                <time className="changelog-date" dateTime="2026-04-14">
+                  April 14, 2026
+                </time>
+                <span className="changelog-version">v1.0.0</span>
+              </div>
+
+              <div className="changelog-entry-body">
+                <h2 className="changelog-entry-title">
+                  Official MCP server — stdio + remote HTTP
+                </h2>
+                <p className="changelog-entry-lead">
+                  UploadKit is now AI-native. Claude Code, Cursor, Windsurf,
+                  Zed, ChatGPT, and Claude.ai can generate UploadKit code with
+                  first-class knowledge of every component, scaffold, and docs
+                  page — no more hallucinated props or outdated snippets.
+                </p>
+
+                <h3 className="changelog-entry-subtitle">Two transports, one surface</h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    <strong>stdio</strong> — install in any MCP-aware IDE with{' '}
+                    <code>npx -y @uploadkitdev/mcp</code>. Runs locally, zero
+                    latency, works offline.
+                  </li>
+                  <li>
+                    <strong>Remote Streamable HTTP</strong> —{' '}
+                    <code>https://api.uploadkit.dev/api/v1/mcp</code>, stateless,
+                    public read-only, CORS-open. Paste into ChatGPT custom
+                    connectors or Claude.ai web.
+                  </li>
+                </ul>
+
+                <h3 className="changelog-entry-subtitle">11 tools, 88+ docs pages indexed</h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    Component discovery — <code>list_components</code>,{' '}
+                    <code>get_component</code>, <code>search_components</code>
+                  </li>
+                  <li>
+                    Scaffolding — <code>scaffold_route_handler</code>,{' '}
+                    <code>scaffold_provider</code>, <code>get_install_command</code>
+                  </li>
+                  <li>
+                    BYOS setup — <code>get_byos_config</code> for S3, R2, GCS,
+                    Backblaze B2
+                  </li>
+                  <li>
+                    Full docs search — <code>search_docs</code>,{' '}
+                    <code>get_doc</code>, <code>list_docs</code> (88+ pages
+                    indexed at build time)
+                  </li>
+                  <li>
+                    Onboarding — <code>get_quickstart</code> end-to-end Next.js
+                    setup
+                  </li>
+                </ul>
+
+                <h3 className="changelog-entry-subtitle">Published everywhere</h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    <a href="https://www.npmjs.com/package/@uploadkitdev/mcp">
+                      npm
+                    </a>{' '}
+                    — <code>@uploadkitdev/mcp</code>
+                  </li>
+                  <li>
+                    <a href="https://registry.modelcontextprotocol.io">
+                      Official MCP Registry
+                    </a>{' '}
+                    — <code>io.github.drumst0ck/uploadkit</code>
+                  </li>
+                  <li>
+                    <a href="https://glama.ai/mcp/servers/drumst0ck/uploadkit">
+                      Glama
+                    </a>{' '}
+                    — AAA score (security, license, quality)
+                  </li>
+                </ul>
+
+                <h3 className="changelog-entry-subtitle">Full guide</h3>
+                <p>
+                  See{' '}
+                  <a href="https://docs.uploadkit.dev/docs/guides/mcp">
+                    docs.uploadkit.dev/docs/guides/mcp
+                  </a>{' '}
+                  for setup instructions for every editor, curl smoke tests,
+                  Docker self-host, and the full tool reference.
+                </p>
+              </div>
+            </article>
+
+            <article className="changelog-entry">
+              <div className="changelog-entry-meta">
                 <time className="changelog-date" dateTime="2026-04-13">
                   April 13, 2026
                 </time>

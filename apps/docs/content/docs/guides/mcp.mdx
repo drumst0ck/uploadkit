@@ -6,6 +6,8 @@ description: Install the UploadKit MCP server so Claude Code, Cursor, Windsurf, 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
+[![npm version](https://img.shields.io/npm/v/@uploadkitdev/mcp?label=%40uploadkitdev%2Fmcp)](https://www.npmjs.com/package/@uploadkitdev/mcp) [![Glama score](https://glama.ai/mcp/servers/drumst0ck/uploadkit/badges/score.svg)](https://glama.ai/mcp/servers/drumst0ck/uploadkit) [![Official MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.drumst0ck%2Fuploadkit-6366f1)](https://registry.modelcontextprotocol.io)
+
 UploadKit ships an official **Model Context Protocol** server. Once you add it to your AI coding assistant, the assistant gains first-class knowledge of:
 
 - Every one of UploadKit's 40+ React components — names, categories, inspirations, ready-to-paste usage
@@ -151,6 +153,61 @@ https://smithery.ai/server/io.github.drumst0ck/uploadkit
   For IDE usage (Claude Code, Cursor, Windsurf, Zed, Continue), the stdio install (`npx -y @uploadkitdev/mcp`) documented above remains the recommended path — it runs locally, starts instantly, and requires no network.
 </Callout>
 
+### Test the remote endpoint
+
+Health check (should return `{"status":"ok","version":"0.5.2","tools":11}`):
+
+```bash
+curl https://api.uploadkit.dev/api/v1/mcp/health
+```
+
+Full inspection with the official MCP Inspector (browse tools + call them interactively in a web UI):
+
+```bash
+npx @modelcontextprotocol/inspector --transport streamable-http https://api.uploadkit.dev/api/v1/mcp
+```
+
+Raw JSON-RPC handshake (no client needed):
+
+```bash
+curl -X POST https://api.uploadkit.dev/api/v1/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "MCP-Protocol-Version: 2024-11-05" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
+```
+
+## Self-host with Docker
+
+The repository ships a minimal `Dockerfile` at the root that runs the stdio server inside a container. Most users never need this (the `npx` install is simpler), but it's useful for:
+
+- Containerized CI pipelines that invoke MCP tools
+- Corporate networks that can't reach `registry.npmjs.org` at runtime
+- Air-gapped developer environments
+
+```bash
+# Clone + build
+git clone https://github.com/drumst0ck/uploadkit.git
+cd uploadkit
+docker build -t uploadkit-mcp .
+
+# Run — the container speaks JSON-RPC on stdio
+docker run -i --rm uploadkit-mcp < request.json
+```
+
+To wire it into Claude Code or Cursor as a containerized server:
+
+```json
+{
+  "mcpServers": {
+    "uploadkit": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "uploadkit-mcp"]
+    }
+  }
+}
+```
+
 ## Verify it's working
 
 Ask your assistant:
@@ -236,3 +293,12 @@ The MCP server fixes all four. The assistant **queries the authoritative source*
 **Tools don't show up in Claude Code** — restart Claude Code after editing the config. Run `claude mcp list` to verify the server is registered.
 
 **"Outdated catalog"** — the server is bundled with UploadKit at publish time. `npx -y @uploadkitdev/mcp@latest` pulls the newest version every time.
+
+## Resources
+
+- **Source:** [github.com/drumst0ck/uploadkit/tree/master/packages/mcp](https://github.com/drumst0ck/uploadkit/tree/master/packages/mcp)
+- **npm:** [@uploadkitdev/mcp](https://www.npmjs.com/package/@uploadkitdev/mcp)
+- **Changelog:** [packages/mcp/CHANGELOG.md](https://github.com/drumst0ck/uploadkit/blob/master/packages/mcp/CHANGELOG.md)
+- **Glama listing:** [glama.ai/mcp/servers/drumst0ck/uploadkit](https://glama.ai/mcp/servers/drumst0ck/uploadkit) (AAA)
+- **Official MCP Registry:** `io.github.drumst0ck/uploadkit` on [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io)
+- **Issues:** [github.com/drumst0ck/uploadkit/issues](https://github.com/drumst0ck/uploadkit/issues)

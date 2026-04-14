@@ -1,4 +1,4 @@
 {
   "title": "SDK",
-  "pages": ["core", "react", "next"]
+  "pages": ["core", "react", "next", "mcp"]
 }
