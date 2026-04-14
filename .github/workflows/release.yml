@@ -14,6 +14,34 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # Detect docs changes in this push and auto-create a patch changeset
+      # for @uploadkitdev/mcp so the bundled docs index gets re-published.
+      # The changeset is created in the workflow filesystem only — changesets/action
+      # will consume it in the Version PR, so master never sees the auto file.
+      - name: Auto-changeset for docs updates
+        shell: bash
+        run: |
+          set -e
+          if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q '^apps/docs/content/docs/'; then
+            if ! grep -rql '@uploadkitdev/mcp' .changeset/ 2>/dev/null; then
+              fn=".changeset/auto-docs-$(date -u +%s).md"
+              cat > "$fn" <<'EOF'
+          ---
+          '@uploadkitdev/mcp': patch
+          ---
+
+          Refresh bundled docs index to match latest content on docs.uploadkit.dev.
+          EOF
+              echo "Created auto-changeset: $fn"
+            else
+              echo "@uploadkitdev/mcp already has a pending changeset — skipping auto-changeset."
+            fi
+          else
+            echo "No docs changes in this push — skipping."
+          fi
 
       - uses: pnpm/action-setup@v4
 
