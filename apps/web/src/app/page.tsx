@@ -9,7 +9,6 @@ import {
   Check,
 } from 'lucide-react'
 import Navbar from '@/components/nav/navbar'
-import { Logo } from '@/components/logo'
 import { HeroCodeWindow } from '@/components/hero/hero-code-window'
 import { InstallCommand } from '@/components/hero/install-command'
 import { Footer } from '@/components/footer/footer'

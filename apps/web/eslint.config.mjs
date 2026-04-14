@@ -1,3 +1,3 @@
-import baseConfig from '@uploadkit/config/eslint';
+import baseConfig from '@uploadkitdev/config/eslint';
 
 export default [...baseConfig];

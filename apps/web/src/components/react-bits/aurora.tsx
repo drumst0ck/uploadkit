@@ -145,6 +145,9 @@ export function Aurora(props: AuroraProps) {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
     gl.canvas.style.backgroundColor = 'transparent'
 
+    // Declared before `resize()` and the window resize listener so the guards on
+    // `if (program)` work when a resize fires between binding and assignment.
+    // eslint-disable-next-line prefer-const
     let program: Program | undefined
 
     function resize() {
@@ -211,7 +214,6 @@ export function Aurora(props: AuroraProps) {
       }
       gl.getExtension('WEBGL_lose_context')?.loseContext()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amplitude])
 
   return <div ref={ctnDom} className={`h-full w-full ${className}`} />
