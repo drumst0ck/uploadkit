@@ -53,8 +53,13 @@ jobs:
 
       # npm ≥ 11.5.1 is required for OIDC trusted publishing to the npm registry.
       # Node 22 bundles npm 10.x which returns 404 because no auth token is attached.
+      # `npm install -g npm@latest` can self-corrupt on cached setups — wipe the
+      # bundled npm first so the upgrade reinstalls cleanly.
       - name: Upgrade npm (required for OIDC trusted publishing)
-        run: npm install -g npm@latest
+        run: |
+          sudo rm -rf "$(npm root -g)/npm"
+          sudo npm install -g npm@latest
+          npm --version
 
       - run: pnpm install --frozen-lockfile
 
