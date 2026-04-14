@@ -2,7 +2,12 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  transpilePackages: ['@uploadkitdev/ui', '@uploadkitdev/db', '@uploadkitdev/shared'],
+  transpilePackages: [
+    '@uploadkitdev/ui',
+    '@uploadkitdev/db',
+    '@uploadkitdev/shared',
+    '@uploadkitdev/mcp-core',
+  ],
   serverExternalPackages: ['mongoose'],
 };
 

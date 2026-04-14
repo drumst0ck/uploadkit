@@ -1,10 +1,14 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-// CORS headers for API routes — SDK clients call from browser origins
+// CORS headers for API routes — SDK clients call from browser origins.
+// Wildcard is safe here because the public surface (SDK + /api/v1/mcp) is
+// read-only for remote clients and carries no cookies/session state.
+// See .planning/phases/11-mcp-remote-server/11-CONTEXT.md §Auth / Security.
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-uploadkit-version',
+  'Access-Control-Allow-Headers':
+    'Content-Type, Authorization, x-uploadkit-version, Mcp-Session-Id, MCP-Protocol-Version',
   'Access-Control-Max-Age': '86400',
 };
 
