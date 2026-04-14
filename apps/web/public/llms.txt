@@ -11,15 +11,27 @@ UploadKit gives developers everything they need to add production-grade file upl
 
 ## Quickstart
 
-- [Install and wire up UploadKit in 2 minutes](https://uploadkit.dev/docs/quickstart)
+- [Install and wire up UploadKit in 2 minutes](https://docs.uploadkit.dev/docs/getting-started/quickstart)
 
 ## Docs
 
-- [Components](https://uploadkit.dev/docs/components): full gallery of the 40+ upload components
-- [Route handlers](https://uploadkit.dev/docs/route-handlers): `createUploadKitHandler` for Next.js App Router
-- [BYOS setup](https://uploadkit.dev/docs/byos): Bring Your Own Storage (S3, R2, GCS, B2)
-- [Theming](https://uploadkit.dev/docs/theming): CSS custom properties for full design-system integration
-- [API reference](https://uploadkit.dev/docs/api): `createUploadKit`, `UploadKitProvider`, `useUploadKit`
+- [Next.js setup](https://docs.uploadkit.dev/docs/getting-started/nextjs): app router handler + provider
+- [File routes](https://docs.uploadkit.dev/docs/core-concepts/file-routes): define typed upload endpoints
+- [BYOS](https://docs.uploadkit.dev/docs/core-concepts/byos): Bring Your Own Storage (S3, R2, GCS, B2)
+- [Presigned URLs](https://docs.uploadkit.dev/docs/core-concepts/presigned-urls): how uploads flow end-to-end
+- [Security](https://docs.uploadkit.dev/docs/core-concepts/security): credentials, CORS, and content validation
+- [Theming](https://docs.uploadkit.dev/docs/sdk/react/theming): CSS custom properties for design-system integration
+- [REST API reference](https://docs.uploadkit.dev/docs/api-reference/rest-api)
+
+## Guides
+
+- [Image upload](https://docs.uploadkit.dev/docs/guides/image-upload)
+- [Avatar upload](https://docs.uploadkit.dev/docs/guides/avatar-upload)
+- [Document upload](https://docs.uploadkit.dev/docs/guides/document-upload)
+- [Multipart upload](https://docs.uploadkit.dev/docs/guides/multipart-upload)
+- [Custom styling](https://docs.uploadkit.dev/docs/guides/custom-styling)
+- [MCP for AI assistants](https://docs.uploadkit.dev/docs/guides/mcp)
+- [Migration from UploadThing](https://docs.uploadkit.dev/docs/guides/migration-from-uploadthing)
 
 ## Packages
 
@@ -30,13 +42,13 @@ UploadKit gives developers everything they need to add production-grade file upl
 
 ## For AI assistants
 
-Install the UploadKit MCP server for first-class integration in Claude Code / Cursor / Windsurf:
+Install the UploadKit MCP server for first-class integration in Claude Code / Cursor / Windsurf / Zed:
 
 ```
-npx @uploadkitdev/mcp
+npx -y @uploadkitdev/mcp
 ```
 
-See: https://uploadkit.dev/docs/mcp
+Full setup guide: https://docs.uploadkit.dev/docs/guides/mcp
 
 ## Optional
 

@@ -1,5 +1,11 @@
 # @uploadkitdev/mcp
 
+## 0.2.1
+
+### Patch Changes
+
+- Fix URLs in bundled quickstart — point dashboard links to `app.uploadkit.dev` and docs links to `docs.uploadkit.dev` to match the actual subdomain layout.
+
 ## 0.2.0
 
 ### Minor Changes

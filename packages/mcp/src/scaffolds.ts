@@ -193,7 +193,7 @@ pnpm add @uploadkitdev/react @uploadkitdev/next
 
 ## 2. Add env var
 # .env.local
-UPLOADKIT_API_KEY=uk_live_...   # from https://uploadkit.dev/dashboard
+UPLOADKIT_API_KEY=uk_live_...   # from https://app.uploadkit.dev
 
 ## 3. Create the route handler
 # app/api/uploadkit/[...uploadkit]/route.ts
