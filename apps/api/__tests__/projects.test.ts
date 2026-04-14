@@ -15,6 +15,9 @@ vi.mock('@uploadkitdev/db', () => ({
     create: vi.fn(),
     countDocuments: vi.fn(),
   },
+  FileRouter: {
+    create: vi.fn().mockResolvedValue({}),
+  },
 }));
 
 vi.mock('@/lib/rate-limit', () => ({
