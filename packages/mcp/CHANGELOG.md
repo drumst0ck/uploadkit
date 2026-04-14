@@ -1,5 +1,11 @@
 # @uploadkitdev/mcp
 
+## 0.5.1
+
+### Patch Changes
+
+- Bundle `@uploadkitdev/mcp-core` into the published dist and drop it from runtime dependencies. Previously, `npx -y @uploadkitdev/mcp` failed for end users because npm tried to resolve `@uploadkitdev/mcp-core` from the public registry, where that private workspace package does not exist. The bundled dist keeps the stdio bootstrap self-contained.
+
 ## 0.5.0
 
 ### Minor Changes
