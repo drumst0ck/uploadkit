@@ -5,6 +5,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      // `server-only` is a Next.js build-time guard; stub it for vitest.
+      'server-only': resolve(__dirname, '__tests__/stubs/server-only.ts'),
     },
   },
   test: {
