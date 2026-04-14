@@ -7,16 +7,22 @@
     "source": "github",
     "subfolder": "packages/mcp"
   },
-  "version": "0.3.1",
+  "version": "0.4.0",
   "websiteUrl": "https://uploadkit.dev",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@uploadkitdev/mcp",
-      "version": "0.3.1",
+      "version": "0.4.0",
       "transport": {
         "type": "stdio"
       }
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.uploadkit.dev/api/v1/mcp"
     }
   ]
 }

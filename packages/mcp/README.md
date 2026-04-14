@@ -11,6 +11,16 @@ Your AI now knows:
 
 No config. No API key. Runs local via `npx`.
 
+## Remote MCP
+
+For clients that cannot spawn `npx` (ChatGPT custom connectors, Claude.ai web, Smithery), UploadKit also exposes a Streamable HTTP endpoint:
+
+```
+https://api.uploadkit.dev/api/v1/mcp
+```
+
+Same 11-tool surface, read-only, no auth. Full setup: https://docs.uploadkit.dev/docs/guides/mcp#remote-mcp
+
 ---
 
 ## Install

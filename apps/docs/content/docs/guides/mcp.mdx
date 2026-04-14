@@ -119,6 +119,38 @@ No API key. No config. Runs locally via `npx`.
   </Tab>
 </Tabs>
 
+## Remote MCP
+
+For clients that cannot run `npx` — ChatGPT custom connectors, Claude.ai's web UI, Smithery, and any hosted MCP host — UploadKit also exposes a **remote Streamable HTTP** endpoint:
+
+```
+https://api.uploadkit.dev/api/v1/mcp
+```
+
+Streamable HTTP, stateless, no auth required for v1. Tools are read-only and share the same 11-tool surface as the stdio server.
+
+### ChatGPT connector
+
+1. Open **ChatGPT → Settings → Connectors → Add custom connector**.
+2. Paste the URL above into the MCP Server URL field.
+3. Save. The connector will handshake, discover the 11 tools, and become available in your chats.
+
+### Claude.ai web
+
+Paste `https://api.uploadkit.dev/api/v1/mcp` as a custom MCP connector wherever Claude.ai's web UI exposes the "Custom connector" input. Until the UI is GA, the stdio install below remains the recommended path for Claude Desktop and Claude Code.
+
+### Smithery / mcp.so
+
+Once listed on Smithery, users can install the remote endpoint from:
+
+```
+https://smithery.ai/server/io.github.drumst0ck/uploadkit
+```
+
+<Callout type="info">
+  For IDE usage (Claude Code, Cursor, Windsurf, Zed, Continue), the stdio install (`npx -y @uploadkitdev/mcp`) documented above remains the recommended path — it runs locally, starts instantly, and requires no network.
+</Callout>
+
 ## Verify it's working
 
 Ask your assistant:
