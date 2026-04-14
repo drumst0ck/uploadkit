@@ -18,6 +18,7 @@ import { BlurText } from '@/components/react-bits/blur-text'
 import { DarkVeil } from '@/components/react-bits/dark-veil'
 import { SpotlightCard } from '@/components/react-bits/spotlight-card'
 import { LandingShowcase } from '@/components/showcase/landing-showcase'
+import { McpSection } from '@/components/mcp/mcp-section'
 
 export const metadata: Metadata = {
   title: 'UploadKit — The developer platform for file uploads',
@@ -594,6 +595,7 @@ export default async function WebPage() {
         <HeroSection />
         <FeaturesSection />
         <ShowcaseSection />
+        <McpSection />
         <PricingSection />
         <CtaSection />
       </main>
