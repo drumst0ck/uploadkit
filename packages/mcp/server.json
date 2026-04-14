@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.drumst0ck/uploadkit",
+  "description": "UploadKit MCP — 40+ upload components, route scaffolds, BYOS setup, full docs search.",
+  "repository": {
+    "url": "https://github.com/drumst0ck/uploadkit",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "version": "0.3.1",
+  "websiteUrl": "https://uploadkit.dev",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@uploadkitdev/mcp",
+      "version": "0.3.1",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

@@ -1,5 +1,11 @@
 # @uploadkitdev/mcp
 
+## 0.3.1
+
+### Patch Changes
+
+- Declare `mcpName` in package.json to link the npm package with the Official MCP Registry listing (`io.github.drumst0ck/uploadkit`). Enables discovery via registry.modelcontextprotocol.io and downstream aggregators (PulseMCP, mcp.so).
+
 ## 0.3.0
 
 ### Minor Changes
