@@ -20,6 +20,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - [x] **Phase 8: Landing & Pricing Pages** - Hero, code demo, feature grid, competitor table, pricing page (completed 2026-04-08)
 - [ ] **Phase 9: Documentation** - Fumadocs site, quickstart, SDK reference, API reference, guides
 - [x] **Phase 10: Testing, Publishing & Launch** - Vitest unit tests, Playwright E2E, npm publish, launch readiness (completed 2026-04-09)
+- [ ] **Phase 11: MCP Remote Server** - Streamable HTTP MCP at api.uploadkit.dev/v1/mcp, shared mcp-core package, ChatGPT/Claude.ai connector compatibility
 
 ## Phase Details
 
@@ -186,6 +187,22 @@ Plans:
 - [x] 10-02-PLAN.md — SDK + React tests: core validation/single/multipart/http, React useUploadKit hook
 - [x] 10-03-PLAN.md — Playwright E2E: auth, upload, dashboard CRUD, billing, docs navigation
 - [x] 10-04-PLAN.md — Publish prep: polished READMEs, changeset entry, verify script, CI update
+
+### Phase 11: MCP Remote Server
+**Goal**: A public HTTP MCP server is live at `/v1/mcp` inside the `api` service, exposing the same tools as `@uploadkitdev/mcp` (stdio), so that ChatGPT, Claude.ai web, Smithery, and any remote MCP client can connect to UploadKit without `npx`. Stdio and HTTP share a single source of truth for the component catalog, scaffolds, and docs index.
+**Depends on**: Phase 3, Phase 9
+**Requirements**: New (post-v1.0 — captured directly here)
+**Success Criteria** (what must be TRUE):
+  1. `POST /v1/mcp` on the `api` service responds to a Streamable HTTP MCP `initialize` handshake and returns the correct `serverInfo`, matching the protocol version the official MCP Inspector expects
+  2. Every tool exposed by the stdio server (`list_components`, `get_component`, `search_components`, `get_install_command`, `scaffold_route_handler`, `scaffold_provider`, `get_byos_config`, `get_quickstart`, `search_docs`, `get_doc`, `list_docs`) works identically over HTTP — same arguments, same JSON response shape
+  3. A single `packages/mcp-core` package is the authoritative source for the component catalog, scaffolds, and docs index; both `packages/mcp` (stdio) and the new `apps/api` endpoint depend on it; no duplicated catalog or scaffold logic exists anywhere in the repo
+  4. `docker compose -f docker-compose.prod.yml up` keeps the same service list (no new container) and the MCP endpoint is reachable on the existing `api` service network
+  5. The MCP Inspector (`npx @modelcontextprotocol/inspector`) pointed at the deployed URL lists all 11 tools, calls `list_components` successfully, and calls `get_doc` successfully — no 500s, no protocol errors
+  6. CORS headers allow POST from `https://chat.openai.com`, `https://claude.ai`, and `https://smithery.ai` (or `Access-Control-Allow-Origin: *` with read-only stance justified in code comment)
+  7. `apps/docs/content/docs/guides/mcp.mdx` has a dedicated "Remote MCP" section documenting the HTTP URL and showing how to connect Claude.ai / ChatGPT / Smithery
+  8. No authentication required (read-only tools mirror the public stdio server); any future auth-gated "premium" tools must be added in a separate phase and cannot regress the public endpoint
+**Plans**: to be defined by /gsd-plan-phase
+
 
 ## Progress
 
