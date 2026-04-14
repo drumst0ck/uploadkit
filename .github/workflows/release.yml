@@ -51,6 +51,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
 
+      # npm ≥ 11.5.1 is required for OIDC trusted publishing to the npm registry.
+      # Node 22 bundles npm 10.x which returns 404 because no auth token is attached.
+      - name: Upgrade npm (required for OIDC trusted publishing)
+        run: npm install -g npm@latest
+
       - run: pnpm install --frozen-lockfile
 
       - name: Build packages
