@@ -1,4 +1,4 @@
-// Builds packages/mcp/src/docs-index.json from apps/docs/content/docs/**/*.mdx
+// Builds packages/mcp-core/src/docs-index.json from apps/docs/content/docs/**/*.mdx
 // Runs as prebuild step so the index ships with the published npm package.
 
 import { readdirSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'node:fs';

@@ -537,6 +537,9 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: latest
         version: 1.29.0(zod@4.3.6)
+      '@uploadkitdev/mcp-core':
+        specifier: workspace:*
+        version: link:../mcp-core
       zod:
         specifier: latest
         version: 4.3.6
