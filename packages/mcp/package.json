@@ -1,6 +1,6 @@
 {
   "name": "@uploadkitdev/mcp",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Model Context Protocol server for UploadKit — gives AI coding assistants (Claude Code, Cursor, Windsurf) full knowledge of the UploadKit SDK, its 40+ components, route handlers, and BYOS setup.",
   "license": "MIT",
   "author": "Drumst0ck",
@@ -33,6 +33,7 @@
     "README.md"
   ],
   "scripts": {
+    "prebuild": "node scripts/build-docs-index.mjs",
     "build": "tsup",
     "dev": "tsup --watch",
     "start": "node dist/index.js",

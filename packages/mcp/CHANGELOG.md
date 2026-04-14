@@ -1,5 +1,11 @@
 # @uploadkitdev/mcp
 
+## 0.3.0
+
+### Minor Changes
+
+- Index the full docs site inside the MCP server. Adds three new tools — `search_docs` (full-text search across 88+ pages), `get_doc` (fetch one page by path), and `list_docs` (enumerate all pages) — plus a `uploadkit://docs` resource. The index is generated at build time from `apps/docs/content/docs/**/*.mdx`, so every page on docs.uploadkit.dev is now accessible to Claude Code, Cursor, Windsurf, and Zed.
+
 ## 0.2.1
 
 ### Patch Changes

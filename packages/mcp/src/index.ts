@@ -19,6 +19,13 @@ import {
   QUICKSTART,
   type PackageManager,
 } from './scaffolds.js';
+import {
+  searchDocs,
+  getDoc,
+  listDocs,
+  docsCount,
+  docsGeneratedAt,
+} from './docs.js';
 
 // ---------------------------------------------------------------------------
 // Server
@@ -150,6 +157,44 @@ const TOOLS = [
     description: 'Full end-to-end quickstart guide for UploadKit on Next.js.',
     inputSchema: { type: 'object', properties: {} },
   },
+  {
+    name: 'search_docs',
+    description:
+      'Full-text search across every UploadKit docs page (88+ pages: getting-started, core-concepts, SDK reference, API reference, dashboard, guides). Use this whenever the user asks about UploadKit behaviour, APIs, middleware, webhooks, theming, BYOS, type safety, or any topic not covered by the component tools. Returns ranked matches with title, URL, snippet, and path.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Free-text query.' },
+        limit: {
+          type: 'number',
+          description: 'Max results. Default: 8.',
+        },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'get_doc',
+    description:
+      'Return the full content of a docs page by path (e.g. "core-concepts/byos", "sdk/next/middleware", "api-reference/rest-api"). Use this after search_docs to read a specific page in depth.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        path: {
+          type: 'string',
+          description:
+            'Page path relative to /docs (no leading slash, no .mdx extension).',
+        },
+      },
+      required: ['path'],
+    },
+  },
+  {
+    name: 'list_docs',
+    description:
+      'List every docs page with title, description, URL, and path. Use this to discover what documentation is available before searching.',
+    inputSchema: { type: 'object', properties: {} },
+  },
 ];
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
@@ -263,6 +308,39 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       return textResult(QUICKSTART);
     }
 
+    case 'search_docs': {
+      const q = String(args.query ?? '');
+      const limit = typeof args.limit === 'number' ? args.limit : 8;
+      const matches = searchDocs(q, limit);
+      return jsonResult({
+        query: q,
+        count: matches.length,
+        indexGeneratedAt: docsGeneratedAt(),
+        matches,
+      });
+    }
+
+    case 'get_doc': {
+      const p = String(args.path ?? '');
+      const doc = getDoc(p);
+      if (!doc) {
+        return textResult(
+          `Doc "${p}" not found. Use list_docs to see all ${docsCount()} available paths.`,
+        );
+      }
+      return textResult(
+        `# ${doc.title}\n\n> ${doc.description}\n\nSource: ${doc.url}\n\n---\n\n${doc.content}`,
+      );
+    }
+
+    case 'list_docs': {
+      return jsonResult({
+        count: docsCount(),
+        generatedAt: docsGeneratedAt(),
+        pages: listDocs(),
+      });
+    }
+
     default:
       return textResult(`Unknown tool: ${name}`);
   }
@@ -286,6 +364,12 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => ({
       description: 'End-to-end Next.js quickstart for UploadKit.',
       mimeType: 'text/markdown',
     },
+    {
+      uri: 'uploadkit://docs',
+      name: 'UploadKit docs index',
+      description: `Full index of ${docsCount()} docs pages with titles, descriptions, URLs, and paths. Use search_docs / get_doc tools to fetch content.`,
+      mimeType: 'application/json',
+    },
   ],
 }));
 
@@ -306,6 +390,21 @@ server.setRequestHandler(ReadResourceRequestSchema, async (req) => {
     return {
       contents: [
         { uri, mimeType: 'text/markdown', text: QUICKSTART },
+      ],
+    };
+  }
+  if (uri === 'uploadkit://docs') {
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: 'application/json',
+          text: JSON.stringify(
+            { count: docsCount(), generatedAt: docsGeneratedAt(), pages: listDocs() },
+            null,
+            2,
+          ),
+        },
       ],
     };
   }

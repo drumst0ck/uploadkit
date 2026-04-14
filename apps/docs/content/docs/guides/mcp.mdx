@@ -141,6 +141,9 @@ If the MCP server is connected, it will call the `list_components` tool and retu
 | `scaffold_provider` | Snippet for wiring `<UploadKitProvider>` into `layout.tsx` |
 | `get_byos_config` | Env + handler config for S3 / R2 / GCS / Backblaze B2 |
 | `get_quickstart` | End-to-end setup walkthrough |
+| `search_docs` | Full-text search across every docs page (88+ pages) |
+| `get_doc` | Fetch the full content of a docs page by path |
+| `list_docs` | Enumerate every documented page (title, description, URL) |
 
 ### Resources
 
@@ -148,6 +151,7 @@ If the MCP server is connected, it will call the `list_components` tool and retu
 |-----|-------------|
 | `uploadkit://catalog` | JSON catalog of every component |
 | `uploadkit://quickstart` | Markdown quickstart guide |
+| `uploadkit://docs` | Index of every docs page (title, description, URL) |
 
 ## Example prompts
 
