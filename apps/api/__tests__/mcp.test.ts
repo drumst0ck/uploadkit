@@ -116,7 +116,7 @@ describe('POST /api/v1/mcp', () => {
     const listContent = listRes.json?.result?.content?.[0]?.text;
     const listed = JSON.parse(listContent) as { pages: Array<{ path: string }> };
     expect(listed.pages.length).toBeGreaterThan(0);
-    const firstPath = listed.pages[0].path;
+    const firstPath = listed.pages[0]!.path;
 
     const { json } = await call({
       jsonrpc: '2.0',
