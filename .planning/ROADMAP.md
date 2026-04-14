@@ -20,7 +20,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - [x] **Phase 8: Landing & Pricing Pages** - Hero, code demo, feature grid, competitor table, pricing page (completed 2026-04-08)
 - [ ] **Phase 9: Documentation** - Fumadocs site, quickstart, SDK reference, API reference, guides
 - [x] **Phase 10: Testing, Publishing & Launch** - Vitest unit tests, Playwright E2E, npm publish, launch readiness (completed 2026-04-09)
-- [ ] **Phase 11: MCP Remote Server** - Streamable HTTP MCP at api.uploadkit.dev/v1/mcp, shared mcp-core package, ChatGPT/Claude.ai connector compatibility
+- [x] **Phase 11: MCP Remote Server** - Streamable HTTP MCP at api.uploadkit.dev/v1/mcp, shared mcp-core package, ChatGPT/Claude.ai connector compatibility (completed 2026-04-14)
 
 ## Phase Details
 
@@ -201,7 +201,10 @@ Plans:
   6. CORS headers allow POST from `https://chat.openai.com`, `https://claude.ai`, and `https://smithery.ai` (or `Access-Control-Allow-Origin: *` with read-only stance justified in code comment)
   7. `apps/docs/content/docs/guides/mcp.mdx` has a dedicated "Remote MCP" section documenting the HTTP URL and showing how to connect Claude.ai / ChatGPT / Smithery
   8. No authentication required (read-only tools mirror the public stdio server); any future auth-gated "premium" tools must be added in a separate phase and cannot regress the public endpoint
-**Plans**: to be defined by /gsd-plan-phase
+**Plans:** 1/1 plans complete
+
+Plans:
+- [x] 11-01-PLAN.md — mcp-core extraction + Streamable HTTP endpoint in apps/api + CORS + health + docs + changeset
 
 
 ## Progress
