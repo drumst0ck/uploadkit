@@ -1,0 +1,58 @@
+{
+  "name": "@uploadkitdev/mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for UploadKit — gives AI coding assistants (Claude Code, Cursor, Windsurf) full knowledge of the UploadKit SDK, its 40+ components, route handlers, and BYOS setup.",
+  "license": "MIT",
+  "author": "Drumst0ck",
+  "homepage": "https://uploadkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drumst0ck/uploadkit.git",
+    "directory": "packages/mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/drumst0ck/uploadkit/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "uploadkit",
+    "claude",
+    "cursor",
+    "ai",
+    "file-upload"
+  ],
+  "type": "module",
+  "bin": {
+    "uploadkit-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/index.js",
+    "lint": "eslint src/ --max-warnings 0",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@uploadkitdev/config": "workspace:*",
+    "tsup": "latest",
+    "typescript": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

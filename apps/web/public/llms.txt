@@ -1,0 +1,45 @@
+# UploadKit
+
+> UploadKit is a file uploads platform for developers. Open-source TypeScript SDK with 40+ premium React components, managed storage on Cloudflare R2 (zero egress fees), and BYOS (Bring Your Own Storage) mode for S3, R2, GCS, or Backblaze B2. 5 GB free forever.
+
+UploadKit gives developers everything they need to add production-grade file uploads to any app in minutes:
+
+- **SDK**: `@uploadkitdev/react` (components), `@uploadkitdev/core` (framework-agnostic client), `@uploadkitdev/next` (route handler + SSR plugin). MIT-licensed.
+- **Hosted storage**: Cloudflare R2 with global CDN, no egress fees.
+- **BYOS**: plug your own S3/R2/GCS/B2 bucket — same SDK surface, zero frontend changes, credentials server-side only.
+- **Pricing**: 5 GB free forever. Pro $15/mo (100 GB). Team $35/mo (1 TB). Enterprise custom.
+
+## Quickstart
+
+- [Install and wire up UploadKit in 2 minutes](https://uploadkit.dev/docs/quickstart)
+
+## Docs
+
+- [Components](https://uploadkit.dev/docs/components): full gallery of the 40+ upload components
+- [Route handlers](https://uploadkit.dev/docs/route-handlers): `createUploadKitHandler` for Next.js App Router
+- [BYOS setup](https://uploadkit.dev/docs/byos): Bring Your Own Storage (S3, R2, GCS, B2)
+- [Theming](https://uploadkit.dev/docs/theming): CSS custom properties for full design-system integration
+- [API reference](https://uploadkit.dev/docs/api): `createUploadKit`, `UploadKitProvider`, `useUploadKit`
+
+## Packages
+
+- [`@uploadkitdev/react`](https://www.npmjs.com/package/@uploadkitdev/react): premium React components
+- [`@uploadkitdev/core`](https://www.npmjs.com/package/@uploadkitdev/core): framework-agnostic upload client (browser, Node, Edge)
+- [`@uploadkitdev/next`](https://www.npmjs.com/package/@uploadkitdev/next): Next.js handler + adapters (Express, Hono)
+- [`@uploadkitdev/mcp`](https://www.npmjs.com/package/@uploadkitdev/mcp): MCP server for AI coding assistants (Claude Code, Cursor, Windsurf)
+
+## For AI assistants
+
+Install the UploadKit MCP server for first-class integration in Claude Code / Cursor / Windsurf:
+
+```
+npx @uploadkitdev/mcp
+```
+
+See: https://uploadkit.dev/docs/mcp
+
+## Optional
+
+- [GitHub](https://github.com/drumst0ck/uploadkit)
+- [Pricing](https://uploadkit.dev/pricing)
+- [Changelog](https://uploadkit.dev/changelog)

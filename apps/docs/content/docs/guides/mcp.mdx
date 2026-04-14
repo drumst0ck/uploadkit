@@ -1,0 +1,202 @@
+---
+title: AI Assistants (MCP)
+description: Install the UploadKit MCP server so Claude Code, Cursor, Windsurf, and Zed know every component, scaffold boilerplate, and set up BYOS for you.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+UploadKit ships an official **Model Context Protocol** server. Once you add it to your AI coding assistant, the assistant gains first-class knowledge of:
+
+- Every one of UploadKit's 40+ React components — names, categories, inspirations, ready-to-paste usage
+- How to scaffold the Next.js route handler at `app/api/uploadkit/[...uploadkit]/route.ts`
+- How to wire `<UploadKitProvider>` into your root layout
+- How to configure **Bring Your Own Storage** (S3, R2, GCS, Backblaze B2)
+- The right install command for your package manager
+
+No API key. No config. Runs locally via `npx`.
+
+<Callout>
+  The MCP server ships the component catalog bundled — it never calls home, never sees your code, and works offline.
+</Callout>
+
+## Install
+
+<Tabs groupId="client" items={['Claude Code', 'Cursor', 'Windsurf', 'Zed', 'Continue']}>
+  <Tab value="Claude Code">
+    Add the server with one command:
+
+    ```bash
+    claude mcp add uploadkit -- npx -y @uploadkitdev/mcp
+    ```
+
+    Or edit `~/.claude.json` manually:
+
+    ```json
+    {
+      "mcpServers": {
+        "uploadkit": {
+          "command": "npx",
+          "args": ["-y", "@uploadkitdev/mcp"]
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab value="Cursor">
+    Open **Settings → Features → Model Context Protocol → Add new MCP server**:
+
+    - **Name:** `uploadkit`
+    - **Command:** `npx -y @uploadkitdev/mcp`
+
+    Or edit `~/.cursor/mcp.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "uploadkit": {
+          "command": "npx",
+          "args": ["-y", "@uploadkitdev/mcp"]
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab value="Windsurf">
+    Edit `~/.codeium/windsurf/mcp_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "uploadkit": {
+          "command": "npx",
+          "args": ["-y", "@uploadkitdev/mcp"]
+        }
+      }
+    }
+    ```
+
+    Restart Windsurf so it picks up the new server.
+  </Tab>
+
+  <Tab value="Zed">
+    In `settings.json`:
+
+    ```json
+    {
+      "context_servers": {
+        "uploadkit": {
+          "command": {
+            "path": "npx",
+            "args": ["-y", "@uploadkitdev/mcp"]
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab value="Continue">
+    Add to your `config.json`:
+
+    ```json
+    {
+      "experimental": {
+        "modelContextProtocolServers": [
+          {
+            "transport": {
+              "type": "stdio",
+              "command": "npx",
+              "args": ["-y", "@uploadkitdev/mcp"]
+            }
+          }
+        ]
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Verify it's working
+
+Ask your assistant:
+
+> "What UploadKit components are available?"
+
+If the MCP server is connected, it will call the `list_components` tool and return the full catalog with categories (classic, dropzone, button, progress, motion, specialty, gallery).
+
+## What the server exposes
+
+### Tools
+
+| Tool | Description |
+|------|-------------|
+| `list_components` | List all components, optionally filtered by category |
+| `get_component` | Full metadata + usage example for a single component |
+| `search_components` | Fuzzy-search by keyword, inspiration, or use case |
+| `get_install_command` | Returns the install command for pnpm / npm / yarn / bun |
+| `scaffold_route_handler` | Generates `app/api/uploadkit/[...uploadkit]/route.ts` |
+| `scaffold_provider` | Snippet for wiring `<UploadKitProvider>` into `layout.tsx` |
+| `get_byos_config` | Env + handler config for S3 / R2 / GCS / Backblaze B2 |
+| `get_quickstart` | End-to-end setup walkthrough |
+
+### Resources
+
+| URI | Description |
+|-----|-------------|
+| `uploadkit://catalog` | JSON catalog of every component |
+| `uploadkit://quickstart` | Markdown quickstart guide |
+
+## Example prompts
+
+Once installed, you can speak to your assistant naturally:
+
+```
+Add an Apple-style animated dropzone to my profile page.
+```
+
+```
+Set up UploadKit with Cloudflare R2 in BYOS mode.
+```
+
+```
+What's the difference between UploadProgressRadial and UploadProgressOrbit?
+```
+
+```
+Create a route handler that accepts up to 4 images of 8 MB each.
+```
+
+```
+Show me every progress indicator UploadKit ships.
+```
+
+## Why MCP
+
+Most AI coding assistants can only see the files in your editor plus whatever they learned during pretraining. That means:
+
+- They don't know about components shipped after their knowledge cutoff
+- They invent props that don't exist (hallucinations)
+- They write outdated setup code
+- They can't scaffold correctly without guessing
+
+The MCP server fixes all four. The assistant **queries the authoritative source** — UploadKit's own catalog and scaffolds — every time. New release? Update the server and the assistant knows the new components immediately.
+
+## Security & privacy
+
+- The server runs **locally** on your machine via stdio.
+- It **does not** make network requests, read your codebase, or collect telemetry.
+- The only thing it ships is the component catalog (names, descriptions, usage examples) bundled at publish time.
+- Source: [github.com/drumst0ck/uploadkit/tree/master/packages/mcp](https://github.com/drumst0ck/uploadkit/tree/master/packages/mcp)
+
+## Troubleshooting
+
+**"Command not found: npx"** — install Node.js 18+ from [nodejs.org](https://nodejs.org).
+
+**Server fails to start** — run `npx -y @uploadkitdev/mcp` in a terminal manually. You should see the process hang (stdio waits for input). If it crashes instead, open an issue with the stderr output.
+
+**Tools don't show up in Claude Code** — restart Claude Code after editing the config. Run `claude mcp list` to verify the server is registered.
+
+**"Outdated catalog"** — the server is bundled with UploadKit at publish time. `npx -y @uploadkitdev/mcp@latest` pulls the newest version every time.
