@@ -1,5 +1,7 @@
 # @uploadkitdev/mcp
 
+[![npm version](https://img.shields.io/npm/v/@uploadkitdev/mcp)](https://www.npmjs.com/package/@uploadkitdev/mcp) [![Glama MCP score](https://glama.ai/mcp/servers/drumst0ck/uploadkit/badges/score.svg)](https://glama.ai/mcp/servers/drumst0ck/uploadkit) [![Awesome MCP Servers](https://awesome.re/mentioned-badge.svg)](https://github.com/punkpeye/awesome-mcp-servers) [![Official MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.drumst0ck%2Fuploadkit-6366f1)](https://registry.modelcontextprotocol.io)
+
 Model Context Protocol server for **UploadKit** — gives AI coding assistants (Claude Code, Cursor, Windsurf, Zed) first-class knowledge of the UploadKit SDK.
 
 Your AI now knows:

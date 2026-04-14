@@ -8,6 +8,8 @@ Open-source TypeScript SDK + 40+ premium React components + managed storage on C
 
 [Website](https://uploadkit.dev) · [Docs](https://docs.uploadkit.dev) · [Dashboard](https://app.uploadkit.dev) · [Discord](https://discord.gg/mYgfVNfA2r) · [Changelog](https://uploadkit.dev/changelog)
 
+[![npm: @uploadkitdev/react](https://img.shields.io/npm/v/@uploadkitdev/react?label=%40uploadkitdev%2Freact)](https://www.npmjs.com/package/@uploadkitdev/react) [![npm: @uploadkitdev/mcp](https://img.shields.io/npm/v/@uploadkitdev/mcp?label=%40uploadkitdev%2Fmcp)](https://www.npmjs.com/package/@uploadkitdev/mcp) [![Glama MCP score](https://glama.ai/mcp/servers/drumst0ck/uploadkit/badges/score.svg)](https://glama.ai/mcp/servers/drumst0ck/uploadkit) [![Awesome MCP Servers](https://awesome.re/mentioned-badge.svg)](https://github.com/punkpeye/awesome-mcp-servers)
+
 </div>
 
 ---
