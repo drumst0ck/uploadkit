@@ -1,0 +1,17 @@
+# UploadKit — create your project at https://uploadkit.dev/signup
+# Then replace this value with the key from your dashboard.
+UPLOADKIT_API_KEY=uk_test_placeholder
+
+# ----------------------------------------------------------------------
+# Client-exposed (Vite inlines any `VITE_*` var into the browser bundle).
+# ONLY put non-sensitive values here. NEVER put a `uk_live_*` key here —
+# use `uk_test_*` only, and keep live keys on the backend you control.
+# ----------------------------------------------------------------------
+
+# Where the SPA POSTs to get a presigned PUT URL. Change this to wherever
+# your backend exposes the signing endpoint (BYOS).
+VITE_UPLOADKIT_ENDPOINT=/api/sign
+
+# Optional: a browser-safe test key to display in demo UIs. Never set this
+# to a live key. Uncomment if your app code reads it.
+# VITE_UPLOADKIT_PUBLIC_KEY=uk_test_placeholder
