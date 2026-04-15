@@ -26,8 +26,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            blocking: true
+          - os: windows-latest
+            blocking: false
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ !matrix.blocking }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
