@@ -1,6 +1,6 @@
 {
   "name": "uploadkit",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Install UploadKit into an existing project — init, add, restore.",
   "license": "MIT",
   "author": "Drumst0ck",
