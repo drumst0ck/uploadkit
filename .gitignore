@@ -26,6 +26,9 @@ Thumbs.db
 # Playwright auth state (contains session cookies — must not be committed)
 e2e/.auth/
 
+# Marketing (local-only, never push)
+marketing/
+
 # Logs
 *.log
 npm-debug.log*
