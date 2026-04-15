@@ -26,6 +26,13 @@ Thumbs.db
 # Playwright auth state (contains session cookies — must not be committed)
 e2e/.auth/
 
+# MCP registry tokens (secrets)
+**/.mcpregistry_*_token
+skills-lock.json
+
+# Marketing (local-only, never push)
+marketing/
+
 # Logs
 *.log
 npm-debug.log*
