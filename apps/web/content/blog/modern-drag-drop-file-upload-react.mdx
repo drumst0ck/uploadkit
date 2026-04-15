@@ -1,0 +1,310 @@
+---
+title: "Build a modern drag-and-drop file upload in React"
+description: "A production-grade React drag and drop file upload from scratch: previews, validation, accessibility, and the File System Access API with a proper fallback."
+category: Tutorials
+publishedAt: 2026-04-25
+author: UploadKit Team
+tags:
+  - react
+  - drag-and-drop
+  - file-upload
+  - accessibility
+  - typescript
+  - tutorial
+---
+
+**TL;DR — Most React drag and drop file upload tutorials stop at a borderless `<div>` with a red background on `dragover`. That's a demo, not a product. A real dropzone handles the File System Access API, falls back to `<input type="file">`, validates MIME and size, previews images, and works with a keyboard and a screen reader. This post walks through a ~200-line TypeScript React component that does all of that — then shows the UploadKit `<Dropzone />` as the drop-in that replaces it.**
+
+The HTML5 drag-and-drop API turns 15 this year and it's still a mess. Events fire inconsistently across browsers, the data transfer object has three different ways to access files depending on which browser quirk you remember first, and half the tutorials online don't handle the one failure mode that actually matters: the user's screen reader doesn't know the dropzone exists.
+
+This guide builds a dropzone that does. We'll cover the drag events, the File System Access API (with a graceful fallback for Firefox and Safari), multi-file previews, validation, and accessibility. Then we'll show the UploadKit `<Dropzone />` as the maintained version.
+
+## The requirements
+
+A production dropzone has to:
+
+1. Accept files via drag and drop **and** via keyboard/click — the input is not optional.
+2. Show visible state for `idle`, `dragging`, `dropped`, `error`.
+3. Validate MIME type, file size, and file count **before** starting the upload.
+4. Render previews for images and filename+size for the rest.
+5. Announce state changes to assistive tech.
+6. Handle the File System Access API where available (nicer save/open dialogs on Chrome/Edge).
+7. Not leak object URLs (the #1 memory bug in every React dropzone on GitHub).
+
+We'll build this as a single component, `<Dropzone />`, in TypeScript.
+
+## The data model
+
+Start with the state. Two things to track: the list of accepted files, and the UI state of the zone itself.
+
+```ts
+type AcceptedFile = {
+  id: string;
+  file: File;
+  previewUrl: string | null;
+};
+
+type DropzoneState = "idle" | "dragging" | "error";
+```
+
+A separate `previewUrl` is important — `URL.createObjectURL(file)` returns a string that references a blob the browser keeps alive until you call `URL.revokeObjectURL()`. Store it so you can revoke it on unmount.
+
+## Drag events: which ones to care about
+
+There are five drag events on a drop target: `dragenter`, `dragover`, `dragleave`, `drop`, and `dragend`. You need three, and the trick is knowing which:
+
+- `dragover` — fires continuously while over the target. **You must call `preventDefault()` or the drop event never fires.**
+- `dragleave` — fires when leaving. Also fires when entering a child element, which is the source of 80% of flicker bugs.
+- `drop` — the one you actually care about.
+
+Here's the handler scaffold:
+
+```tsx
+const [state, setState] = useState<DropzoneState>("idle");
+const dragCounter = useRef(0);
+
+const onDragEnter = (e: React.DragEvent) => {
+  e.preventDefault();
+  dragCounter.current += 1;
+  if (dragCounter.current === 1) setState("dragging");
+};
+
+const onDragLeave = (e: React.DragEvent) => {
+  e.preventDefault();
+  dragCounter.current -= 1;
+  if (dragCounter.current === 0) setState("idle");
+};
+
+const onDragOver = (e: React.DragEvent) => {
+  e.preventDefault();
+};
+
+const onDrop = (e: React.DragEvent) => {
+  e.preventDefault();
+  dragCounter.current = 0;
+  setState("idle");
+  handleFiles(Array.from(e.dataTransfer.files));
+};
+```
+
+The `dragCounter` ref is the fix for the "dragleave fires on child elements" bug. Increment on enter, decrement on leave, and only treat count zero as "actually left."
+
+## Validation before upload
+
+Validate synchronously in `handleFiles`. Rejecting a file after it's been uploaded is a terrible UX; rejecting it before the user even lifts their finger is the goal.
+
+```ts
+const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_COUNT = 5;
+const ACCEPT = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
+
+function validate(files: File[]): { ok: File[]; errors: string[] } {
+  const ok: File[] = [];
+  const errors: string[] = [];
+
+  if (files.length > MAX_COUNT) {
+    errors.push(`Max ${MAX_COUNT} files. Got ${files.length}.`);
+    return { ok, errors };
+  }
+
+  for (const file of files) {
+    if (!ACCEPT.includes(file.type)) {
+      errors.push(`${file.name}: unsupported type ${file.type || "unknown"}.`);
+      continue;
+    }
+    if (file.size > MAX_SIZE) {
+      errors.push(`${file.name}: larger than 10 MB.`);
+      continue;
+    }
+    ok.push(file);
+  }
+  return { ok, errors };
+}
+```
+
+Two notes. First, `file.type` is empty for some obscure formats — if you care about those, sniff the magic bytes. Second, MIME type is user-supplied; a real [file upload security checklist](/blog/file-upload-security-checklist) validates on the server too.
+
+## Previews without memory leaks
+
+Create object URLs lazily, revoke them when the file is removed or the component unmounts:
+
+```tsx
+const handleFiles = (files: File[]) => {
+  const { ok, errors } = validate(files);
+  if (errors.length) {
+    setError(errors.join(" "));
+    setState("error");
+    return;
+  }
+  setError(null);
+
+  const accepted: AcceptedFile[] = ok.map((file) => ({
+    id: crypto.randomUUID(),
+    file,
+    previewUrl: file.type.startsWith("image/")
+      ? URL.createObjectURL(file)
+      : null,
+  }));
+
+  setFiles((prev) => [...prev, ...accepted]);
+};
+
+useEffect(() => {
+  return () => {
+    files.forEach((f) => {
+      if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+    });
+  };
+}, []); // cleanup on unmount
+
+const removeFile = (id: string) => {
+  setFiles((prev) => {
+    const gone = prev.find((f) => f.id === id);
+    if (gone?.previewUrl) URL.revokeObjectURL(gone.previewUrl);
+    return prev.filter((f) => f.id !== id);
+  });
+};
+```
+
+## Accessibility: the part nobody writes
+
+The dropzone needs to be reachable by keyboard and legible to a screen reader. Three rules:
+
+1. Wrap an `<input type="file">` so keyboard and click users get the native file picker.
+2. Give the drop region `role="button"`, `tabIndex={0}`, and an accessible label.
+3. Announce state changes with `aria-live`.
+
+```tsx
+<label
+  htmlFor="dropzone-input"
+  role="button"
+  tabIndex={0}
+  aria-label="Upload files. Drag files here or press Enter to browse."
+  aria-describedby="dropzone-hint"
+  onDragEnter={onDragEnter}
+  onDragLeave={onDragLeave}
+  onDragOver={onDragOver}
+  onDrop={onDrop}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      inputRef.current?.click();
+    }
+  }}
+  data-state={state}
+  className="dropzone"
+>
+  <p id="dropzone-hint">
+    Drop files here, or click to browse. PNG, JPG, WebP, PDF — up to 10 MB each.
+  </p>
+  <input
+    id="dropzone-input"
+    ref={inputRef}
+    type="file"
+    multiple
+    accept={ACCEPT.join(",")}
+    onChange={(e) => handleFiles(Array.from(e.target.files ?? []))}
+    style={{ position: "absolute", width: 1, height: 1, opacity: 0 }}
+  />
+</label>
+
+<div aria-live="polite" className="sr-only">
+  {state === "dragging" && "Files detected. Release to drop."}
+  {state === "error" && error}
+  {files.length > 0 && `${files.length} file(s) selected.`}
+</div>
+```
+
+The visually-hidden input is crucial. Hiding it with `display: none` breaks keyboard focus; use the `width: 1; height: 1; opacity: 0` trick instead. MDN has [the full pattern](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API) if you want more.
+
+## Optional: File System Access API
+
+Chrome, Edge, and Opera support `showOpenFilePicker()`, which returns `FileSystemFileHandle` objects instead of `File` objects. Handles let you write back to the same location later — useful for "save draft" flows. Firefox and Safari don't support it yet; feature-detect and fall back.
+
+```ts
+const openWithFsApi = async () => {
+  if (!("showOpenFilePicker" in window)) {
+    inputRef.current?.click();
+    return;
+  }
+  try {
+    const handles = await (window as any).showOpenFilePicker({
+      multiple: true,
+      types: [
+        {
+          description: "Images and PDFs",
+          accept: { "image/*": [".png", ".jpg", ".webp"], "application/pdf": [".pdf"] },
+        },
+      ],
+    });
+    const files = await Promise.all(handles.map((h: any) => h.getFile()));
+    handleFiles(files);
+  } catch (err: any) {
+    if (err?.name !== "AbortError") setError(err.message);
+  }
+};
+```
+
+Wire this to a secondary "Browse" button if you want the nicer dialog on Chromium. Don't make it the only entry point — Safari still has ~20% share and you'll lock those users out.
+
+## Styling the states
+
+CSS for the three states. Keep it subtle:
+
+```css
+.dropzone {
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 200ms ease-out, background-color 200ms ease-out;
+}
+.dropzone:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+.dropzone[data-state="dragging"] {
+  border-color: var(--color-accent);
+  background-color: rgba(99, 102, 241, 0.06);
+}
+.dropzone[data-state="error"] {
+  border-color: #ef4444;
+}
+```
+
+Avoid `border: 2px solid transparent` → `border: 2px dashed` on hover — the layout shifts. Set the border width once, only animate color and background.
+
+## The drop-in alternative
+
+The above is ~200 lines and handles the common cases. What it doesn't handle: resumable uploads, chunked multipart, retry-with-backoff, per-file progress with server-side processing phases, presigned URL rotation, or dark-mode tokens. If you want all that without the maintenance burden:
+
+```tsx
+import { UploadDropzone } from "@uploadkitdev/react";
+
+export function Uploader() {
+  return (
+    <UploadDropzone
+      endpoint="attachments"
+      maxFiles={5}
+      maxSize="10MB"
+      accept={["image/*", "application/pdf"]}
+      onComplete={(files) => console.log(files)}
+    />
+  );
+}
+```
+
+Same accessibility story, same File System Access fallback, plus resumable uploads and [presigned-URL direct-to-storage](/blog/presigned-urls-vs-server-proxy) out of the box. If you need to crop images on the client too, pair it with the [image crop tool](/blog/image-crop-tool-react).
+
+## Takeaways
+
+- `preventDefault()` on `dragover` or drops never fire. This is the #1 bug.
+- Use a drag counter ref to debounce `dragleave` across child elements.
+- Validate synchronously, before upload. Rejecting post-upload is bad UX.
+- Revoke object URLs. Every ungodly-memory-use React dropzone leaks these.
+- The `<input type="file">` is not optional — it's how keyboard and screen reader users engage.
+- Use File System Access API as a progressive enhancement, never as the only path.
+
+Build it yourself if you want to learn. Use [`<UploadDropzone />`](/components) if you want to ship.

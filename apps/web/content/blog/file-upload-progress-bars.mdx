@@ -1,0 +1,273 @@
+---
+title: "File upload progress bars done right"
+description: "Most file upload progress bars lie. Here's the real model — queued, uploading, processing, complete — and a React state machine that handles retries and multi-file aggregation."
+category: Engineering
+publishedAt: 2026-04-26
+author: UploadKit Team
+tags:
+  - file-upload
+  - progress-bar
+  - react
+  - state-machine
+  - xhr
+  - fetch
+---
+
+**TL;DR — Most file upload progress bars track `XMLHttpRequest.upload.onprogress` and call it a day. That's fine if your upload is a single byte stream to a single endpoint with no server-side work. In the real world uploads are queued, chunked, retried, and processed after the bytes land. A progress bar that only tracks bytes-on-wire jumps to 100% and then sits there for 20 seconds while your server thumbnails a video — and users think the app is broken. Here's a real state machine, in React, that models what's actually happening.**
+
+A good file upload progress bar is two things: honest, and smooth. Honest means it reflects real work, not just one network request. Smooth means it doesn't jump from 0% to 100% to "still thinking…" to done.
+
+Most implementations I see fail on honesty first. The developer wires up `xhr.upload.onprogress`, gets a percentage, renders it, ships it. It works great on localhost with a 1KB file. In production, with a 500MB video going to S3 and then being transcoded by a Lambda, the bar hits 100% at the 10-second mark and the user stares at a dead UI until the upload record appears in their list at the 45-second mark.
+
+This post lays out the real progress model, a React state machine that implements it, the fetch vs XHR gotcha, and how to aggregate progress across multiple files without lying about any of them.
+
+## The real phases of an upload
+
+Every non-trivial upload has four phases. Your progress UI needs to represent all of them, even if two of them are instant:
+
+1. **Queued** — the user picked a file but we haven't started. Progress: indeterminate (or 0%).
+2. **Uploading** — bytes going from browser to storage. Progress: `loaded / total`.
+3. **Processing** — server-side work: virus scan, thumbnail generation, transcode, webhook fan-out. Progress: often indeterminate; sometimes streamed.
+4. **Complete** — file is queryable, URL is stable. Progress: 100%.
+
+Errors can happen in any phase and retries should bump the file back to the relevant phase, not the beginning.
+
+For a managed upload service the "processing" phase might be 500ms (thumbnail a PNG) or 2 minutes (transcode a video). Your UI doesn't know which; it needs to show something that reads as "still working" without claiming progress it can't measure.
+
+## The state machine
+
+In TypeScript:
+
+```ts
+type UploadStatus =
+  | { phase: "queued" }
+  | { phase: "uploading"; loaded: number; total: number }
+  | { phase: "processing"; startedAt: number }
+  | { phase: "complete"; url: string }
+  | { phase: "error"; message: string; retryable: boolean };
+
+type UploadItem = {
+  id: string;
+  file: File;
+  status: UploadStatus;
+  attempts: number;
+};
+```
+
+Progress for a single item is a function of phase:
+
+```ts
+function progressOf(status: UploadStatus): number {
+  switch (status.phase) {
+    case "queued":
+      return 0;
+    case "uploading":
+      // Cap at 95% — leave room for processing
+      return Math.min(0.95, status.loaded / status.total) * 100;
+    case "processing":
+      // Estimate processing as the last 5% with a smooth easing
+      return 95 + processingEase(status.startedAt);
+    case "complete":
+      return 100;
+    case "error":
+      return 0;
+  }
+}
+
+function processingEase(startedAt: number): number {
+  const elapsed = (Date.now() - startedAt) / 1000;
+  // Asymptotically approach 5% over ~10 seconds
+  return 5 * (1 - Math.exp(-elapsed / 3));
+}
+```
+
+The key trick: **reserve the last 5% for processing**. Bytes-on-wire hits 95% max. That last slice fills with an easing curve while the server does its work. Users don't perceive the lie (it's 95% vs 100%) and they never see the dreaded "100% but not done."
+
+## Wiring up XHR for byte progress
+
+Here's where every tutorial goes wrong by using `fetch`. The fetch spec doesn't support upload progress events — `fetch()` returns a `Response` you can read for *download* progress, but there's no way to observe request body bytes going out. The ReadableStream duplex spec is slowly landing, but as of early 2026 support is limited and broken on retries.
+
+Use `XMLHttpRequest` for uploads. Don't feel bad about it.
+
+```ts
+function uploadOne(
+  item: UploadItem,
+  presignedUrl: string,
+  onProgress: (loaded: number, total: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", presignedUrl);
+    xhr.setRequestHeader("Content-Type", item.file.type);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(e.loaded, e.total);
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error(`Upload failed with status ${xhr.status}`));
+    };
+
+    xhr.onerror = () => reject(new Error("Network error"));
+    xhr.onabort = () => reject(new Error("Aborted"));
+
+    xhr.send(item.file);
+  });
+}
+```
+
+Two easy-to-miss details:
+
+- `Content-Type` must match what the server signed for. A presigned PUT with mismatched content type returns 403. See [presigned URLs vs server proxy](/blog/presigned-urls-vs-server-proxy) for why.
+- Store the `xhr` reference so you can `.abort()` it on cancel or component unmount. Not doing this is another memory leak.
+
+## Moving to the processing phase
+
+When the PUT resolves, you flip the item to `processing` and either poll or subscribe for completion. Webhooks are the clean answer for long-running work; polling is fine for short work.
+
+```ts
+async function processAndComplete(
+  item: UploadItem,
+  dispatch: Dispatch<Action>,
+) {
+  dispatch({ type: "PROCESSING", id: item.id, startedAt: Date.now() });
+
+  try {
+    const final = await pollUntilReady(item.id, { timeoutMs: 120_000 });
+    dispatch({ type: "COMPLETE", id: item.id, url: final.url });
+  } catch (err) {
+    dispatch({
+      type: "ERROR",
+      id: item.id,
+      message: (err as Error).message,
+      retryable: true,
+    });
+  }
+}
+```
+
+If your backend supports it, swap the poll for a WebSocket or server-sent event subscription so "complete" fires within 100ms of the webhook rather than polling latency.
+
+## Retries and attempt tracking
+
+Retries belong in the state machine. When the user clicks "retry" on an errored item:
+
+```ts
+function retry(item: UploadItem, dispatch: Dispatch<Action>) {
+  if (item.attempts >= 3) {
+    dispatch({
+      type: "ERROR",
+      id: item.id,
+      message: "Max attempts exceeded.",
+      retryable: false,
+    });
+    return;
+  }
+  dispatch({ type: "REQUEUE", id: item.id });
+  void start(item, dispatch); // re-runs the sign → PUT → poll flow
+}
+```
+
+Backoff is optional for manual retries; required for automatic ones. Exponential with jitter: `min(30_000, 1000 * 2 ** attempt) + random(0, 500)`. And always preserve the file reference — don't ask the user to re-pick on retry.
+
+## Aggregating multi-file progress
+
+The common mistake with multi-file uploads is averaging the percentages. That's wrong because files have different sizes — a 1MB file at 50% and a 100MB file at 50% should not contribute equally to the aggregate.
+
+Weight by total bytes:
+
+```ts
+function aggregate(items: UploadItem[]): number {
+  const totalBytes = items.reduce((sum, i) => sum + i.file.size, 0);
+  if (totalBytes === 0) return 0;
+
+  const uploadedBytes = items.reduce((sum, i) => {
+    switch (i.status.phase) {
+      case "complete":
+        return sum + i.file.size;
+      case "uploading":
+        return sum + (i.status.loaded ?? 0);
+      case "processing":
+        return sum + i.file.size * 0.95;
+      default:
+        return sum;
+    }
+  }, 0);
+
+  return (uploadedBytes / totalBytes) * 100;
+}
+```
+
+This still has a smoothness problem: the aggregate jumps backward if a new file joins the queue. Fix by computing `totalBytes` from items that are "accepted for upload," not just "currently uploading" — add new files to the total when they enter `queued`, not when they enter `uploading`.
+
+## The React component
+
+Tying it together. Assume a `useUploadReducer` hook exposing `{ items, start, retry, cancel, aggregate }`:
+
+```tsx
+export function UploadList() {
+  const { items, aggregate, retry, cancel } = useUploadReducer();
+
+  return (
+    <section aria-label="Upload progress">
+      <header>
+        <progress value={aggregate} max={100} aria-label="Overall progress" />
+        <span>{Math.round(aggregate)}%</span>
+      </header>
+
+      <ul>
+        {items.map((item) => (
+          <li key={item.id} data-phase={item.status.phase}>
+            <span className="name">{item.file.name}</span>
+            <span className="size">{formatBytes(item.file.size)}</span>
+            <progress value={progressOf(item.status)} max={100} />
+            <span className="label">{labelOf(item.status)}</span>
+
+            {item.status.phase === "error" && item.status.retryable && (
+              <button onClick={() => retry(item.id)}>Retry</button>
+            )}
+            {item.status.phase !== "complete" && (
+              <button onClick={() => cancel(item.id)}>Cancel</button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function labelOf(status: UploadStatus): string {
+  switch (status.phase) {
+    case "queued":
+      return "Waiting…";
+    case "uploading":
+      return `Uploading ${formatBytes(status.loaded)} / ${formatBytes(status.total)}`;
+    case "processing":
+      return "Processing on server…";
+    case "complete":
+      return "Done";
+    case "error":
+      return status.message;
+  }
+}
+```
+
+Use the native `<progress>` element. Screen readers handle it for free, and there's no reason to build your own bar out of `<div>`s.
+
+## UX details that matter
+
+- **Don't show per-file progress if there are more than ~5 files.** Collapse into "3 of 12 complete" with an aggregate bar.
+- **Show the processing phase label.** "Uploading 10MB of 10MB" → "Processing on server…" is the single change that prevents the most "is it stuck?" tickets.
+- **Cancel must be immediate.** Abort the XHR synchronously; don't wait for the network to realize.
+- **Never hide errors.** Collapse succeeded items into "3 files uploaded" but keep error items expanded with a retry button.
+
+## Takeaways
+
+- A progress bar that only tracks bytes-on-wire lies when the server does post-upload work. Model all four phases.
+- Reserve 5% for the processing phase. Ease into it. Never show 100% until the file is actually usable.
+- Use XHR, not fetch. fetch still can't track request body progress reliably in 2026.
+- Aggregate by bytes, not by averaged percentages.
+- Retries live inside the state machine; track attempt counts and preserve the file reference.
+
+If you don't want to maintain this, the UploadKit [`useUpload` hook](/docs) returns exactly this state machine — `queued`, `uploading`, `processing`, `complete`, `error` — for every file you throw at it. Pair with [`<UploadDropzone />`](/components) and you get the UI for free.

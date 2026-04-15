@@ -20,6 +20,7 @@ const columns: FooterColumn[] = [
       { label: 'Features', href: '/#features' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Dashboard', href: 'https://app.uploadkit.dev', external: true },
+      { label: 'Blog', href: '/blog' },
       { label: 'Changelog', href: '/changelog' },
     ],
   },

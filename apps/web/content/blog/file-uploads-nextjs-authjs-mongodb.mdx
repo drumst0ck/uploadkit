@@ -1,0 +1,322 @@
+---
+title: "File uploads in Next.js with Auth.js and MongoDB"
+description: "End-to-end Next.js file upload: Auth.js v5 session check, R2 presigned URL, Mongoose metadata model, cached connection, rate limits, and a server component list."
+category: Tutorials
+publishedAt: 2026-04-30
+author: UploadKit Team
+tags:
+  - nextjs
+  - auth-js
+  - mongodb
+  - mongoose
+  - cloudflare-r2
+  - tutorial
+---
+
+**TL;DR — The production shape for a Next.js file upload with Auth.js and MongoDB is: a Route Handler that checks the session, rate-limits by user, signs an R2 presigned PUT URL, and saves a metadata document in Mongo. The client uploads direct-to-R2, then POSTs the object key to a second handler that persists the record. This post is the complete typed build, including the cached Mongoose connection pattern that Next.js requires and the one Edge Runtime gotcha that will bite you.**
+
+If you're building on the stack most indie SaaS apps run on — Next.js 16, [Auth.js v5](https://authjs.dev), MongoDB, Cloudflare R2 — this is the tutorial. It assumes you've read the simpler [R2 + Next.js presigned URL post](/blog/upload-files-cloudflare-r2-nextjs); here we add auth, persistence, and rate limiting.
+
+Three rules define the architecture:
+
+1. **Route Handlers run in Node.js, never Edge.** Mongoose uses node-only APIs; the Edge Runtime will throw at build time.
+2. **Presigned URLs, not server proxying.** You keep bytes off your server. See [presigned URLs vs server proxy](/blog/presigned-urls-vs-server-proxy).
+3. **Metadata lives in Mongo, bytes live in R2.** These are different systems with different guarantees. Don't try to put them in one.
+
+## The data model
+
+A single Mongoose model is enough for the common case: one upload per document.
+
+```ts
+// lib/models/file.ts
+import { Schema, model, models, type InferSchemaType } from "mongoose";
+
+const FileSchema = new Schema(
+  {
+    ownerId: { type: String, required: true, index: true },
+    key: { type: String, required: true, unique: true }, // R2 object key
+    filename: { type: String, required: true },
+    contentType: { type: String, required: true },
+    size: { type: Number, required: true },
+    status: { type: String, enum: ["pending", "ready"], default: "pending", index: true },
+  },
+  { timestamps: true },
+);
+
+export type FileDoc = InferSchemaType<typeof FileSchema> & { _id: string };
+export const File = models.File ?? model("File", FileSchema);
+```
+
+`status` tracks the lifecycle: `pending` the moment we sign the URL, `ready` once the client confirms the upload. If the client never confirms, a cron job deletes `pending` docs older than an hour — along with the R2 object if it exists.
+
+## The cached Mongoose connection
+
+Next.js in development hot-reloads your server modules, which would normally create a new Mongo connection every save and exhaust your Atlas connection pool in about four minutes. The standard fix is caching on `globalThis`:
+
+```ts
+// lib/db.ts
+import mongoose from "mongoose";
+
+const uri = process.env.MONGODB_URI!;
+if (!uri) throw new Error("MONGODB_URI missing");
+
+type Cache = { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null };
+const globalWithMongo = globalThis as unknown as { _mongo?: Cache };
+const cache: Cache = globalWithMongo._mongo ?? { conn: null, promise: null };
+globalWithMongo._mongo = cache;
+
+export async function db() {
+  if (cache.conn) return cache.conn;
+  cache.promise ??= mongoose.connect(uri, { bufferCommands: false });
+  cache.conn = await cache.promise;
+  return cache.conn;
+}
+```
+
+Call `await db()` at the top of every Route Handler. Never in middleware — middleware runs on the Edge Runtime and Mongoose will not load there. This is the single biggest gotcha in the stack.
+
+## Auth.js v5 session check
+
+Auth.js v5 exposes `auth()` as a server-side helper. In a Route Handler it returns the current session or `null`.
+
+```ts
+// lib/auth.ts
+import NextAuth from "next-auth";
+import GitHub from "next-auth/providers/github";
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [GitHub],
+  session: { strategy: "jwt" },
+});
+```
+
+Read the [Auth.js v5 migration guide](https://authjs.dev/getting-started/migrating-to-v5) if you're coming from NextAuth v4.
+
+## Rate limiting per user
+
+[Upstash Redis](https://upstash.com/docs/redis/sdks/ratelimit-ts/gettingstarted) fits Next.js perfectly — HTTP-based, no persistent connection, fine from serverless.
+
+```ts
+// lib/ratelimit.ts
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+export const uploadLimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(20, "1 m"), // 20 uploads/min/user
+  analytics: true,
+  prefix: "uk:upload",
+});
+```
+
+20 signings per minute per user is generous for a UI and tight enough to stop abuse. Tune for your product.
+
+## The presign Route Handler
+
+This is the core of the flow. It checks the session, rate-limits, validates the request, creates a `pending` document, and returns a signed URL.
+
+```ts
+// app/api/uploads/sign/route.ts
+import { NextResponse } from "next/server";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { z } from "zod";
+import { nanoid } from "nanoid";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { File } from "@/lib/models/file";
+import { r2 } from "@/lib/r2";
+import { uploadLimit } from "@/lib/ratelimit";
+
+export const runtime = "nodejs"; // never "edge"
+
+const Body = z.object({
+  filename: z.string().min(1).max(256),
+  contentType: z.string().regex(/^[\w.+-]+\/[\w.+-]+$/),
+  size: z.number().int().positive().max(50 * 1024 * 1024),
+});
+
+export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limit = await uploadLimit.limit(session.user.id);
+  if (!limit.success) return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+
+  const parsed = Body.safeParse(await req.json());
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+  const { filename, contentType, size } = parsed.data;
+
+  const key = `u/${session.user.id}/${nanoid()}-${filename}`;
+
+  await db();
+  await File.create({
+    ownerId: session.user.id,
+    key,
+    filename,
+    contentType,
+    size,
+    status: "pending",
+  });
+
+  const url = await getSignedUrl(
+    r2,
+    new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET!,
+      Key: key,
+      ContentType: contentType,
+      ContentLength: size,
+    }),
+    { expiresIn: 60 },
+  );
+
+  return NextResponse.json({ url, key });
+}
+```
+
+A few deliberate choices:
+
+- **`export const runtime = "nodejs"`.** Explicit. Without it, a future refactor might flip the default and break Mongoose at runtime.
+- **Create the `pending` doc before signing.** If the signing fails, the doc is harmless and the cleanup job removes it. If we signed first and then Mongo failed, we'd have an orphan R2 object.
+- **Don't trust client `contentType` or `size` past this handler.** Use them to sign, but re-validate on the confirm handler if the bytes matter.
+
+Per-user validation (file type allowlists, virus scanning, image re-encoding) belongs here too. Review [the security checklist](/blog/file-upload-security-checklist) before shipping.
+
+## Confirming the upload
+
+After the client PUTs to R2, it tells us about it. We flip the doc to `ready`.
+
+```ts
+// app/api/uploads/confirm/route.ts
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { File } from "@/lib/models/file";
+
+export const runtime = "nodejs";
+
+export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { key } = (await req.json()) as { key: string };
+  await db();
+  const doc = await File.findOneAndUpdate(
+    { key, ownerId: session.user.id, status: "pending" },
+    { status: "ready" },
+    { new: true },
+  );
+  if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json({ ok: true });
+}
+```
+
+Scoping by `ownerId` in the query is how we prevent a user from "confirming" someone else's pending object.
+
+## The client component
+
+A thin client component that talks to both handlers:
+
+```tsx
+// app/(app)/upload/uploader.tsx
+"use client";
+import { useState } from "react";
+
+export function Uploader() {
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">("idle");
+
+  async function onFile(file: File) {
+    setStatus("uploading");
+    const sign = await fetch("/api/uploads/sign", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
+    });
+    if (!sign.ok) return setStatus("error");
+    const { url, key } = (await sign.json()) as { url: string; key: string };
+
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+      xhr.setRequestHeader("content-type", file.type);
+      xhr.upload.onprogress = (e) =>
+        e.lengthComputable && setProgress(Math.round((e.loaded / e.total) * 100));
+      xhr.onload = () => (xhr.status < 300 ? resolve() : reject());
+      xhr.onerror = () => reject();
+      xhr.send(file);
+    }).catch(() => setStatus("error"));
+
+    await fetch("/api/uploads/confirm", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ key }),
+    });
+    setStatus("done");
+  }
+
+  return (
+    <div>
+      <input
+        type="file"
+        onChange={(e) => e.currentTarget.files?.[0] && onFile(e.currentTarget.files[0])}
+      />
+      {status === "uploading" && <progress value={progress} max={100} />}
+      {status === "done" && <p>Uploaded.</p>}
+      {status === "error" && <p>Upload failed.</p>}
+    </div>
+  );
+}
+```
+
+## Listing files in a server component
+
+This is where Next.js really pays off. The file list is server-rendered with no client-side fetching:
+
+```tsx
+// app/(app)/files/page.tsx
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { File as FileModel } from "@/lib/models/file";
+import { redirect } from "next/navigation";
+
+export default async function FilesPage() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  await db();
+  const files = await FileModel.find({ ownerId: session.user.id, status: "ready" })
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .lean();
+
+  return (
+    <ul>
+      {files.map((f) => (
+        <li key={String(f._id)}>
+          {f.filename} — {Math.round(f.size / 1024)} KB
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+`.lean()` returns plain objects instead of Mongoose documents. Faster, and safe to serialize across the server/client boundary.
+
+## Things that will bite you
+
+- **Edge Runtime in middleware.** Mongoose will not load. Keep auth header extraction and rate limit there; keep DB work in Node.js Route Handlers.
+- **Missing `ContentType` on the command.** Browsers will send their own, signature will mismatch, you'll get 403.
+- **Not caching the Mongo connection.** Dev will break in minutes; prod will die under real load.
+- **Forgetting the cleanup job.** Orphan `pending` docs accumulate forever. A nightly job that deletes `pending` older than 1 hour is enough.
+
+## Takeaways
+
+- Auth.js v5 `auth()` in a Node.js Route Handler is the session source of truth.
+- Cache Mongoose on `globalThis` and call `await db()` at the top of every handler.
+- Use Upstash Redis for per-user rate limits. Serverless-friendly, no connections to manage.
+- Store the minimum metadata in Mongo; keep bytes in R2.
+- Server components make the list page trivial — no client fetch, no loading states.
+
+UploadKit bundles this flow — Auth.js, Mongo, R2 or [BYOS](/blog/byos-bring-your-own-storage), rate limits, lifecycle — as a drop-in component. [See the components](/components). Or lift the code above into your own app; it's the same architecture we run in production.

@@ -1,0 +1,216 @@
+---
+title: "File uploads in Remix and React Router v7"
+description: "The correct pattern for Remix and React Router v7 file uploads: presigned URLs in an action, client direct-to-storage PUT, and revalidation on success."
+category: Tutorials
+publishedAt: 2026-04-29
+author: UploadKit Team
+tags:
+  - remix
+  - react-router-v7
+  - presigned-urls
+  - cloudflare-r2
+  - tutorial
+  - typescript
+---
+
+**TL;DR — `unstable_parseMultipartFormData` is not the right answer for a Remix file upload above a few MB. It proxies every byte through your server, hits platform body limits, and makes progress bars awkward. The correct pattern in Remix and React Router v7 is an `action` that returns a Cloudflare R2 presigned PUT URL, a client-side `fetch` direct to R2, and a `revalidate()` call when it's done. This post is the complete typed implementation.**
+
+Remix and [React Router v7](https://reactrouter.com) share an action model: every route can export an `action` that runs on the server and a `loader` that feeds the UI. It's elegant for form posts and mutations. It's also a trap for file uploads, because the obvious API — `request.formData()` with the [`unstable_parseMultipartFormData`](https://remix.run/docs/en/main/utils/parse-multipart-form-data) helper — pushes every byte through your server. On Vercel that's a 4.5 MB hard limit. On Cloudflare Workers it's 100 MB and you're paying for every millisecond. On your own node, it's fine until it isn't.
+
+The better pattern takes ten more lines and scales to any file size: **use the action to sign a presigned URL, upload from the client, then revalidate**. Everything below is identical on Remix v2 and React Router v7 — the `Route` types change names, but the shape doesn't.
+
+## What we're building
+
+A `/upload` route with:
+
+- A `loader` that lists the current user's files from R2.
+- An `action` that returns a presigned PUT URL for a new upload.
+- A client component that uploads with progress, then calls `useRevalidator()` to refresh the list.
+
+## The R2 client
+
+Same as in the [Next.js](/blog/upload-files-cloudflare-r2-nextjs) and [SvelteKit](/blog/file-uploads-sveltekit) versions. R2 is S3-compatible; use the AWS SDK.
+
+```ts
+// app/lib/r2.server.ts
+import { S3Client } from "@aws-sdk/client-s3";
+
+export const r2 = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT!,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+});
+```
+
+The `.server.ts` suffix makes the Remix compiler strip this module from the client bundle. Any accidental client import becomes a build error, which is exactly what you want for credentials.
+
+## The route: loader, action, component
+
+Here's the complete `app/routes/upload.tsx`. I'll annotate the interesting parts below.
+
+```tsx
+// app/routes/upload.tsx
+import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
+import { useActionData, useLoaderData, useRevalidator, Form } from "@remix-run/react";
+import { useState } from "react";
+import { PutObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { z } from "zod";
+import { nanoid } from "nanoid";
+import { r2 } from "~/lib/r2.server";
+import { requireUser } from "~/lib/auth.server";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const user = await requireUser(request);
+  const list = await r2.send(
+    new ListObjectsV2Command({
+      Bucket: process.env.R2_BUCKET!,
+      Prefix: `u/${user.id}/`,
+      MaxKeys: 50,
+    }),
+  );
+  return json({
+    files:
+      list.Contents?.map((o) => ({
+        key: o.Key!,
+        size: o.Size ?? 0,
+        lastModified: o.LastModified?.toISOString() ?? null,
+      })) ?? [],
+  });
+}
+
+const SignBody = z.object({
+  filename: z.string().min(1).max(256),
+  contentType: z.string().regex(/^[\w.+-]+\/[\w.+-]+$/),
+  size: z.number().int().positive().max(200 * 1024 * 1024),
+});
+
+export async function action({ request }: ActionFunctionArgs) {
+  const user = await requireUser(request);
+  const parsed = SignBody.safeParse(await request.json());
+  if (!parsed.success) return json({ error: parsed.error.message }, { status: 400 });
+
+  const { filename, contentType, size } = parsed.data;
+  const key = `u/${user.id}/${nanoid()}-${filename}`;
+
+  const url = await getSignedUrl(
+    r2,
+    new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET!,
+      Key: key,
+      ContentType: contentType,
+      ContentLength: size,
+    }),
+    { expiresIn: 60 },
+  );
+
+  return json({ url, key });
+}
+
+export default function UploadRoute() {
+  const { files } = useLoaderData<typeof loader>();
+  const { revalidate } = useRevalidator();
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">("idle");
+
+  async function onFile(file: File) {
+    setStatus("uploading");
+    setProgress(0);
+
+    const signRes = await fetch("/upload", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
+    });
+    if (!signRes.ok) return setStatus("error");
+    const { url } = (await signRes.json()) as { url: string; key: string };
+
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+      xhr.setRequestHeader("content-type", file.type);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = () => (xhr.status < 300 ? resolve() : reject());
+      xhr.onerror = () => reject();
+      xhr.send(file);
+    }).then(
+      () => {
+        setStatus("done");
+        revalidate();
+      },
+      () => setStatus("error"),
+    );
+  }
+
+  return (
+    <main>
+      <input
+        type="file"
+        onChange={(e) => e.currentTarget.files?.[0] && onFile(e.currentTarget.files[0])}
+      />
+      {status === "uploading" && <progress value={progress} max={100} />}
+      {status === "done" && <p>Uploaded.</p>}
+      {status === "error" && <p>Upload failed.</p>}
+
+      <ul>
+        {files.map((f) => (
+          <li key={f.key}>
+            {f.key} — {Math.round(f.size / 1024)} KB
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+```
+
+### Why the action returns JSON, not a redirect
+
+The classic Remix mutation pattern is: action does the work, returns `redirect()`, the page reloads. That's great for creating a blog post. It's wrong for presigning, because the action isn't doing the upload — the client is. The action's job is to return a URL; the client's job is to PUT the bytes and then tell the loader to re-run.
+
+`useRevalidator().revalidate()` re-runs every loader on the page without a navigation. The file list refreshes, the UI stays put, no flash. See the [React Router revalidation docs](https://reactrouter.com/how-to/revalidation) for the full API.
+
+### Why we `fetch("/upload", ...)` from the client
+
+Remix routes respond to both HTML form posts and JSON requests. When the client sends `content-type: application/json`, the action runs, and whatever JSON it returns comes back. It's the same action. This keeps the server logic in one place.
+
+### Why `unstable_parseMultipartFormData` is the wrong answer
+
+The helper exists, and it works, and the docs show an example with `uploadHandler` writing to disk or to S3. It's fine for tiny uploads. For a 200 MB video:
+
+- On Vercel, the request body is capped at 4.5 MB. Uploads fail before they start.
+- On Cloudflare Workers, there's a 100 MB cap and a 30-second CPU limit. Long uploads get killed.
+- On your own node, you're paying for every byte to hit your process, sit in memory (or a temp file), and then get re-uploaded to R2. You're doing the work twice.
+
+Presigned URLs take the server out of the data path. The only bytes crossing your server are the JSON request/response to sign the URL — a few hundred bytes. The user's bytes go straight to R2.
+
+See [presigned URLs vs server proxy](/blog/presigned-urls-vs-server-proxy) for the full comparison.
+
+## React Router v7 notes
+
+If you're on [React Router v7](https://reactrouter.com) (the evolution of Remix), the code is almost identical:
+
+- `import { ... } from "@remix-run/react"` becomes `from "react-router"`.
+- `LoaderFunctionArgs`/`ActionFunctionArgs` become generated `Route.LoaderArgs`/`Route.ActionArgs`.
+- `useRevalidator` is in the same place.
+
+The action/loader shape is unchanged. Remix didn't disappear; it moved under the React Router banner.
+
+## CORS and headers
+
+Same as every presigned URL setup. Configure the R2 bucket to allow PUTs from your origin, send `content-type` on the PUT that matches what you signed, expose `ETag`. See the [Cloudflare R2 CORS docs](https://developers.cloudflare.com/r2/buckets/cors/).
+
+## Takeaways
+
+- Use the action to sign a presigned PUT URL. Don't parse multipart form data for large files.
+- Upload from the client with `fetch` or `XMLHttpRequest` (for progress events).
+- Call `useRevalidator().revalidate()` after a successful upload to refresh loaders.
+- Scope the object key to the authenticated user. Validate with zod.
+- Everything above works identically in Remix v2 and React Router v7.
+
+UploadKit's React components work inside Remix and React Router routes without any special adapter — they only need a signing endpoint, which the action above provides. If you'd rather skip the state machine, browse [the components](/components). Otherwise this is a clean, fast pattern you can maintain yourself.

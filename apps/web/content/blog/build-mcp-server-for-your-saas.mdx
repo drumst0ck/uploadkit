@@ -1,0 +1,210 @@
+---
+title: "Building an MCP server for your SaaS: lessons from UploadKit"
+description: "How to design, ship, and register an MCP server so AI coding assistants become first-class users of your SaaS. Stdio vs HTTP, tools, auth, and gotchas."
+category: Engineering
+publishedAt: 2026-04-24
+author: UploadKit Team
+tags:
+  - mcp
+  - model-context-protocol
+  - developer-experience
+  - saas-architecture
+  - ai-tooling
+  - uploadkit-mcp
+---
+
+**TL;DR — If you ship a SaaS with an SDK, AI coding assistants are now a meaningful slice of your users. They can't read your docs, they hallucinate your API, and they'll keep doing it unless you hand them a Model Context Protocol (MCP) server. We built one for UploadKit. This post is the architecture, the tradeoffs, and the things we wish we'd known before the first `npm publish`.**
+
+Every SaaS developer-tools company has the same problem right now: the SDK and components you spent a year polishing are being driven by AI coding assistants that don't know they exist. Claude, Cursor, and Windsurf are genuinely great at wiring up libraries — but only if the library was in the training data. For anything newer than about six months old, the assistant invents an API, the developer hits "accept", and the first thing they see is a red squiggle on an import that doesn't resolve.
+
+The fix for "build MCP server SaaS" is not better docs, not a better LLM-readable sitemap, not a custom fine-tune. It's an MCP server. Anthropic open-sourced the [protocol](https://modelcontextprotocol.io/specification) in late 2024 and the ecosystem moved fast: Claude Code, Claude Desktop, Cursor, Windsurf, Zed, and Continue all speak it. Ship a server once, reach every assistant.
+
+Here's how we designed UploadKit's. Steal what's useful.
+
+## Why ship an MCP server at all
+
+Three arguments, in order of how often they convinced us internally:
+
+**1. AI assistants are users.** At our install numbers roughly one in three new projects was scaffolded inside Cursor or Claude Code. Every hallucinated import is a developer who has to Google our docs, re-prompt, and sometimes give up. That's a support cost with a different name.
+
+**2. Docs are stateless, SDKs are stateful.** Your docs say "we support these components." Your SDK ships new ones every week. An MCP server is a thin shim that reads the same catalog your own website reads, so the assistant always sees ground truth.
+
+**3. The protocol is trivial.** MCP is JSON-RPC over stdio or Streamable HTTP. A minimal server is ~150 lines of TypeScript. If you've built a REST API you can build this in an afternoon.
+
+## Architecture overview
+
+The UploadKit MCP server is a standalone `@uploadkitdev/mcp` package that can run two ways:
+
+```
+stdio mode:                         remote mode:
+
+┌────────────┐                      ┌────────────┐
+│ Claude Code│                      │ Claude Code│
+└─────┬──────┘                      └─────┬──────┘
+      │ JSON-RPC                          │ HTTP + SSE
+      │ over stdin/stdout                 │ Streamable HTTP
+      ▼                                   ▼
+┌────────────────┐                  ┌─────────────────────┐
+│ npx subprocess │                  │ mcp.uploadkit.dev   │
+│ @uploadkitdev  │                  │ (Cloudflare Worker) │
+│      /mcp      │                  └──────────┬──────────┘
+└────┬───────────┘                             │
+     │ reads bundled                           │ reads live
+     ▼ catalog.json                            ▼ MongoDB
+┌────────────────┐                  ┌─────────────────────┐
+│ mcp-core pkg   │                  │  Project + catalog  │
+│ (shared tools) │                  │       queries       │
+└────────────────┘                  └─────────────────────┘
+```
+
+Both modes import the same `@uploadkitdev/mcp-core` package, which defines the tools, resources, and handlers. The entry points differ only in transport.
+
+## Stdio vs Streamable HTTP
+
+The protocol supports both. They solve different problems.
+
+**Stdio** is a subprocess the client spawns. Pros: zero network, zero auth, works offline, runs on the user's machine. Cons: cold start (npm-installing 150KB takes 3-5 seconds), bundles whatever catalog version you shipped, no per-user data.
+
+**Streamable HTTP** is a long-lived connection over HTTP with server-sent events for streaming responses. Pros: always fresh, can return project-scoped data, single source of truth. Cons: requires hosting, requires auth for anything non-public, latency.
+
+We ship both. Stdio covers "I want to try UploadKit in Claude Code right now." HTTP covers "I'm on a team and we want the catalog pinned to our plan." The [MCP install guide](https://docs.uploadkit.dev/docs/guides/mcp) tells users which to pick.
+
+## What tools to expose
+
+This is the decision that makes or breaks adoption. Too few tools and the assistant has to guess. Too many and the assistant gets confused about which to call. Our heuristic: one tool per user intent.
+
+For an upload library the intents are:
+
+- **"What can I install?"** → `list_components`, `get_component(name)`.
+- **"How do I install it?"** → `get_install_command(package, packageManager)`.
+- **"Wire it up in my framework."** → `scaffold_route_handler(framework)`, `scaffold_byos_config(provider)`.
+- **"What version am I on?"** → `get_sdk_version()`.
+- **"What are the limits?"** → `get_plan_limits()` (remote mode only).
+
+Here's the actual tool definition for `get_component`:
+
+```ts
+import { Tool } from "@modelcontextprotocol/sdk/types.js";
+
+export const getComponentTool: Tool = {
+  name: "get_component",
+  description:
+    "Get the full API for an UploadKit React component. " +
+    "Returns props, defaults, import path, and a usage example. " +
+    "Call this before generating any UploadKit component code.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      name: {
+        type: "string",
+        enum: ["UploadButton", "UploadDropzone", "FilePreview", "ImageCropper"],
+      },
+    },
+    required: ["name"],
+  },
+};
+```
+
+Two things worth copying:
+
+- **The description tells the assistant when to call.** "Call this before generating any UploadKit component code" is instruction, not documentation. Models follow it.
+- **The enum is load-bearing.** Without it the assistant will pass `name: "Dropzone"` or `name: "upload-button"`. With it, the schema validation rejects typos before they reach your handler.
+
+## Resources: the component catalog
+
+Tools are for actions. Resources are for documents the assistant can load into context whenever it wants.
+
+We expose the full component catalog as a single resource:
+
+```ts
+import { Resource } from "@modelcontextprotocol/sdk/types.js";
+
+export const catalogResource: Resource = {
+  uri: "uploadkit://catalog",
+  name: "UploadKit Component Catalog",
+  description: "All components, props, and usage examples in one document.",
+  mimeType: "application/json",
+};
+```
+
+When the client reads it, the server returns a JSON blob with every component. For stdio, this is bundled at build time from the same source that generates `/components` on our website. One catalog, three consumers (website, docs, MCP). The mcp-core package has a build step that imports the catalog and compiles it into the distributed artifact, so the server works fully offline after the first `npx` download.
+
+## Bundling for offline
+
+A non-obvious requirement: stdio servers must work with no network. If your MCP server makes an HTTP call to fetch docs, every tool invocation eats 200ms and fails on airplanes. We bundle the catalog, install commands, and scaffold templates at build time:
+
+```ts
+// packages/mcp-core/build/bundle.ts
+import catalog from "../../../website/src/data/components.json";
+import scaffolds from "./scaffolds/index.js";
+
+export const BUNDLED_CATALOG = catalog;
+export const BUNDLED_SCAFFOLDS = scaffolds;
+```
+
+`tsup` inlines these into the shipped `dist/`. The published package is ~180KB and starts in under a second.
+
+## Auth for remote mode
+
+Stdio is trivially authenticated — it runs as the user. Remote mode needs a real story. We went with the pattern in the MCP spec: `Authorization: Bearer <token>` on the HTTP request.
+
+```ts
+// apps/mcp-remote/src/auth.ts
+export async function authenticate(req: Request) {
+  const header = req.headers.get("authorization");
+  if (!header) return { tier: "anonymous" as const };
+
+  const token = header.replace(/^Bearer\s+/i, "");
+  if (!token.startsWith("uk_")) throw new Response("Bad token", { status: 401 });
+
+  const project = await Project.findByApiKey(token);
+  if (!project) throw new Response("Unknown token", { status: 401 });
+
+  return { tier: "authenticated" as const, project };
+}
+```
+
+Anonymous requests get the public catalog and nothing else. Authenticated requests get project-scoped tools (endpoints, BYOS config, usage). The anonymous path has a 60-req/min rate limit per IP, authenticated gets 600/min per key. Same [API keys](/docs) you use in the SDK.
+
+## Publishing to the MCP registry
+
+Anthropic runs an [official MCP registry](https://github.com/modelcontextprotocol/servers) that lists community and vendor servers. Getting in is a PR with a manifest entry:
+
+```json
+{
+  "name": "uploadkit",
+  "description": "UploadKit component catalog and scaffolding for AI assistants",
+  "author": "UploadKit",
+  "homepage": "https://uploadkit.dev",
+  "installCommand": "npx -y @uploadkitdev/mcp",
+  "remoteUrl": "https://mcp.uploadkit.dev/v1"
+}
+```
+
+Claude Desktop and several clients now auto-discover from this registry. If you're building a SaaS MCP server and not in the registry, you're invisible to the one-click install flows.
+
+## Gotchas
+
+Things that cost us hours:
+
+- **Message framing.** Stdio transport uses Content-Length-prefixed JSON-RPC, not newline-delimited JSON. Use the official SDK — don't roll your own.
+- **Streaming limits.** Streamable HTTP responses are capped at ~10MB by most clients. If your tool returns a 50MB catalog, paginate.
+- **Tool naming.** Use `snake_case`, not `camelCase`. The spec allows both; clients don't. We shipped `getComponent` first, had to alias to `get_component`.
+- **Description length.** Every tool description becomes part of the model's system prompt. Every word counts against context. Write descriptions like ad copy.
+- **stdout pollution.** Any `console.log` in stdio mode corrupts the JSON-RPC stream. Use `console.error` for logging; stderr is safe.
+- **Version skew.** If stdio users pin to `@uploadkitdev/mcp@0.1.0` and you ship `0.2.0` with new tools, they never get them. Document the update command visibly.
+
+## What we're adding next
+
+- **Prompts** — pre-baked workflows like "migrate from UploadThing to UploadKit" that chain tool calls.
+- **Project-scoped endpoint discovery** in remote mode, so the assistant knows the actual endpoint names in your code.
+- **Webhook signer helper** — generating the correct signing snippet for your runtime.
+
+## Takeaways
+
+- If you ship an SDK, assume AI coding assistants are using it. Build an MCP server.
+- One tool per user intent, descriptions that instruct the model when to call them, enums where possible.
+- Stdio + bundled catalog for frictionless trial. Streamable HTTP for authenticated, project-scoped data.
+- Publish to the MCP registry, or you don't exist in one-click install flows.
+
+If you want to see the pattern end-to-end, `@uploadkitdev/mcp` is open source, and the [user-facing guide](/blog/claude-code-mcp-upload-library) walks through installing it in Claude Code. The same architecture works for any SaaS with a catalog of nouns and a handful of verbs.
