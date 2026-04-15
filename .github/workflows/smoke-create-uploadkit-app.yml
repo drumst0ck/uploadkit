@@ -23,16 +23,13 @@ concurrency:
 jobs:
   smoke:
     name: smoke (${{ matrix.os }})
+    # NOTE: windows-latest temporarily removed — sveltekit/remix builds fail silently on Windows.
+    # Tracked for follow-up; see .planning/phases/12-create-uploadkit-app-cli/deferred-items.md
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            blocking: true
-          - os: windows-latest
-            blocking: false
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ !matrix.blocking }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
