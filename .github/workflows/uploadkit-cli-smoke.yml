@@ -1,0 +1,77 @@
+name: Smoke - uploadkit CLI
+
+# Gates the `uploadkit` CLI (Phase 12.5) before publish. For every push and
+# PR targeting master, we run a matrix that scaffolds a REAL upstream starter
+# per framework, runs the built CLI's `init` against it, then typechecks and
+# builds the scaffolded project. If any framework leg fails, the PR status
+# flips red and publish is blocked.
+#
+# Linux-only by design (D-10). Windows CI deferred to a Phase 12 follow-up.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'packages/uploadkit-cli/**'
+      - 'packages/react/**'
+      - 'packages/next/**'
+      - 'packages/core/**'
+      - 'packages/sveltekit/**'
+      - '.github/workflows/uploadkit-cli-smoke.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'packages/uploadkit-cli/**'
+      - 'packages/react/**'
+      - 'packages/next/**'
+      - 'packages/core/**'
+      - 'packages/sveltekit/**'
+      - '.github/workflows/uploadkit-cli-smoke.yml'
+
+concurrency:
+  group: smoke-uploadkit-cli-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: smoke (${{ matrix.framework }})
+    strategy:
+      # Don't cancel sibling legs when one framework breaks — maintainer wants
+      # to see ALL frameworks' status on one PR review pass.
+      fail-fast: false
+      matrix:
+        framework: [next-app, sveltekit, remix, vite-react]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Placeholder so the scaffolded app's env loader finds *something*;
+      # `uploadkit init` overwrites the real key slot after scaffolding.
+      UPLOADKIT_API_KEY: uk_test_placeholder
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install workspace deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build uploadkit CLI
+        run: pnpm --filter uploadkit build
+
+      - name: Smoke - ${{ matrix.framework }}
+        run: pnpm --filter uploadkit smoke -- ${{ matrix.framework }}
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-logs-${{ matrix.framework }}
+          path: |
+            packages/uploadkit-cli/*.log
+          if-no-files-found: ignore
+          retention-days: 7
