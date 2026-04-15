@@ -1,6 +1,8 @@
 export {
   MARKER_START,
   MARKER_END,
+  JSX_MARKER_START,
+  JSX_MARKER_END,
   hasMarkers,
   wrapWithMarkers,
   stripMarkerBlock,

@@ -13,14 +13,26 @@
 export const MARKER_START = '// uploadkit:start';
 export const MARKER_END = '// uploadkit:end';
 
+// JSX-compatible marker forms. Used inside JSX element children where a
+// bare `// …` line would render as literal text content in the DOM. The
+// `uploadkit:start` / `uploadkit:end` substring is the idempotency key —
+// `hasMarkers` matches it regardless of comment form.
+export const JSX_MARKER_START = '{/* uploadkit:start — do not edit this block manually */}';
+export const JSX_MARKER_END = '{/* uploadkit:end */}';
+
+const MARKER_KEY_START = 'uploadkit:start';
+const MARKER_KEY_END = 'uploadkit:end';
+
 /**
  * Returns true iff the source contains at least one complete marker pair
- * (a start marker followed by an end marker on a later line).
+ * (a start marker followed by an end marker on a later line). Matches both
+ * line-comment and JSX comment forms — idempotency uses the unique
+ * `uploadkit:start` token regardless of comment syntax.
  */
 export function hasMarkers(source: string): boolean {
-  const startIdx = source.indexOf(MARKER_START);
+  const startIdx = source.indexOf(MARKER_KEY_START);
   if (startIdx === -1) return false;
-  const endIdx = source.indexOf(MARKER_END, startIdx + MARKER_START.length);
+  const endIdx = source.indexOf(MARKER_KEY_END, startIdx + MARKER_KEY_START.length);
   return endIdx !== -1;
 }
 

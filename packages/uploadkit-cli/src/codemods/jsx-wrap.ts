@@ -1,4 +1,10 @@
-import { MARKER_START, MARKER_END, hasMarkers } from './markers.js';
+import {
+  MARKER_START,
+  MARKER_END,
+  JSX_MARKER_START,
+  JSX_MARKER_END,
+  hasMarkers,
+} from './markers.js';
 
 export interface WrapChildrenOptions {
   /** Parent tag whose children will be wrapped (e.g. "body"). */
@@ -7,6 +13,11 @@ export interface WrapChildrenOptions {
   wrapperOpen: string;
   /** Closing wrapper element (e.g. `</UploadKitProvider>`). */
   wrapperClose: string;
+  /**
+   * Marker comment style. Default `'jsx'` is safe inside JSX element children
+   * (renders nothing in the DOM). Use `'line'` only for non-JSX positions.
+   */
+  markerStyle?: 'jsx' | 'line';
 }
 
 /**
@@ -75,15 +86,25 @@ export function wrapChildrenOf(source: string, opts: WrapChildrenOptions): strin
   // wrapper lines up visually with existing children. Falls back to 8 spaces.
   const indentMatch = /\n([ \t]+)\S/.exec(innerRaw);
   const childIndent: string = indentMatch?.[1] ?? '        ';
-  const parentIndent = childIndent.slice(0, Math.max(0, childIndent.length - 2));
 
+  // Re-indent the existing children one level deeper since they now nest
+  // inside <wrapperOpen>. We add 2 spaces to each non-empty line's indent.
   const trimmedChildren = innerRaw.replace(/^\n+|\n+$/g, '');
+  const reindentedChildren = trimmedChildren
+    .split('\n')
+    .map((line) => (line.length === 0 ? line : `  ${line}`))
+    .join('\n');
+
+  const markerStyle = opts.markerStyle ?? 'jsx';
+  const startMarker = markerStyle === 'jsx' ? JSX_MARKER_START : MARKER_START;
+  const endMarker = markerStyle === 'jsx' ? JSX_MARKER_END : MARKER_END;
+
   const wrapped =
-    `\n${parentIndent}${MARKER_START}\n` +
-    `${parentIndent}${wrapperOpen}\n` +
-    `${trimmedChildren}\n` +
-    `${parentIndent}${wrapperClose}\n` +
-    `${parentIndent}${MARKER_END}\n${parentIndent.slice(0, -2)}`;
+    `\n${childIndent}${startMarker}\n` +
+    `${childIndent}${wrapperOpen}\n` +
+    `${reindentedChildren}\n` +
+    `${childIndent}${wrapperClose}\n` +
+    `${childIndent}${endMarker}\n${childIndent.slice(0, Math.max(0, childIndent.length - 2))}`;
 
   return source.slice(0, openEnd) + wrapped + source.slice(closeStart);
 }

@@ -185,8 +185,11 @@ describe('wrapChildrenOf', () => {
     expect(out).toContain('<ThemeProvider>');
     expect(out).toContain('<AuthProvider>');
     expect(out).toContain('<UploadKitProvider>');
-    expect(out.indexOf(MARKER_START)).toBeGreaterThan(out.indexOf('<body'));
-    expect(out.indexOf(MARKER_START)).toBeLessThan(out.indexOf('</body>'));
+    // Default markerStyle is 'jsx' — assert against the semantic key so the
+    // test doesn't care which comment form is used.
+    const markerPos = out.indexOf('uploadkit:start');
+    expect(markerPos).toBeGreaterThan(out.indexOf('<body'));
+    expect(markerPos).toBeLessThan(out.indexOf('</body>'));
   });
 
   it('throws a clear error when the parent tag is missing', () => {
