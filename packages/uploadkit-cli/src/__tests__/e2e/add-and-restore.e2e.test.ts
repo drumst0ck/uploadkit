@@ -78,7 +78,7 @@ describe.sequential('e2e: add + restore roundtrip (next-app)', () => {
   // fixed, this assertion set proves the full add+restore roundtrip. We
   // `skip` until then so CI stays green and the expected behavior is
   // documented in code.
-  it.skip('init → add dropzone → restore(add) → restore(init) — FULL ROUNDTRIP (blocked by add-templates path bug)', async () => {
+  it('init → add dropzone → restore(add) → restore(init) — FULL ROUNDTRIP', async () => {
     fx = scaffold('next-app');
     const { root } = fx;
 
@@ -133,36 +133,4 @@ describe.sequential('e2e: add + restore roundtrip (next-app)', () => {
     expect(existsSync(envPath)).toBe(false);
   });
 
-  it('reports the add-template path defect surfaces as a clear error (regression guard)', async () => {
-    // This test exists so the day somebody fixes the TEMPLATE_CANDIDATES path,
-    // they know to flip the `.skip` above. If `add` starts succeeding, this
-    // expectation will fail and force a review — a more durable mechanism
-    // than a TODO comment alone.
-    fx = scaffold('next-app');
-    const { root } = fx;
-
-    mkdirSync(join(root, 'app'), { recursive: true });
-    writeFileSync(
-      join(root, 'app', 'page.tsx'),
-      'export default function Page() { return (<main><p>hi</p></main>); }\n',
-      'utf8',
-    );
-
-    const init = await runCli(['init', '--yes', '--skip-install'], { cwd: root });
-    expect(init.exitCode).toBe(0);
-
-    const addRes = await runCli(
-      ['add', 'dropzone', '--target', 'app/page.tsx', '--yes'],
-      { cwd: root },
-    );
-    if (addRes.exitCode === 0) {
-      throw new Error(
-        'uploadkit add dropzone succeeded against the compiled bin — the ' +
-          'TEMPLATE_CANDIDATES path defect appears fixed. Flip the ' +
-          'previous `.skip` e2e to active and remove this guard.',
-      );
-    }
-    expect(addRes.exitCode).toBe(1);
-    expect(addRes.stderr).toMatch(/Template not found for component alias/);
-  });
 });

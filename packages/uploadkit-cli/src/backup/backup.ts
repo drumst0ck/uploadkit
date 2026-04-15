@@ -36,10 +36,14 @@ export interface CreateBackupSessionOptions {
 
 /**
  * Generate a filesystem-safe ISO-ish timestamp (no colons, which Windows
- * disallows). Example: `2026-04-15T14-32-07Z`.
+ * disallows; dot before ms also replaced). Includes millisecond precision so
+ * rapid back-to-back sessions (e.g. an `init` immediately followed by an
+ * `add` in a test harness) produce distinct directory names — otherwise the
+ * second `finalize()` would overwrite the first session's manifest.json in
+ * the shared dir. Example: `2026-04-15T14-32-07-482Z`.
  */
 function defaultTimestamp(): string {
-  return new Date().toISOString().replace(/:/g, '-').replace(/\.\d+Z$/, 'Z');
+  return new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
 }
 
 /**

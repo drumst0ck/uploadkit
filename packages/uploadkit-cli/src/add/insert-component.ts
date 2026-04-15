@@ -32,7 +32,7 @@ export interface InsertComponentResult {
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_CANDIDATES = [
   resolve(MODULE_DIR, 'templates'), // src/add/templates (vitest)
-  resolve(MODULE_DIR, '..', 'add-templates'), // dist/add-templates (built)
+  resolve(MODULE_DIR, 'add-templates'), // dist/add-templates (built — tsup onSuccess)
 ];
 
 async function loadTemplate(alias: ComponentAlias): Promise<string> {
