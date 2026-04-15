@@ -1,0 +1,290 @@
+---
+title: "How to upload files to Cloudflare R2 in Next.js"
+description: "Step-by-step guide to upload files to Cloudflare R2 in Next.js using presigned PUT URLs, the AWS SDK, and a typed Route Handler. Includes CORS config."
+category: Tutorials
+publishedAt: 2026-04-16
+author: UploadKit Team
+tags:
+  - cloudflare-r2
+  - nextjs
+  - presigned-urls
+  - tutorial
+  - aws-sdk
+  - typescript
+---
+
+**TL;DR — To upload files to Cloudflare R2 in Next.js, generate a presigned PUT URL on the server with `@aws-sdk/client-s3`, return it from a Route Handler, and `fetch(url, { method: 'PUT', body: file })` from the client. Don't proxy the file through your server. This guide walks through the bucket setup, the CORS config that everybody gets wrong, and a typed implementation in ~80 lines.**
+
+If you're trying to upload files to Cloudflare R2 in Next.js, the canonical answer is presigned URLs. R2 is S3-compatible, the AWS SDK works against it, and you get egress-free bandwidth as a bonus. The catch is that R2 has a few sharp edges around CORS, signature versions, and `ContentType` headers that aren't obvious from the official docs. This tutorial covers all of them.
+
+We'll build a working uploader with:
+
+- A Cloudflare R2 bucket and an API token scoped to it
+- A typed Next.js Route Handler that returns presigned PUT URLs
+- A client component that uploads with progress and proper error handling
+- The CORS configuration that actually lets the browser talk to R2
+
+If you want to skip the boilerplate, [UploadKit](/) does all of this in three lines — but it's worth understanding what's happening underneath.
+
+## Step 1: Create an R2 bucket
+
+In the Cloudflare dashboard, go to **R2 Object Storage** → **Create bucket**. Pick a name (e.g., `myapp-uploads`) and a location hint near your users. R2 doesn't have regions in the AWS sense — it replicates globally — but the location hint affects write latency.
+
+Once created, note three values from the bucket settings:
+
+- **Account ID** — find it in the R2 sidebar
+- **Bucket name** — what you just typed
+- **S3 API endpoint** — `https://<account-id>.r2.cloudflarestorage.com`
+
+You'll also want a **public bucket URL** if you want unauthenticated reads. R2 supports custom domains and a `r2.dev` subdomain. For production, use a custom domain — `r2.dev` is rate-limited and only meant for development.
+
+## Step 2: Create an API token
+
+Go to **R2** → **Manage R2 API Tokens** → **Create API token**. Give it:
+
+- **Permissions:** Object Read & Write
+- **Bucket scope:** the specific bucket you just created (don't grant access to all buckets)
+- **TTL:** never expires (or rotate every 90 days if you're disciplined)
+
+You'll get an **Access Key ID** and a **Secret Access Key**. Copy both — the secret is shown only once.
+
+Add them to `.env.local`:
+
+```bash
+R2_ACCOUNT_ID=your-account-id
+R2_ACCESS_KEY_ID=your-access-key
+R2_SECRET_ACCESS_KEY=your-secret-key
+R2_BUCKET=myapp-uploads
+R2_PUBLIC_URL=https://files.yourdomain.com
+```
+
+Never put these in `NEXT_PUBLIC_*` variables. They're server-only.
+
+## Step 3: Configure CORS on the bucket
+
+This is the step everybody skips and then spends an hour debugging. The browser needs the bucket to allow `PUT` from your origin.
+
+In the bucket settings, find **CORS policy** and paste:
+
+```json
+[
+  {
+    "AllowedOrigins": ["http://localhost:3000", "https://yourdomain.com"],
+    "AllowedMethods": ["GET", "PUT", "HEAD"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Two non-obvious things:
+
+1. `AllowedHeaders: ["*"]` is required because the browser will send `Content-Type` and other headers with the PUT.
+2. `ExposeHeaders: ["ETag"]` lets you read the upload's ETag for multipart upload completion later.
+
+If you forget CORS, the upload will fail with a generic `TypeError: Failed to fetch` and no useful error in the network tab — just an opaque preflight failure. Don't say we didn't warn you.
+
+## Step 4: Install the AWS SDK
+
+```bash
+pnpm add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner zod nanoid
+```
+
+We're using the official `@aws-sdk/client-s3` because R2 is S3-compatible. The `@aws-sdk/s3-request-presigner` package generates the signed URLs.
+
+## Step 5: Create the R2 client
+
+Make a `src/lib/r2.ts`:
+
+```ts
+import { S3Client } from '@aws-sdk/client-s3'
+
+export const r2 = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID!}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+})
+```
+
+`region: 'auto'` is correct for R2 — there's no real region, but the SDK requires one. Use a singleton; don't `new S3Client()` per request.
+
+## Step 6: The presigned URL Route Handler
+
+Create `src/app/api/upload/presign/route.ts`:
+
+```ts
+import { NextResponse } from 'next/server'
+import { PutObjectCommand } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { nanoid } from 'nanoid'
+import { z } from 'zod'
+import { r2 } from '@/lib/r2'
+
+const presignSchema = z.object({
+  filename: z.string().min(1).max(255),
+  contentType: z.string().regex(/^[\w-]+\/[\w.+-]+$/),
+  size: z.number().int().positive().max(50 * 1024 * 1024), // 50 MB
+})
+
+export async function POST(req: Request) {
+  const body = await req.json()
+  const parsed = presignSchema.safeParse(body)
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const { filename, contentType, size } = parsed.data
+  const key = `uploads/${nanoid()}/${filename}`
+
+  const command = new PutObjectCommand({
+    Bucket: process.env.R2_BUCKET!,
+    Key: key,
+    ContentType: contentType,
+    ContentLength: size,
+  })
+
+  const url = await getSignedUrl(r2, command, { expiresIn: 60 })
+
+  return NextResponse.json({
+    url,
+    key,
+    publicUrl: `${process.env.R2_PUBLIC_URL}/${key}`,
+  })
+}
+```
+
+Three things worth calling out:
+
+- **Always validate input.** The client decides the filename and content type. Zod here prevents path traversal (`../../etc/passwd`) and content type spoofing.
+- **`ContentType` must match exactly** between the presigned URL and the actual `PUT`. If the client sends a different `Content-Type` header, R2 returns `403 SignatureDoesNotMatch`. This is the single most common bug we see.
+- **60-second expiry** is enough for most uploads. For large files, increase it or move to multipart.
+
+## Step 7: The client uploader
+
+A simple form component that requests a presigned URL and uploads with progress:
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+
+export function Uploader() {
+  const [progress, setProgress] = useState(0)
+  const [url, setUrl] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleUpload(file: File) {
+    setError(null)
+    setProgress(0)
+
+    const presignRes = await fetch('/api/upload/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type,
+        size: file.size,
+      }),
+    })
+
+    if (!presignRes.ok) {
+      setError('Failed to get upload URL')
+      return
+    }
+
+    const { url: signedUrl, publicUrl } = await presignRes.json()
+
+    await uploadWithProgress(signedUrl, file, setProgress)
+    setUrl(publicUrl)
+  }
+
+  return (
+    <div>
+      <input
+        type="file"
+        onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+      />
+      {progress > 0 && progress < 100 && <p>Uploading: {progress}%</p>}
+      {url && <a href={url}>View file</a>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </div>
+  )
+}
+
+function uploadWithProgress(
+  url: string,
+  file: File,
+  onProgress: (p: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', url)
+    xhr.setRequestHeader('Content-Type', file.type)
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100))
+      }
+    })
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve()
+      else reject(new Error(`Upload failed: ${xhr.status}`))
+    })
+
+    xhr.addEventListener('error', () => reject(new Error('Network error')))
+    xhr.send(file)
+  })
+}
+```
+
+We use `XMLHttpRequest` because `fetch()` still doesn't expose upload progress in 2026. Yes, really. The `WHATWG Fetch` spec has had `ReadableStream` request bodies for years but progress events are still XHR-only across browsers.
+
+The critical line is `xhr.setRequestHeader('Content-Type', file.type)` — this must match what you signed on the server. If the user uploads a file with no detectable MIME type, the browser sends `application/octet-stream` and the server must sign with the same value.
+
+## Step 8: Test it
+
+Run `pnpm dev`, open `http://localhost:3000`, upload a file, and check:
+
+1. The network tab shows a `POST /api/upload/presign` returning a `url`.
+2. A `PUT` to `<account-id>.r2.cloudflarestorage.com` with status `200`.
+3. The `publicUrl` opens the file in a new tab.
+
+If the PUT fails with `403`, check the `Content-Type` header — that's the signature mismatch we warned about.
+
+## What this means for you
+
+You now have a working file upload pipeline. ~80 lines of code, no per-MB markup, no vendor lock-in. The pieces you'll want to add next:
+
+- **Auth.** Currently anybody can request a presigned URL. Gate the Route Handler behind your session.
+- **Rate limiting.** A single user can request 1000 presigned URLs per second and exhaust your token budget. We use [Upstash Redis](https://upstash.com/docs/redis/sdks/ratelimit-ts/overview) with `@upstash/ratelimit`.
+- **Multipart uploads** for files larger than ~100 MB. R2 supports it via the same S3 API.
+- **Image processing.** R2 doesn't transform — pair it with Cloudflare Images or a worker.
+
+Or you can do all of this with [UploadKit](/) in three lines:
+
+```tsx
+import { UploadButton } from '@uploadkitdev/react'
+
+export default function Page() {
+  return <UploadButton endpoint="profilePicture" />
+}
+```
+
+We handle the presigned URL, the progress, the retry logic, the rate limiting, the auth, the multipart, and the dark mode. Check the [components page](/components) for what's available.
+
+Related reading:
+
+- [Presigned URLs vs server proxy uploads: which to choose](/blog/presigned-urls-vs-server-proxy)
+- [UploadThing alternatives in 2026](/blog/uploadthing-alternatives-2026)
+
+Authoritative external references:
+
+- [Cloudflare R2 S3 API compatibility](https://developers.cloudflare.com/r2/api/s3/api/)
+- [AWS SDK v3 S3 presigned URLs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html)
+- [MDN: XMLHttpRequest upload progress](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/progress_event)
