@@ -19,34 +19,32 @@ beforeEach(() => {
 describe('installPackages', () => {
   const pkgs = ['@uploadkitdev/next@latest', '@uploadkitdev/react@latest'];
 
+  function assertCall(expectedBin: string, expectedArgs: string[]): void {
+    expect(execaMock).toHaveBeenCalledTimes(1);
+    const call = execaMock.mock.calls[0] as unknown as [string, string[], { cwd?: string }];
+    expect(call[0]).toBe(expectedBin);
+    expect(call[1]).toEqual(expectedArgs);
+    expect(call[2]).toMatchObject({ cwd: '/tmp/proj' });
+  }
+
   it('builds pnpm add argv', async () => {
     await installPackages('pnpm', '/tmp/proj', pkgs, {});
-    expect(execaMock).toHaveBeenCalledTimes(1);
-    const [bin, args, opts] = execaMock.mock.calls[0]!;
-    expect(bin).toBe('pnpm');
-    expect(args).toEqual(['add', ...pkgs]);
-    expect(opts).toMatchObject({ cwd: '/tmp/proj' });
+    assertCall('pnpm', ['add', ...pkgs]);
   });
 
   it('builds npm install argv', async () => {
     await installPackages('npm', '/tmp/proj', pkgs, {});
-    const [bin, args] = execaMock.mock.calls[0]!;
-    expect(bin).toBe('npm');
-    expect(args).toEqual(['install', ...pkgs]);
+    assertCall('npm', ['install', ...pkgs]);
   });
 
   it('builds yarn add argv', async () => {
     await installPackages('yarn', '/tmp/proj', pkgs, {});
-    const [bin, args] = execaMock.mock.calls[0]!;
-    expect(bin).toBe('yarn');
-    expect(args).toEqual(['add', ...pkgs]);
+    assertCall('yarn', ['add', ...pkgs]);
   });
 
   it('builds bun add argv', async () => {
     await installPackages('bun', '/tmp/proj', pkgs, {});
-    const [bin, args] = execaMock.mock.calls[0]!;
-    expect(bin).toBe('bun');
-    expect(args).toEqual(['add', ...pkgs]);
+    assertCall('bun', ['add', ...pkgs]);
   });
 
   it('throws when the PM exits non-zero', async () => {
