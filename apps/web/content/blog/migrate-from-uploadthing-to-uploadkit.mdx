@@ -1,0 +1,265 @@
+---
+title: "Migrating from UploadThing to UploadKit"
+description: "Migrate UploadThing to UploadKit in 30 minutes. Side-by-side API diff, route handler conversion, data migration via BYOS, and the gotchas we hit in production."
+category: Tutorials
+publishedAt: 2026-04-22
+author: UploadKit Team
+tags:
+  - migrate-uploadthing
+  - uploadkit
+  - nextjs
+  - file-uploads
+  - byos
+  - tutorial
+---
+
+**TL;DR — Migrating from UploadThing to UploadKit takes about 30 minutes for a small Next.js app. The APIs are deliberately close — both expose a `createUploader` builder, both ship React components, both use Next.js route handlers. The mechanical changes are: swap the package, rename `createUploadthing` to `createUploader`, point the route handler at UploadKit's helper, and either keep your existing bucket via BYOS or let UploadKit's managed mode hold the new files. Old files keep working because storage URLs don't change.**
+
+We get this question every week: "I'm on UploadThing, it works, why would I migrate?" Three real reasons we hear: (1) BYOS — keeping files in your own R2/S3 bucket, (2) cheaper egress because UploadThing prices include a markup on storage transfer, and (3) the component library — UploadKit's components ship more variants out of the box. If none of those move you, stay where you are. If any do, this guide is the migration recipe we use with customers.
+
+## Before you start
+
+Make a list of every place UploadThing touches your code:
+
+```bash
+# In your repo
+grep -r "uploadthing" --include="*.ts" --include="*.tsx" --include="*.json"
+```
+
+For a typical Next.js app you'll find:
+
+- `package.json` (deps: `uploadthing`, `@uploadthing/react`)
+- `app/api/uploadthing/core.ts` (FileRouter)
+- `app/api/uploadthing/route.ts` (route handler)
+- `lib/uploadthing.ts` (typed client helpers)
+- 1-N components using `<UploadButton>` / `<UploadDropzone>`
+
+That's the surface area. Plan to touch each file once.
+
+## Step 1: Install UploadKit
+
+```bash
+pnpm remove uploadthing @uploadthing/react
+pnpm add @uploadkitdev/react @uploadkitdev/server@latest
+```
+
+## Step 2: Convert the FileRouter
+
+UploadThing:
+
+```ts
+// app/api/uploadthing/core.ts
+import { createUploadthing, type FileRouter } from "uploadthing/next";
+
+const f = createUploadthing();
+
+export const ourFileRouter = {
+  profilePicture: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const user = await auth(req);
+      if (!user) throw new Error("Unauthorized");
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      await db.user.update({
+        where: { id: metadata.userId },
+        data: { avatarUrl: file.url },
+      });
+    }),
+} satisfies FileRouter;
+
+export type OurFileRouter = typeof ourFileRouter;
+```
+
+UploadKit equivalent:
+
+```ts
+// app/api/upload/core.ts
+import { createUploader, type UploadRouter } from "@uploadkitdev/server/next";
+
+const u = createUploader();
+
+export const uploadRouter = {
+  profilePicture: u({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const user = await auth(req);
+      if (!user) throw new Error("Unauthorized");
+      return { userId: user.id };
+    })
+    .onComplete(async ({ metadata, file }) => {
+      await db.user.update({
+        where: { id: metadata.userId },
+        data: { avatarUrl: file.url },
+      });
+    }),
+} satisfies UploadRouter;
+
+export type AppUploadRouter = typeof uploadRouter;
+```
+
+Three renames:
+
+| UploadThing            | UploadKit                  |
+| ---------------------- | -------------------------- |
+| `createUploadthing`    | `createUploader`           |
+| `FileRouter`           | `UploadRouter`             |
+| `.onUploadComplete()`  | `.onComplete()`            |
+
+The size string format (`"4MB"`), the `image` / `video` / `pdf` shorthands, and the middleware signature are intentionally identical. If you wrote a custom `fileTypes` config in UploadThing, the keys are the same.
+
+## Step 3: Convert the route handler
+
+UploadThing:
+
+```ts
+// app/api/uploadthing/route.ts
+import { createRouteHandler } from "uploadthing/next";
+import { ourFileRouter } from "./core";
+
+export const { GET, POST } = createRouteHandler({ router: ourFileRouter });
+```
+
+UploadKit:
+
+```ts
+// app/api/upload/route.ts
+import { createRouteHandler } from "@uploadkitdev/server/next";
+import { uploadRouter } from "./core";
+
+export const { GET, POST } = createRouteHandler({
+  router: uploadRouter,
+  config: {
+    apiKey: process.env.UPLOADKIT_API_KEY!, // uk_live_… or uk_test_…
+  },
+});
+```
+
+The only new piece is the API key. Get it from the [dashboard](/) under Project Settings → API Keys. Use `uk_test_*` in development.
+
+## Step 4: Convert the components
+
+UploadThing:
+
+```tsx
+// components/avatar-uploader.tsx
+"use client";
+import { UploadButton, UploadDropzone } from "@uploadthing/react";
+import type { OurFileRouter } from "@/app/api/uploadthing/core";
+
+export function AvatarUploader() {
+  return (
+    <UploadDropzone<OurFileRouter, "profilePicture">
+      endpoint="profilePicture"
+      onClientUploadComplete={(res) => console.log("done", res)}
+      onUploadError={(err) => console.error(err)}
+    />
+  );
+}
+```
+
+UploadKit:
+
+```tsx
+// components/avatar-uploader.tsx
+"use client";
+import { UploadButton, UploadDropzone } from "@uploadkitdev/react";
+import type { AppUploadRouter } from "@/app/api/upload/core";
+
+export function AvatarUploader() {
+  return (
+    <UploadDropzone<AppUploadRouter, "profilePicture">
+      endpoint="profilePicture"
+      onComplete={(res) => console.log("done", res)}
+      onError={(err) => console.error(err)}
+    />
+  );
+}
+```
+
+The callback names dropped the `Upload`/`Client` prefixes. The generic signature is identical.
+
+## Step 5: Choose your storage path
+
+Two options for where new uploads land.
+
+### Option A: UploadKit managed mode (R2-backed)
+
+Zero infra. Set `UPLOADKIT_API_KEY` and uploads go to UploadKit's R2 bucket. Files get URLs like `https://cdn.uploadkit.dev/<project>/<key>`. Good if you want to be done.
+
+### Option B: BYOS — keep your existing bucket
+
+If your old UploadThing files live in their bucket and you'd rather own the storage going forward (and benefit from things like Cloudflare R2's [zero egress](/blog/s3-vs-r2-vs-backblaze-pricing)), connect a bucket in the dashboard. New files land in your bucket; old UploadThing URLs keep working independently. Read [BYOS explained](/blog/byos-bring-your-own-storage) for the full architecture.
+
+## Step 6: Migrate the historical files (optional)
+
+Most teams skip this. Old UploadThing URLs continue to resolve as long as your UploadThing account is active, so you only need to migrate if you're closing that account or want everything in one place.
+
+The minimum viable migration:
+
+```ts
+// scripts/migrate.ts — run once
+import { listUploadThingFiles } from "uploadthing/server";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
+const s3 = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT!,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+});
+
+const files = await listUploadThingFiles();
+
+for (const file of files) {
+  const res = await fetch(file.url);
+  const body = Buffer.from(await res.arrayBuffer());
+
+  await s3.send(new PutObjectCommand({
+    Bucket: process.env.R2_BUCKET!,
+    Key: `migrated/${file.key}`,
+    Body: body,
+    ContentType: file.type,
+  }));
+
+  await db.attachment.update({
+    where: { externalId: file.key },
+    data: { url: `${process.env.CDN_BASE}/migrated/${file.key}` },
+  });
+}
+```
+
+Run it from a beefy box (not your laptop on hotel wifi). Throttle to your bucket provider's PUT rate limits. For more than a few thousand files use [Cloudflare Super Slurper](https://developers.cloudflare.com/r2/data-migration/super-slurper/) — point it at the UploadThing CDN and let it walk.
+
+## Gotchas we hit in production
+
+1. **Webhook payload shape differs.** UploadThing's `onUploadComplete` receives `{ metadata, file: { url, key, name, size, type } }`. UploadKit's `onComplete` receives `{ metadata, file: { url, key, name, size, contentType, etag } }`. The `type` → `contentType` rename catches everyone. The new `etag` is useful for dedup.
+
+2. **Callback URL format.** If you set a custom `callbackUrl` in UploadThing for cross-origin uploads, the equivalent in UploadKit is the `webhookUrl` config option on the route handler. The shape of the signed payload is different — check the [webhook docs](/docs).
+
+3. **Auth header on the SDK.** The browser SDK no longer sends the project key in a header (that was a UploadThing thing). UploadKit derives the project from the route handler's API key, server-side only. If you were extracting the project key from `req.headers`, stop — use the session.
+
+4. **TypeScript generics order.** UploadThing's component generic was `<FileRouter, "endpointName">`. UploadKit keeps the same order, so the migration is a find-and-replace, but if you had `as const` workarounds for type narrowing, you can drop them.
+
+5. **`useUploadThing` hook.** Renamed to `useUpload`. Same return shape (`startUpload`, `isUploading`, `permittedFileInfo`).
+
+## A 30-minute migration plan
+
+| Minutes | Task                                                  |
+| ------- | ----------------------------------------------------- |
+| 0-5     | Install packages, set `UPLOADKIT_API_KEY`             |
+| 5-15    | Convert FileRouter and route handler                  |
+| 15-25   | Update components (find-and-replace mostly)           |
+| 25-30   | Test upload + verify webhook fires                    |
+
+That's it for the code path. Historical file migration, if you do it, runs separately and async — no app downtime.
+
+## Takeaways
+
+- The API surface is intentionally close, so migrating is mostly mechanical renames.
+- New uploads can go to UploadKit managed mode (zero infra) or your own bucket via BYOS.
+- Old files keep working as long as the UploadThing account stays up — migrate in the background, no rush.
+- Plan 30 minutes for a small app, half a day for a complex one with custom middleware.
+
+If you hit something this guide didn't cover, the [UploadKit docs](/docs) have a longer migration appendix, and the team replies to migration questions in the dashboard chat. Most issues are one of the five gotchas above.
