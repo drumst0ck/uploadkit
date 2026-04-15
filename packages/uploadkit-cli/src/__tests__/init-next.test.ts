@@ -45,7 +45,7 @@ describe('initNextApp — fresh run', () => {
 
   it('creates route handler, wraps layout, writes .env.local, records backup', async () => {
     const session = createBackupSession(root, { timestamp: '2026-04-15T00-00-00Z' });
-    const result = await initNextApp(makeCtx(root), session);
+    const result = await initNextApp(makeCtx(root), () => session);
     await session.finalize();
 
     expect(result.skipped).toBe(false);
@@ -103,7 +103,7 @@ describe('initNextApp — fresh run', () => {
     writeFileSync(envPath, 'UPLOADKIT_API_KEY=already_set\n', 'utf8');
 
     const session = createBackupSession(root, { timestamp: '2026-04-15T00-00-01Z' });
-    await initNextApp(makeCtx(root), session);
+    await initNextApp(makeCtx(root), () => session);
     await session.finalize();
 
     const envContent = readFileSync(envPath, 'utf8');
@@ -113,7 +113,7 @@ describe('initNextApp — fresh run', () => {
 
   it('reports installed packages when skipInstall=false is NOT the case (skipInstall=true path)', async () => {
     const session = createBackupSession(root, { timestamp: '2026-04-15T00-00-02Z' });
-    const result = await initNextApp(makeCtx(root), session);
+    const result = await initNextApp(makeCtx(root), () => session);
     // skipInstall=true, so installed list still names the packages the user
     // would have installed — surfaces in the CLI summary.
     expect(result.installed).toEqual([
@@ -129,7 +129,7 @@ describe('initNextApp — idempotency (second run)', () => {
 
     // First run.
     const s1 = createBackupSession(root, { timestamp: '2026-04-15T00-00-10Z' });
-    await initNextApp(makeCtx(root), s1);
+    await initNextApp(makeCtx(root), () => s1);
     await s1.finalize();
 
     // Snapshot mtimes of every tracked file (excluding .uploadkit-backup).
@@ -149,7 +149,7 @@ describe('initNextApp — idempotency (second run)', () => {
     await new Promise((r) => setTimeout(r, 20));
 
     const s2 = createBackupSession(root, { timestamp: '2026-04-15T00-00-11Z' });
-    const result = await initNextApp(makeCtx(root), s2);
+    const result = await initNextApp(makeCtx(root), () => s2);
 
     expect(result.skipped).toBe(true);
     expect(result.created).toEqual([]);
@@ -176,7 +176,7 @@ describe('initNextApp — backup fidelity', () => {
     const original = readFileSync(layoutPath);
 
     const session = createBackupSession(root, { timestamp: '2026-04-15T00-00-20Z' });
-    await initNextApp(makeCtx(root), session);
+    await initNextApp(makeCtx(root), () => session);
     await session.finalize();
 
     const backedUp = readFileSync(join(session.dir, 'app', 'layout.tsx'));
@@ -193,7 +193,7 @@ describe('initNextApp — preserves existing lib/uploadkit.ts', () => {
     writeFileSync(clientPath, customContent, 'utf8');
 
     const session = createBackupSession(root, { timestamp: '2026-04-15T00-00-30Z' });
-    await initNextApp(makeCtx(root), session);
+    await initNextApp(makeCtx(root), () => session);
     await session.finalize();
 
     expect(readFileSync(clientPath, 'utf8')).toBe(customContent);

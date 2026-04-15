@@ -1,4 +1,5 @@
-import { relative } from 'node:path';
+import { mkdir, rename } from 'node:fs/promises';
+import { dirname, join, relative, resolve } from 'node:path';
 import pc from 'picocolors';
 import type { ParsedArgs } from '../args.js';
 import { readManifests } from '../backup/restore-manifest.js';
@@ -39,8 +40,11 @@ export async function run(parsed: ParsedArgs): Promise<number> {
       }
       return 1;
     }
-  } else if (parsed.flags.yes) {
-    // Non-interactive: default to the most recent session.
+  } else if (parsed.flags.latest || parsed.flags.yes) {
+    // `--latest` (or non-interactive `--yes`): pick the newest un-applied
+    // session. `readManifests` returns newest-first; `.applied/` sessions
+    // are skipped because they live inside a hidden subdir, which
+    // `readManifests` does not recurse into.
     chosen = manifests[0] ?? null;
   } else {
     chosen = await pickSession(manifests);
@@ -57,6 +61,30 @@ export async function run(parsed: ParsedArgs): Promise<number> {
 
   try {
     const result = await applyRestore(chosen, { yes: parsed.flags.yes });
+
+    // When `--latest` was used, move the applied session dir into
+    // `.uploadkit-backup/.applied/<ts>/` so the next `restore --latest`
+    // run walks down the stack instead of restoring the same session
+    // forever. `readManifests` does not descend into `.applied/`, so the
+    // audit trail is preserved without cluttering future pickers.
+    if (parsed.flags.latest) {
+      const absRoot = resolve(chosen.root);
+      const backupRoot = join(absRoot, '.uploadkit-backup');
+      const from = join(backupRoot, chosen.timestamp);
+      const to = join(backupRoot, '.applied', chosen.timestamp);
+      try {
+        await mkdir(dirname(to), { recursive: true });
+        await rename(from, to);
+      } catch (moveErr) {
+        // Non-fatal: the restore already succeeded. Surface the issue so
+        // the user knows the next `--latest` will pick the same session.
+        const msg = moveErr instanceof Error ? moveErr.message : String(moveErr);
+        process.stderr.write(
+          `${pc.yellow('[uploadkit]')} Restore succeeded but could not archive the session to .applied/: ${msg}\n`,
+        );
+      }
+    }
+
     const rel = (p: string): string => relative(cwd, p) || p;
     process.stdout.write(`\n${pc.green('✔')} Restore complete (${chosen.timestamp})\n`);
     if (result.restored.length > 0) {

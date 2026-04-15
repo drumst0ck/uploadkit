@@ -17,6 +17,9 @@ ${pc.bold('Options')}
       --skip-install      Skip dependency installation (init only)
       --target <path>     Target file for \`add\` (optional)
       --timestamp <iso>   Backup timestamp to restore (restore only)
+      --latest            Restore the newest backup session, then archive
+                          it to .uploadkit-backup/.applied/ so the next
+                          --latest picks the previous session (restore only)
   -v, --version           Print version
   -h, --help              Print this help
 

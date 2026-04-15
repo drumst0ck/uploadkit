@@ -7,11 +7,23 @@ import { addImport, hasMarkers, mergeEnv, wrapChildrenOf } from '../codemods/ind
 import { installPackages } from './install-deps.js';
 import type { InitImpl } from './types.js';
 
-// Files the init flow touches. Relative to the project root.
-const REL_LAYOUT = join('app', 'layout.tsx');
-const REL_ROUTE = join('app', 'api', 'uploadkit', '[...uploadkit]', 'route.ts');
-const REL_CLIENT = join('lib', 'uploadkit.ts');
+// Next.js supports two canonical App Router layouts: `app/` at the project
+// root OR `src/app/` (the Next.js CLI defaults to `src/` when opted in).
+// We probe both at runtime and thread the chosen base dir through every
+// subsequent path (route handler, client stub).
 const REL_ENV = '.env.local';
+
+/**
+ * Probe for a Next.js App Router root layout and return the base app dir
+ * (`app` or `src/app`) where it was found, or `null` if neither exists.
+ * Precedence order matters: `app/` wins over `src/app/` for projects that
+ * explicitly use the top-level layout but also happen to have a `src/` dir.
+ */
+function resolveBaseAppDir(root: string): string | null {
+  if (existsSync(join(root, 'app', 'layout.tsx'))) return 'app';
+  if (existsSync(join(root, 'src', 'app', 'layout.tsx'))) return join('src', 'app');
+  return null;
+}
 
 // Canonical SDK specifiers (D-05). `@latest` ensures fresh installs — the
 // lockfile will pin for reproducibility.
@@ -46,47 +58,69 @@ async function writeIfAbsent(
  * `init` implementation for Next.js App Router.
  *
  * Order of operations:
- *   1. Idempotency check: if layout already has markers AND route handler
+ *   1. Precondition: locate the root layout at either `app/layout.tsx` or
+ *      `src/app/layout.tsx`. If neither exists, throw before any backup
+ *      session is materialized (prevents empty backup dirs on early abort).
+ *   2. Idempotency check: if layout already has markers AND route handler
  *      exists, print "already configured" and return `{skipped: true}`.
- *   2. Back up `app/layout.tsx` (the only file we mutate in-place).
- *   3. Rewrite layout: addImport + wrapChildrenOf('body', <UploadKitProvider>).
- *   4. Create route handler from template (if absent).
- *   5. Create `lib/uploadkit.ts` stub from template (if absent).
- *   6. Merge `.env.local` with `UPLOADKIT_API_KEY=uk_test_placeholder`.
- *   7. Install SDK packages (unless `skipInstall`).
+ *   3. Back up the discovered layout (the only file we mutate in-place).
+ *   4. Rewrite layout: addImport + wrapChildrenOf('body', <UploadKitProvider>).
+ *   5. Create route handler from template (if absent) under the same
+ *      `<baseAppDir>/api/uploadkit/[...uploadkit]/route.ts` location.
+ *   6. Create `lib/uploadkit.ts` stub (or `src/lib/uploadkit.ts` when the
+ *      project uses the `src/` layout) from template (if absent).
+ *   7. Merge `.env.local` with `UPLOADKIT_API_KEY=uk_test_placeholder`.
+ *   8. Install SDK packages (unless `skipInstall`).
  *
  * All created/modified paths are returned in the InitResult for the CLI's
  * summary printout.
  */
-export const initNextApp: InitImpl = async (ctx, session) => {
+export const initNextApp: InitImpl = async (ctx, getSession) => {
   const { root, flags, detection } = ctx;
 
-  const layoutAbs = join(root, REL_LAYOUT);
-  const routeAbs = join(root, REL_ROUTE);
-  const clientAbs = join(root, REL_CLIENT);
+  // --- (1) Precondition: locate layout ------------------------------------
+  const baseAppDir = resolveBaseAppDir(root);
+  if (!baseAppDir) {
+    throw new Error(
+      `layout.tsx not found at ${join(root, 'app', 'layout.tsx')} or ${join(root, 'src', 'app', 'layout.tsx')}. Run uploadkit init from the project root.`,
+    );
+  }
+
+  const layoutAbs = join(root, baseAppDir, 'layout.tsx');
+  const routeAbs = join(
+    root,
+    baseAppDir,
+    'api',
+    'uploadkit',
+    '[...uploadkit]',
+    'route.ts',
+  );
+  // Client stub: when the project uses `src/app`, keep the stub inside `src/`
+  // too so imports resolve naturally through the user's tsconfig path alias.
+  const clientAbs =
+    baseAppDir === 'app'
+      ? join(root, 'lib', 'uploadkit.ts')
+      : join(root, 'src', 'lib', 'uploadkit.ts');
   const envAbs = join(root, REL_ENV);
 
-  // --- (1) Idempotency ------------------------------------------------------
-  if (existsSync(layoutAbs) && existsSync(routeAbs)) {
+  // --- (2) Idempotency ----------------------------------------------------
+  if (existsSync(routeAbs)) {
     const existingLayout = await readFile(layoutAbs, 'utf8');
     if (hasMarkers(existingLayout) && existingLayout.includes(REACT_MODULE)) {
       return { skipped: true, installed: [], created: [], modified: [] };
     }
   }
 
-  if (!existsSync(layoutAbs)) {
-    throw new Error(
-      `app/layout.tsx not found at ${layoutAbs}. Run uploadkit init from the project root.`,
-    );
-  }
+  // Preconditions passed — materialize the backup session.
+  const session = getSession();
 
   const created: string[] = [];
   const modified: string[] = [];
 
-  // --- (2) Back up the layout BEFORE any mutation --------------------------
+  // --- (3) Back up the layout BEFORE any mutation ------------------------
   await session.save(layoutAbs);
 
-  // --- (3) Rewrite layout ---------------------------------------------------
+  // --- (4) Rewrite layout -------------------------------------------------
   const originalLayout = await readFile(layoutAbs, 'utf8');
   const withImport = addImport(originalLayout, {
     from: REACT_MODULE,
@@ -102,15 +136,15 @@ export const initNextApp: InitImpl = async (ctx, session) => {
     modified.push(layoutAbs);
   }
 
-  // --- (4) Create route handler --------------------------------------------
+  // --- (5) Create route handler ------------------------------------------
   const routeTemplate = await loadTemplate('next-route-handler.ts.tpl');
   await writeIfAbsent(routeAbs, routeTemplate, session, created);
 
-  // --- (5) Create client stub ----------------------------------------------
+  // --- (6) Create client stub --------------------------------------------
   const clientTemplate = await loadTemplate('next-uploadkit-client.ts.tpl');
   await writeIfAbsent(clientAbs, clientTemplate, session, created);
 
-  // --- (6) Merge .env.local ------------------------------------------------
+  // --- (7) Merge .env.local ----------------------------------------------
   const envExisted = existsSync(envAbs);
   const appended = await mergeEnv(envAbs, {
     UPLOADKIT_API_KEY: 'uk_test_placeholder',
@@ -126,7 +160,7 @@ export const initNextApp: InitImpl = async (ctx, session) => {
     modified.push(envAbs);
   }
 
-  // --- (7) Install packages ------------------------------------------------
+  // --- (8) Install packages ----------------------------------------------
   await installPackages(detection.packageManager, root, PKGS, {
     skipInstall: flags.skipInstall,
   });

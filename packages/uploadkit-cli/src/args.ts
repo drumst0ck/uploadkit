@@ -13,6 +13,12 @@ export interface ParsedArgs {
     help: boolean;
     yes: boolean;
     skipInstall: boolean;
+    /**
+     * `restore --latest`: pick the newest backup session. After applying, the
+     * session dir is moved to `.uploadkit-backup/.applied/<ts>/` so a
+     * subsequent `restore --latest` picks the next-newest session.
+     */
+    latest: boolean;
     target: string | undefined;
     timestamp: string | undefined;
     /** Any extra flags we did not explicitly declare, preserved verbatim. */
@@ -27,7 +33,7 @@ export interface ParsedArgs {
  */
 export function parseArgs(argv: string[]): ParsedArgs {
   const raw = mri(argv, {
-    boolean: ['version', 'help', 'yes', 'skip-install'],
+    boolean: ['version', 'help', 'yes', 'skip-install', 'latest'],
     string: ['target', 'timestamp'],
     alias: {
       v: 'version',
@@ -54,6 +60,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     help,
     yes,
     'skip-install': skipInstall,
+    latest,
     target,
     timestamp,
     ...extra
@@ -67,6 +74,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
       help: Boolean(help),
       yes: Boolean(yes),
       skipInstall: Boolean(skipInstall),
+      latest: Boolean(latest),
       target: typeof target === 'string' ? target : undefined,
       timestamp: typeof timestamp === 'string' ? timestamp : undefined,
       extra,

@@ -48,7 +48,7 @@ async function writeIfAbsent(
  *   5. Merge `.env` with `UPLOADKIT_API_KEY=uk_test_placeholder`.
  *   6. Install `@uploadkitdev/react` + `@uploadkitdev/core`.
  */
-export const initRemix: InitImpl = async (ctx, session) => {
+export const initRemix: InitImpl = async (ctx, getSession) => {
   const { root, flags, detection } = ctx;
 
   const rootAbs = join(root, REL_ROOT);
@@ -68,6 +68,9 @@ export const initRemix: InitImpl = async (ctx, session) => {
       `app/root.tsx not found at ${rootAbs}. Run uploadkit init from the project root.`,
     );
   }
+
+  // Preconditions passed — open the backup session.
+  const session = getSession();
 
   const created: string[] = [];
   const modified: string[] = [];

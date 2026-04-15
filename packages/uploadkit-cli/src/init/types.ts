@@ -35,7 +35,13 @@ export interface InitResult {
 
 /**
  * Per-framework init implementation signature. Receives the detection-derived
- * context and a backup session it must use to save any file it mutates and
- * record any file it creates.
+ * context and a `getSession` factory. The factory lazily materializes a
+ * `BackupSession` on first call — impls MUST invoke it only AFTER all
+ * framework-specific preconditions have been validated, so a failed
+ * precondition leaves no empty backup directory on disk. Subsequent calls
+ * return the same session instance.
  */
-export type InitImpl = (ctx: InitContext, session: BackupSession) => Promise<InitResult>;
+export type InitImpl = (
+  ctx: InitContext,
+  getSession: () => BackupSession,
+) => Promise<InitResult>;
