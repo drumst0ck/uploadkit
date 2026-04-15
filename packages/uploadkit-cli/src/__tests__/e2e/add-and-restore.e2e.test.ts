@@ -4,6 +4,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
@@ -38,8 +39,20 @@ describe.sequential('e2e: add + restore roundtrip (next-app)', () => {
     if (!existsSync(dir)) return [];
     return readdirSync(dir, { withFileTypes: true })
       .filter((d) => d.isDirectory())
+      // Skip the archive-of-applied-sessions subdir — it's an audit trail,
+      // not a live session candidate.
+      .filter((d) => d.name !== '.applied')
       .map((d) => d.name)
       .sort(); // ISO timestamps sort lexicographically = chronologically.
+  }
+
+  /** Best-effort delete; no-op if the path is already absent. */
+  function rmSyncMaybe(p: string): void {
+    try {
+      rmSync(p, { recursive: true, force: true });
+    } catch {
+      // swallow — absence is fine
+    }
   }
 
   it('init → restore(init) returns the project to a virgin state', async () => {
@@ -70,6 +83,70 @@ describe.sequential('e2e: add + restore roundtrip (next-app)', () => {
     expect(existsSync(envPath)).toBe(false);
     expect(existsSync(clientPath)).toBe(false);
     expect(readFileSync(layoutPath, 'utf8')).toBe(originalLayout);
+  });
+
+  it('restore --latest walks the backup stack in LIFO order', async () => {
+    fx = scaffold('next-app');
+    const { root } = fx;
+
+    const layoutPath = join(root, 'app', 'layout.tsx');
+    const routePath = join(root, 'app', 'api', 'uploadkit', '[...uploadkit]', 'route.ts');
+    const envPath = join(root, '.env.local');
+    const originalLayout = readFileSync(layoutPath, 'utf8');
+
+    // First session: `init`.
+    const initRes = await runCli(['init', '--yes', '--skip-install'], { cwd: root });
+    expect(initRes.exitCode, `stderr:\n${initRes.stderr}`).toBe(0);
+    const afterInitLayout = readFileSync(layoutPath, 'utf8');
+    expect(afterInitLayout).not.toBe(originalLayout);
+
+    // Second session: a synthetic "modify the layout again" backup, created
+    // by re-running a file mutation + manual session finalize. We emulate
+    // this by re-running init on a hand-mutated layout (so init writes a
+    // fresh backup of the new layout state). To do that, we first break the
+    // idempotency check by removing the route handler and re-running init.
+    // After the second init there will be TWO session directories.
+    // Simpler: write a sentinel file via `add` would be ideal, but for
+    // determinism we just replay init on a slightly-different layout.
+    writeFileSync(
+      layoutPath,
+      `${afterInitLayout}// second-edit-sentinel\n`,
+      'utf8',
+    );
+    // Remove route.ts so idempotency check fails and init runs again,
+    // producing a second backup session with a fresh layout snapshot.
+    rmSyncMaybe(routePath);
+    const layoutBeforeSecondInit = readFileSync(layoutPath, 'utf8');
+
+    const initRes2 = await runCli(['init', '--yes', '--skip-install'], { cwd: root });
+    expect(initRes2.exitCode, `stderr:\n${initRes2.stderr}`).toBe(0);
+
+    const sessionsAfterTwoInits = listSessions(root);
+    expect(sessionsAfterTwoInits).toHaveLength(2);
+
+    // restore --latest (1st call): undoes the SECOND init, so the layout
+    // returns to its post-first-init state, with the sentinel intact.
+    const r1 = await runCli(['restore', '--latest', '--yes'], { cwd: root });
+    expect(r1.exitCode, `stderr:\n${r1.stderr}`).toBe(0);
+    expect(readFileSync(layoutPath, 'utf8')).toBe(layoutBeforeSecondInit);
+
+    // The applied session must have been archived, not deleted.
+    expect(listSessions(root)).toHaveLength(1);
+    const applied = join(root, '.uploadkit-backup', '.applied');
+    expect(existsSync(applied)).toBe(true);
+    expect(readdirSync(applied).length).toBe(1);
+
+    // restore --latest (2nd call): undoes the FIRST init, returning the
+    // layout to its pristine (pre-init) state.
+    const r2 = await runCli(['restore', '--latest', '--yes'], { cwd: root });
+    expect(r2.exitCode, `stderr:\n${r2.stderr}`).toBe(0);
+    expect(readFileSync(layoutPath, 'utf8')).toBe(originalLayout);
+    expect(existsSync(routePath)).toBe(false);
+    expect(existsSync(envPath)).toBe(false);
+
+    // Both sessions are now in `.applied/`, no active sessions remain.
+    expect(listSessions(root)).toHaveLength(0);
+    expect(readdirSync(applied).length).toBe(2);
   });
 
   // Seeded for future execution. The add-template path resolution is
