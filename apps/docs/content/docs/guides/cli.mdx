@@ -1,0 +1,110 @@
+---
+title: CLI — create-uploadkit-app
+description: Scaffold a new UploadKit project with create-uploadkit-app. Templates for Next.js, SvelteKit, Remix, and Vite.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+<Callout type="warn" title="Already have a project?">
+  `create-uploadkit-app` scaffolds **new** projects. If you're adding UploadKit to an existing codebase, follow the [Quickstart](/docs/getting-started/quickstart) — it's a 5-minute install.
+</Callout>
+
+`create-uploadkit-app` is the official scaffolder for brand-new UploadKit projects. It picks a framework template, wires up a working upload page, detects your package manager, and optionally initializes git and installs dependencies.
+
+## 30-second start
+
+<Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn', 'bun']}>
+  <Tab value="pnpm">
+    ```bash
+    pnpm create uploadkit-app my-app
+    ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npm create uploadkit-app@latest my-app
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn create uploadkit-app my-app
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun create uploadkit-app my-app
+    ```
+  </Tab>
+</Tabs>
+
+Then:
+
+```bash
+cd my-app
+# drop UPLOADKIT_API_KEY into .env.local
+pnpm dev
+```
+
+Grab a free API key from [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev).
+
+## What it does
+
+1. **Picks a template** — interactive prompt (or `--template <id>`).
+2. **Picks a package manager** — auto-detected from the `npm_config_user_agent` that invoked the scaffolder, overridable with `--pm`.
+3. **Copies the template** into your target directory, rewriting the project name in `package.json`.
+4. **Pins workspace dependencies** to the latest published versions.
+5. **Runs install** (opt out with `--no-install`).
+6. **Initializes git** with an initial commit (opt out with `--no-git`).
+
+Every template ships a single working upload page — no auth, no database, no Docker. Add what you need from there.
+
+## Templates
+
+| Template | Framework | Stack | What you get |
+|----------|-----------|-------|--------------|
+| `next` | Next.js 16 (App Router) | React 19, Tailwind v4, `@uploadkitdev/next` | Route handler at `app/api/uploadkit/[...uploadkit]/route.ts`, `UploadKitProvider` wired in the root layout, `<UploadDropzone>` on the home page. |
+| `sveltekit` | SvelteKit | Svelte 5 | Presigned-URL endpoint, single upload page. |
+| `remix` | React Router v7 (framework mode) | React 19, `@uploadkitdev/react` | Route handler + upload page using the managed proxy client. |
+| `vite` | Vite SPA | React 19 | BYOS demo with a minimal backend stub. |
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--template <id>` / `-t` | Skip the template prompt. One of `next`, `sveltekit`, `remix`, `vite`. |
+| `--pm <name>` | Skip the package-manager prompt. One of `pnpm`, `npm`, `yarn`, `bun`. |
+| `--yes` / `-y` | Accept all defaults non-interactively. Useful in CI. |
+| `--no-install` | Skip dependency install. You'll run it yourself. |
+| `--no-git` | Skip `git init` and the initial commit. |
+| `--force` | Scaffold into a non-empty target directory (overwrites). |
+| `--version` / `-v` | Print the CLI version. |
+| `--help` / `-h` | Print usage. |
+
+### Non-interactive example
+
+```bash
+npx create-uploadkit-app my-app \
+  --template next \
+  --pm pnpm \
+  --no-git \
+  --yes
+```
+
+## Requirements
+
+- **Node.js 20 or later** — check with `node -v`.
+- An internet connection during `install` (unless you pass `--no-install`).
+
+## Troubleshooting
+
+**"Target directory is not empty"** — pass `--force` to overwrite, or pick a new directory name.
+
+**Wrong package manager detected** — pass `--pm <name>` explicitly. The scaffolder reads `npm_config_user_agent`, which some CI shells don't set.
+
+**Install hangs or fails** — re-run with `--no-install`, then run the install command yourself inside the new directory.
+
+## See also
+
+- [Quickstart](/docs/getting-started/quickstart) — add UploadKit to an existing project
+- [`packages/create-uploadkit-app`](https://github.com/drumst0ck/uploadkit/tree/master/packages/create-uploadkit-app) — source and templates on GitHub
+- [AI Assistants (MCP)](/docs/guides/mcp) — let your IDE scaffold for you
