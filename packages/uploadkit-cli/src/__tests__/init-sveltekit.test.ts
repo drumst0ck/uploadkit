@@ -62,11 +62,12 @@ describe('initSvelteKit — fresh run', () => {
     const routeSrc = readFileSync(routePath, 'utf8');
     expect(routeSrc).toContain('uploadkit:start');
     expect(routeSrc).toContain('RequestHandler');
-    expect(routeSrc).toContain('@uploadkitdev/core');
-
+    // Core import lives in the client stub, not the +server route.
     const clientPath = join(root, 'src', 'lib', 'uploadkit.ts');
     expect(existsSync(clientPath)).toBe(true);
-    expect(readFileSync(clientPath, 'utf8')).toContain('createUploadKit');
+    const clientSrc = readFileSync(clientPath, 'utf8');
+    expect(clientSrc).toContain('createUploadKit');
+    expect(clientSrc).toContain('@uploadkitdev/core');
 
     // .env (not .env.local — Vite-based, but plan says .env)
     const envPath = join(root, '.env');

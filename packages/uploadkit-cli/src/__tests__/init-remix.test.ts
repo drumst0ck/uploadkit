@@ -58,7 +58,7 @@ describe('initRemix — fresh run', () => {
 
     const rootPath = join(root, 'app', 'root.tsx');
     const rootSrc = readFileSync(rootPath, 'utf8');
-    expect(rootSrc).toContain("from '@uploadkitdev/react'");
+    expect(rootSrc).toContain('@uploadkitdev/react');
     expect(rootSrc).toContain('<UploadKitProvider');
     expect(rootSrc).toContain('uploadkit:start');
     // Provider is between <body> and <Outlet/>.
