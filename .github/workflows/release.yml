@@ -23,8 +23,31 @@ jobs:
       - name: Run create-uploadkit-app smoke test
         run: pnpm --filter create-uploadkit-app smoke
 
+  uploadkit-cli-smoke:
+    name: smoke uploadkit CLI (${{ matrix.framework }})
+    strategy:
+      fail-fast: false
+      matrix:
+        framework: [next-app, sveltekit, remix, vite-react]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      UPLOADKIT_API_KEY: uk_test_placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Build uploadkit CLI
+        run: pnpm --filter uploadkit build
+      - name: Smoke - ${{ matrix.framework }}
+        run: pnpm --filter uploadkit smoke -- ${{ matrix.framework }}
+
   release:
-    needs: [smoke]
+    needs: [smoke, uploadkit-cli-smoke]
     runs-on: ubuntu-latest
     permissions:
       contents: write
