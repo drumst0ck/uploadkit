@@ -305,6 +305,7 @@ describe('commands/add.ts', () => {
     const code = await addRun(parseArgs(['add', 'cropper']));
     expect(code).toBe(1);
     const raw = stderrSpy.mock.calls.flat().join('');
+    // eslint-disable-next-line no-control-regex
     const err = raw.replace(/\u001b\[[0-9;]*m/g, '');
     expect(err).toMatch(/Unknown component: cropper/);
     expect(err).toMatch(/dropzone/);
