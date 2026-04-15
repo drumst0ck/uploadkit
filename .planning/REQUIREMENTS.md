@@ -147,6 +147,39 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **EMAIL-02**: Usage alert emails at 80% and 100% of tier limits
 - [x] **EMAIL-03**: Invoice/payment emails (paid, failed)
 
+## Growth v1 Requirements (milestone v1.1)
+
+Organic acquisition without reliance on social karma. Target: 200-500 GitHub stars, 2-3 keywords ranking top 10, 10k organic visits/month in 90 days.
+
+### CLI Scaffolder
+
+- [ ] **GROW-01**: `create-uploadkit-app` CLI published to npm with interactive prompts (name, template, package manager, TS)
+- [ ] **GROW-02**: 4 starter templates — Next.js, SvelteKit, Remix, Vite — each runnable immediately after scaffold
+- [ ] **GROW-03**: Auto-detected package manager (pnpm/npm/yarn/bun), `.env.local` with placeholder API key, per-template README with next steps
+
+### Playgrounds
+
+- [ ] **GROW-04**: 4 embeddable playgrounds (Dropzone, Cropper, UploadQueue, BYOS) available on StackBlitz SDK + CodeSandbox
+- [ ] **GROW-05**: "Try it live" buttons in blog posts, landing, docs that open playground inline without leaving page
+
+### AI-Native Distribution
+
+- [ ] **GROW-06**: `.cursorrules` / MDC rules file published to a public repo and submitted to `awesome-cursorrules`
+- [ ] **GROW-07**: `llms.txt` and `llms-full.txt` at root of uploadkit.dev exposing SDK surface for LLM discoverability
+- [ ] **GROW-08**: Outreach PRs/issues to v0.dev, bolt.new, Lovable proposing UploadKit as a component option
+
+### Programmatic SEO
+
+- [ ] **GROW-09**: 20 framework-specific pages at `/uploads/<framework>` with real code, presigned URL walkthrough, unique prose
+- [ ] **GROW-10**: Shared template system so adding a new framework page takes <30 min
+- [ ] **GROW-11**: All 20 pages in sitemap, unique metadata + OG image, Lighthouse performance ≥90
+
+### Free Developer Tools
+
+- [ ] **GROW-12**: `/tools/mime-validator` — MIME detection + magic byte check + spoofing warnings (client-side)
+- [ ] **GROW-13**: `/tools/presigned-url-generator` — form → curl + JS output for S3/R2/B2 (client-side)
+- [ ] **GROW-14**: `/tools/upload-cost-calculator` — S3 vs R2 vs B2 vs UploadKit pricing comparison with user inputs
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.

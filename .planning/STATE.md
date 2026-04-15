@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: verifying
-stopped_at: "Completed quick task 260409-t9f: Replace Upstash with native Redis"
-last_updated: "2026-04-14T18:12:29.567Z"
-last_activity: "2026-04-10 - Completed quick task 260410-ju7: Expand React SDK with 8 premium upload component variants"
+milestone: v1.1
+milestone_name: growth-v1
+status: planning
+stopped_at: "Milestone Growth v1 created — ready to plan Phase 12 (create-uploadkit-app CLI)"
+last_updated: "2026-04-15T10:30:00.000Z"
+last_activity: "2026-04-15 - Created Growth v1 milestone with 5 phases (12-16) and 14 requirements (GROW-01..GROW-14)"
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 37
-  completed_plans: 37
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,13 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Developers can add beautiful, type-safe file uploads to any app in minutes — with a generous free tier, no vendor lock-in (BYOS), and premium components out of the box.
-**Current focus:** Phase 10 — testing-publishing-launch
+
+**Current milestone:** Growth v1 (v1.1) — organic acquisition without social-karma dependency. Target: 200-500 GitHub stars, 2-3 keywords top 10, 10k organic visits/mo in 90 days.
+
+**Current focus:** Phase 12 — `create-uploadkit-app` CLI (highest-leverage first move; every scaffolded project is a brand touchpoint).
 
 ## Current Position
 
-Phase: 10
+Phase: 12
 Plan: Not started
-Status: Phase complete — ready for verification
+Status: Phase defined — awaiting `/gsd-plan-phase 12`
 Last activity: 2026-04-10 - Completed quick task 260410-ju7: Expand React SDK with 8 premium upload component variants
 
 Progress: [░░░░░░░░░░] 0%
