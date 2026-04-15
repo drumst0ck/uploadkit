@@ -2,7 +2,7 @@ import { cpSync, mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execa, type ResultPromise } from 'execa';
+import { execa } from 'execa';
 
 /**
  * Fixture projects live at `packages/uploadkit-cli/src/__fixtures__/projects/`
@@ -75,7 +75,12 @@ export async function runCli(args: string[], opts: RunCliOptions): Promise<CliRe
       `CLI not built. Expected ${CLI_BIN}. Run \`pnpm --filter uploadkit build\` first (vitest globalSetup builds it automatically).`,
     );
   }
-  const proc: ResultPromise = execa('node', [CLI_BIN, ...args], {
+  // NB: we deliberately don't annotate `proc` — execa's ResultPromise is
+  // parameterised by the exact Options object passed in, and with
+  // `exactOptionalPropertyTypes: true` the narrower inferred type isn't
+  // assignable to the unparameterised alias. Letting TS infer keeps the
+  // types sound without leaking execa's generics into this helper's surface.
+  const proc = execa('node', [CLI_BIN, ...args], {
     cwd: opts.cwd,
     env: {
       ...process.env,
