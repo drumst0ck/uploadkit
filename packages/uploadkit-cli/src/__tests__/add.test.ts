@@ -304,7 +304,8 @@ describe('commands/add.ts', () => {
 
     const code = await addRun(parseArgs(['add', 'cropper']));
     expect(code).toBe(1);
-    const err = stderrSpy.mock.calls.flat().join('');
+    const raw = stderrSpy.mock.calls.flat().join('');
+    const err = raw.replace(/\u001b\[[0-9;]*m/g, '');
     expect(err).toMatch(/Unknown component: cropper/);
     expect(err).toMatch(/dropzone/);
   });
