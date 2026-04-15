@@ -1,0 +1,12 @@
+# UploadKit (managed) — get a real key at https://uploadkit.dev/signup
+# Then replace this value with the key from your dashboard.
+UPLOADKIT_API_KEY=uk_test_placeholder
+
+# BYOS (optional) — uncomment and fill these in if you want to upload
+# directly to your own Cloudflare R2 (or S3-compatible) bucket.
+# The +server.ts endpoint uses these to sign PUT URLs server-side.
+#
+# R2_ACCOUNT_ID=
+# R2_ACCESS_KEY_ID=
+# R2_SECRET_ACCESS_KEY=
+# R2_BUCKET=
