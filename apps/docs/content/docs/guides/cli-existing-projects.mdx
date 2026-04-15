@@ -1,0 +1,244 @@
+---
+title: CLI for Existing Projects
+description: Add UploadKit to an existing app in under 60 seconds with npx uploadkit.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+<Callout type="info" title="Starting a new project?">
+  Use [`create-uploadkit-app`](/docs/guides/cli) to scaffold a fresh project
+  with a template. The `uploadkit` CLI documented here is for repositories
+  you already have — it **adds** UploadKit to your existing codebase without
+  replacing what's there.
+</Callout>
+
+`uploadkit` is a zero-config installer for existing apps. Point it at a
+Next.js (App Router), SvelteKit, Remix / React Router 7, or Vite + React
+repo and it wires up the route handler, provider, env vars, and
+dependencies — all backed up so you can roll back with a single command.
+
+## 60-second install
+
+<Tabs groupId="pkg" items={['pnpm', 'npm', 'yarn', 'bun']}>
+  <Tab value="pnpm">
+    ```bash
+    pnpm dlx uploadkit init
+    ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npx uploadkit init
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn dlx uploadkit init
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bunx uploadkit init
+    ```
+  </Tab>
+</Tabs>
+
+Answer the prompts and the CLI will:
+
+1. Detect your framework from `package.json` + config files.
+2. Install the `@uploadkitdev/*` packages you need at their latest versions.
+3. Create the framework-appropriate route handler.
+4. Mount `UploadKitProvider` (or drop a typed client, on SvelteKit) in your
+   root layout.
+5. Scaffold `.env.local` (or `.env`) with the keys you need.
+6. Back every touched file up to `.uploadkit-backup/<ISO-timestamp>/`.
+
+Then drop your API key into `.env.local` and start uploading:
+
+```bash
+UPLOADKIT_API_KEY=uk_live_...
+```
+
+Grab a free key from [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev).
+
+## What `init` does per framework
+
+<Tabs groupId="framework" items={['Next.js', 'SvelteKit', 'Remix / RR7', 'Vite + React']}>
+  <Tab value="Next.js">
+    **Detection:** `next` in `dependencies` + `app/layout.*` present.
+
+    **Changes:**
+    - Installs `@uploadkitdev/next` and `@uploadkitdev/react`.
+    - Creates `app/api/uploadkit/[...uploadkit]/route.ts`.
+    - Wraps `<body>` children in `app/layout.tsx` with `<UploadKitProvider>`.
+    - Appends `UPLOADKIT_API_KEY`, `UPLOADKIT_UPLOAD_URL` to `.env.local`.
+
+    **Not supported:** Pages Router. `init` will detect it and bail with a
+    pointer to the migration docs.
+  </Tab>
+  <Tab value="SvelteKit">
+    **Detection:** `@sveltejs/kit` in `dependencies`.
+
+    **Changes:**
+    - Installs `@uploadkitdev/sveltekit` and `@uploadkitdev/core`.
+    - Creates `src/routes/api/uploadkit/[...uploadkit]/+server.ts`.
+    - Creates a typed client at `src/lib/uploadkit.ts` (no React provider —
+      Svelte components consume the client directly).
+    - Appends keys to `.env`.
+  </Tab>
+  <Tab value="Remix / RR7">
+    **Detection:** `@remix-run/*` or `@react-router/dev` in `dependencies`.
+
+    **Changes:**
+    - Installs `@uploadkitdev/react` and `@uploadkitdev/core`.
+    - Creates `app/routes/api.uploadkit.$.tsx` with `action` + `loader`.
+    - Wraps children in `app/root.tsx` with `<UploadKitProvider>`.
+    - Appends keys to `.env`.
+  </Tab>
+  <Tab value="Vite + React">
+    **Detection:** `vite` + `react` in `dependencies`.
+
+    **Changes:**
+    - Installs `@uploadkitdev/react` and `@uploadkitdev/core`.
+    - Mounts `<UploadKitProvider>` in `src/main.tsx` (or `src/App.tsx` if
+      the former doesn't define the provider scope).
+    - Appends `UPLOADKIT_API_KEY`, `UPLOADKIT_UPLOAD_URL` to `.env.local`.
+
+    <Callout type="warn">
+      Vite is client-only — there is no server route handler. Uploads use
+      BYOS + presigned URLs. Point `UPLOADKIT_UPLOAD_URL` at your own
+      endpoint.
+    </Callout>
+  </Tab>
+</Tabs>
+
+### Idempotency
+
+`init` is safe to re-run. Every inserted block is bounded by
+`// uploadkit:start` / `// uploadkit:end` marker comments. Running `init`
+again detects the markers, prints `already configured`, and exits with no
+changes.
+
+## Adding components shadcn-style
+
+Once `init` has run, you can drop individual upload components into your
+pages with `uploadkit add`:
+
+```bash
+npx uploadkit add dropzone
+```
+
+The CLI asks which page to insert into, wraps the inserted JSX in marker
+comments, and re-running `add` for the same component is a no-op.
+
+### Available components (0.1.0)
+
+| Alias | SDK component | Typical use |
+|-------|---------------|-------------|
+| `dropzone` | `UploadDropzone` | Full-width drag-and-drop zone |
+| `button` | `UploadButton` | Single-click upload trigger |
+| `modal` | `UploadModal` | Upload flow in an overlay |
+| `gallery` | `UploadGalleryGrid` | Grid of uploaded images |
+| `queue` | `FileList` | Live list of in-flight uploads |
+| `progress` | `UploadProgressBar` | Per-file progress indicator |
+
+<Callout type="info">
+  `add` is React-only today. SvelteKit component variants will ship when
+  `@uploadkitdev/sveltekit` publishes its component layer.
+</Callout>
+
+### Example
+
+```bash
+npx uploadkit add dropzone --target app/upload/page.tsx --yes
+```
+
+The inserted block looks like:
+
+```tsx
+// uploadkit:start — do not edit this block manually
+import { UploadDropzone } from '@uploadkitdev/react';
+
+export function UploadDropzoneSlot() {
+  return <UploadDropzone endpoint="media" />;
+}
+// uploadkit:end
+```
+
+Tweak it, style it, remove the markers once you're happy — the CLI only
+re-touches marker-bounded blocks.
+
+## Backup & restore
+
+Every file the CLI modifies (or creates) gets copied into
+`.uploadkit-backup/<ISO-timestamp>/` before the change, alongside a
+`manifest.json` that records each action. The directory is auto-added to
+`.gitignore` during `init`.
+
+To roll back:
+
+```bash
+npx uploadkit restore
+```
+
+You'll be prompted to pick a timestamp. The CLI replays the manifest in
+reverse — restoring modified files, deleting files it created, and
+rewinding `.env.local` entries.
+
+Jump to a specific backup without the picker:
+
+```bash
+npx uploadkit restore --timestamp 2026-04-15T13-42-01Z
+```
+
+## Command reference
+
+```
+uploadkit init [--yes] [--skip-install]
+uploadkit add <component> [--target <path>] [--yes]
+uploadkit restore [--timestamp <iso>]
+uploadkit --version
+uploadkit --help
+```
+
+| Flag | Applies to | Description |
+|------|-----------|-------------|
+| `--yes` / `-y` | `init`, `add` | Accept all defaults. CI-friendly. |
+| `--skip-install` | `init` | Don't run the package manager — you'll install yourself. |
+| `--target <path>` | `add` | Specify the page/route to insert into. |
+| `--timestamp <iso>` | `restore` | Skip the picker, use a specific backup. |
+
+## Troubleshooting
+
+**"Framework not detected"** — the CLI detects by reading `package.json`
+dependencies first, then framework config files (`next.config.*`,
+`svelte.config.*`, `react-router.config.*`, `vite.config.*`) as a
+tiebreaker. If you've swapped in a custom bundler, detection may bail.
+[Open an issue](https://github.com/drumst0ck/uploadkit/issues) with your
+`package.json`.
+
+**"Already configured"** — `init` found `uploadkit:start` markers in a
+target file. Either the CLI already ran successfully, or you kept the
+markers after a hand-edit. Run `uploadkit restore` to roll back, or edit
+the markers out manually before re-running.
+
+**"Provider would collide with existing JSX wrappers"** — the CLI tries to
+preserve your existing provider chain by inserting *inside* the outermost
+wrapper, not replacing it. If it can't do so safely, it prints a diff
+suggestion and bails. Apply the diff by hand and re-run with `--yes`.
+
+**`.env.local` merge** — existing keys are never overwritten. The CLI
+appends only missing keys and prints a diff summary. If you named your
+env file differently, move it to `.env.local` (Next / Vite) or `.env`
+(SvelteKit / Remix) before running `init`.
+
+**Pages Router on Next.js** — not supported in 0.1.x. Migrate to App
+Router or use the raw `@uploadkitdev/next` SDK with a hand-written
+`pages/api/uploadkit/[...uploadkit].ts` handler.
+
+## See also
+
+- [`create-uploadkit-app`](/docs/guides/cli) — scaffold a brand-new project instead
+- [Quickstart](/docs/getting-started/quickstart) — the manual install path
+- [`uploadkit` on npm](https://www.npmjs.com/package/uploadkit)
+- [GitHub source](https://github.com/drumst0ck/uploadkit/tree/master/packages/uploadkit-cli)

@@ -1,0 +1,1 @@
+<UploadModal endpoint="uploads" />

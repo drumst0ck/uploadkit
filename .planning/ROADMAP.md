@@ -242,6 +242,18 @@ Plans:
   6. Published as `uploadkit` (or `@uploadkitdev/cli`) with the same Changesets + smoke CI gate as Phase 12
   7. Docs page `/docs/cli` documents both `init` and `add` flows with framework-specific examples
 
+**Plans:** 9/11 plans executed
+- [x] 12.5-01-PLAN.md — Package skeleton + subcommand router
+- [x] 12.5-02-PLAN.md — Framework detector (Next App/Pages, SvelteKit, Remix, Vite+React)
+- [x] 12.5-03-PLAN.md — Codemod utilities (magicast) + backup/manifest pipeline
+- [x] 12.5-04-PLAN.md — `init` for Next.js App Router (reference implementation)
+- [x] 12.5-05-PLAN.md — `init` for SvelteKit, Remix, Vite+React
+- [x] 12.5-06-PLAN.md — `add` subcommand (6 React component aliases)
+- [x] 12.5-07-PLAN.md — `restore` subcommand (roll back backups)
+- [x] 12.5-08-PLAN.md — Fixture-driven e2e tests (all frameworks + add/restore)
+- [x] 12.5-09-PLAN.md — CI smoke matrix (scaffold real starters, run init, typecheck+build)
+- [ ] 12.5-10-PLAN.md — Publish prep: Changeset, README, docs guide, release gate
+
 ### Phase 13: Interactive Playgrounds
 **Goal**: Developers can try every headline UploadKit component without installing anything. 4 embeddable playgrounds (StackBlitz SDK + CodeSandbox sandbox) covering Dropzone, Cropper, UploadQueue, BYOS config — linked from blog posts, docs, and the landing.
 **Depends on**: Phase 5 (SDK components), Phase 8 (landing)
