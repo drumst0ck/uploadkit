@@ -53,7 +53,7 @@ async function run(file, args, opts = {}) {
   } catch (err) {
     const exit = err.exitCode ?? err.signal ?? 'unknown';
     const out = opts.silent ? `\n${err.stdout || ''}\n${err.stderr || ''}` : '';
-    throw new Error(`Command failed (${exit}): ${file} ${args.join(' ')}${out}`);
+    throw new Error(`Command failed (${exit}): ${file} ${args.join(' ')}${out}`, { cause: err });
   }
 }
 
