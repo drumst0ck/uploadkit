@@ -4,7 +4,7 @@ import '@uploadkitdev/react/styles.css';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '{{name}} — UploadKit',
+  title: 'UploadKit demo',
   description: 'A file-upload app powered by UploadKit.',
 };
 
