@@ -1,0 +1,187 @@
+---
+title: "How to give Claude Code knowledge of your upload library with MCP"
+description: "Teach Claude Code, Cursor, and Windsurf your upload library's components, scaffolding, and install commands with one MCP server. Real prompts, zero hallucinations."
+category: Tutorials
+publishedAt: 2026-04-23
+author: UploadKit Team
+tags:
+  - claude-code
+  - mcp
+  - ai-coding
+  - cursor
+  - developer-tools
+  - uploadkit-mcp
+---
+
+**TL;DR — AI coding assistants are only as useful as the context they have. If your upload library isn't in the model's training data, the assistant will invent APIs that don't exist. The fix is a Model Context Protocol (MCP) server that exposes your component catalog, install commands, and route scaffolding as first-class tools. UploadKit ships one at `@uploadkitdev/mcp`. Install it once and "add a dropzone to this page" starts producing code that actually compiles.**
+
+The number one failure mode when using Claude Code MCP upload tooling isn't the model's reasoning — it's stale context. Claude 3.5, GPT-4, and friends were trained months ago on a snapshot of the public web. Any library that shipped or changed recently is invisible. Ask for an `<UploadDropzone />` component and you'll get a confident answer that imports from a package that doesn't exist, with props that were never designed, wired to a route handler API that changed two minor versions ago.
+
+The [Model Context Protocol](https://modelcontextprotocol.io/) solves this at the tooling layer. Instead of hoping the model knows your library, you run a small server that the assistant queries on demand. The assistant asks "what components does UploadKit expose?" and gets the authoritative answer — not a guess.
+
+This post shows how to wire up the UploadKit MCP server in Claude Code, Cursor, and Windsurf, what it teaches the assistant, and the prompts that now produce working code.
+
+## What an MCP server gives your assistant
+
+MCP is a JSON-RPC protocol Anthropic open-sourced in late 2024. It standardizes how AI clients (Claude Desktop, Claude Code, Cursor, Windsurf, Zed) talk to external tools. A server exposes three things:
+
+- **Tools** — functions the model can call (e.g. `get_component_docs`, `scaffold_route_handler`).
+- **Resources** — readable documents the model can load into context (e.g. the component catalog).
+- **Prompts** — pre-baked prompt templates.
+
+The UploadKit MCP server exposes all three. When you install it, the assistant gains:
+
+- **The component catalog.** Every `<UploadButton />`, `<UploadDropzone />`, `<FilePreview />`, `<ImageCropper />` with its real props, real defaults, and real import path.
+- **Install commands** for `@uploadkitdev/react`, `@uploadkitdev/next`, `@uploadkitdev/sdk`, scoped to your package manager (pnpm, npm, yarn, bun).
+- **Route handler scaffolding** for Next.js App Router, Pages Router, Remix, and Hono — including the correct presigned URL signing shape.
+- **BYOS config helpers** for S3, R2, and Backblaze — see the [BYOS guide](/blog/byos-bring-your-own-storage) for the pattern.
+- **Runtime version info** so the assistant doesn't suggest deprecated APIs.
+
+The full protocol details live in the [Anthropic MCP spec](https://modelcontextprotocol.io/specification). The UploadKit-specific docs are at [docs.uploadkit.dev/docs/guides/mcp](https://docs.uploadkit.dev/docs/guides/mcp).
+
+## Install in Claude Code
+
+Claude Code reads MCP servers from `~/.claude/mcp.json` (global) or `.mcp.json` in the project root (per-project). The simplest install is stdio, which runs the server as a subprocess:
+
+```bash
+claude mcp add uploadkit -- npx -y @uploadkitdev/mcp
+```
+
+That writes this into your config:
+
+```json
+{
+  "mcpServers": {
+    "uploadkit": {
+      "command": "npx",
+      "args": ["-y", "@uploadkitdev/mcp"]
+    }
+  }
+}
+```
+
+Restart Claude Code. Run `/mcp` to confirm the server is listed and tools are discovered. You should see `list_components`, `get_component`, `scaffold_route`, `get_install_command`, and a handful of resources.
+
+## Install in Cursor and Windsurf
+
+Cursor reads `~/.cursor/mcp.json`. Same shape:
+
+```json
+{
+  "mcpServers": {
+    "uploadkit": {
+      "command": "npx",
+      "args": ["-y", "@uploadkitdev/mcp"]
+    }
+  }
+}
+```
+
+Windsurf uses `~/.codeium/windsurf/mcp_config.json` with an identical structure. Zed and Claude Desktop follow the same pattern — MCP is genuinely portable across clients.
+
+## Remote mode: HTTP instead of stdio
+
+Stdio is great for local development. For team setups where you want one canonical server — always on the latest component catalog, no `npx` cold starts — run it over Streamable HTTP:
+
+```json
+{
+  "mcpServers": {
+    "uploadkit": {
+      "url": "https://mcp.uploadkit.dev/v1"
+    }
+  }
+}
+```
+
+The remote endpoint is free to use and unauthenticated for public catalog data. If you're on a paid plan you can pass your API key:
+
+```json
+{
+  "mcpServers": {
+    "uploadkit": {
+      "url": "https://mcp.uploadkit.dev/v1",
+      "headers": {
+        "Authorization": "Bearer uk_live_xxx"
+      }
+    }
+  }
+}
+```
+
+With the key, the server also exposes project-scoped tools: your actual endpoints, your actual BYOS bucket config, your actual usage limits. The assistant stops asking "what's your route name?" because it already knows.
+
+## Prompts that now work
+
+This is the payoff. Before the MCP server, these prompts produced hallucinated imports. After, they produce code that runs on the first save.
+
+### "Add a dropzone to this page"
+
+The assistant now:
+
+1. Calls `get_install_command` and runs `pnpm add @uploadkitdev/react`.
+2. Calls `get_component` with `"UploadDropzone"` and reads the real props.
+3. Inserts the component with the correct import and a sensible `endpoint` name.
+4. Calls `scaffold_route` to create `app/api/uploadkit/[[...uploadkit]]/route.ts`.
+
+You get this, unprompted:
+
+```tsx
+import { UploadDropzone } from "@uploadkitdev/react";
+
+export default function UploadPage() {
+  return (
+    <UploadDropzone
+      endpoint="documents"
+      maxFiles={10}
+      maxSize="25MB"
+      accept={["application/pdf", "image/*"]}
+      onComplete={(files) => {
+        console.log("uploaded", files);
+      }}
+    />
+  );
+}
+```
+
+And the matching route handler:
+
+```ts
+import { createRouteHandler } from "@uploadkitdev/next";
+import { uploadRouter } from "@/lib/uploadkit";
+
+export const { GET, POST } = createRouteHandler({ router: uploadRouter });
+```
+
+No invented props. No `import { UploadDropzone } from "@uploadkit/react"` (wrong scope). No `onSuccess` handler that doesn't exist.
+
+### "Set up BYOS with my Cloudflare R2 bucket"
+
+The assistant calls the `byos_config_scaffold` tool with `provider="r2"`. It generates the correct endpoint URL (`https://<account-id>.r2.cloudflarestorage.com`), the right `forcePathStyle: true`, and the CORS JSON you need to paste into the R2 dashboard. See [Upload files to Cloudflare R2 with Next.js](/blog/upload-files-cloudflare-r2-nextjs) for the manual version.
+
+### "Migrate this UploadThing setup to UploadKit"
+
+With both the UploadKit MCP server and the file contents in context, Claude can read your existing `useUploadThing` hook, map it to `useUpload` from `@uploadkitdev/react`, and leave the component API identical. The [migration guide](/blog/migrate-from-uploadthing-to-uploadkit) covers the edge cases.
+
+## What the server does not do
+
+A couple of deliberate non-features, because vendors keep getting this wrong:
+
+- **It doesn't write to your filesystem.** All MCP tools are read-only or scaffolders that return strings. The assistant still does the writing.
+- **It doesn't exfiltrate code.** Stdio mode sends nothing to UploadKit servers. Remote mode sends only the tool arguments the assistant chose to send.
+- **It doesn't lock you in.** The tools return standard TypeScript. Uninstalling the MCP server leaves your codebase identical.
+
+## Gotchas
+
+- **npx cold start.** First invocation of `npx -y @uploadkitdev/mcp` takes 3-5 seconds to download. Either pin it with `pnpm dlx` or switch to remote mode.
+- **Stale catalog.** The stdio server bundles the catalog at the version you installed. Run `npx -y @uploadkitdev/mcp@latest` periodically, or use remote mode for always-fresh data.
+- **Tool naming collisions.** If you have multiple MCP servers (shadcn, Stripe, UploadKit) all exposing `get_component`, Claude Code prefixes them with the server name. Nothing breaks, but your prompts may need to say "the UploadKit dropzone" explicitly.
+- **Assistant still needs to be told to use tools.** Some models need a nudge — "use the UploadKit MCP server" — the first time in a conversation.
+
+## Takeaways
+
+- AI coding assistants don't know about libraries that shipped after their training cutoff. MCP fixes that at the tool layer, not the prompt layer.
+- Installing the UploadKit MCP server takes one command in Claude Code, Cursor, or Windsurf.
+- Stdio for local dev, Streamable HTTP for team setups — pick one, the tools are identical.
+- Real prompts like "add a dropzone" now produce code that compiles instead of plausible-looking hallucinations.
+
+If you're already using UploadKit, add the MCP server next — the [install guide](https://docs.uploadkit.dev/docs/guides/mcp) is a two-minute copy-paste. If you're still evaluating, try it against our [component catalog](/components) and see how much better the AI-assisted experience gets.
