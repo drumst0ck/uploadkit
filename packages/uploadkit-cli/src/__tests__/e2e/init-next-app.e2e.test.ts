@@ -64,6 +64,29 @@ describe.sequential('e2e: uploadkit init (next-app)', () => {
     expect(gitignore).toContain('.uploadkit-backup');
   });
 
+  it('supports Next.js src/app layout — writes route under src/app/api/uploadkit', async () => {
+    fx = scaffold('next-app-src');
+    const { root } = fx;
+
+    const res = await runCli(['init', '--yes', '--skip-install'], { cwd: root });
+    expect(res.exitCode, `stderr:\n${res.stderr}`).toBe(0);
+
+    // Route handler lives under src/app — NOT app/ — because the project
+    // uses the `src/` layout.
+    const srcRoute = join(root, 'src', 'app', 'api', 'uploadkit', '[...uploadkit]', 'route.ts');
+    expect(existsSync(srcRoute)).toBe(true);
+    expect(existsSync(join(root, 'app'))).toBe(false);
+
+    // Layout wrapped in place.
+    const layoutSrc = readFileSync(join(root, 'src', 'app', 'layout.tsx'), 'utf8');
+    expect(layoutSrc).toContain('UploadKitProvider');
+    expect(layoutSrc).toContain("from '@uploadkitdev/react'");
+
+    // Client stub lives under src/lib to match the project layout.
+    expect(existsSync(join(root, 'src', 'lib', 'uploadkit.ts'))).toBe(true);
+    expect(existsSync(join(root, 'lib', 'uploadkit.ts'))).toBe(false);
+  });
+
   it('leaves no empty backup dir when preconditions fail', async () => {
     // Hand-built fixture: a package.json that declares `next` but has NO
     // layout anywhere. `uploadkit init` must abort with a non-zero exit

@@ -7,11 +7,23 @@ import { addImport, hasMarkers, mergeEnv, wrapChildrenOf } from '../codemods/ind
 import { installPackages } from './install-deps.js';
 import type { InitImpl } from './types.js';
 
-// Files the init flow touches. Relative to the project root.
-const REL_LAYOUT = join('app', 'layout.tsx');
-const REL_ROUTE = join('app', 'api', 'uploadkit', '[...uploadkit]', 'route.ts');
-const REL_CLIENT = join('lib', 'uploadkit.ts');
+// Next.js supports two canonical App Router layouts: `app/` at the project
+// root OR `src/app/` (the Next.js CLI defaults to `src/` when opted in).
+// We probe both at runtime and thread the chosen base dir through every
+// subsequent path (route handler, client stub).
 const REL_ENV = '.env.local';
+
+/**
+ * Probe for a Next.js App Router root layout and return the base app dir
+ * (`app` or `src/app`) where it was found, or `null` if neither exists.
+ * Precedence order matters: `app/` wins over `src/app/` for projects that
+ * explicitly use the top-level layout but also happen to have a `src/` dir.
+ */
+function resolveBaseAppDir(root: string): string | null {
+  if (existsSync(join(root, 'app', 'layout.tsx'))) return 'app';
+  if (existsSync(join(root, 'src', 'app', 'layout.tsx'))) return join('src', 'app');
+  return null;
+}
 
 // Canonical SDK specifiers (D-05). `@latest` ensures fresh installs — the
 // lockfile will pin for reproducibility.
@@ -46,15 +58,17 @@ async function writeIfAbsent(
  * `init` implementation for Next.js App Router.
  *
  * Order of operations:
- *   1. Precondition: verify `app/layout.tsx` exists. Must run BEFORE the
- *      backup session is materialized so a failed precondition does not
- *      leave an empty `.uploadkit-backup/<ts>/` dir on disk.
+ *   1. Precondition: locate the root layout at either `app/layout.tsx` or
+ *      `src/app/layout.tsx`. If neither exists, throw before any backup
+ *      session is materialized (prevents empty backup dirs on early abort).
  *   2. Idempotency check: if layout already has markers AND route handler
  *      exists, print "already configured" and return `{skipped: true}`.
- *   3. Back up `app/layout.tsx` (the only file we mutate in-place).
+ *   3. Back up the discovered layout (the only file we mutate in-place).
  *   4. Rewrite layout: addImport + wrapChildrenOf('body', <UploadKitProvider>).
- *   5. Create route handler from template (if absent).
- *   6. Create `lib/uploadkit.ts` stub from template (if absent).
+ *   5. Create route handler from template (if absent) under the same
+ *      `<baseAppDir>/api/uploadkit/[...uploadkit]/route.ts` location.
+ *   6. Create `lib/uploadkit.ts` stub (or `src/lib/uploadkit.ts` when the
+ *      project uses the `src/` layout) from template (if absent).
  *   7. Merge `.env.local` with `UPLOADKIT_API_KEY=uk_test_placeholder`.
  *   8. Install SDK packages (unless `skipInstall`).
  *
@@ -64,19 +78,32 @@ async function writeIfAbsent(
 export const initNextApp: InitImpl = async (ctx, getSession) => {
   const { root, flags, detection } = ctx;
 
-  const layoutAbs = join(root, REL_LAYOUT);
-  const routeAbs = join(root, REL_ROUTE);
-  const clientAbs = join(root, REL_CLIENT);
-  const envAbs = join(root, REL_ENV);
-
-  // --- (1) Precondition: layout must exist -------------------------------
-  if (!existsSync(layoutAbs)) {
+  // --- (1) Precondition: locate layout ------------------------------------
+  const baseAppDir = resolveBaseAppDir(root);
+  if (!baseAppDir) {
     throw new Error(
-      `app/layout.tsx not found at ${layoutAbs}. Run uploadkit init from the project root.`,
+      `layout.tsx not found at ${join(root, 'app', 'layout.tsx')} or ${join(root, 'src', 'app', 'layout.tsx')}. Run uploadkit init from the project root.`,
     );
   }
 
-  // --- (2) Idempotency ---------------------------------------------------
+  const layoutAbs = join(root, baseAppDir, 'layout.tsx');
+  const routeAbs = join(
+    root,
+    baseAppDir,
+    'api',
+    'uploadkit',
+    '[...uploadkit]',
+    'route.ts',
+  );
+  // Client stub: when the project uses `src/app`, keep the stub inside `src/`
+  // too so imports resolve naturally through the user's tsconfig path alias.
+  const clientAbs =
+    baseAppDir === 'app'
+      ? join(root, 'lib', 'uploadkit.ts')
+      : join(root, 'src', 'lib', 'uploadkit.ts');
+  const envAbs = join(root, REL_ENV);
+
+  // --- (2) Idempotency ----------------------------------------------------
   if (existsSync(routeAbs)) {
     const existingLayout = await readFile(layoutAbs, 'utf8');
     if (hasMarkers(existingLayout) && existingLayout.includes(REACT_MODULE)) {

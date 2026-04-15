@@ -16,7 +16,12 @@ export const FIXTURES_DIR = resolve(HERE, '..', '..', '__fixtures__', 'projects'
 /** Absolute path to the compiled CLI bin that e2e tests spawn. */
 export const CLI_BIN = resolve(HERE, '..', '..', '..', 'dist', 'index.js');
 
-export type FixtureName = 'next-app' | 'sveltekit' | 'remix' | 'vite-react';
+export type FixtureName =
+  | 'next-app'
+  | 'next-app-src'
+  | 'sveltekit'
+  | 'remix'
+  | 'vite-react';
 
 export interface Scaffolded {
   /** Absolute path to the tmpdir copy of the fixture. */
