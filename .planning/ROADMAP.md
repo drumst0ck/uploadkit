@@ -242,11 +242,11 @@ Plans:
   6. Published as `uploadkit` (or `@uploadkitdev/cli`) with the same Changesets + smoke CI gate as Phase 12
   7. Docs page `/docs/cli` documents both `init` and `add` flows with framework-specific examples
 
-**Plans:** 3/11 plans executed
+**Plans:** 4/11 plans executed
 - [x] 12.5-01-PLAN.md — Package skeleton + subcommand router
 - [x] 12.5-02-PLAN.md — Framework detector (Next App/Pages, SvelteKit, Remix, Vite+React)
 - [x] 12.5-03-PLAN.md — Codemod utilities (magicast) + backup/manifest pipeline
-- [ ] 12.5-04-PLAN.md — `init` for Next.js App Router (reference implementation)
+- [x] 12.5-04-PLAN.md — `init` for Next.js App Router (reference implementation)
 - [ ] 12.5-05-PLAN.md — `init` for SvelteKit, Remix, Vite+React
 - [ ] 12.5-06-PLAN.md — `add` subcommand (6 React component aliases)
 - [ ] 12.5-07-PLAN.md — `restore` subcommand (roll back backups)
