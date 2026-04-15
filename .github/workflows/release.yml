@@ -91,5 +91,8 @@ jobs:
           title: 'chore: version packages'
           commit: 'chore: version packages'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use CHANGESETS_TOKEN (PAT with repo + workflow scope) so PRs opened
+          # by changesets/action trigger CI workflows. Falls back to GITHUB_TOKEN
+          # which is rate-limited and does NOT trigger downstream workflows.
+          GITHUB_TOKEN: ${{ secrets.CHANGESETS_TOKEN || secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
