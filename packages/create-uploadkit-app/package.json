@@ -1,6 +1,6 @@
 {
   "name": "create-uploadkit-app",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Scaffold a new project with UploadKit — beautiful, type-safe file uploads in minutes.",
   "license": "MIT",
   "author": "Drumst0ck",
