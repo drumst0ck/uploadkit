@@ -1,4 +1,4 @@
 {
   "title": "Guides",
-  "pages": ["image-upload", "avatar-upload", "document-upload", "multipart-upload", "custom-styling", "mcp", "migration-from-uploadthing"]
+  "pages": ["cli", "image-upload", "avatar-upload", "document-upload", "multipart-upload", "custom-styling", "mcp", "migration-from-uploadthing"]
 }
