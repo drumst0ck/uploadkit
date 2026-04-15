@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { compileMDX } from 'next-mdx-remote/rsc'
 import rehypePrettyCode, { type Options as RehypePrettyCodeOptions } from 'rehype-pretty-code'
+import remarkGfm from 'remark-gfm'
 import Navbar from '@/components/nav/navbar'
 import { Footer } from '@/components/footer/footer'
 import { formatPostDate, getAllPosts, getPostBySlug } from '@/lib/blog'
@@ -72,6 +73,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
     options: {
       parseFrontmatter: false,
       mdxOptions: {
+        remarkPlugins: [remarkGfm],
         rehypePlugins: [[rehypePrettyCode, rehypePrettyCodeOptions]],
       },
     },
