@@ -27,6 +27,7 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 Goal: 200-500 GitHub stars, 2-3 keywords ranqueando top 10, 10k visitas orgánicas/mes en 3 meses. Sin dependencia de karma en redes — 100% canales ungated: CLI, playgrounds embebibles, integraciones con generadores IA, SEO programático, herramientas free.
 
 - [ ] **Phase 12: `create-uploadkit-app` CLI** - Scaffolder `npx create-uploadkit-app` con templates (Next.js, SvelteKit, Remix, Vite), detección de package manager, prompts interactivos, setup de `.env.local` con API key placeholder
+- [ ] **Phase 12.5: `uploadkit` CLI for existing projects** *(INSERTED — primary user role)* - `npx uploadkit init` detecta framework e instala deps + route handler + provider en proyecto existente; `npx uploadkit add <component>` añade componentes shadcn-style. Es el flujo principal: 80% de usuarios tienen proyecto existente
 - [ ] **Phase 13: Interactive Playgrounds** - 4 playgrounds embebibles (StackBlitz + CodeSandbox) cubriendo Dropzone, Cropper, UploadQueue, BYOS; botón "Try live" en blog posts y docs
 - [ ] **Phase 14: AI Generator Integrations** - MDC rules files para Cursor/Windsurf/Zed, awesome-cursorrules PR, outreach a v0.dev/bolt.new/Lovable pidiendo UploadKit en sus component pickers, llms.txt en la landing
 - [ ] **Phase 15: Programmatic SEO — Framework Landing Pages** - 20 páginas `/uploads/<framework>` (Next.js, SvelteKit, Remix, Nuxt, Astro, RedwoodJS, Solid, Qwik, Gatsby, Vue, Angular, etc.) con estructura: hero específico, code snippet, presigned URL walkthrough, CTA. Sitemap + metadata SEO completa
@@ -227,6 +228,19 @@ Plans:
   4. `.env.local` scaffolded with `UPLOADKIT_API_KEY=uk_test_placeholder` + link to signup
   5. Published to npm as `create-uploadkit-app`, reachable via all 4 package-manager "create" shortcuts
   6. README generated per template with dev/build commands and a "Next steps" section
+
+### Phase 12.5: `uploadkit` CLI for existing projects (INSERTED)
+**Goal**: Developers with an existing app can run `npx uploadkit init` and have UploadKit fully wired in <60s — deps installed, route handler created, provider mounted in their layout, env vars scaffolded. `npx uploadkit add <component>` then drops individual components shadcn-style. This is the **primary user role** — most installs are into existing projects, not greenfield.
+**Depends on**: Phase 4 (SDK), Phase 5 (React components), Phase 12 (shared CLI infra reuse)
+**Requirements**: GROW-15, GROW-16, GROW-17
+**Success Criteria**:
+  1. `npx uploadkit init` detects the framework (Next.js / SvelteKit / Remix / Vite) by inspecting `package.json` and project structure; refuses gracefully on unsupported stacks with a clear message
+  2. `init` installs `@uploadkitdev/*` packages with the project's package manager (auto-detected), creates the framework-appropriate route handler, mounts the provider in the root layout/entry, writes `.env.local` (or merges into existing) with `UPLOADKIT_API_KEY=uk_test_placeholder`
+  3. `init` is idempotent — running twice doesn't duplicate imports, route handlers, or provider mounts; emits "already configured" notice instead
+  4. `npx uploadkit add <component>` (e.g. `add dropzone`) inserts the component import + usage into a user-selected page, with prompts to pick the target file
+  5. Backup-on-modify: any file the CLI edits is backed up to `.uploadkit-backup/` before write; user can `uploadkit restore` if anything goes sideways
+  6. Published as `uploadkit` (or `@uploadkitdev/cli`) with the same Changesets + smoke CI gate as Phase 12
+  7. Docs page `/docs/cli` documents both `init` and `add` flows with framework-specific examples
 
 ### Phase 13: Interactive Playgrounds
 **Goal**: Developers can try every headline UploadKit component without installing anything. 4 embeddable playgrounds (StackBlitz SDK + CodeSandbox sandbox) covering Dropzone, Cropper, UploadQueue, BYOS config — linked from blog posts, docs, and the landing.

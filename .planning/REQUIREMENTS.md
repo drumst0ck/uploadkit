@@ -180,6 +180,12 @@ Organic acquisition without reliance on social karma. Target: 200-500 GitHub sta
 - [ ] **GROW-13**: `/tools/presigned-url-generator` — form → curl + JS output for S3/R2/B2 (client-side)
 - [ ] **GROW-14**: `/tools/upload-cost-calculator` — S3 vs R2 vs B2 vs UploadKit pricing comparison with user inputs
 
+### CLI for Existing Projects (Phase 12.5)
+
+- [ ] **GROW-15**: `npx uploadkit init` detects framework, installs deps, scaffolds route handler + provider + env in existing project; idempotent on re-runs
+- [ ] **GROW-16**: `npx uploadkit add <component>` (shadcn-style) inserts component import + usage into a user-selected page
+- [ ] **GROW-17**: Backup-on-modify: `.uploadkit-backup/` saves overwritten files; `uploadkit restore` rolls back
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
