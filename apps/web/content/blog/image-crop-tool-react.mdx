@@ -1,0 +1,441 @@
+---
+title: "Building an image crop tool in React"
+description: "Build a React image crop tool from scratch with the Canvas API — drag handles, aspect ratio lock, output blob. Walk through ~400 lines of TypeScript."
+category: Tutorials
+publishedAt: 2026-04-18
+author: UploadKit Team
+tags:
+  - react-image-crop
+  - canvas-api
+  - tutorial
+  - typescript
+  - frontend
+  - image-processing
+---
+
+**TL;DR — A React image crop tool from scratch is ~400 lines: a draggable selection box overlay, eight resize handles, optional aspect ratio lock, and a Canvas API call to produce the output blob. This tutorial walks through every piece. The hard parts are pointer math, handle hit-testing, and getting the output coordinates right at any scale.**
+
+You can `pnpm add react-image-crop` and ship in 10 minutes. But every product team eventually wants to customize the cropper — different handle styles, different aspect ratios, branded overlay colors, integrated with their upload flow — and that's when knowing how to build one yourself becomes useful. This guide builds a complete React image crop tool with no external dependencies beyond React.
+
+If you want to skip ahead, [UploadKit](/components) ships a `<Cropper>` component that does all of this with a themed design system, dark mode, keyboard support, and a touch-friendly variant. But understanding the underlying mechanics will make you a better consumer of any cropping library.
+
+## The architecture
+
+The cropper has four moving parts:
+
+1. **The image layer** — the source image rendered at a fixed display size.
+2. **The dim overlay** — a semi-transparent layer over everything except the crop region.
+3. **The crop box** — the visible rectangle the user drags and resizes.
+4. **The handles** — eight small squares (corners + edges) for resizing.
+
+When the user clicks "Crop", we take the crop box coordinates (in display pixels), scale them to the natural image dimensions, and draw that region to a `<canvas>` to produce a `Blob`.
+
+## The data model
+
+Three pieces of state describe the cropper:
+
+```ts
+type CropBox = {
+  x: number      // left, in display pixels
+  y: number      // top, in display pixels
+  width: number  // in display pixels
+  height: number // in display pixels
+}
+
+type DragMode =
+  | { type: 'idle' }
+  | { type: 'move'; offsetX: number; offsetY: number }
+  | { type: 'resize'; handle: Handle; startBox: CropBox; startX: number; startY: number }
+
+type Handle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
+```
+
+`CropBox` is in the display coordinate space — what the user sees. We convert to natural coordinates only when producing the output blob.
+
+## The component shell
+
+```tsx
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+
+type Props = {
+  src: string
+  aspectRatio?: number // e.g., 1 for square, 16/9 for widescreen
+  onCrop: (blob: Blob) => void
+}
+
+export function Cropper({ src, aspectRatio, onCrop }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const [box, setBox] = useState<CropBox | null>(null)
+  const [drag, setDrag] = useState<DragMode>({ type: 'idle' })
+  const [imgSize, setImgSize] = useState({ width: 0, height: 0 })
+
+  // ... handlers below
+
+  return (
+    <div
+      ref={containerRef}
+      style={{ position: 'relative', userSelect: 'none', display: 'inline-block' }}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+    >
+      <img
+        ref={imgRef}
+        src={src}
+        alt=""
+        draggable={false}
+        onLoad={handleImageLoad}
+        style={{ display: 'block', maxWidth: '100%' }}
+      />
+      {box && (
+        <>
+          <Overlay imgSize={imgSize} box={box} />
+          <CropBoxView box={box} onPointerDown={handlePointerDown} />
+        </>
+      )}
+    </div>
+  )
+}
+```
+
+## Initializing the crop box
+
+When the image loads, place a default crop box — centered, 80% of the smaller dimension, respecting aspect ratio:
+
+```ts
+function handleImageLoad() {
+  const img = imgRef.current
+  if (!img) return
+
+  const w = img.clientWidth
+  const h = img.clientHeight
+  setImgSize({ width: w, height: h })
+
+  const ratio = aspectRatio ?? w / h
+  let cropW = Math.min(w, h * ratio) * 0.8
+  let cropH = cropW / ratio
+
+  setBox({
+    x: (w - cropW) / 2,
+    y: (h - cropH) / 2,
+    width: cropW,
+    height: cropH,
+  })
+}
+```
+
+Use `clientWidth`/`clientHeight` (display size), not `naturalWidth`/`naturalHeight` (intrinsic size). The crop box lives in display space.
+
+## The dim overlay
+
+The overlay is four rectangles around the crop box, each filled with `rgba(0,0,0,0.5)`. We use four divs instead of a clip-path because divs are cheap and work everywhere:
+
+```tsx
+function Overlay({ imgSize, box }: { imgSize: { width: number; height: number }; box: CropBox }) {
+  const dim = 'rgba(0,0,0,0.55)'
+  return (
+    <>
+      {/* top */}
+      <div style={{ position: 'absolute', left: 0, top: 0, width: imgSize.width, height: box.y, background: dim, pointerEvents: 'none' }} />
+      {/* bottom */}
+      <div style={{ position: 'absolute', left: 0, top: box.y + box.height, width: imgSize.width, height: imgSize.height - (box.y + box.height), background: dim, pointerEvents: 'none' }} />
+      {/* left */}
+      <div style={{ position: 'absolute', left: 0, top: box.y, width: box.x, height: box.height, background: dim, pointerEvents: 'none' }} />
+      {/* right */}
+      <div style={{ position: 'absolute', left: box.x + box.width, top: box.y, width: imgSize.width - (box.x + box.width), height: box.height, background: dim, pointerEvents: 'none' }} />
+    </>
+  )
+}
+```
+
+`pointerEvents: 'none'` is important — the overlay must not capture pointer events that should reach the crop box.
+
+## The crop box and handles
+
+```tsx
+const HANDLE_SIZE = 12
+
+function CropBoxView({
+  box,
+  onPointerDown,
+}: {
+  box: CropBox
+  onPointerDown: (e: React.PointerEvent, target: 'move' | Handle) => void
+}) {
+  const handles: Handle[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: box.x,
+        top: box.y,
+        width: box.width,
+        height: box.height,
+        border: '1px solid white',
+        boxShadow: '0 0 0 1px rgba(0,0,0,0.2)',
+        cursor: 'move',
+      }}
+      onPointerDown={(e) => onPointerDown(e, 'move')}
+    >
+      {handles.map((h) => (
+        <div
+          key={h}
+          onPointerDown={(e) => {
+            e.stopPropagation()
+            onPointerDown(e, h)
+          }}
+          style={{
+            position: 'absolute',
+            width: HANDLE_SIZE,
+            height: HANDLE_SIZE,
+            background: 'white',
+            border: '1px solid rgba(0,0,0,0.4)',
+            cursor: handleCursor(h),
+            ...handlePosition(h),
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function handlePosition(h: Handle): React.CSSProperties {
+  const half = -HANDLE_SIZE / 2
+  switch (h) {
+    case 'nw': return { left: half, top: half }
+    case 'n':  return { left: '50%', top: half, transform: 'translateX(-50%)' }
+    case 'ne': return { right: half, top: half }
+    case 'e':  return { right: half, top: '50%', transform: 'translateY(-50%)' }
+    case 'se': return { right: half, bottom: half }
+    case 's':  return { left: '50%', bottom: half, transform: 'translateX(-50%)' }
+    case 'sw': return { left: half, bottom: half }
+    case 'w':  return { left: half, top: '50%', transform: 'translateY(-50%)' }
+  }
+}
+
+function handleCursor(h: Handle): string {
+  return ({ nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
+           se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize' })[h]
+}
+```
+
+`e.stopPropagation()` on the handle prevents the move handler on the parent from also firing.
+
+## Pointer math
+
+The container is the coordinate origin. Translate page coordinates to container coordinates with `getBoundingClientRect()`:
+
+```ts
+function getLocalCoords(e: React.PointerEvent | PointerEvent) {
+  const rect = containerRef.current!.getBoundingClientRect()
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+}
+
+function handlePointerDown(e: React.PointerEvent, target: 'move' | Handle) {
+  if (!box) return
+  const { x, y } = getLocalCoords(e)
+  ;(e.target as Element).setPointerCapture(e.pointerId)
+
+  if (target === 'move') {
+    setDrag({ type: 'move', offsetX: x - box.x, offsetY: y - box.y })
+  } else {
+    setDrag({ type: 'resize', handle: target, startBox: { ...box }, startX: x, startY: y })
+  }
+}
+```
+
+`setPointerCapture` ensures we keep receiving pointer events even when the cursor leaves the element — critical when the user drags fast.
+
+## Move and resize handlers
+
+```ts
+function handlePointerMove(e: React.PointerEvent) {
+  if (drag.type === 'idle' || !box) return
+  const { x, y } = getLocalCoords(e)
+
+  if (drag.type === 'move') {
+    const newX = clamp(x - drag.offsetX, 0, imgSize.width - box.width)
+    const newY = clamp(y - drag.offsetY, 0, imgSize.height - box.height)
+    setBox({ ...box, x: newX, y: newY })
+    return
+  }
+
+  // resize
+  const dx = x - drag.startX
+  const dy = y - drag.startY
+  const next = applyResize(drag.startBox, drag.handle, dx, dy, aspectRatio, imgSize)
+  setBox(next)
+}
+
+function clamp(v: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, v))
+}
+```
+
+The resize math is the trickiest part. Each handle moves a different combination of edges:
+
+```ts
+function applyResize(
+  start: CropBox,
+  handle: Handle,
+  dx: number,
+  dy: number,
+  aspectRatio: number | undefined,
+  bounds: { width: number; height: number },
+): CropBox {
+  let { x, y, width, height } = start
+
+  if (handle.includes('e')) width = start.width + dx
+  if (handle.includes('w')) { width = start.width - dx; x = start.x + dx }
+  if (handle.includes('s')) height = start.height + dy
+  if (handle.includes('n')) { height = start.height - dy; y = start.y + dy }
+
+  // Lock aspect ratio if specified
+  if (aspectRatio) {
+    if (handle === 'e' || handle === 'w') {
+      height = width / aspectRatio
+    } else if (handle === 'n' || handle === 's') {
+      width = height * aspectRatio
+    } else {
+      // corner: use whichever dimension changed more
+      if (Math.abs(dx) > Math.abs(dy)) height = width / aspectRatio
+      else width = height * aspectRatio
+    }
+    if (handle.includes('w')) x = start.x + (start.width - width)
+    if (handle.includes('n')) y = start.y + (start.height - height)
+  }
+
+  // Min size + bounds
+  const MIN = 24
+  if (width < MIN || height < MIN) return start
+  if (x < 0 || y < 0 || x + width > bounds.width || y + height > bounds.height) return start
+
+  return { x, y, width, height }
+}
+
+function handlePointerUp() {
+  setDrag({ type: 'idle' })
+}
+```
+
+The aspect-ratio logic is the part most off-the-shelf croppers get subtly wrong. When dragging a corner with aspect lock, you have to pick one axis as authoritative — we pick whichever the user moved more. This feels natural because it follows the user's intent.
+
+## Producing the output blob
+
+When the user clicks "Crop", scale the box from display coords to natural coords and draw to a canvas:
+
+```ts
+async function exportCrop() {
+  const img = imgRef.current
+  if (!img || !box) return
+
+  const scaleX = img.naturalWidth / img.clientWidth
+  const scaleY = img.naturalHeight / img.clientHeight
+
+  const sx = box.x * scaleX
+  const sy = box.y * scaleY
+  const sw = box.width * scaleX
+  const sh = box.height * scaleY
+
+  const canvas = document.createElement('canvas')
+  canvas.width = sw
+  canvas.height = sh
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh)
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error('toBlob failed'))),
+      'image/jpeg',
+      0.92,
+    )
+  })
+
+  onCrop(blob)
+}
+```
+
+Three things worth noting:
+
+- **Always scale to natural coordinates** before drawing. Drawing the display-sized box gives you a low-res output.
+- **Use `image/jpeg` for photos**, `image/webp` for better compression in modern browsers. PNG is fine for graphics.
+- **Quality 0.92** is the sweet spot — visually identical to 1.0 but ~30% smaller.
+
+## CORS gotcha
+
+If the image is hosted on a different origin, `drawImage` will throw a security error when you call `toBlob`. The image must either:
+
+- Be served with `Access-Control-Allow-Origin: *` (or your origin), and
+- Be loaded with `crossOrigin="anonymous"` on the `<img>`.
+
+For images uploaded to your own R2/S3 bucket, configure CORS once and you're good. For arbitrary user-supplied URLs, you'll need a proxy that re-serves the image with the right headers.
+
+## Putting it together
+
+```tsx
+export default function CropDemo() {
+  const [src, setSrc] = useState<string | null>(null)
+  const [output, setOutput] = useState<string | null>(null)
+
+  return (
+    <div>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) setSrc(URL.createObjectURL(file))
+        }}
+      />
+      {src && (
+        <Cropper
+          src={src}
+          aspectRatio={1}
+          onCrop={(blob) => setOutput(URL.createObjectURL(blob))}
+        />
+      )}
+      {output && <img src={output} alt="cropped" />}
+    </div>
+  )
+}
+```
+
+That's a working cropper in around 400 lines once you add styling and the export button. Touch support comes for free because we used `PointerEvent` instead of `MouseEvent`.
+
+## What this means for you
+
+You now know how a cropper works under the hood. The pieces that look complicated in the wild (`react-image-crop`, `react-easy-crop`, etc.) are mostly handle layout and aspect-ratio math — the same code you just wrote.
+
+If you're shipping a real product, the rough edges to add are:
+
+- **Keyboard support.** Arrow keys to nudge, shift+arrow for bigger steps, tab between handles.
+- **Touch ergonomics.** Larger handle hit areas on mobile (use a transparent padding wrapper).
+- **Reduced motion.** Don't animate the box on prefers-reduced-motion.
+- **Aspect ratio toggle.** Many products want "free" or "1:1" or "16:9" as a chip group above the cropper.
+- **Output formats.** Let the consumer pick JPEG/WebP/PNG and quality.
+
+Or use [UploadKit's `<Cropper>`](/components) which handles all of the above plus dark mode, theming via CSS custom properties, and integration with the upload pipeline so the cropped blob goes straight to storage with no extra glue:
+
+```tsx
+import { Cropper } from '@uploadkitdev/react'
+
+<Cropper
+  src={src}
+  aspectRatio={1}
+  onCrop={async (blob) => await upload(blob)}
+/>
+```
+
+Related reading:
+
+- [How to upload files to Cloudflare R2 in Next.js](/blog/upload-files-cloudflare-r2-nextjs)
+- [Presigned URLs vs server proxy uploads: which to choose](/blog/presigned-urls-vs-server-proxy)
+
+External references:
+
+- [MDN: Canvas drawImage](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage)
+- [MDN: Pointer events](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events)
+- [MDN: HTMLCanvasElement.toBlob](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob)
