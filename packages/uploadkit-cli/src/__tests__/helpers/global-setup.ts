@@ -1,5 +1,5 @@
-import { existsSync, statSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execa } from 'execa';
 
@@ -18,23 +18,20 @@ const SRC = resolve(PKG_ROOT, 'src');
 
 function newestMtime(dir: string): number {
   // Cheap glob-free walk — only scanning src/ which is small.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const fs = require('node:fs') as typeof import('node:fs');
-  const path = require('node:path') as typeof import('node:path');
   let max = 0;
   const stack: string[] = [dir];
   while (stack.length > 0) {
     const current = stack.pop();
     if (!current) continue;
-    const entries = fs.readdirSync(current, { withFileTypes: true });
+    const entries = readdirSync(current, { withFileTypes: true });
     for (const entry of entries) {
-      const full = path.join(current, entry.name);
+      const full = join(current, entry.name);
       if (entry.isDirectory()) {
         // Skip test helper + fixture dirs — they don't affect dist output.
         if (entry.name === '__tests__' || entry.name === '__fixtures__') continue;
         stack.push(full);
       } else {
-        const m = fs.statSync(full).mtimeMs;
+        const m = statSync(full).mtimeMs;
         if (m > max) max = m;
       }
     }

@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { createBackupSession } from '../backup/backup.js';
 import { readManifests } from '../backup/restore-manifest.js';
 import { wrapChildrenOf } from '../codemods/jsx-wrap.js';
-import { hasMarkers, MARKER_START } from '../codemods/markers.js';
+import { hasMarkers } from '../codemods/markers.js';
 
 describe('backup pipeline', () => {
   let root: string;

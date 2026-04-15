@@ -42,11 +42,13 @@ export function parseArgs(argv: string[]): ParsedArgs {
   const [command, ...positional] = positionalAll;
 
   // Strip declared keys out of `raw` so callers can still inspect unknown ones.
+  // The aliases (v/h/y) and `_` positional array are intentionally discarded
+  // here; rest-sibling + `_`-prefix keeps the unused-vars rule happy.
   const {
     _: _underscore,
-    v,
-    h,
-    y,
+    v: _v,
+    h: _h,
+    y: _y,
     version,
     help,
     yes,

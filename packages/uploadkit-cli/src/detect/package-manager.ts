@@ -21,7 +21,7 @@ export function detectPackageManager(cwd: string = process.cwd()): PackageManage
 
   // bun emits `bun.lock` (text) or `bun.lockb` (binary). Scan the dir once
   // for any `bun.lock*` entry rather than stat'ing each candidate.
-  let entries: string[] = [];
+  let entries: string[];
   try {
     entries = readdirSync(root);
   } catch {

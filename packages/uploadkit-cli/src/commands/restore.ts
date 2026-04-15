@@ -25,7 +25,7 @@ export async function run(parsed: ParsedArgs): Promise<number> {
     return 0;
   }
 
-  let chosen = null as (typeof manifests)[number] | null;
+  let chosen: (typeof manifests)[number] | null;
 
   if (parsed.flags.timestamp) {
     chosen = manifests.find((m) => m.timestamp === parsed.flags.timestamp) ?? null;

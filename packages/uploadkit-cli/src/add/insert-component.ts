@@ -110,7 +110,7 @@ function findInsertionSite(source: string): InsertionSite | null {
   // fall back to one-level-in of the opening tag's column + 2.
   const restAfterOpen = source.slice(insertAt);
   const nextLine = /\n([ \t]*)\S/.exec(restAfterOpen);
-  let indent = '      ';
+  let indent: string;
   if (nextLine?.[1]) {
     indent = nextLine[1];
   } else {

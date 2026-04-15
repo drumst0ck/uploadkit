@@ -66,7 +66,7 @@ async function run(
   } catch (err: unknown) {
     const e = err as { exitCode?: number; signal?: string };
     const exit = e.exitCode ?? e.signal ?? 'unknown';
-    throw new Error(`Command failed (${exit}): ${file} ${args.join(' ')}`);
+    throw new Error(`Command failed (${exit}): ${file} ${args.join(' ')}`, { cause: err });
   }
 }
 
@@ -280,7 +280,10 @@ async function smokeOne(framework: Framework): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const [, , rawFramework] = process.argv;
+  // pnpm forwards args after `--`, which may leave a literal `--` as argv[2].
+  // Filter it out so `pnpm --filter uploadkit smoke -- next-app` works.
+  const args = process.argv.slice(2).filter((a) => a !== '--');
+  const rawFramework = args[0];
   if (!rawFramework) {
     process.stderr.write(
       `Usage: pnpm --filter uploadkit smoke -- <framework>\n  framework: ${FRAMEWORKS.join(' | ')}\n`,
