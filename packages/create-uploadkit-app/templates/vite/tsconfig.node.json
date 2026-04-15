@@ -14,8 +14,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "skipLibCheck": true,
-    "isolatedModules": true,
-    "types": ["node"]
+    "isolatedModules": true
   },
   "include": ["vite.config.ts"]
 }

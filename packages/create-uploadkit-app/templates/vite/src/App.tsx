@@ -65,6 +65,7 @@ export default function App() {
         </header>
 
         <UploadDropzone
+          route="default"
           onUploadComplete={(results) => {
             // eslint-disable-next-line no-console
             console.log('uploaded', results);
