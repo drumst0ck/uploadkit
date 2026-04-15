@@ -12,5 +12,8 @@
   },
   "dependencies": {
     "tailwindcss": "latest"
+  },
+  "devDependencies": {
+    "globals": "^17.5.0"
   }
 }

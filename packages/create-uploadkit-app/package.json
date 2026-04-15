@@ -46,7 +46,9 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "smoke": "node scripts/smoke-test.mjs",
+    "prepublishOnly": "node scripts/pin-template-deps.mjs"
   },
   "dependencies": {
     "@clack/prompts": "latest",
