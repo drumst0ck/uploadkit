@@ -1,0 +1,118 @@
+---
+title: "S3 vs R2 vs Backblaze B2: real pricing compared (2026)"
+description: "S3 vs R2 vs Backblaze pricing with real 2026 numbers. A 1 TB stored, 10 TB egress scenario, decision matrix, and when each provider actually wins."
+category: Comparisons
+publishedAt: 2026-04-20
+author: UploadKit Team
+tags:
+  - s3-vs-r2
+  - backblaze-b2
+  - object-storage
+  - pricing
+  - cloud-egress
+  - cost-optimization
+---
+
+**TL;DR — For most upload-heavy apps in 2026, Cloudflare R2 wins on total cost because egress is free. Backblaze B2 is the cheapest on storage at rest and reasonable on egress through the Bandwidth Alliance. AWS S3 is the most expensive of the three but the least surprising — pick it when you're already deep in AWS or need exotic features (Glacier tiers, S3 Object Lambda, cross-region replication SLAs). The S3 vs R2 vs Backblaze pricing question almost always comes down to: how much do users download?**
+
+The three providers we keep getting asked about are AWS S3, Cloudflare R2, and Backblaze B2. They're all S3-API-compatible, so the SDK story is identical (`@aws-sdk/client-s3` works with all of them by setting the `endpoint`). The bill at the end of the month is not.
+
+This post lays out 2026 list prices, runs a realistic scenario, and gives a decision matrix you can actually use.
+
+## The 2026 list prices
+
+Prices below are list prices in USD as of April 2026, for the standard storage class in each provider's primary US region. Discounts for committed spend, enterprise contracts, and free tiers are noted separately.
+
+| Cost dimension          | AWS S3 (us-east-1)             | Cloudflare R2                      | Backblaze B2 (US-West)            |
+| ----------------------- | ------------------------------ | ---------------------------------- | --------------------------------- |
+| Storage ($/GB/month)    | $0.023                         | $0.015                             | $0.006                            |
+| Egress ($/GB)           | $0.09 (first 10 TB/mo)         | **$0.00**                          | $0.01 (3x storage free, then $0.01) |
+| Class A ops (writes)    | $0.005 / 1,000                 | $4.50 / 1,000,000                  | $0.004 / 10,000                   |
+| Class B ops (reads)     | $0.0004 / 1,000                | $0.36 / 1,000,000                  | $0.0004 / 10,000                  |
+| Free tier (forever)     | None (12-month intro only)     | 10 GB storage, 1M Class A, 10M Class B | 10 GB storage, 1 GB/day egress |
+| Minimum storage time    | None                           | None                               | None (Hot tier)                   |
+
+Sources: [AWS S3 pricing](https://aws.amazon.com/s3/pricing/), [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/), [Backblaze B2 pricing](https://www.backblaze.com/cloud-storage/pricing). Always re-check before contract — providers adjust quietly.
+
+A note on egress: AWS reduced egress to $0.05/GB for the first 100 GB/month in late 2024 and offers 100 GB/month free, but the marginal cost above that is still $0.09/GB at scale. Cloudflare R2 charges nothing for egress at any volume. Backblaze gives you 3x your stored data in free egress per month and charges $0.01/GB above that, with the [Bandwidth Alliance](https://www.cloudflare.com/bandwidth-alliance/) making egress to Cloudflare free.
+
+## A realistic scenario: 1 TB stored, 10 TB egress per month
+
+This profile fits a mid-stage SaaS — say, a video tool, a community platform with avatars and attachments, or a B2B doc storage product. We'll ignore ops costs for now (they're usually under 5% of the bill at this scale) and circle back.
+
+| Provider     | Storage (1 TB)         | Egress (10 TB)            | Monthly total   |
+| ------------ | ---------------------- | ------------------------- | --------------- |
+| AWS S3       | 1,000 × $0.023 = $23   | 10,000 × $0.09 = $900     | **$923**        |
+| Cloudflare R2| 1,000 × $0.015 = $15   | 10,000 × $0.00 = $0       | **$15**         |
+| Backblaze B2 | 1,000 × $0.006 = $6    | (3 TB free) + 7,000 × $0.01 = $70 | **$76** |
+
+R2 is **61x cheaper than S3** in this scenario. Backblaze is **12x cheaper than S3**. The gap is almost entirely egress.
+
+Now flip it. Same 1 TB stored, but only 100 GB egress (a write-heavy archive workload):
+
+| Provider     | Storage  | Egress (100 GB) | Monthly total |
+| ------------ | -------- | --------------- | ------------- |
+| AWS S3       | $23      | $9              | **$32**       |
+| Cloudflare R2| $15      | $0              | **$15**       |
+| Backblaze B2 | $6       | $0 (free tier)  | **$6**        |
+
+When egress is small, Backblaze's storage price wins. When egress is significant, R2 wins.
+
+## Class A and Class B operations
+
+Operations matter for two workloads: lots of small files, and lots of LIST/HEAD calls (e.g., "is this file already there?" checks). For an upload product doing 1 million PUTs and 10 million GETs per month:
+
+| Provider     | 1M PUTs                | 10M GETs               | Ops total |
+| ------------ | ---------------------- | ---------------------- | --------- |
+| AWS S3       | $5.00                  | $4.00                  | **$9**    |
+| Cloudflare R2| $4.50                  | $3.60                  | **$8.10** |
+| Backblaze B2 | $0.40                  | $0.40                  | **$0.80** |
+
+Backblaze charges per 10,000 ops, which makes the per-call cost an order of magnitude cheaper than the others. For a thumbnail-heavy gallery app or a CDN origin, this adds up.
+
+## Free tiers
+
+If you're shipping a side project or a generous free plan, the forever-free allowances matter:
+
+- **R2**: 10 GB storage + 1M Class A + 10M Class B operations per month, forever. Egress always free. This is the most generous free tier in the category and what most hobby projects can run on.
+- **B2**: 10 GB storage + 1 GB/day egress. Solid for personal use.
+- **S3**: 12-month free tier (5 GB) for new accounts, then nothing. Don't build on this.
+
+For more on architecting around R2 specifically, see [our Cloudflare R2 + Next.js tutorial](/blog/upload-files-cloudflare-r2-nextjs).
+
+## Decision matrix
+
+| If you...                                               | Pick           |
+| ------------------------------------------------------- | -------------- |
+| Have any non-trivial egress (downloads, video streaming, public assets) | **R2**         |
+| Are already on AWS and need IAM, KMS, VPC endpoints     | **S3**         |
+| Need Glacier-tier archival or deep AWS service integration | **S3**       |
+| Run a write-heavy archive (logs, backups, cold storage) | **B2**         |
+| Want the cheapest possible bill regardless of ecosystem | **B2** (cold) or **R2** (hot/egress) |
+| Need a generous forever-free tier for a hobby project   | **R2**         |
+| Need data residency in a specific country (EU, UK, AU)  | **S3** (most regions) or **R2** (jurisdictional) |
+| Care about a single signed-URL API across providers     | All three (S3 API) |
+
+## What about Wasabi, DigitalOcean Spaces, MinIO?
+
+Briefly:
+
+- **Wasabi**: storage at ~$6.99/TB/mo, no egress fees, but a 90-day minimum storage time. Great for backups, awkward for user uploads where files churn.
+- **DigitalOcean Spaces**: $5/mo for 250 GB + 1 TB egress, then $0.02/GB storage and $0.01/GB egress. Predictable pricing, weaker on global performance.
+- **MinIO**: self-hosted. Free software, you pay for the servers and the ops team. Sensible for on-prem and air-gapped environments, overkill for almost everything else.
+
+## Hidden costs people forget
+
+1. **Inter-region transfer.** S3 charges $0.02/GB for cross-region replication. R2 doesn't replicate by default but you can use [Super Slurper](https://developers.cloudflare.com/r2/data-migration/super-slurper/) for one-time migrations.
+2. **Request-side latency.** R2 routes through Cloudflare's edge — usually faster than S3 for global users, sometimes slower than a same-region S3 request from an EC2 box.
+3. **CDN charges.** If you put CloudFront in front of S3, you pay both. R2 has a built-in CDN-ish behavior because it lives on Cloudflare's edge.
+4. **Egress to other clouds.** Backblaze egress to Cloudflare is free (Bandwidth Alliance). To AWS or GCP, it's $0.01/GB.
+
+## Takeaways
+
+- For user-facing upload products, **R2 is almost always the right default in 2026**. Egress dominates the bill at scale, and R2's egress is zero.
+- For cold storage and backup workloads, **B2 is the cheapest** by a wide margin.
+- For deep AWS-native architectures or compliance shops that need the AWS auditor checkbox, **S3 is the safe pick** — just budget for egress.
+- The S3-compatible API means you can switch later. Architect with [BYOS in mind](/blog/byos-bring-your-own-storage) and you keep the option open.
+
+UploadKit defaults to R2 for managed mode for this exact reason, and supports any S3-compatible bucket via [BYOS](/components). The bytes are yours; the bill should be too.

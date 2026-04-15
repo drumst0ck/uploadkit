@@ -1,0 +1,213 @@
+---
+title: "File upload security: the 12-point checklist"
+description: "OWASP-aligned file upload security checklist. MIME validation, magic bytes, presigned URLs, virus scanning, content-disposition, rate limiting — with code."
+category: Engineering
+publishedAt: 2026-04-21
+author: UploadKit Team
+tags:
+  - file-upload-security
+  - owasp
+  - presigned-urls
+  - mime-validation
+  - virus-scanning
+  - rate-limiting
+---
+
+**TL;DR — File uploads are the most-attacked surface in any web app that has them. The good news: every common attack has a known mitigation, and most of them are configuration, not code. This 12-point checklist covers MIME validation, magic byte verification, content-disposition headers, sandbox domains, virus scanning, presigned URL scoping, rate limiting, and audit logging — with code you can drop into a Next.js or Hono backend today. Run through it before you ship file uploads to production.**
+
+The [OWASP File Upload Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html) is the canonical reference and you should read it. This post is the pragmatic version: 12 things to check before file upload security goes from "I think it's fine" to "the auditor signed off."
+
+## 1. Validate MIME type — but don't trust the client
+
+The browser sends a `Content-Type`. An attacker controls every byte of that header. If you accept `image/png` because the client said so, a `.exe` is one cURL away from your bucket.
+
+```ts
+// apps/api/src/lib/uploads/validate.ts
+const ALLOWED_MIME = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "application/pdf",
+]);
+
+export function validateClientMime(mime: string) {
+  if (!ALLOWED_MIME.has(mime)) {
+    throw new HttpError(415, "Unsupported media type");
+  }
+}
+```
+
+This is the floor, not the ceiling. The MIME check rejects obvious mismatches early. The real check happens in step 2.
+
+## 2. Verify magic bytes server-side
+
+The first 4-12 bytes of a file ("magic number") tell you what it actually is. PNG starts with `89 50 4E 47`. JPEG with `FF D8 FF`. PDF with `25 50 44 46`. Use [`file-type`](https://github.com/sindresorhus/file-type) on the bytes after upload completes (via webhook or a HEAD-then-fetch):
+
+```ts
+import { fileTypeFromBuffer } from "file-type";
+
+export async function verifyMagicBytes(buf: Buffer, expected: string) {
+  const detected = await fileTypeFromBuffer(buf);
+  if (!detected || detected.mime !== expected) {
+    throw new HttpError(415, `File is ${detected?.mime ?? "unknown"}, not ${expected}`);
+  }
+}
+```
+
+If the file passed step 1 as `image/png` but its magic bytes say `application/zip`, delete it and flag the user.
+
+## 3. Enforce hard size limits — at three layers
+
+Size limits enforced only on the client are a suggestion. Set them at:
+
+1. **Client SDK** (UX: reject before upload starts).
+2. **Presigned URL signature** (`Content-Length` in the signed payload — S3 will reject mismatches with 403).
+3. **Storage policy** (bucket-level max object size where the provider supports it).
+
+```ts
+const cmd = new PutObjectCommand({
+  Bucket: bucket,
+  Key: key,
+  ContentType: mime,
+  ContentLength: size,            // Locks the size into the signature
+});
+```
+
+If the user tries to PUT 5 GB to a URL signed for 5 MB, S3 returns 403.
+
+## 4. Set Content-Disposition: attachment by default
+
+Browsers will render uploaded HTML, SVG, and PDFs inline if served from your domain — and that's how stored XSS happens. Force download by default:
+
+```ts
+const cmd = new PutObjectCommand({
+  Bucket: bucket,
+  Key: key,
+  ContentDisposition: `attachment; filename="${sanitizeFilename(name)}"`,
+  ContentType: mime,
+});
+```
+
+For images that genuinely need to render inline, opt-in per content type and serve them from a sandbox domain (step 5).
+
+## 5. Serve user content from a sandboxed domain
+
+If user uploads live on `assets.yourdomain.com` and your app on `app.yourdomain.com`, a malicious SVG can read cookies via XSS. Serve user content from a separate apex (e.g., `yourdomain-user-content.net`) so the same-origin policy contains the blast radius. GitHub does this with `githubusercontent.com`. Cloudflare R2 makes this easy with [custom domains](https://developers.cloudflare.com/r2/buckets/public-buckets/#custom-domains).
+
+## 6. Scan for malware
+
+For anything users will share (B2B doc storage, support attachments, marketplace files), scan on upload completion. Two paths:
+
+- **Self-hosted ClamAV** in a worker that subscribes to bucket events. Cheap, slow, false-positive prone.
+- **Cloud scanners** like AWS GuardDuty Malware Protection, Cloudflare R2's [pre-signed URL scanning](https://developers.cloudflare.com/r2/), or [VirusTotal API](https://docs.virustotal.com/reference/files-scan). More accurate, more expensive.
+
+Quarantine the file (move to a separate bucket prefix, deny reads) until the scan returns clean.
+
+## 7. Authenticate every presigned URL request
+
+A presigned URL by itself is a bearer token — anyone with the URL can use it for the TTL. That's fine because the URL is short-lived (15 minutes) and scoped to one object. What's not fine: letting anonymous callers request URLs.
+
+```ts
+// apps/api/src/routes/uploads/sign.ts
+export async function POST(req: Request) {
+  const session = await getSession(req);
+  if (!session?.user) return new Response("Unauthorized", { status: 401 });
+
+  const { filename, size, contentType } = await req.json();
+  validateClientMime(contentType);
+  if (size > MAX_BYTES) return new Response("Too large", { status: 413 });
+
+  const url = await signUpload(session.user.projectId, { filename, size, contentType });
+  return Response.json({ url });
+}
+```
+
+See [presigned URLs vs server proxy](/blog/presigned-urls-vs-server-proxy) for the full architecture.
+
+## 8. Sanitize filenames before storing them
+
+User-supplied filenames are user input. Strip path separators, control characters, and Unicode tricks (zero-width joiners, RTL overrides). Generate a server-side key for storage and keep the original filename only as metadata for display.
+
+```ts
+import { customAlphabet } from "nanoid";
+
+const id = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 16);
+
+export function makeStorageKey(userId: string, originalName: string) {
+  const ext = originalName.split(".").pop()?.toLowerCase().slice(0, 8) ?? "bin";
+  const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : "bin";
+  return `u/${userId}/${id()}.${safeExt}`;
+}
+```
+
+Never use the user's filename as the storage key. That's how you get `../../../etc/passwd` in your bucket.
+
+## 9. Block executable content types
+
+Even with magic byte checks, maintain a deny-list of executable MIME types and extensions: `.exe`, `.dll`, `.scr`, `.bat`, `.ps1`, `.sh`, `.jar`, `.html`, `.htm`, `.svg` (unless sandboxed), `.xml`, and anything ending in `.php`/`.asp`/`.jsp` if your storage is anywhere near a web server. Allow-listing extensions is safer than deny-listing.
+
+## 10. Rate limit upload requests per user
+
+Without rate limits, one compromised account can DoS your storage budget in an hour. Use [Upstash Ratelimit](https://upstash.com/docs/redis/sdks/ratelimit-ts/overview) or your own Redis-backed counter:
+
+```ts
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const limiter = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(20, "1 m"), // 20 uploads per minute
+  prefix: "uploads:sign",
+});
+
+const { success } = await limiter.limit(`user:${userId}`);
+if (!success) return new Response("Slow down", { status: 429 });
+```
+
+Tier this — 20/min for free users, 200/min for paid. Alert on sustained 429s; that's usually account compromise or a runaway client.
+
+## 11. Audit log every upload event
+
+For every `sign`, `complete`, `delete`, write a row to an append-only log: who, when, what, from where (IP, user agent), result. When the support ticket says "I never uploaded that," you need the answer in 30 seconds.
+
+```ts
+await AuditLog.create({
+  actorId: session.user.id,
+  action: "upload.sign",
+  resource: { bucket, key },
+  ip: req.headers.get("x-forwarded-for"),
+  ua: req.headers.get("user-agent"),
+  metadata: { size, contentType },
+  ts: new Date(),
+});
+```
+
+Ship the log to a separate store (BigQuery, Datadog, S3 with object lock) so a compromised app server can't tamper with it.
+
+## 12. Set a strict CORS and CSRF posture
+
+Two distinct attacks, two distinct mitigations:
+
+- **CORS on the storage bucket**: only allow `PUT` from your app's origins. Wildcard `*` is a footgun — anyone can `PUT` to the URL once they've got it (they could anyway, but tightening CORS prevents browser-based abuse from third-party sites).
+- **CSRF on the signing endpoint**: the request that asks for a presigned URL is a state-changing action. Protect it with same-site cookies (`SameSite=Lax` or `Strict`) and a CSRF token if you're not on a same-origin SPA.
+
+## The checklist, condensed
+
+1. [ ] Client MIME allow-list
+2. [ ] Magic byte verification post-upload
+3. [ ] Size limits at client, signature, and bucket
+4. [ ] `Content-Disposition: attachment` by default
+5. [ ] Sandboxed user-content domain
+6. [ ] Malware scanning before file is shareable
+7. [ ] Auth required on every presigned URL request
+8. [ ] Server-generated storage keys, sanitized filenames
+9. [ ] Executable types blocked
+10. [ ] Per-user rate limits
+11. [ ] Append-only audit logs
+12. [ ] Tight CORS on bucket, CSRF on signing endpoint
+
+## Takeaways
+
+File upload security isn't one big problem — it's twelve small ones, and most of them you solve once and forget. The combinations that bite teams in production are usually: missing magic byte check + executable allowed + served from same origin = stored XSS. Knock out the first three items on this list and you've already eliminated the most common vulnerability classes.
+
+If you don't want to wire all of this from scratch, [UploadKit's components](/components) ship with magic-byte verification, signed URL auth, sandboxed delivery, and rate limiting on by default. The settings you'd otherwise have to remember are the defaults.

@@ -1,0 +1,182 @@
+---
+title: "BYOS explained: owning your storage without building it"
+description: "Bring Your Own Storage lets you keep buckets, billing, and compliance while using a managed upload SDK. Here's how the pattern works and how UploadKit ships it."
+category: Engineering
+publishedAt: 2026-04-19
+author: UploadKit Team
+tags:
+  - bring-your-own-storage
+  - byos
+  - architecture
+  - compliance
+  - vendor-lock-in
+  - cloudflare-r2
+---
+
+**TL;DR — Bring Your Own Storage (BYOS) is the pattern where a SaaS vendor gives you the SDK, components, auth, and dashboard, but the bytes land in a bucket you own. You keep the egress bill, the data residency story, and the kill switch. The vendor keeps you off the "rip and replace" treadmill. It's the difference between renting an apartment and renting furniture for the apartment you own.**
+
+For most teams the calculus on file uploads is simple: the SDK and the components are the hard part, the storage is a commodity. But "use our SDK" usually means "store your files in our account, behind our credentials, billed on our invoice." That's fine until it isn't — until procurement asks why a vendor holds 8 TB of customer PDFs, or the CFO notices egress charges climbing, or a regulator wants the data in `eu-west-1` and only `eu-west-1`.
+
+Bring your own storage solves that. This post explains the pattern, the architecture, and how [UploadKit](/) implements it without making the developer experience worse than the managed mode.
+
+## What BYOS actually means
+
+BYOS is a deployment model, not a feature. The contract looks like this:
+
+- **You provide:** an S3-compatible bucket (AWS S3, Cloudflare R2, Backblaze B2, Wasabi, MinIO) plus an access key with `PutObject`, `GetObject`, and `DeleteObject` on that bucket.
+- **The vendor provides:** the upload SDK, the React components, presigned URL generation, auth, the dashboard, webhooks, transformations, and analytics.
+- **The data path:** browser → your bucket. Bytes never touch the vendor's servers.
+- **The control path:** browser → vendor's API for the presigned URL, then vendor logs the metadata (filename, size, content type, owner) to its database.
+
+Two things matter here. First, your storage credentials are used server-side only — they're never sent to the browser. Second, the SDK API is the same whether you use BYOS or the vendor's managed bucket. You should be able to flip a config flag and migrate without touching React code.
+
+## Why BYOS matters
+
+**1. No vendor lock-in.** When the SaaS goes down, gets acquired by a hyperscaler, or 10x's its prices, your data is already in your account. Migration is "stop calling their API" — not "hire a contractor to move 40 TB across the internet."
+
+**2. Compliance.** GDPR, HIPAA, SOC 2, and most enterprise procurement want a clear data flow. "Customer files live in the customer's AWS account, encrypted with the customer's KMS key, in the customer's chosen region" is a sentence that ends conversations. "Customer files live in our vendor's bucket, somewhere" starts them.
+
+**3. Cost control.** Egress is the silent killer of upload-heavy SaaS. If your users download a lot, paying vendor markup on egress will eat your margin. Owning the bucket lets you pick the storage with the egress profile you want — see our [S3 vs R2 vs Backblaze pricing breakdown](/blog/s3-vs-r2-vs-backblaze-pricing) for the numbers. With [Cloudflare R2](https://developers.cloudflare.com/r2/) the egress is literally zero.
+
+**4. Bring your existing buckets.** If you already have 5 years of files in S3, BYOS lets you adopt a modern uploader without a migration project. Point the SDK at the existing bucket and ship.
+
+## The architecture
+
+```
+┌─────────────┐                    ┌──────────────────┐
+│   Browser   │                    │   Your bucket    │
+│             │ ── PUT (signed) ──▶│  (S3 / R2 / B2)  │
+└──────┬──────┘                    └──────────────────┘
+       │                                    ▲
+       │ 1. ask for upload URL              │
+       ▼                                    │ presigned PUT
+┌─────────────────────────────┐              │
+│   UploadKit API (vendor)    │──────────────┘
+│   - validates auth          │
+│   - decrypts your creds     │
+│   - signs URL (15 min TTL)  │
+│   - logs file metadata      │
+└──────────┬──────────────────┘
+           │
+           ▼
+   ┌────────────────┐
+   │  Vendor MongoDB│   (metadata only — no bytes)
+   │  • file ID     │
+   │  • owner       │
+   │  • size, MIME  │
+   │  • bucket ref  │
+   └────────────────┘
+```
+
+Three properties fall out of this design:
+
+- **Bytes are private to you.** The vendor signs URLs but never proxies content.
+- **The vendor still has eyes on metadata.** It can show dashboards, enforce quotas, and bill on usage.
+- **Your storage credentials are an implementation detail.** Rotate them whenever; the SDK doesn't know.
+
+## How UploadKit implements BYOS
+
+There are three things to get right: credential storage, signing flow, and SDK parity.
+
+### 1. Encrypted credentials in the database
+
+When you connect a bucket in the dashboard, UploadKit takes your access key and secret, encrypts them with envelope encryption (data key per project, master key in a KMS), and stores the ciphertext in MongoDB. The plaintext only exists in memory on the API server, for the few milliseconds it takes to sign one URL.
+
+```ts
+// apps/api/src/lib/byos/credentials.ts (sketch)
+import { kms } from "@/lib/kms";
+
+export async function decryptBucketCreds(projectId: string) {
+  const project = await Project.findById(projectId).select("+byos");
+  if (!project?.byos) throw new Error("Project is not BYOS");
+
+  const dataKey = await kms.decrypt(project.byos.encryptedDataKey);
+  const accessKeyId = decryptAesGcm(project.byos.accessKeyCt, dataKey);
+  const secretAccessKey = decryptAesGcm(project.byos.secretCt, dataKey);
+
+  return { accessKeyId, secretAccessKey, endpoint: project.byos.endpoint };
+}
+```
+
+Two non-negotiables: the secret is never logged, and the decrypted value is held in a closure that doesn't survive the request.
+
+### 2. Presigned URL generation, identical for managed and BYOS
+
+The signing path branches once on `project.mode === "byos"`, then converges on the same `@aws-sdk/client-s3` call:
+
+```ts
+// apps/api/src/routes/uploads/sign.ts
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+export async function signUpload(project: Project, file: FileMeta) {
+  const creds = project.mode === "byos"
+    ? await decryptBucketCreds(project.id)
+    : managedCreds();
+
+  const client = new S3Client({
+    region: project.region,
+    endpoint: creds.endpoint,        // R2/B2 set this; AWS leaves undefined
+    credentials: creds,
+    forcePathStyle: project.mode === "byos",
+  });
+
+  const cmd = new PutObjectCommand({
+    Bucket: project.bucket,
+    Key: file.key,
+    ContentType: file.contentType,   // MUST match client header or 403
+    ContentLength: file.size,
+  });
+
+  return getSignedUrl(client, cmd, { expiresIn: 900 });
+}
+```
+
+The browser SDK doesn't care which branch ran. It gets a URL, it `PUT`s the file. See [presigned URLs vs server proxy](/blog/presigned-urls-vs-server-proxy) for why this is the right default.
+
+### 3. SDK parity
+
+```tsx
+// Same code, managed or BYOS
+import { UploadDropzone } from "@uploadkitdev/react";
+
+export function Uploader() {
+  return (
+    <UploadDropzone
+      endpoint="profilePicture"
+      onComplete={(files) => console.log(files)}
+    />
+  );
+}
+```
+
+The only thing that changes between managed and BYOS is one toggle in the dashboard. No prop changes. No import changes. No webhook payload differences.
+
+## How this compares to other vendors
+
+- **UploadThing**: managed only. Files live in their infrastructure. Migration is your problem if you ever leave.
+- **Uploadcare**: managed only, with custom storage as an enterprise add-on.
+- **Filestack**: managed plus an "S3 source" feature, but the storage is read-only — uploads still go to Filestack first.
+- **Mux / Cloudinary**: managed with limited "external storage" hooks; not true BYOS.
+- **UploadKit**: BYOS is a first-class mode on every plan, including the [free tier](/pricing).
+
+The pattern isn't novel — Auth0 lets you bring your own user database, Stripe Connect lets platforms route to merchant accounts. File uploads have just been slower to catch up.
+
+## Trade-offs you should know
+
+BYOS isn't free. You take on:
+
+- **Bucket ops.** Lifecycle rules, CORS, public read policies, KMS rotation — all yours.
+- **Egress billing.** If you don't pick R2 and your app is download-heavy, you'll feel it.
+- **Debugging surface area.** When a `PUT` returns 403, it's now your IAM policy, not the vendor's.
+
+What you get back: control, portability, and a procurement conversation that ends in a signed contract instead of a 6-week security review.
+
+## Takeaways
+
+- BYOS keeps the SDK ergonomics of a managed service while the bytes stay in your account.
+- The architecture is straightforward: vendor signs, browser uploads, vendor logs metadata.
+- The hard parts are credential encryption and SDK parity — both worth investing in.
+- If your users care about compliance, cost, or longevity, BYOS shouldn't be a paid tier — it should be the default option.
+
+If you want to try BYOS without writing the signing layer yourself, [UploadKit's components](/components) work in either mode out of the box. Connect a bucket, ship the dropzone, move on to the next problem.

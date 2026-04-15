@@ -231,9 +231,10 @@ None yet.
 | 260410-ju7 | Expand React SDK with 8 premium upload component variants | 2026-04-10 | 768ca64 | [260410-ju7-expand-react-sdk-with-8-premium-upload-c](./quick/260410-ju7-expand-react-sdk-with-8-premium-upload-c/) |
 | 260410-ken | Document 8 new premium SDK components in apps/docs | 2026-04-10 | e521c78 | [260410-ken-document-8-new-premium-sdk-components-in](./quick/260410-ken-document-8-new-premium-sdk-components-in/) |
 | 260410-kw3 | Build 8 motion/progress components and add live previews to docs | 2026-04-10 | b6ae738 | [260410-kw3-build-8-motion-progress-components-and-a](./quick/260410-kw3-build-8-motion-progress-components-and-a/) |
+| 260415-d8w | Blog MDX infrastructure — routes, loader, JSON-LD, OG images, RSS, sitemap | 2026-04-15 | 905f754 | [260415-d8w-blog-mdx-infrastructure](./quick/260415-d8w-blog-mdx-infrastructure/) |
 
 ## Session Continuity
 
-Last session: 2026-04-09T19:08:50.130Z
-Stopped at: Completed quick task 260409-t9f: Replace Upstash with native Redis
+Last session: 2026-04-15T00:00:00.000Z
+Stopped at: Completed quick task 260415-d8w: Blog MDX infrastructure
 Resume file: None

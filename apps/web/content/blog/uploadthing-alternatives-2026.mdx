@@ -1,0 +1,130 @@
+---
+title: "UploadThing alternatives in 2026"
+description: "Honest comparison of UploadThing alternatives in 2026 — UploadKit, Uploadcare, Filestack, Bytescale, and rolling your own. Pricing, BYOS, OSS, and DX."
+category: Comparisons
+publishedAt: 2026-04-15
+author: UploadKit Team
+tags:
+  - uploadthing-alternatives
+  - file-uploads
+  - comparison
+  - byos
+  - react
+  - saas
+---
+
+**TL;DR — UploadThing is fine, but it locks you into their storage and ships components that look like a 2022 admin template. If you want Bring Your Own Storage, an open-source SDK, premium components, or a generous free tier, there are better options in 2026. Here's a honest matrix and a decision framework.**
+
+The "UploadThing alternatives" search is up and to the right for a reason. UploadThing did one thing very well — it made `<UploadButton />` feel native to a Next.js app — and the ecosystem caught up. In 2026 you have at least five serious choices for File Uploads as a Service, plus the always-tempting "I'll just write 200 lines of boilerplate myself" path. This post compares them on the axes that actually matter when you're shipping production software, not following a YouTube tutorial.
+
+Primary keyword note: this is the post we wished existed when we started [UploadKit](/). We'll be honest about where competitors win.
+
+## The honest comparison matrix
+
+| Feature                       | UploadThing  | UploadKit       | Uploadcare      | Filestack       | Bytescale       | Roll your own |
+| ----------------------------- | ------------ | --------------- | --------------- | --------------- | --------------- | ------------- |
+| Free tier (storage)           | 2 GB         | 10 GB           | 3 GB            | 1 GB            | 3 GB            | Pay AWS/CF    |
+| Free tier (bandwidth)         | 2 GB         | 100 GB          | 30 GB           | 1 GB            | 5 GB            | Pay AWS/CF    |
+| BYOS (Bring Your Own Storage) | No           | Yes (S3/R2)     | No              | Limited         | No              | N/A           |
+| Open-source SDK               | Yes (MIT)    | Yes (MIT)       | Partial         | No              | No              | You write it  |
+| Premium components            | Basic        | Yes             | Yes (paid)      | Yes (paid)      | Basic           | None          |
+| Native dark mode              | No           | Yes             | Partial         | No              | No              | DIY           |
+| TypeScript-first              | Yes          | Yes (strict)    | Yes             | Partial         | Yes             | Up to you     |
+| Pricing model                 | Tiered       | Metered + tiers | Metered         | Tiered          | Metered         | Storage costs |
+| Vendor lock-in risk           | High         | Low (BYOS)      | High            | High            | Medium          | None          |
+
+The free tiers shift over time — check the pricing pages before you commit. The other axes are more structural and won't change with a press release.
+
+## UploadThing
+
+The reference. Excellent Next.js DX, very tight `createUploadthing` API, and a `useUploadThing` hook that just works. Their `<UploadButton />` and `<UploadDropzone />` ship with reasonable defaults and a clean MIT-licensed SDK.
+
+**Where it wins:** Time to first upload is under 10 minutes. Documentation is superb. The Discord is active and the maintainers are responsive.
+
+**Where it falls short:**
+
+- **No BYOS.** Your files live in UploadThing's S3 and you pay for storage forever. If you ever want to leave, you're moving terabytes.
+- The default components look like every other 2022 dashboard — gray, square, no real design opinion.
+- The free tier is generous for hobby projects but caps quickly for anything with real traffic.
+
+Pick UploadThing if: you're shipping a side project this weekend, you don't care where files live, and you don't want to think about storage costs until you're profitable.
+
+## UploadKit
+
+Disclaimer: we make this. We'll still try to be fair.
+
+UploadKit is what we wanted UploadThing to be. The SDK API is intentionally close to UploadThing's so migration is mostly find-and-replace, but two things are different:
+
+1. **BYOS by default.** You can use our managed Cloudflare R2, or you bring an S3/R2 bucket and we generate presigned URLs against it. The frontend code is identical either way.
+2. **Components designed by humans who care.** Every component in [`/components`](/components) has dark mode, focus-visible rings, reduced-motion variants, and a real design system underneath — not Tailwind defaults with a border-radius bump.
+
+**Where it wins:** BYOS, premium components, generous free tier (10 GB storage, 100 GB bandwidth), open-source SDK, and metered billing via Stripe so you don't pay for a tier you're not using.
+
+**Where it falls short:** Younger ecosystem. We don't have 50 community examples on YouTube yet. The integrations beyond Next.js, Remix, and Vite are still in beta.
+
+Pick UploadKit if: you want to ship beautiful uploads now and still have the option to walk away with your files later.
+
+## Uploadcare
+
+The grandparent of File Uploads as a Service. They've been doing this since 2011 and it shows — the image transformation API is best-in-class and their CDN is fast everywhere.
+
+**Where it wins:** Image processing pipeline (face detection, smart cropping, format conversion) is unmatched. If your product is image-heavy and you want every transform available as a URL parameter, Uploadcare is hard to beat.
+
+**Where it falls short:** Pricing scales aggressively. The SDK feels like it was designed in 2015 (because it was). No BYOS. The "modern" `@uploadcare/blocks` rewrite is good, but configuration is verbose.
+
+Pick Uploadcare if: image transformations are your core product and you'll happily pay for the CDN and pipeline.
+
+## Filestack
+
+Enterprise-y. The dashboard feels like it's been designed for a CIO. They support a long tail of integrations (Box, Dropbox, Instagram, etc.) that nobody else bothers with.
+
+**Where it wins:** Enterprise checklist items — SSO, SOC 2, audit logs, dedicated support. If procurement is your bottleneck, Filestack closes deals.
+
+**Where it falls short:** Expensive. Closed-source SDK. The components have not aged well.
+
+Pick Filestack if: you're selling to F500 and need every compliance certificate in the alphabet.
+
+## Bytescale
+
+The dark horse. Lean SaaS, simple pricing, decent SDK. Originally Upload.io.
+
+**Where it wins:** Pricing is transparent. The image transformation engine is solid and cheap. API is clean.
+
+**Where it falls short:** Component library is bare. No real design system. Documentation is thin in places.
+
+Pick Bytescale if: you want a transformation pipeline at a lower price than Uploadcare and you'll build your own UI.
+
+## Roll your own
+
+Always an option. With `@aws-sdk/client-s3`, presigned URLs, and a Route Handler you can ship a working uploader in an afternoon. We wrote a tutorial for exactly this: [How to upload files to Cloudflare R2 in Next.js](/blog/upload-files-cloudflare-r2-nextjs).
+
+**Where it wins:** Zero per-MB markup. Total control. No vendor risk.
+
+**Where it falls short:** You will spend the next two years rebuilding what UploadKit and UploadThing already shipped — progress events, retry logic, multipart uploads, virus scanning, image transformations, presigned URL expiry, CORS, abort signals, MIME validation, file size limits, signed download URLs, edge caching, signed previews, abuse rate limiting, and a half-decent UI.
+
+Pick "roll your own" if: you have one specific upload flow with weird requirements (e.g., medical imaging with chunked DICOM) and a senior engineer to own it for the lifetime of the product.
+
+## Decision framework
+
+Three questions, in order:
+
+1. **Do you need BYOS?** If yes, your shortlist is UploadKit or roll your own. UploadThing/Uploadcare/Bytescale all hold your files.
+2. **Are uploads image-transformation-heavy?** If yes, Uploadcare or Bytescale lead. UploadKit handles common transforms (resize, format, crop) but isn't trying to compete with Uploadcare's pipeline.
+3. **How much UI do you want to write?** If "as little as possible," UploadKit or UploadThing. If "I have a designer and a year," roll your own.
+
+For most product teams in 2026, the answer is UploadKit — not because we built it, but because BYOS plus a real component library plus a generous free tier is genuinely the option that doesn't paint you into a corner.
+
+## Takeaways
+
+- UploadThing is still the easiest first choice, but the no-BYOS lock-in is real.
+- [UploadKit](/) wins if you want to keep your storage portable and ship components you don't have to redesign.
+- Uploadcare and Filestack are vertical specialists — pick them when their vertical is your product.
+- Bytescale is a sleeper if you're price-sensitive and willing to build your own UI.
+- Rolling your own is a trap unless your upload flow is genuinely weird.
+
+If you're evaluating, we wrote a few related posts that go deeper:
+
+- [Presigned URLs vs server proxy uploads: which to choose](/blog/presigned-urls-vs-server-proxy)
+- [How to upload files to Cloudflare R2 in Next.js](/blog/upload-files-cloudflare-r2-nextjs)
+
+And if you want to try it, [`/pricing`](/pricing) has the current free tier and metered rates. No credit card to start.
