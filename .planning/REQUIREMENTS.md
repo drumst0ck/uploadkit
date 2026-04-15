@@ -183,7 +183,7 @@ Organic acquisition without reliance on social karma. Target: 200-500 GitHub sta
 ### CLI for Existing Projects (Phase 12.5)
 
 - [x] **GROW-15**: `npx uploadkit init` detects framework, installs deps, scaffolds route handler + provider + env in existing project; idempotent on re-runs
-- [ ] **GROW-16**: `npx uploadkit add <component>` (shadcn-style) inserts component import + usage into a user-selected page
+- [x] **GROW-16**: `npx uploadkit add <component>` (shadcn-style) inserts component import + usage into a user-selected page
 - [x] **GROW-17**: Backup-on-modify: `.uploadkit-backup/` saves overwritten files; `uploadkit restore` rolls back
 
 ## v2 Requirements
