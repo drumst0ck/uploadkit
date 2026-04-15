@@ -1,0 +1,1 @@
+<UploadProgressBar progress={0} />

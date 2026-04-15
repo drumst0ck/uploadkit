@@ -10,6 +10,8 @@ import { defineConfig } from 'tsup';
  */
 const TEMPLATE_SRC = resolve('src/init/templates');
 const TEMPLATE_DEST = resolve('dist/templates');
+const ADD_TEMPLATE_SRC = resolve('src/add/templates');
+const ADD_TEMPLATE_DEST = resolve('dist/add-templates');
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -25,5 +27,7 @@ export default defineConfig({
   onSuccess: async () => {
     mkdirSync(dirname(TEMPLATE_DEST), { recursive: true });
     cpSync(TEMPLATE_SRC, TEMPLATE_DEST, { recursive: true });
+    mkdirSync(dirname(ADD_TEMPLATE_DEST), { recursive: true });
+    cpSync(ADD_TEMPLATE_SRC, ADD_TEMPLATE_DEST, { recursive: true });
   },
 });

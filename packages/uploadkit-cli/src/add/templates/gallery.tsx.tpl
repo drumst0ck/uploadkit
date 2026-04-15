@@ -1,0 +1,1 @@
+<UploadGalleryGrid files={[]} />

@@ -1,0 +1,1 @@
+<UploadDropzone endpoint="uploads" />
