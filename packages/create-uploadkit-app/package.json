@@ -1,0 +1,64 @@
+{
+  "name": "create-uploadkit-app",
+  "version": "0.0.0",
+  "description": "Scaffold a new project with UploadKit — beautiful, type-safe file uploads in minutes.",
+  "license": "MIT",
+  "author": "Drumst0ck",
+  "homepage": "https://uploadkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drumst0ck/uploadkit.git",
+    "directory": "packages/create-uploadkit-app"
+  },
+  "bugs": {
+    "url": "https://github.com/drumst0ck/uploadkit/issues"
+  },
+  "keywords": [
+    "uploadkit",
+    "create",
+    "scaffold",
+    "cli",
+    "upload",
+    "file-upload",
+    "next",
+    "sveltekit",
+    "remix",
+    "vite"
+  ],
+  "type": "module",
+  "bin": {
+    "create-uploadkit-app": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "LICENSE",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@clack/prompts": "latest",
+    "execa": "latest",
+    "mri": "latest",
+    "picocolors": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@uploadkitdev/config": "workspace:*",
+    "tsup": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
