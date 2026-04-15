@@ -1,0 +1,244 @@
+---
+title: "Chunked and resumable uploads explained"
+description: "How chunked and resumable uploads work under the hood — S3/R2 multipart, the tus protocol, and a minimal TypeScript implementation you can actually ship."
+category: Engineering
+publishedAt: 2026-04-27
+author: UploadKit Team
+tags:
+  - multipart-upload
+  - resumable-uploads
+  - cloudflare-r2
+  - s3
+  - typescript
+  - tus
+---
+
+**TL;DR — Once your users start uploading files over ~100 MB, a single PUT is a liability. The upload dies at 87%, the user rage-quits, your support queue grows. The fix is chunking: split the file into parts, upload them in parallel with retries, and persist enough state to resume after a tab crash. S3 and R2 expose this via the multipart API (`CreateMultipartUpload` → `UploadPart` → `CompleteMultipartUpload`). The tus protocol is the standards-based alternative. This post walks through both and ships a ~120-line TypeScript multipart uploader.**
+
+If you've ever watched a 2 GB file fail at 94% over hotel Wi-Fi, you already understand the motivation for chunked resumable uploads. A single `fetch(url, { method: 'PUT', body: file })` is fine for avatars and screenshots. It is a bad bet for video, datasets, and design-tool exports. This post is the practical guide I wish I'd had when I first implemented this.
+
+## When to reach for chunking
+
+Not every upload needs to be chunked. Chunking adds latency (extra round trips), code (state machines, retries), and cost (more PUTs, more S3 requests). Reach for it when any of these are true:
+
+- File size is consistently above ~100 MB.
+- Users are on flaky networks (mobile, conference Wi-Fi, long-haul flights).
+- Uploads routinely exceed ~60 seconds — long enough for laptops to sleep, proxies to time out, and users to close tabs.
+- You need a progress bar that survives page reloads.
+
+For everything else, a single presigned PUT is simpler and cheaper. See [presigned URLs vs server proxy](/blog/presigned-urls-vs-server-proxy) if you're still deciding on the basic shape.
+
+## How S3 and R2 multipart works
+
+The S3 multipart upload API has three verbs. Cloudflare R2 implements the same interface, so the code below works against both.
+
+1. `CreateMultipartUpload` — the client tells S3 "I'm about to upload an object at key `videos/abc.mp4`". S3 returns an `UploadId`. Think of it as a session handle.
+2. `UploadPart` — the client PUTs each chunk (minimum 5 MiB except the last, maximum 5 GiB). Each `UploadPart` response includes an `ETag`. You must keep these — they prove the part arrived intact and are required to complete the upload.
+3. `CompleteMultipartUpload` — the client sends the list of `{ PartNumber, ETag }` tuples. S3 stitches the parts into a single object and returns the final ETag.
+
+If something goes wrong, you can call `AbortMultipartUpload` to clean up. If you don't, parts sit in your bucket accruing storage costs — set a lifecycle rule that aborts incomplete multiparts after 7 days. On R2 the rule looks identical to S3; see the [Cloudflare R2 lifecycle docs](https://developers.cloudflare.com/r2/buckets/object-lifecycles/).
+
+The key insight: **every `UploadPart` call can be a presigned PUT**. The server never sees the bytes. It only signs URLs.
+
+## The server: signing part URLs
+
+Here's a Next.js Route Handler that returns presigned URLs for every part. The client tells it how many parts it needs; it signs each one.
+
+```ts
+// app/api/uploads/multipart/route.ts
+import { NextResponse } from "next/server";
+import {
+  S3Client,
+  CreateMultipartUploadCommand,
+  UploadPartCommand,
+  CompleteMultipartUploadCommand,
+  AbortMultipartUploadCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { z } from "zod";
+
+const r2 = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT!,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+});
+
+const StartBody = z.object({
+  key: z.string().min(1),
+  contentType: z.string(),
+  partCount: z.number().int().min(1).max(10_000),
+});
+
+export async function POST(req: Request) {
+  const { key, contentType, partCount } = StartBody.parse(await req.json());
+
+  const { UploadId } = await r2.send(
+    new CreateMultipartUploadCommand({
+      Bucket: process.env.R2_BUCKET!,
+      Key: key,
+      ContentType: contentType,
+    }),
+  );
+  if (!UploadId) throw new Error("No UploadId returned");
+
+  const urls = await Promise.all(
+    Array.from({ length: partCount }, (_, i) =>
+      getSignedUrl(
+        r2,
+        new UploadPartCommand({
+          Bucket: process.env.R2_BUCKET!,
+          Key: key,
+          UploadId,
+          PartNumber: i + 1,
+        }),
+        { expiresIn: 3600 },
+      ),
+    ),
+  );
+
+  return NextResponse.json({ uploadId: UploadId, urls });
+}
+```
+
+A second route completes (or aborts) the upload. The client posts the collected ETags.
+
+```ts
+// app/api/uploads/multipart/complete/route.ts
+import { NextResponse } from "next/server";
+import { CompleteMultipartUploadCommand } from "@aws-sdk/client-s3";
+import { r2 } from "@/lib/r2";
+
+export async function POST(req: Request) {
+  const { key, uploadId, parts } = await req.json();
+  await r2.send(
+    new CompleteMultipartUploadCommand({
+      Bucket: process.env.R2_BUCKET!,
+      Key: key,
+      UploadId: uploadId,
+      MultipartUpload: { Parts: parts }, // [{ ETag, PartNumber }]
+    }),
+  );
+  return NextResponse.json({ ok: true });
+}
+```
+
+Note `ContentType` on `CreateMultipartUpload`. If you omit it, browsers that set `Content-Type` on the part PUTs will trigger a 403 signature mismatch. This is the single most common footgun.
+
+## The client: a minimal uploader with retries and resume
+
+```ts
+// lib/multipart-uploader.ts
+type PartResult = { PartNumber: number; ETag: string };
+
+const PART_SIZE = 8 * 1024 * 1024; // 8 MiB
+const MAX_CONCURRENCY = 4;
+const MAX_RETRIES = 5;
+
+export async function uploadMultipart(file: File, key: string, onProgress: (pct: number) => void) {
+  const partCount = Math.ceil(file.size / PART_SIZE);
+
+  const start = await fetch("/api/uploads/multipart", {
+    method: "POST",
+    body: JSON.stringify({ key, contentType: file.type, partCount }),
+  }).then((r) => r.json() as Promise<{ uploadId: string; urls: string[] }>);
+
+  const state = loadState(key) ?? { uploadId: start.uploadId, parts: [] as PartResult[] };
+  saveState(key, state);
+
+  const uploaded = new Set(state.parts.map((p) => p.PartNumber));
+  const queue = Array.from({ length: partCount }, (_, i) => i + 1).filter((n) => !uploaded.has(n));
+  let done = uploaded.size;
+
+  async function uploadPart(partNumber: number) {
+    const url = start.urls[partNumber - 1]!;
+    const body = file.slice((partNumber - 1) * PART_SIZE, partNumber * PART_SIZE);
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        const res = await fetch(url, { method: "PUT", body });
+        if (!res.ok) throw new Error(`Part ${partNumber} failed: ${res.status}`);
+        const etag = res.headers.get("ETag");
+        if (!etag) throw new Error("Missing ETag");
+        state.parts.push({ PartNumber: partNumber, ETag: etag });
+        saveState(key, state);
+        done++;
+        onProgress(Math.round((done / partCount) * 100));
+        return;
+      } catch (err) {
+        if (attempt === MAX_RETRIES - 1) throw err;
+        await new Promise((r) => setTimeout(r, 2 ** attempt * 250));
+      }
+    }
+  }
+
+  // Simple concurrency pool
+  await Promise.all(
+    Array.from({ length: MAX_CONCURRENCY }, async () => {
+      while (queue.length) {
+        const n = queue.shift();
+        if (n !== undefined) await uploadPart(n);
+      }
+    }),
+  );
+
+  await fetch("/api/uploads/multipart/complete", {
+    method: "POST",
+    body: JSON.stringify({
+      key,
+      uploadId: state.uploadId,
+      parts: state.parts.sort((a, b) => a.PartNumber - b.PartNumber),
+    }),
+  });
+
+  clearState(key);
+}
+
+function loadState(key: string) {
+  const raw = localStorage.getItem(`upload:${key}`);
+  return raw ? (JSON.parse(raw) as { uploadId: string; parts: PartResult[] }) : null;
+}
+function saveState(key: string, state: unknown) {
+  localStorage.setItem(`upload:${key}`, JSON.stringify(state));
+}
+function clearState(key: string) {
+  localStorage.removeItem(`upload:${key}`);
+}
+```
+
+A few things are worth pointing out:
+
+- **ETags come from response headers**, not the body. Many proxies strip headers; if `res.headers.get("ETag")` is null, check your CORS `ExposeHeaders` includes `ETag`.
+- **Resume uses localStorage** keyed by the object key. On page reload, the uploader picks up exactly where it stopped. You can upgrade to IndexedDB if you expect users to be uploading multiple large files at once.
+- **Retries use exponential backoff**. Don't hammer R2 with tight retry loops — you'll just trigger rate limiting.
+
+## The tus alternative
+
+If you don't want to be in the business of writing state machines, [tus](https://tus.io) is a standards-based resumable upload protocol built on HTTP. It's what Vimeo and Cloudflare Stream use internally. The tradeoff: you need a tus server. You can run [tusd](https://github.com/tus/tusd) behind a load balancer, or use a hosted service.
+
+The client side is three lines:
+
+```ts
+import { Upload } from "tus-js-client";
+
+new Upload(file, {
+  endpoint: "/api/tus",
+  retryDelays: [0, 1000, 3000, 5000, 10000],
+  onProgress: (bytes, total) => console.log(bytes / total),
+}).start();
+```
+
+tus shines when you need interoperability (clients in iOS, Android, desktop) and don't want to reimplement the state machine per platform. S3 multipart shines when you're already on S3/R2 and want to keep the surface area minimal.
+
+## Takeaways
+
+- Use a single PUT for small files. Reach for multipart when files cross ~100 MB or networks are flaky.
+- S3/R2 multipart is `Create → UploadPart × N → Complete`. Each part can be a presigned PUT — keep the bytes off your server.
+- Always set `ContentType` on `CreateMultipartUpload` or you'll get 403s.
+- Persist `{ uploadId, parts }` to localStorage so you can resume after a crash.
+- Set a lifecycle rule to abort incomplete multiparts after 7 days.
+- Expose the `ETag` response header in your CORS policy.
+
+UploadKit does all of this behind a single `useUpload()` hook — multipart, retries, resume, and [BYOS](/blog/byos-bring-your-own-storage) against your own R2 or S3 bucket. If you'd rather not own the state machine, [check the components](/components). If you'd rather own it, the code above is a solid starting point.
