@@ -6,14 +6,19 @@ import type { Framework } from '../detect/types.js';
 import { createBackupSession } from '../backup/backup.js';
 import type { InitContext, InitImpl, InitResult } from '../init/types.js';
 import { initNextApp } from '../init/next-app.js';
+import { initSvelteKit } from '../init/sveltekit.js';
+import { initRemix } from '../init/remix.js';
+import { initViteReact } from '../init/vite-react.js';
 
 /**
  * Dispatch table mapping supported framework verdicts → per-framework init
- * implementation. Frameworks covered by plan 12.5-05 are left as `undefined`
- * and printed as "coming soon" until that plan lands.
+ * implementation. All four supported frameworks are wired (12.5-04 + 12.5-05).
  */
 const IMPLS: Partial<Record<Framework, InitImpl>> = {
   'next-app': initNextApp,
+  sveltekit: initSvelteKit,
+  remix: initRemix,
+  'vite-react': initViteReact,
 };
 
 function printSummary(result: InitResult, root: string): void {
