@@ -45,7 +45,8 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "smoke": "tsx scripts/smoke-matrix.ts"
   },
   "dependencies": {
     "@clack/prompts": "latest",
@@ -59,6 +60,7 @@
     "@types/node": "latest",
     "@uploadkitdev/config": "workspace:*",
     "tsup": "latest",
+    "tsx": "latest",
     "typescript": "latest",
     "vitest": "latest"
   }
