@@ -153,9 +153,9 @@ Organic acquisition without reliance on social karma. Target: 200-500 GitHub sta
 
 ### CLI Scaffolder
 
-- [ ] **GROW-01**: `create-uploadkit-app` CLI published to npm with interactive prompts (name, template, package manager, TS)
+- [x] **GROW-01**: `create-uploadkit-app` CLI published to npm with interactive prompts (name, template, package manager, TS)
 - [ ] **GROW-02**: 4 starter templates — Next.js, SvelteKit, Remix, Vite — each runnable immediately after scaffold
-- [ ] **GROW-03**: Auto-detected package manager (pnpm/npm/yarn/bun), `.env.local` with placeholder API key, per-template README with next steps
+- [x] **GROW-03**: Auto-detected package manager (pnpm/npm/yarn/bun), `.env.local` with placeholder API key, per-template README with next steps
 
 ### Playgrounds
 
