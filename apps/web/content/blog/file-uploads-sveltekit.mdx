@@ -1,0 +1,264 @@
+---
+title: "File uploads in SvelteKit with presigned URLs"
+description: "Build a type-safe SvelteKit file upload flow with Cloudflare R2 presigned URLs, a Svelte 5 dropzone, hooks.server.ts auth, and zod validation end to end."
+category: Tutorials
+publishedAt: 2026-04-28
+author: UploadKit Team
+tags:
+  - sveltekit
+  - svelte-5
+  - cloudflare-r2
+  - presigned-urls
+  - tutorial
+  - zod
+---
+
+**TL;DR — The right shape for a SvelteKit file upload is a `+server.ts` route that mints a Cloudflare R2 presigned PUT URL, a Svelte 5 dropzone that uploads the file directly from the browser, and an auth check in `hooks.server.ts`. Don't use a form action for anything over a few MB — you'll pay for the bytes twice and hit the platform's body size limit. This tutorial is the complete working version, validated with zod.**
+
+SvelteKit has two tools that look like they should handle file uploads: [form actions](https://svelte.dev/docs/kit/form-actions) and [`+server.ts`](https://svelte.dev/docs/kit/routing#server) route handlers. For small multipart form posts (profile pictures under a few MB), form actions are fine. For anything larger, you need presigned URLs and direct-to-storage uploads. Otherwise every byte passes through your SvelteKit server, your Vercel/Cloudflare function hits its body size limit, and your bill goes up for no reason.
+
+This post is the working pattern for production SvelteKit apps. If you're coming from Next.js, the shape matches the one in [Upload files to Cloudflare R2 in Next.js](/blog/upload-files-cloudflare-r2-nextjs) — the only things that change are the route syntax and the component idioms.
+
+## What we're building
+
+- A `POST /api/uploads/sign` endpoint that returns a presigned PUT URL for R2.
+- A Svelte 5 `<Dropzone>` component with progress, using runes.
+- An auth gate in `hooks.server.ts` so only logged-in users can sign URLs.
+- A small [zod](https://zod.dev) schema that validates the client's request.
+
+## Step 1: Environment and the R2 client
+
+Install the AWS SDK (R2 speaks S3) and zod:
+
+```bash
+pnpm add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner zod
+```
+
+Use SvelteKit's [typed env module](https://svelte.dev/docs/kit/$env-static-private) so secrets never end up in the client bundle:
+
+```ts
+// src/lib/server/r2.ts
+import { S3Client } from "@aws-sdk/client-s3";
+import { R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY } from "$env/static/private";
+
+export const r2 = new S3Client({
+  region: "auto",
+  endpoint: R2_ENDPOINT,
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY_ID,
+    secretAccessKey: R2_SECRET_ACCESS_KEY,
+  },
+});
+```
+
+Importing `r2` from a `src/lib/server/` path guarantees SvelteKit throws a build error if a client-side file accidentally references it. That's the whole point — credentials stay on the server.
+
+## Step 2: Auth in `hooks.server.ts`
+
+Every SvelteKit request goes through `hooks.server.ts`. Put the auth check there so your route handlers don't each have to reimplement it.
+
+```ts
+// src/hooks.server.ts
+import type { Handle } from "@sveltejs/kit";
+import { verifySessionCookie } from "$lib/server/auth";
+
+export const handle: Handle = async ({ event, resolve }) => {
+  const cookie = event.cookies.get("session");
+  event.locals.user = cookie ? await verifySessionCookie(cookie) : null;
+  return resolve(event);
+};
+```
+
+Add a type for `event.locals.user` in `src/app.d.ts`:
+
+```ts
+// src/app.d.ts
+declare global {
+  namespace App {
+    interface Locals {
+      user: { id: string; email: string } | null;
+    }
+  }
+}
+export {};
+```
+
+Use whatever auth library you prefer. Lucia, Auth.js, a hand-rolled JWT — the pattern is the same. What matters is that `event.locals.user` is populated before any route runs.
+
+## Step 3: The presign route
+
+```ts
+// src/routes/api/uploads/sign/+server.ts
+import { json, error } from "@sveltejs/kit";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { z } from "zod";
+import { nanoid } from "nanoid";
+import { r2 } from "$lib/server/r2";
+import { R2_BUCKET } from "$env/static/private";
+import type { RequestHandler } from "./$types";
+
+const Body = z.object({
+  filename: z.string().min(1).max(256),
+  contentType: z.string().regex(/^[\w.+-]+\/[\w.+-]+$/),
+  size: z.number().int().positive().max(50 * 1024 * 1024), // 50 MB cap
+});
+
+export const POST: RequestHandler = async ({ request, locals }) => {
+  if (!locals.user) throw error(401, "Unauthorized");
+
+  const parsed = Body.safeParse(await request.json());
+  if (!parsed.success) throw error(400, parsed.error.message);
+
+  const { filename, contentType, size } = parsed.data;
+  const key = `u/${locals.user.id}/${nanoid()}-${filename}`;
+
+  const url = await getSignedUrl(
+    r2,
+    new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+      ContentType: contentType,
+      ContentLength: size,
+    }),
+    { expiresIn: 60 },
+  );
+
+  return json({ url, key });
+};
+```
+
+Three things that trip people up:
+
+1. **`ContentType` must be on the command.** If it isn't, the browser will send one anyway and the signature will mismatch. 403.
+2. **Scope the key by user id.** Don't let a client dictate the full object key — they will pick `../../etc/passwd` eventually. See [the security checklist](/blog/file-upload-security-checklist).
+3. **Short expiry.** 60 seconds is enough for a browser to start the PUT. Longer is an attack surface.
+
+## Step 4: The Svelte 5 dropzone
+
+Svelte 5 runes make the component state readable at a glance. Here's the whole uploader:
+
+```svelte
+<!-- src/lib/components/Dropzone.svelte -->
+<script lang="ts">
+  type Status = "idle" | "signing" | "uploading" | "done" | "error";
+
+  let file = $state<File | null>(null);
+  let progress = $state(0);
+  let status = $state<Status>("idle");
+  let errorMsg = $state<string | null>(null);
+
+  async function upload() {
+    if (!file) return;
+    status = "signing";
+    errorMsg = null;
+
+    const signRes = await fetch("/api/uploads/sign", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type,
+        size: file.size,
+      }),
+    });
+    if (!signRes.ok) {
+      status = "error";
+      errorMsg = await signRes.text();
+      return;
+    }
+    const { url } = (await signRes.json()) as { url: string; key: string };
+
+    status = "uploading";
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+      xhr.setRequestHeader("content-type", file!.type);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) progress = Math.round((e.loaded / e.total) * 100);
+      };
+      xhr.onload = () => (xhr.status < 300 ? resolve() : reject(new Error(`HTTP ${xhr.status}`)));
+      xhr.onerror = () => reject(new Error("Network error"));
+      xhr.send(file);
+    }).then(
+      () => (status = "done"),
+      (err) => {
+        status = "error";
+        errorMsg = err.message;
+      },
+    );
+  }
+
+  function onDrop(event: DragEvent) {
+    event.preventDefault();
+    const f = event.dataTransfer?.files?.[0];
+    if (f) file = f;
+  }
+</script>
+
+<div
+  role="button"
+  tabindex="0"
+  class="dropzone"
+  ondragover={(e) => e.preventDefault()}
+  ondrop={onDrop}
+>
+  <input
+    type="file"
+    onchange={(e) => (file = (e.currentTarget as HTMLInputElement).files?.[0] ?? null)}
+  />
+  {#if file}
+    <p>{file.name} ({Math.round(file.size / 1024)} KB)</p>
+    <button onclick={upload} disabled={status === "uploading" || status === "signing"}>
+      Upload
+    </button>
+  {:else}
+    <p>Drop a file here or click to choose</p>
+  {/if}
+
+  {#if status === "uploading"}<progress value={progress} max="100" />{/if}
+  {#if status === "done"}<p>Done.</p>{/if}
+  {#if status === "error"}<p class="error">{errorMsg}</p>{/if}
+</div>
+```
+
+A couple of Svelte 5 notes. `$state` replaces `let` for reactive locals. Event handlers are plain attributes (`onclick`) rather than `on:click`. If you're still on Svelte 4, the same logic works with minor syntax changes.
+
+## Form actions vs client fetch: when to use each
+
+SvelteKit's [form actions](https://svelte.dev/docs/kit/form-actions) are great for non-JS-required form submission. You can absolutely handle small file uploads there with `request.formData()` and `File`. But every byte hits your server. On Vercel and Cloudflare Pages there are hard body size limits (4.5 MB and 100 MB respectively). On your own infrastructure you're still paying for CPU and bandwidth.
+
+Rule of thumb:
+
+- **Form action** — file under ~2 MB, progressive enhancement matters, you want CSRF for free.
+- **Client fetch to presigned URL** — anything above that, or when you want a progress bar.
+
+You can of course combine them: a form action that just returns the presigned URL, then a client-side PUT. But then you might as well use a `+server.ts` route.
+
+## CORS on the R2 bucket
+
+You'll get CORS errors on the PUT until you configure the R2 bucket. The minimum rules:
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://your-app.com", "http://localhost:5173"],
+    "AllowedMethods": ["PUT"],
+    "AllowedHeaders": ["content-type"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Apply with `wrangler r2 bucket cors put your-bucket --rules ./cors.json`. See the [R2 CORS docs](https://developers.cloudflare.com/r2/buckets/cors/) for details.
+
+## Takeaways
+
+- Use `+server.ts` to sign short-lived presigned PUT URLs. Keep R2 credentials behind `$lib/server/`.
+- Put auth in `hooks.server.ts` so `event.locals.user` is always the source of truth.
+- Validate client input with zod. Cap size and derive the object key server-side.
+- Use form actions for small uploads, client fetch for anything larger.
+- Set `ContentType` on the signing command and send the same header on the PUT.
+
+If you want the same shape as a drop-in component with [BYOS support](/blog/byos-bring-your-own-storage), multipart, and retries already wired up, UploadKit ships a Svelte package alongside the React one. Otherwise the code above is a solid foundation — fork it and make it yours.
