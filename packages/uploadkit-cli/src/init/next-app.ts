@@ -46,19 +46,22 @@ async function writeIfAbsent(
  * `init` implementation for Next.js App Router.
  *
  * Order of operations:
- *   1. Idempotency check: if layout already has markers AND route handler
+ *   1. Precondition: verify `app/layout.tsx` exists. Must run BEFORE the
+ *      backup session is materialized so a failed precondition does not
+ *      leave an empty `.uploadkit-backup/<ts>/` dir on disk.
+ *   2. Idempotency check: if layout already has markers AND route handler
  *      exists, print "already configured" and return `{skipped: true}`.
- *   2. Back up `app/layout.tsx` (the only file we mutate in-place).
- *   3. Rewrite layout: addImport + wrapChildrenOf('body', <UploadKitProvider>).
- *   4. Create route handler from template (if absent).
- *   5. Create `lib/uploadkit.ts` stub from template (if absent).
- *   6. Merge `.env.local` with `UPLOADKIT_API_KEY=uk_test_placeholder`.
- *   7. Install SDK packages (unless `skipInstall`).
+ *   3. Back up `app/layout.tsx` (the only file we mutate in-place).
+ *   4. Rewrite layout: addImport + wrapChildrenOf('body', <UploadKitProvider>).
+ *   5. Create route handler from template (if absent).
+ *   6. Create `lib/uploadkit.ts` stub from template (if absent).
+ *   7. Merge `.env.local` with `UPLOADKIT_API_KEY=uk_test_placeholder`.
+ *   8. Install SDK packages (unless `skipInstall`).
  *
  * All created/modified paths are returned in the InitResult for the CLI's
  * summary printout.
  */
-export const initNextApp: InitImpl = async (ctx, session) => {
+export const initNextApp: InitImpl = async (ctx, getSession) => {
   const { root, flags, detection } = ctx;
 
   const layoutAbs = join(root, REL_LAYOUT);
@@ -66,27 +69,31 @@ export const initNextApp: InitImpl = async (ctx, session) => {
   const clientAbs = join(root, REL_CLIENT);
   const envAbs = join(root, REL_ENV);
 
-  // --- (1) Idempotency ------------------------------------------------------
-  if (existsSync(layoutAbs) && existsSync(routeAbs)) {
-    const existingLayout = await readFile(layoutAbs, 'utf8');
-    if (hasMarkers(existingLayout) && existingLayout.includes(REACT_MODULE)) {
-      return { skipped: true, installed: [], created: [], modified: [] };
-    }
-  }
-
+  // --- (1) Precondition: layout must exist -------------------------------
   if (!existsSync(layoutAbs)) {
     throw new Error(
       `app/layout.tsx not found at ${layoutAbs}. Run uploadkit init from the project root.`,
     );
   }
 
+  // --- (2) Idempotency ---------------------------------------------------
+  if (existsSync(routeAbs)) {
+    const existingLayout = await readFile(layoutAbs, 'utf8');
+    if (hasMarkers(existingLayout) && existingLayout.includes(REACT_MODULE)) {
+      return { skipped: true, installed: [], created: [], modified: [] };
+    }
+  }
+
+  // Preconditions passed — materialize the backup session.
+  const session = getSession();
+
   const created: string[] = [];
   const modified: string[] = [];
 
-  // --- (2) Back up the layout BEFORE any mutation --------------------------
+  // --- (3) Back up the layout BEFORE any mutation ------------------------
   await session.save(layoutAbs);
 
-  // --- (3) Rewrite layout ---------------------------------------------------
+  // --- (4) Rewrite layout -------------------------------------------------
   const originalLayout = await readFile(layoutAbs, 'utf8');
   const withImport = addImport(originalLayout, {
     from: REACT_MODULE,
@@ -102,15 +109,15 @@ export const initNextApp: InitImpl = async (ctx, session) => {
     modified.push(layoutAbs);
   }
 
-  // --- (4) Create route handler --------------------------------------------
+  // --- (5) Create route handler ------------------------------------------
   const routeTemplate = await loadTemplate('next-route-handler.ts.tpl');
   await writeIfAbsent(routeAbs, routeTemplate, session, created);
 
-  // --- (5) Create client stub ----------------------------------------------
+  // --- (6) Create client stub --------------------------------------------
   const clientTemplate = await loadTemplate('next-uploadkit-client.ts.tpl');
   await writeIfAbsent(clientAbs, clientTemplate, session, created);
 
-  // --- (6) Merge .env.local ------------------------------------------------
+  // --- (7) Merge .env.local ----------------------------------------------
   const envExisted = existsSync(envAbs);
   const appended = await mergeEnv(envAbs, {
     UPLOADKIT_API_KEY: 'uk_test_placeholder',
@@ -126,7 +133,7 @@ export const initNextApp: InitImpl = async (ctx, session) => {
     modified.push(envAbs);
   }
 
-  // --- (7) Install packages ------------------------------------------------
+  // --- (8) Install packages ----------------------------------------------
   await installPackages(detection.packageManager, root, PKGS, {
     skipInstall: flags.skipInstall,
   });

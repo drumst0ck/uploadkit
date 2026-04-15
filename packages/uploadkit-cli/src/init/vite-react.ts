@@ -41,7 +41,7 @@ const WARNING_MESSAGE =
  *   5. Install `@uploadkitdev/react`.
  *   6. Emit the server-required warning on stderr.
  */
-export const initViteReact: InitImpl = async (ctx, session) => {
+export const initViteReact: InitImpl = async (ctx, getSession) => {
   const { root, flags, detection } = ctx;
 
   const mainAbs = join(root, REL_MAIN);
@@ -59,6 +59,18 @@ export const initViteReact: InitImpl = async (ctx, session) => {
     return { skipped: true, installed: [], created: [], modified: [] };
   }
 
+  // --- (1b) StrictMode precondition (must run BEFORE session is opened
+  // so a missing anchor does not leave an empty backup dir behind). -----
+  const parentTag = existingMain.includes('<StrictMode') ? 'StrictMode' : null;
+  if (!parentTag) {
+    throw new Error(
+      'initViteReact: expected <StrictMode> in src/main.tsx as a wrap anchor. Add <StrictMode> around <App /> and re-run.',
+    );
+  }
+
+  // Preconditions passed — open the backup session.
+  const session = getSession();
+
   const created: string[] = [];
   const modified: string[] = [];
 
@@ -70,14 +82,6 @@ export const initViteReact: InitImpl = async (ctx, session) => {
     from: REACT_MODULE,
     specifiers: [PROVIDER_LOCAL],
   });
-  // Prefer wrapping StrictMode's children; fall back to wrapping inside the
-  // root element (div#root replacement isn't safe, so error if no anchor).
-  const parentTag = withImport.includes('<StrictMode') ? 'StrictMode' : null;
-  if (!parentTag) {
-    throw new Error(
-      'initViteReact: expected <StrictMode> in src/main.tsx as a wrap anchor. Add <StrictMode> around <App /> and re-run.',
-    );
-  }
   const wrapped = wrapChildrenOf(withImport, {
     parentTag,
     wrapperOpen: `<${PROVIDER_LOCAL} endpoint="/api/uploadkit">`,

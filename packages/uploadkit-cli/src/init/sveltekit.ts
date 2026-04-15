@@ -57,7 +57,7 @@ async function writeIfAbsent(
  * Idempotency: if `+server.ts` and `src/lib/uploadkit.ts` both exist, return
  * `{skipped: true}` without touching anything.
  */
-export const initSvelteKit: InitImpl = async (ctx, session) => {
+export const initSvelteKit: InitImpl = async (ctx, getSession) => {
   const { root, flags, detection } = ctx;
 
   const routeAbs = join(root, REL_ROUTE);
@@ -68,6 +68,11 @@ export const initSvelteKit: InitImpl = async (ctx, session) => {
   if (existsSync(routeAbs) && existsSync(clientAbs)) {
     return { skipped: true, installed: [], created: [], modified: [] };
   }
+
+  // SvelteKit has no strict file-level precondition beyond the detector
+  // having already asserted `svelte.config.*` exists. Materialize the
+  // session now — any state touched below goes into the manifest.
+  const session = getSession();
 
   const created: string[] = [];
   const modified: string[] = [];

@@ -3,7 +3,7 @@ import pc from 'picocolors';
 import type { ParsedArgs } from '../args.js';
 import { detectFramework } from '../detect/index.js';
 import type { Framework } from '../detect/types.js';
-import { createBackupSession } from '../backup/backup.js';
+import { createBackupSession, type BackupSession } from '../backup/backup.js';
 import type { InitContext, InitImpl, InitResult } from '../init/types.js';
 import { initNextApp } from '../init/next-app.js';
 import { initSvelteKit } from '../init/sveltekit.js';
@@ -112,26 +112,44 @@ export async function run(parsed: ParsedArgs): Promise<number> {
     },
   };
 
-  const session = createBackupSession(detection.root);
+  // Lazy session: the impl calls getSession() only AFTER its preconditions
+  // have passed. This prevents an empty `.uploadkit-backup/<ts>/manifest.json`
+  // from being left behind when init aborts early (e.g. missing layout file).
+  // `sessionRef.current` is mutated inside the closure; reading back via the
+  // ref keeps TS's control-flow analysis sound across the await boundary.
+  const sessionRef: { current: BackupSession | null } = { current: null };
+  const getSession = (): BackupSession => {
+    if (!sessionRef.current) {
+      sessionRef.current = createBackupSession(detection.root);
+    }
+    return sessionRef.current;
+  };
 
   try {
-    const result = await impl(ctx, session);
-    if (!result.skipped) {
-      await session.finalize();
+    const result = await impl(ctx, getSession);
+    const opened = sessionRef.current;
+    if (!result.skipped && opened) {
+      await opened.finalize();
     }
     printSummary(result, detection.root, detection.framework);
     return 0;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     process.stderr.write(`${pc.red('error')} ${message}\n`);
-    // Best-effort: finalize the manifest so partial backups are still restorable.
-    try {
-      await session.finalize();
-      process.stderr.write(
-        `${pc.dim('A partial backup was saved to')} ${relative(detection.root, session.dir)}\n`,
-      );
-    } catch {
-      // swallow — original error is the important one
+    // Best-effort: finalize the manifest so partial backups are still
+    // restorable — but only if the impl actually opened a session. Failures
+    // before the first getSession() leave the ref null so no empty backup
+    // dir gets written.
+    const opened = sessionRef.current;
+    if (opened) {
+      try {
+        await opened.finalize();
+        process.stderr.write(
+          `${pc.dim('A partial backup was saved to')} ${relative(detection.root, opened.dir)}\n`,
+        );
+      } catch {
+        // swallow — original error is the important one
+      }
     }
     return 1;
   }

@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { existsSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { runCli, scaffold, type Scaffolded } from '../helpers/scaffold.js';
 
 /**
@@ -60,6 +62,40 @@ describe.sequential('e2e: uploadkit init (next-app)', () => {
     expect(existsSync(join(root, '.uploadkit-backup'))).toBe(true);
     const gitignore = readFileSync(join(root, '.gitignore'), 'utf8');
     expect(gitignore).toContain('.uploadkit-backup');
+  });
+
+  it('leaves no empty backup dir when preconditions fail', async () => {
+    // Hand-built fixture: a package.json that declares `next` but has NO
+    // layout anywhere. `uploadkit init` must abort with a non-zero exit
+    // and must NOT create an empty `.uploadkit-backup/<ts>/` directory.
+    const root = mkdtempSync(join(tmpdir(), 'uploadkit-malformed-'));
+    try {
+      writeFileSync(
+        join(root, 'package.json'),
+        JSON.stringify({
+          name: 'malformed',
+          private: true,
+          version: '0.0.0',
+          dependencies: { next: '16.0.0', react: '19.0.0', 'react-dom': '19.0.0' },
+        }),
+        'utf8',
+      );
+      // Create an empty `app/` dir so the detector still identifies the
+      // project as `next-app` (it probes for dir existence) — but without a
+      // `layout.tsx` inside, the init flow must refuse.
+      await mkdir(join(root, 'app'), { recursive: true });
+
+      const res = await runCli(['init', '--yes', '--skip-install'], { cwd: root });
+      expect(res.exitCode).not.toBe(0);
+
+      // No empty backup dir should have been created.
+      const backupRoot = join(root, '.uploadkit-backup');
+      expect(existsSync(backupRoot)).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      // Swallow — tmpdir is reclaimed by OS regardless.
+      void dirname;
+    }
   });
 
   it('second run is idempotent — "already configured" + zero file changes', async () => {

@@ -47,7 +47,7 @@ describe('initViteReact — fresh run', () => {
     const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
     const session = createBackupSession(root, { timestamp: '2026-04-15T03-00-00Z' });
-    const result = await initViteReact(makeCtx(root), session);
+    const result = await initViteReact(makeCtx(root), () => session);
     await session.finalize();
 
     expect(result.skipped).toBe(false);
@@ -92,7 +92,7 @@ describe('initViteReact — fresh run', () => {
   it('reports installed packages (react only)', async () => {
     const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     const session = createBackupSession(root, { timestamp: '2026-04-15T03-00-01Z' });
-    const result = await initViteReact(makeCtx(root), session);
+    const result = await initViteReact(makeCtx(root), () => session);
     warnSpy.mockRestore();
     expect(result.installed).toEqual(['@uploadkitdev/react@latest']);
   });
@@ -103,7 +103,7 @@ describe('initViteReact — fresh run', () => {
     const original = readFileSync(mainPath);
 
     const session = createBackupSession(root, { timestamp: '2026-04-15T03-00-02Z' });
-    await initViteReact(makeCtx(root), session);
+    await initViteReact(makeCtx(root), () => session);
     await session.finalize();
     warnSpy.mockRestore();
 
@@ -118,7 +118,7 @@ describe('initViteReact — idempotency (second run)', () => {
     const root = cloneFixture();
 
     const s1 = createBackupSession(root, { timestamp: '2026-04-15T03-10-00Z' });
-    await initViteReact(makeCtx(root), s1);
+    await initViteReact(makeCtx(root), () => s1);
     await s1.finalize();
 
     const mainPath = join(root, 'src', 'main.tsx');
@@ -131,7 +131,7 @@ describe('initViteReact — idempotency (second run)', () => {
     await new Promise((r) => setTimeout(r, 20));
 
     const s2 = createBackupSession(root, { timestamp: '2026-04-15T03-10-01Z' });
-    const result = await initViteReact(makeCtx(root), s2);
+    const result = await initViteReact(makeCtx(root), () => s2);
     warnSpy.mockRestore();
 
     expect(result.skipped).toBe(true);

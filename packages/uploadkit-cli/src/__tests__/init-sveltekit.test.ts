@@ -44,7 +44,7 @@ describe('initSvelteKit — fresh run', () => {
 
   it('creates +server.ts route handler, client stub, .env, and records backup entries', async () => {
     const session = createBackupSession(root, { timestamp: '2026-04-15T01-00-00Z' });
-    const result = await initSvelteKit(makeCtx(root), session);
+    const result = await initSvelteKit(makeCtx(root), () => session);
     await session.finalize();
 
     expect(result.skipped).toBe(false);
@@ -94,7 +94,7 @@ describe('initSvelteKit — fresh run', () => {
 
   it('reports installed packages (core only, no React)', async () => {
     const session = createBackupSession(root, { timestamp: '2026-04-15T01-00-01Z' });
-    const result = await initSvelteKit(makeCtx(root), session);
+    const result = await initSvelteKit(makeCtx(root), () => session);
     expect(result.installed).toEqual(['@uploadkitdev/core@latest']);
     // Must NOT pull in @uploadkitdev/react — no provider in Svelte.
     expect(result.installed.some((p) => p.includes('react'))).toBe(false);
@@ -106,7 +106,7 @@ describe('initSvelteKit — idempotency (second run)', () => {
     const root = cloneFixture();
 
     const s1 = createBackupSession(root, { timestamp: '2026-04-15T01-10-00Z' });
-    await initSvelteKit(makeCtx(root), s1);
+    await initSvelteKit(makeCtx(root), () => s1);
     await s1.finalize();
 
     const routePath = join(
@@ -130,7 +130,7 @@ describe('initSvelteKit — idempotency (second run)', () => {
     await new Promise((r) => setTimeout(r, 20));
 
     const s2 = createBackupSession(root, { timestamp: '2026-04-15T01-10-01Z' });
-    const result = await initSvelteKit(makeCtx(root), s2);
+    const result = await initSvelteKit(makeCtx(root), () => s2);
 
     expect(result.skipped).toBe(true);
     expect(result.created).toEqual([]);

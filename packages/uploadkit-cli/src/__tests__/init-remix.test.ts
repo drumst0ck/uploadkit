@@ -44,7 +44,7 @@ describe('initRemix — fresh run', () => {
 
   it('creates api.uploadkit.$.tsx, wraps root.tsx body, writes .env', async () => {
     const session = createBackupSession(root, { timestamp: '2026-04-15T02-00-00Z' });
-    const result = await initRemix(makeCtx(root), session);
+    const result = await initRemix(makeCtx(root), () => session);
     await session.finalize();
 
     expect(result.skipped).toBe(false);
@@ -85,7 +85,7 @@ describe('initRemix — fresh run', () => {
 
   it('reports both react + core packages installed', async () => {
     const session = createBackupSession(root, { timestamp: '2026-04-15T02-00-01Z' });
-    const result = await initRemix(makeCtx(root), session);
+    const result = await initRemix(makeCtx(root), () => session);
     expect(result.installed).toEqual([
       '@uploadkitdev/react@latest',
       '@uploadkitdev/core@latest',
@@ -97,7 +97,7 @@ describe('initRemix — fresh run', () => {
     const original = readFileSync(rootPath);
 
     const session = createBackupSession(root, { timestamp: '2026-04-15T02-00-02Z' });
-    await initRemix(makeCtx(root), session);
+    await initRemix(makeCtx(root), () => session);
     await session.finalize();
 
     const backedUp = readFileSync(join(session.dir, 'app', 'root.tsx'));
@@ -110,7 +110,7 @@ describe('initRemix — idempotency (second run)', () => {
     const root = cloneFixture();
 
     const s1 = createBackupSession(root, { timestamp: '2026-04-15T02-10-00Z' });
-    await initRemix(makeCtx(root), s1);
+    await initRemix(makeCtx(root), () => s1);
     await s1.finalize();
 
     const rootPath = join(root, 'app', 'root.tsx');
@@ -125,7 +125,7 @@ describe('initRemix — idempotency (second run)', () => {
     await new Promise((r) => setTimeout(r, 20));
 
     const s2 = createBackupSession(root, { timestamp: '2026-04-15T02-10-01Z' });
-    const result = await initRemix(makeCtx(root), s2);
+    const result = await initRemix(makeCtx(root), () => s2);
 
     expect(result.skipped).toBe(true);
     expect(result.created).toEqual([]);
