@@ -19,16 +19,12 @@ import { initGit } from './git.js';
  *   - dev / tests: ts source at `packages/create-uploadkit-app/src/engine/index.ts`,
  *     templates sit at `../../templates` relative to this file.
  * We try the two well-known candidates and pick whichever exists.
+ *
+ * The package is ESM-only (`"type": "module"`, ESM-only tsup build), so
+ * `import.meta.url` is always defined here.
  */
 export function resolveTemplatesRoot(): string {
-  // ESM path (production bin + vitest). In a CJS fallback build `import.meta.url`
-  // is empty — we fall back to `__dirname` if tsup's shim provided it.
-  const metaUrl = import.meta.url;
-  const here = metaUrl
-    ? path.dirname(fileURLToPath(metaUrl))
-    : typeof __dirname !== 'undefined'
-      ? __dirname
-      : process.cwd();
+  const here = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
     path.resolve(here, '..', 'templates'), // dist/index.js → ../templates
     path.resolve(here, '..', '..', 'templates'), // src/engine/index.ts → ../../templates

@@ -3,18 +3,26 @@
  * End-to-end smoke test for create-uploadkit-app.
  *
  * 1. `pnpm --filter create-uploadkit-app build`
- * 2. `pnpm --filter create-uploadkit-app pack` (produces a tarball)
- * 3. For each template [next, sveltekit, remix, vite]:
- *      a. Scaffold into os.tmpdir()/cka-smoke-<rand>/<template>
- *      b. `pnpm install --prefer-offline`
+ * 2. For each template [next, sveltekit, remix, vite]:
+ *      a. Scaffold into os.tmpdir()/cka-smoke-<rand>/demo by running the built
+ *         CLI directly: `node packages/create-uploadkit-app/dist/index.js ...`
+ *      b. `pnpm install --prefer-offline --ignore-workspace`
  *      c. `pnpm build`
  *      d. Time the scaffold step; fail if >90s
- * 4. Print a summary table, exit non-zero on any failure.
+ * 3. Print a summary table, exit non-zero on any failure.
  *
  * Designed for CI (Linux + Windows) and local runs.
+ *
+ * Why direct `node dist/index.js` instead of `npx <tarball>`?
+ *   - On Linux, spawning `npx --yes <tarball>` was being interpreted by the
+ *     child shell as if the .tgz file itself was the executable, producing
+ *     `sh: 1: /path/to/.tgz: Permission denied`.
+ *   - Direct invocation is faster, simpler, and still exercises the full
+ *     scaffold path. Tarball/packaging validation should live in a separate
+ *     `npm pack --dry-run` check.
  */
-import { execSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { execa } from 'execa';
+import { mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,6 +30,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = resolve(__dirname, '..');
 const repoRoot = resolve(pkgRoot, '..', '..');
+const cliEntry = resolve(pkgRoot, 'dist', 'index.js');
 
 const TEMPLATES = ['next', 'sveltekit', 'remix', 'vite'];
 const MAX_SCAFFOLD_MS = 90_000;
@@ -30,49 +39,40 @@ function log(msg) {
   process.stdout.write(`[smoke] ${msg}\n`);
 }
 
-function run(cmd, args, opts = {}) {
-  const res = spawnSync(cmd, args, {
-    stdio: opts.silent ? 'pipe' : 'inherit',
-    shell: process.platform === 'win32',
-    ...opts,
-  });
-  if (res.status !== 0) {
-    const out = opts.silent
-      ? `\n${res.stdout?.toString() || ''}\n${res.stderr?.toString() || ''}`
-      : '';
-    throw new Error(`Command failed (${res.status}): ${cmd} ${args.join(' ')}${out}`);
+/**
+ * Cross-platform command runner.
+ * Uses `execa` (which transparently resolves `.cmd`/`.ps1` shims on Windows
+ * and never relies on `shell: true`) so we get reliable exit codes on every OS.
+ */
+async function run(file, args, opts = {}) {
+  try {
+    return await execa(file, args, {
+      stdio: opts.silent ? 'pipe' : 'inherit',
+      ...opts,
+    });
+  } catch (err) {
+    const exit = err.exitCode ?? err.signal ?? 'unknown';
+    const out = opts.silent ? `\n${err.stdout || ''}\n${err.stderr || ''}` : '';
+    throw new Error(`Command failed (${exit}): ${file} ${args.join(' ')}${out}`);
   }
-  return res;
 }
 
-function packCli() {
+async function buildCli() {
   log('Building create-uploadkit-app...');
-  run('pnpm', ['--filter', 'create-uploadkit-app', 'build'], { cwd: repoRoot });
-
-  log('Packing create-uploadkit-app tarball...');
-  const out = execSync('pnpm pack --pack-destination .', {
-    cwd: pkgRoot,
-    encoding: 'utf8',
-  });
-  // `pnpm pack` prints the path on the last non-empty line.
-  const lines = out.trim().split('\n').map((l) => l.trim()).filter(Boolean);
-  const last = lines[lines.length - 1];
-  const tarball = resolve(pkgRoot, last);
-  if (!existsSync(tarball)) {
-    // Fallback: find the most recent .tgz in pkgRoot.
-    const tgz = readdirSync(pkgRoot)
-      .filter((f) => f.endsWith('.tgz'))
-      .map((f) => ({ f, t: statSync(join(pkgRoot, f)).mtimeMs }))
-      .sort((a, b) => b.t - a.t)[0];
-    if (!tgz) throw new Error(`Could not locate packed tarball. pnpm pack output:\n${out}`);
-    return resolve(pkgRoot, tgz.f);
+  await run('pnpm', ['--filter', 'create-uploadkit-app', 'build'], { cwd: repoRoot });
+  if (!existsSync(cliEntry)) {
+    throw new Error(`Built CLI not found at ${cliEntry}. Did tsup fail?`);
   }
-  return tarball;
+  return cliEntry;
 }
 
-function scaffoldAndBuild(tarball, template) {
+async function scaffoldAndBuild(template) {
   const tmpRoot = mkdtempSync(join(tmpdir(), 'cka-smoke-'));
-  const projectDir = join(tmpRoot, 'demo');
+  // The CLI resolves the positional arg as a *project name* against `cwd`
+  // (see prompts.ts → `path.resolve(process.cwd(), sanitized)`), so we pass
+  // a bare name and rely on `cwd: tmpRoot` to control where it lands.
+  const projectName = 'demo';
+  const projectDir = join(tmpRoot, projectName);
   const result = {
     template,
     scaffoldMs: 0,
@@ -85,14 +85,11 @@ function scaffoldAndBuild(tarball, template) {
   try {
     log(`[${template}] Scaffolding into ${projectDir}...`);
     const t0 = Date.now();
-    // Install the tarball globally-like via npx with --yes and a clean cache?
-    // Simpler: run the CLI from the tarball directly through `npx`.
-    run(
-      'npx',
+    await run(
+      process.execPath,
       [
-        '--yes',
-        tarball,
-        projectDir,
+        cliEntry,
+        projectName,
         '--template',
         template,
         '--pm',
@@ -112,12 +109,14 @@ function scaffoldAndBuild(tarball, template) {
 
     log(`[${template}] pnpm install...`);
     const t1 = Date.now();
-    run('pnpm', ['install', '--prefer-offline', '--ignore-workspace'], { cwd: projectDir });
+    await run('pnpm', ['install', '--prefer-offline', '--ignore-workspace'], {
+      cwd: projectDir,
+    });
     result.installMs = Date.now() - t1;
 
     log(`[${template}] pnpm build...`);
     const t2 = Date.now();
-    run('pnpm', ['build'], { cwd: projectDir });
+    await run('pnpm', ['build'], { cwd: projectDir });
     result.buildMs = Date.now() - t2;
 
     result.ok = true;
@@ -134,13 +133,13 @@ function scaffoldAndBuild(tarball, template) {
   return result;
 }
 
-function main() {
-  const tarball = packCli();
-  log(`Tarball: ${tarball}`);
+async function main() {
+  await buildCli();
+  log(`CLI entry: ${cliEntry}`);
 
   const results = [];
   for (const template of TEMPLATES) {
-    results.push(scaffoldAndBuild(tarball, template));
+    results.push(await scaffoldAndBuild(template));
   }
 
   // Summary
@@ -159,13 +158,6 @@ function main() {
     process.stdout.write(row.join('\t') + '\n');
   }
 
-  // Clean tarball
-  try {
-    rmSync(tarball, { force: true });
-  } catch {
-    /* best-effort */
-  }
-
   const failed = results.filter((r) => !r.ok);
   if (failed.length) {
     log(`\n${failed.length}/${results.length} templates failed.`);
@@ -174,4 +166,7 @@ function main() {
   log(`\nAll ${results.length} templates passed.`);
 }
 
-main();
+main().catch((err) => {
+  process.stderr.write(`[smoke] fatal: ${err.message}\n`);
+  process.exit(1);
+});

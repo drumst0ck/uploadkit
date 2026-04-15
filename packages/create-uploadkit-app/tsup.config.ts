@@ -2,11 +2,14 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: ['src/index.ts'],
-  format: ['esm', 'cjs'],
+  // ESM only — `bin` in package.json points at `dist/index.js` and the package
+  // is `"type": "module"`. A CJS build would be unused and triggers an
+  // `import.meta` warning since the source legitimately uses `import.meta.url`.
+  format: ['esm'],
   target: 'node20',
   clean: true,
   dts: false,
   splitting: false,
   shims: false,
-  banner: ({ format }) => (format === 'esm' ? { js: '#!/usr/bin/env node' } : {}),
+  banner: { js: '#!/usr/bin/env node' },
 });
