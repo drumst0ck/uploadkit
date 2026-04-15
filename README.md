@@ -14,24 +14,58 @@ Open-source TypeScript SDK + 40+ premium React components + managed storage on C
 
 ---
 
-## Install
+## Quickstart — add to an existing project
+
+Most people land here with a Next.js app already running. Three steps:
 
 ```bash
 pnpm add @uploadkitdev/react @uploadkitdev/next
 ```
 
-## Drop it in
+Create `app/api/uploadkit/[...uploadkit]/route.ts`:
 
-```tsx
-import { UploadDropzone } from '@uploadkitdev/react';
-import '@uploadkitdev/react/styles.css';
+```ts
+import { createUploadKitHandler, type FileRouter } from '@uploadkitdev/next';
 
-export default function Page() {
-  return <UploadDropzone route="media" />;
-}
+const router = {
+  default: { maxFileSize: '4MB', allowedTypes: ['image/*'] },
+} satisfies FileRouter;
+
+export const { GET, POST } = createUploadKitHandler({
+  router,
+  apiKey: process.env.UPLOADKIT_API_KEY!,
+});
 ```
 
-That's it. You get a premium dropzone, dark mode, themeable via CSS variables, type-safe end-to-end.
+Wrap the root layout and drop in a dropzone:
+
+```tsx
+// app/layout.tsx
+import { UploadKitProvider } from '@uploadkitdev/react';
+// <UploadKitProvider endpoint="/api/uploadkit">{children}</UploadKitProvider>
+
+// any page
+import { UploadDropzone } from '@uploadkitdev/react';
+// <UploadDropzone route="default" />
+```
+
+Set `UPLOADKIT_API_KEY=uk_live_...` in `.env.local` and you're done. Full walkthrough: [docs.uploadkit.dev/docs/getting-started/quickstart](https://docs.uploadkit.dev/docs/getting-started/quickstart).
+
+### Starting a new project?
+
+```bash
+npx create-uploadkit-app my-app
+```
+
+Templates for **Next.js**, **SvelteKit**, **Remix**, and **Vite** — see the [CLI guide](https://docs.uploadkit.dev/docs/guides/cli).
+
+### Using an AI-assistant IDE?
+
+Install the [UploadKit MCP server](https://docs.uploadkit.dev/docs/guides/mcp) and let Claude Code, Cursor, Windsurf, or Zed wire the whole thing up for you:
+
+```bash
+npx -y @uploadkitdev/mcp
+```
 
 ---
 
@@ -43,6 +77,7 @@ That's it. You get a premium dropzone, dark mode, themeable via CSS variables, t
 | [`@uploadkitdev/react`](https://www.npmjs.com/package/@uploadkitdev/react) | ![npm](https://img.shields.io/npm/v/@uploadkitdev/react?label=%20) | 40+ premium React upload components |
 | [`@uploadkitdev/next`](https://www.npmjs.com/package/@uploadkitdev/next) | ![npm](https://img.shields.io/npm/v/@uploadkitdev/next?label=%20) | Next.js App Router handler + Express/Hono adapters |
 | [`@uploadkitdev/mcp`](https://www.npmjs.com/package/@uploadkitdev/mcp) | ![npm](https://img.shields.io/npm/v/@uploadkitdev/mcp?label=%20) | Official MCP server for AI coding assistants |
+| [`create-uploadkit-app`](https://www.npmjs.com/package/create-uploadkit-app) | ![npm](https://img.shields.io/npm/v/create-uploadkit-app?label=%20) | Scaffolder for new projects (Next, SvelteKit, Remix, Vite) |
 
 ## Component highlights
 
@@ -106,16 +141,17 @@ apps/
   dashboard   SaaS dashboard (app.uploadkit.dev)
   api         REST API + MCP remote endpoint (api.uploadkit.dev)
 packages/
-  core        @uploadkitdev/core
-  react       @uploadkitdev/react
-  next        @uploadkitdev/next
-  mcp         @uploadkitdev/mcp (stdio MCP server)
-  mcp-core    shared MCP tool surface (internal)
-  db          MongoDB models
-  emails      React Email templates
-  shared      types, errors, utilities
-  ui          dashboard components
-  config      shared tsconfig / eslint / tailwind base
+  core                  @uploadkitdev/core
+  react                 @uploadkitdev/react
+  next                  @uploadkitdev/next
+  mcp                   @uploadkitdev/mcp (stdio MCP server)
+  mcp-core              shared MCP tool surface (internal)
+  create-uploadkit-app  scaffolder for new projects
+  db                    MongoDB models
+  emails                React Email templates
+  shared                types, errors, utilities
+  ui                    dashboard components
+  config                shared tsconfig / eslint / tailwind base
 ```
 
 ## Tech stack
