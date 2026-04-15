@@ -4,6 +4,7 @@ import { parseArgs } from './args.js';
 import { runPrompts, CancelledError, printCancelled } from './prompts.js';
 import { VERSION } from './version.js';
 import { TEMPLATE_IDS } from './types.js';
+import { scaffold } from './engine/index.js';
 
 export const TEMPLATES = TEMPLATE_IDS;
 
@@ -66,11 +67,15 @@ export async function main(argv: string[]): Promise<number> {
     throw err;
   }
 
-  // Wave 3 (plan 12-03) hands this to the template engine. Until then we
-  // print the resolved options so the CLI is verifiable end-to-end.
-  p.outro(`${pc.green('✓')} Resolved options`);
-  process.stdout.write(`${JSON.stringify(options, null, 2)}\n`);
+  try {
+    await scaffold(options, { force: parsed.force });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`${pc.red('error')} ${message}\n`);
+    return 1;
+  }
 
+  p.outro(`${pc.green('✓')} Done.`);
   return 0;
 }
 
