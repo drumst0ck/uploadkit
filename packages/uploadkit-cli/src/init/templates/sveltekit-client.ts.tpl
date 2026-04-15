@@ -9,7 +9,14 @@ import { env } from '$env/dynamic/private';
  *
  * See https://uploadkit.dev/docs for the full API.
  */
+const apiKey = env.UPLOADKIT_API_KEY;
+if (!apiKey) {
+  throw new Error(
+    'Missing UPLOADKIT_API_KEY in environment. Set it in your .env before starting the server.',
+  );
+}
+
 export const uploadkit = createUploadKit({
-  apiKey: env.UPLOADKIT_API_KEY ?? '',
+  apiKey,
 });
 // uploadkit:end

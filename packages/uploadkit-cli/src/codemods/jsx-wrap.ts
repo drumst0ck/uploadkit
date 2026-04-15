@@ -3,7 +3,6 @@ import {
   MARKER_END,
   JSX_MARKER_START,
   JSX_MARKER_END,
-  hasMarkers,
 } from './markers.js';
 
 export interface WrapChildrenOptions {
@@ -77,8 +76,13 @@ export function wrapChildrenOf(source: string, opts: WrapChildrenOptions): strin
 
   const innerRaw = source.slice(openEnd, closeStart);
 
-  // Idempotency: if our markers are already inside this parent block, skip.
-  if (hasMarkers(innerRaw)) {
+  // Idempotency: only short-circuit if THIS exact wrapper is already
+  // present in the parent block. Matching the literal `wrapperOpen`
+  // (e.g. `<UploadKitProvider>`) lets multiple uploadkit edits coexist in
+  // the same `<body>` — a previous `addImport` or `add <component>` edit
+  // that planted `uploadkit:start` markers here must not block the
+  // provider insertion.
+  if (innerRaw.includes(wrapperOpen)) {
     return source;
   }
 

@@ -21,7 +21,34 @@ const IMPLS: Partial<Record<Framework, InitImpl>> = {
   'vite-react': initViteReact,
 };
 
-function printSummary(result: InitResult, root: string): void {
+/**
+ * Per-framework env instruction hint. Each init impl writes to a different
+ * env filename, and Vite needs a `VITE_`-prefixed variable so it's exposed
+ * to client code. Keeping this map here (not inside each init impl) means
+ * the summary stays in sync even if future frameworks are added — the type
+ * makes the exhaustiveness check explicit.
+ */
+function envHintFor(framework: Framework): { file: string; key: string } {
+  switch (framework) {
+    case 'next-app':
+      return { file: '.env.local', key: 'UPLOADKIT_API_KEY' };
+    case 'sveltekit':
+    case 'remix':
+      return { file: '.env', key: 'UPLOADKIT_API_KEY' };
+    case 'vite-react':
+      return { file: '.env', key: 'VITE_UPLOADKIT_API_KEY' };
+    default:
+      // Fallback for any unsupported/future framework — preserves the old
+      // default rather than throwing (summary is a convenience, not a gate).
+      return { file: '.env.local', key: 'UPLOADKIT_API_KEY' };
+  }
+}
+
+function printSummary(
+  result: InitResult,
+  root: string,
+  framework: Framework,
+): void {
   if (result.skipped) {
     process.stdout.write(
       `${pc.yellow('[uploadkit]')} UploadKit already configured in this project — no changes made.\n`,
@@ -43,8 +70,9 @@ function printSummary(result: InitResult, root: string): void {
     process.stdout.write(`\n  ${pc.bold('installed')}\n`);
     for (const pkg of result.installed) process.stdout.write(`    • ${pkg}\n`);
   }
+  const hint = envHintFor(framework);
   process.stdout.write(
-    `\n${pc.dim('Next steps:')} set ${pc.cyan('UPLOADKIT_API_KEY')} in .env.local, then start your dev server.\n`,
+    `\n${pc.dim('Next steps:')} set ${pc.cyan(hint.key)} in ${pc.cyan(hint.file)}, then start your dev server.\n`,
   );
 }
 
@@ -91,7 +119,7 @@ export async function run(parsed: ParsedArgs): Promise<number> {
     if (!result.skipped) {
       await session.finalize();
     }
-    printSummary(result, detection.root);
+    printSummary(result, detection.root, detection.framework);
     return 0;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

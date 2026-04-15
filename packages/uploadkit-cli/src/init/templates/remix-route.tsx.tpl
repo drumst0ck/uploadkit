@@ -16,7 +16,16 @@ export async function action({ request }: { request: Request }) {
     );
   }
   // TODO: forward to your UploadKit client. See https://uploadkit.dev/docs
-  return Response.json({ ok: true });
+  // Fail closed until server-side forwarding is wired: returning `{ ok: true }`
+  // here would make generated apps appear configured without actually
+  // uploading. Keep this 501 until you implement the proxy.
+  return Response.json(
+    {
+      error:
+        'UploadKit route is not wired yet. Implement server-side forwarding before use.',
+    },
+    { status: 501 },
+  );
 }
 
 export async function loader({ request }: { request: Request }) {

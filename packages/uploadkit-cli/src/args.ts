@@ -37,7 +37,8 @@ export function parseArgs(argv: string[]): ParsedArgs {
   });
 
   const positionalAll = raw._.filter(
-    (v): v is string => typeof v === 'string' && v.length > 0,
+    (v): v is string =>
+      typeof v === 'string' && v.length > 0 && v !== '--',
   );
   const [command, ...positional] = positionalAll;
 
