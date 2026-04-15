@@ -6,7 +6,25 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+  smoke:
+    name: smoke create-uploadkit-app
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Build packages
+        run: pnpm turbo build
+      - name: Run create-uploadkit-app smoke test
+        run: pnpm --filter create-uploadkit-app smoke
+
   release:
+    needs: [smoke]
     runs-on: ubuntu-latest
     permissions:
       contents: write
