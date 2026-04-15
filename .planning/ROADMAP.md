@@ -22,6 +22,16 @@ UploadKit ships in 10 phases derived from its requirement categories and their n
 - [x] **Phase 10: Testing, Publishing & Launch** - Vitest unit tests, Playwright E2E, npm publish, launch readiness (completed 2026-04-09)
 - [x] **Phase 11: MCP Remote Server** - Streamable HTTP MCP at api.uploadkit.dev/v1/mcp, shared mcp-core package, ChatGPT/Claude.ai connector compatibility (completed 2026-04-14)
 
+### Milestone: Growth v1 (adquisición orgánica)
+
+Goal: 200-500 GitHub stars, 2-3 keywords ranqueando top 10, 10k visitas orgánicas/mes en 3 meses. Sin dependencia de karma en redes — 100% canales ungated: CLI, playgrounds embebibles, integraciones con generadores IA, SEO programático, herramientas free.
+
+- [ ] **Phase 12: `create-uploadkit-app` CLI** - Scaffolder `npx create-uploadkit-app` con templates (Next.js, SvelteKit, Remix, Vite), detección de package manager, prompts interactivos, setup de `.env.local` con API key placeholder
+- [ ] **Phase 13: Interactive Playgrounds** - 4 playgrounds embebibles (StackBlitz + CodeSandbox) cubriendo Dropzone, Cropper, UploadQueue, BYOS; botón "Try live" en blog posts y docs
+- [ ] **Phase 14: AI Generator Integrations** - MDC rules files para Cursor/Windsurf/Zed, awesome-cursorrules PR, outreach a v0.dev/bolt.new/Lovable pidiendo UploadKit en sus component pickers, llms.txt en la landing
+- [ ] **Phase 15: Programmatic SEO — Framework Landing Pages** - 20 páginas `/uploads/<framework>` (Next.js, SvelteKit, Remix, Nuxt, Astro, RedwoodJS, Solid, Qwik, Gatsby, Vue, Angular, etc.) con estructura: hero específico, code snippet, presigned URL walkthrough, CTA. Sitemap + metadata SEO completa
+- [ ] **Phase 16: Free Developer Tools** - 3 herramientas client-side en `/tools/`: MIME type validator (drag file → detect), presigned URL generator playground (form → curl output), upload cost calculator (S3 vs R2 vs B2 con inputs de GB + requests + egress)
+
 ## Phase Details
 
 ### Phase 1: Monorepo & Infrastructure
@@ -205,6 +215,64 @@ Plans:
 
 Plans:
 - [x] 11-01-PLAN.md — mcp-core extraction + Streamable HTTP endpoint in apps/api + CORS + health + docs + changeset
+
+### Phase 12: `create-uploadkit-app` CLI
+**Goal**: A `npx create-uploadkit-app <name>` command scaffolds a runnable app in <60 seconds across 4 templates (Next.js, SvelteKit, Remix, Vite). Every scaffolded project has working uploads out of the box with a placeholder API key and clear next-steps.
+**Depends on**: Phase 4 (SDK), Phase 5 (React components)
+**Requirements**: GROW-01, GROW-02, GROW-03
+**Success Criteria**:
+  1. `npx create-uploadkit-app my-app` completes in <60s and produces a runnable project
+  2. 4 templates published: `next`, `sveltekit`, `remix`, `vite` — each renders a working upload UI
+  3. Interactive prompts: project name, template, package manager (pnpm/npm/yarn/bun auto-detected), TypeScript yes/no
+  4. `.env.local` scaffolded with `UPLOADKIT_API_KEY=uk_test_placeholder` + link to signup
+  5. Published to npm as `create-uploadkit-app`, reachable via all 4 package-manager "create" shortcuts
+  6. README generated per template with dev/build commands and a "Next steps" section
+
+### Phase 13: Interactive Playgrounds
+**Goal**: Developers can try every headline UploadKit component without installing anything. 4 embeddable playgrounds (StackBlitz SDK + CodeSandbox sandbox) covering Dropzone, Cropper, UploadQueue, BYOS config — linked from blog posts, docs, and the landing.
+**Depends on**: Phase 5 (SDK components), Phase 8 (landing)
+**Requirements**: GROW-04, GROW-05
+**Success Criteria**:
+  1. 4 playground templates committed to `apps/playgrounds/` as independent Vite apps
+  2. Each playground is embeddable via StackBlitz SDK and duplicated as a CodeSandbox template
+  3. Landing and docs have a "Try it live" button next to relevant components that opens the playground inline
+  4. Every blog tutorial that mentions a component has a "Try it now" link
+  5. Playgrounds work without an API key (BYOS demo uses a mock, managed demo uses a public sandbox project)
+
+### Phase 14: AI Generator Integrations
+**Goal**: When a developer uses Cursor, Windsurf, Zed, v0.dev, bolt.new, or Lovable, UploadKit is either already on the radar (via MDC rules / awesome lists / llms.txt) or easily added. This phase wires UploadKit into every AI-assisted dev workflow.
+**Depends on**: Phase 11 (MCP), Phase 9 (docs)
+**Requirements**: GROW-06, GROW-07, GROW-08
+**Success Criteria**:
+  1. `.cursorrules` / `.cursor/rules/*.mdc` file published in a public `uploadkit-rules` repo and added to `awesome-cursorrules`
+  2. `llms.txt` and `llms-full.txt` live at `uploadkit.dev/llms.txt`, listing SDK surface, component catalog, and install commands per LLM conventions
+  3. PRs or issues opened against v0.dev, bolt.new, and Lovable requesting UploadKit as a component option (even if rejected, creates a link + discoverability)
+  4. Documented "install in your IDE" flow for Cursor, Windsurf, and Zed in `docs/guides/mcp.mdx`
+  5. Twitter/LinkedIn thread showing Claude Code generating an UploadKit upload flow end-to-end via MCP (viral-bait demo)
+
+### Phase 15: Programmatic SEO — Framework Landing Pages
+**Goal**: 20 SEO-optimized pages at `/uploads/<framework>` covering every major JS framework. Each page is specific enough to outrank generic tutorials for the long-tail keyword "file upload <framework>".
+**Depends on**: Phase 8 (landing), Phase 9 (docs)
+**Requirements**: GROW-09, GROW-10, GROW-11
+**Success Criteria**:
+  1. 20 pages live: Next.js, SvelteKit, Remix, React Router v7, Nuxt, Astro, RedwoodJS, SolidStart, Qwik, Gatsby, Vue, Angular, TanStack Start, Waku, HonoX, Hono, Express, Fastify, Vite+React, Vite+Vue
+  2. Each page has: framework-specific hero, real runnable code snippet, presigned URL walkthrough, CTA to signup or docs
+  3. Pages follow a shared template but have ≥60% unique prose (not boilerplate) to avoid duplicate-content penalties
+  4. Sitemap updated to include all 20 routes; each has unique title/description/OG image
+  5. Build time for adding a new framework page is <30 min (template + content file)
+  6. Core Web Vitals green on all 20 pages (Lighthouse ≥90 performance)
+
+### Phase 16: Free Developer Tools
+**Goal**: 3 free client-side tools at `/tools/` that rank for high-intent keywords and funnel users to UploadKit. No login, no rate limits — pure SEO bait with real utility.
+**Depends on**: Phase 8 (landing)
+**Requirements**: GROW-12, GROW-13, GROW-14
+**Success Criteria**:
+  1. `/tools/mime-validator` — drag a file, see detected MIME + magic bytes + common spoofing warnings
+  2. `/tools/presigned-url-generator` — form (bucket, key, method, expiry) → copy-pasteable curl command + JS snippet for S3/R2/B2
+  3. `/tools/upload-cost-calculator` — inputs: GB stored, requests/mo, egress GB/mo → comparison table S3 vs R2 vs B2 vs UploadKit plans
+  4. All 3 tools work fully client-side (zero backend calls)
+  5. Each tool page has embedded CTA to signup with contextual copy
+  6. Sitemap + Open Graph metadata per tool; targeted keyword in H1 + title
 
 
 ## Progress

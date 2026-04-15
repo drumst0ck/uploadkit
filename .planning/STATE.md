@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: "Completed quick task 260409-t9f: Replace Upstash with native Redis"
-last_updated: "2026-04-14T18:12:29.567Z"
+status: Phase defined — awaiting `/gsd-plan-phase 12`
+stopped_at: "Completed quick task 260415-d8w: Blog MDX infrastructure"
+last_updated: "2026-04-15T10:27:07.510Z"
 last_activity: "2026-04-10 - Completed quick task 260410-ju7: Expand React SDK with 8 premium upload component variants"
 progress:
-  total_phases: 11
+  total_phases: 16
   completed_phases: 11
-  total_plans: 37
-  completed_plans: 37
-  percent: 100
+  total_plans: 45
+  completed_plans: 39
+  percent: 87
 ---
 
 # Project State
@@ -21,13 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Developers can add beautiful, type-safe file uploads to any app in minutes — with a generous free tier, no vendor lock-in (BYOS), and premium components out of the box.
-**Current focus:** Phase 10 — testing-publishing-launch
+
+**Current milestone:** Growth v1 (v1.1) — organic acquisition without social-karma dependency. Target: 200-500 GitHub stars, 2-3 keywords top 10, 10k organic visits/mo in 90 days.
+
+**Current focus:** Phase 12 — `create-uploadkit-app` CLI (highest-leverage first move; every scaffolded project is a brand touchpoint).
 
 ## Current Position
 
-Phase: 10
+Phase: 12
 Plan: Not started
-Status: Phase complete — ready for verification
+Status: Phase defined — awaiting `/gsd-plan-phase 12`
 Last activity: 2026-04-10 - Completed quick task 260410-ju7: Expand React SDK with 8 premium upload component variants
 
 Progress: [░░░░░░░░░░] 0%
@@ -96,6 +99,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 10-testing-publishing-launch P02 | 10m | 2 tasks | 9 files |
 | Phase 10-testing-publishing-launch P03 | 4m | 2 tasks | 11 files |
 | Phase 10-testing-publishing-launch P04 | 2m | 2 tasks | 5 files |
+| Phase 12 P02 | ~15m | 2 tasks | 8 files |
 
 ## Accumulated Context
 
