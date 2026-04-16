@@ -1,5 +1,12 @@
 # @uploadkitdev/example-vite
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies [a35f509]
+  - @uploadkitdev/react@0.4.0
+
 ## 0.0.2
 
 ### Patch Changes
