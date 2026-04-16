@@ -65,9 +65,23 @@ export const initSvelteKit: InitImpl = async (ctx, getSession) => {
   const envAbs = join(root, REL_ENV);
 
   // --- (1) Idempotency ----------------------------------------------------
-  if (existsSync(routeAbs) && existsSync(clientAbs)) {
+  // Content-based detection: check for route, client stub, and env key.
+  // Covers both `create-uploadkit-app` scaffolds and prior `uploadkit init`.
+  const hasRoute = existsSync(routeAbs);
+  const hasClient = existsSync(clientAbs);
+  const hasEnvKey =
+    existsSync(envAbs) &&
+    (await readFile(envAbs, 'utf8')).includes('UPLOADKIT_API_KEY');
+
+  // Fully configured — nothing to do.
+  if (hasRoute && hasClient && hasEnvKey) {
     return { skipped: true, installed: [], created: [], modified: [] };
   }
+
+  // Partial repair: only apply missing pieces.
+  const skipRoute = hasRoute;
+  const skipClient = hasClient;
+  const skipEnv = hasEnvKey;
 
   // SvelteKit has no strict file-level precondition beyond the detector
   // having already asserted `svelte.config.*` exists. Materialize the
@@ -78,23 +92,29 @@ export const initSvelteKit: InitImpl = async (ctx, getSession) => {
   const modified: string[] = [];
 
   // --- (2) Create +server.ts --------------------------------------------
-  const routeTemplate = await loadTemplate('sveltekit-server.ts.tpl');
-  await writeIfAbsent(routeAbs, routeTemplate, session, created);
+  if (!skipRoute) {
+    const routeTemplate = await loadTemplate('sveltekit-server.ts.tpl');
+    await writeIfAbsent(routeAbs, routeTemplate, session, created);
+  }
 
   // --- (3) Create src/lib/uploadkit.ts ---------------------------------
-  const clientTemplate = await loadTemplate('sveltekit-client.ts.tpl');
-  await writeIfAbsent(clientAbs, clientTemplate, session, created);
+  if (!skipClient) {
+    const clientTemplate = await loadTemplate('sveltekit-client.ts.tpl');
+    await writeIfAbsent(clientAbs, clientTemplate, session, created);
+  }
 
   // --- (4) Merge .env ---------------------------------------------------
-  const envExisted = existsSync(envAbs);
-  const appended = await mergeEnv(envAbs, {
-    UPLOADKIT_API_KEY: 'uk_test_placeholder',
-  });
-  if (!envExisted) {
-    session.recordCreate(envAbs);
-    created.push(envAbs);
-  } else if (appended.length > 0) {
-    modified.push(envAbs);
+  if (!skipEnv) {
+    const envExisted = existsSync(envAbs);
+    const appended = await mergeEnv(envAbs, {
+      UPLOADKIT_API_KEY: 'uk_test_placeholder',
+    });
+    if (!envExisted) {
+      session.recordCreate(envAbs);
+      created.push(envAbs);
+    } else if (appended.length > 0) {
+      modified.push(envAbs);
+    }
   }
 
   // --- (5) Install packages ---------------------------------------------

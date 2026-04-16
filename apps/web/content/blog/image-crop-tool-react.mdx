@@ -17,7 +17,7 @@ tags:
 
 You can `pnpm add react-image-crop` and ship in 10 minutes. But every product team eventually wants to customize the cropper — different handle styles, different aspect ratios, branded overlay colors, integrated with their upload flow — and that's when knowing how to build one yourself becomes useful. This guide builds a complete React image crop tool with no external dependencies beyond React.
 
-If you want to skip ahead, [UploadKit](/components) ships a `<Cropper>` component that does all of this with a themed design system, dark mode, keyboard support, and a touch-friendly variant. But understanding the underlying mechanics will make you a better consumer of any cropping library.
+If you want to skip ahead, [UploadKit](https://docs.uploadkit.dev/docs/sdk/react) ships a `<Cropper>` component that does all of this with a themed design system, dark mode, keyboard support, and a touch-friendly variant. But understanding the underlying mechanics will make you a better consumer of any cropping library.
 
 ## The architecture
 
@@ -417,7 +417,7 @@ If you're shipping a real product, the rough edges to add are:
 - **Aspect ratio toggle.** Many products want "free" or "1:1" or "16:9" as a chip group above the cropper.
 - **Output formats.** Let the consumer pick JPEG/WebP/PNG and quality.
 
-Or use [UploadKit's `<Cropper>`](/components) which handles all of the above plus dark mode, theming via CSS custom properties, and integration with the upload pipeline so the cropped blob goes straight to storage with no extra glue:
+Or use [UploadKit's `<Cropper>`](https://docs.uploadkit.dev/docs/sdk/react) which handles all of the above plus dark mode, theming via CSS custom properties, and integration with the upload pipeline so the cropped blob goes straight to storage with no extra glue:
 
 ```tsx
 import { Cropper } from '@uploadkitdev/react'

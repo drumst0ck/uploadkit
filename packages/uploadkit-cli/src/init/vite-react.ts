@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pc from 'picocolors';
-import { addImport, hasMarkers, mergeEnv, wrapChildrenOf } from '../codemods/index.js';
+import { addImport, mergeEnv, wrapChildrenOf } from '../codemods/index.js';
 import { installPackages } from './install-deps.js';
 import type { InitImpl } from './types.js';
 
@@ -54,15 +54,27 @@ export const initViteReact: InitImpl = async (ctx, getSession) => {
   }
 
   // --- (1) Idempotency ----------------------------------------------------
+  // Content-based detection covers both marker-based (`uploadkit init`) and
+  // marker-free (`create-uploadkit-app`) projects.
   const existingMain = await readFile(mainAbs, 'utf8');
-  if (hasMarkers(existingMain) && existingMain.includes(REACT_MODULE)) {
+  const hasProvider = existingMain.includes(REACT_MODULE);
+  const hasEnvKey =
+    existsSync(envAbs) &&
+    (await readFile(envAbs, 'utf8')).includes('VITE_UPLOADKIT_API_KEY');
+
+  // Fully configured — nothing to do.
+  if (hasProvider && hasEnvKey) {
     return { skipped: true, installed: [], created: [], modified: [] };
   }
+
+  // Partial repair: only apply missing pieces.
+  const skipProvider = hasProvider;
+  const skipEnv = hasEnvKey;
 
   // --- (1b) StrictMode precondition (must run BEFORE session is opened
   // so a missing anchor does not leave an empty backup dir behind). -----
   const parentTag = existingMain.includes('<StrictMode') ? 'StrictMode' : null;
-  if (!parentTag) {
+  if (!skipProvider && !parentTag) {
     throw new Error(
       'initViteReact: expected <StrictMode> in src/main.tsx as a wrap anchor. Add <StrictMode> around <App /> and re-run.',
     );
@@ -75,33 +87,39 @@ export const initViteReact: InitImpl = async (ctx, getSession) => {
   const modified: string[] = [];
 
   // --- (2) Back up main.tsx ----------------------------------------------
-  await session.save(mainAbs);
+  if (!skipProvider) {
+    await session.save(mainAbs);
+  }
 
   // --- (3) Rewrite main.tsx ----------------------------------------------
-  const withImport = addImport(existingMain, {
-    from: REACT_MODULE,
-    specifiers: [PROVIDER_LOCAL],
-  });
-  const wrapped = wrapChildrenOf(withImport, {
-    parentTag,
-    wrapperOpen: `<${PROVIDER_LOCAL} endpoint="/api/uploadkit">`,
-    wrapperClose: `</${PROVIDER_LOCAL}>`,
-  });
-  if (wrapped !== existingMain) {
-    await writeFile(mainAbs, wrapped, 'utf8');
-    modified.push(mainAbs);
+  if (!skipProvider) {
+    const withImport = addImport(existingMain, {
+      from: REACT_MODULE,
+      specifiers: [PROVIDER_LOCAL],
+    });
+    const wrapped = wrapChildrenOf(withImport, {
+      parentTag: parentTag!,
+      wrapperOpen: `<${PROVIDER_LOCAL} endpoint="/api/uploadkit">`,
+      wrapperClose: `</${PROVIDER_LOCAL}>`,
+    });
+    if (wrapped !== existingMain) {
+      await writeFile(mainAbs, wrapped, 'utf8');
+      modified.push(mainAbs);
+    }
   }
 
   // --- (4) Merge .env (VITE_ prefix — Vite exposes these to the browser) --
-  const envExisted = existsSync(envAbs);
-  const appended = await mergeEnv(envAbs, {
-    VITE_UPLOADKIT_API_KEY: 'uk_test_placeholder',
-  });
-  if (!envExisted) {
-    session.recordCreate(envAbs);
-    created.push(envAbs);
-  } else if (appended.length > 0) {
-    modified.push(envAbs);
+  if (!skipEnv) {
+    const envExisted = existsSync(envAbs);
+    const appended = await mergeEnv(envAbs, {
+      VITE_UPLOADKIT_API_KEY: 'uk_test_placeholder',
+    });
+    if (!envExisted) {
+      session.recordCreate(envAbs);
+      created.push(envAbs);
+    } else if (appended.length > 0) {
+      modified.push(envAbs);
+    }
   }
 
   // --- (5) Install packages ----------------------------------------------

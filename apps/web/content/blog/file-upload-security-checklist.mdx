@@ -210,4 +210,4 @@ Two distinct attacks, two distinct mitigations:
 
 File upload security isn't one big problem — it's twelve small ones, and most of them you solve once and forget. The combinations that bite teams in production are usually: missing magic byte check + executable allowed + served from same origin = stored XSS. Knock out the first three items on this list and you've already eliminated the most common vulnerability classes.
 
-If you don't want to wire all of this from scratch, [UploadKit's components](/components) ship with magic-byte verification, signed URL auth, sandboxed delivery, and rate limiting on by default. The settings you'd otherwise have to remember are the defaults.
+If you don't want to wire all of this from scratch, [UploadKit's components](https://docs.uploadkit.dev/docs/sdk/react) ship with magic-byte verification, signed URL auth, sandboxed delivery, and rate limiting on by default. The settings you'd otherwise have to remember are the defaults.

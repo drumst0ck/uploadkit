@@ -51,6 +51,14 @@ import { UploadDropzone } from '@uploadkitdev/react';
 
 Set `UPLOADKIT_API_KEY=uk_live_...` in `.env.local` and you're done. Full walkthrough: [docs.uploadkit.dev/docs/getting-started/quickstart](https://docs.uploadkit.dev/docs/getting-started/quickstart).
 
+### Or use the CLI (recommended)
+
+```bash
+npx uploadkit init
+```
+
+Detects your framework, installs deps, creates the route handler, and wraps your layout — all in one command. See the [CLI guide](https://docs.uploadkit.dev/docs/guides/cli-existing-projects) for details.
+
 ### Starting a new project?
 
 ```bash

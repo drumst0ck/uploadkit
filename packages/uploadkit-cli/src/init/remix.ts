@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pc from 'picocolors';
-import { addImport, hasMarkers, mergeEnv, wrapChildrenOf } from '../codemods/index.js';
+import { addImport, mergeEnv, wrapChildrenOf } from '../codemods/index.js';
 import { installPackages } from './install-deps.js';
 import type { InitImpl } from './types.js';
 
@@ -55,19 +55,32 @@ export const initRemix: InitImpl = async (ctx, getSession) => {
   const routeAbs = join(root, REL_ROUTE);
   const envAbs = join(root, REL_ENV);
 
-  // --- (1) Idempotency ----------------------------------------------------
-  if (existsSync(rootAbs) && existsSync(routeAbs)) {
-    const existingRoot = await readFile(rootAbs, 'utf8');
-    if (hasMarkers(existingRoot) && existingRoot.includes(REACT_MODULE)) {
-      return { skipped: true, installed: [], created: [], modified: [] };
-    }
-  }
-
+  // --- (1) Precondition: root.tsx must exist ------------------------------
   if (!existsSync(rootAbs)) {
     throw new Error(
       `app/root.tsx not found at ${rootAbs}. Run uploadkit init from the project root.`,
     );
   }
+
+  // --- (1b) Idempotency --------------------------------------------------
+  // Content-based detection covers both marker-based (`uploadkit init`) and
+  // marker-free (`create-uploadkit-app`) projects.
+  const existingRoot = await readFile(rootAbs, 'utf8');
+  const hasRoute = existsSync(routeAbs);
+  const hasProvider = existingRoot.includes(REACT_MODULE);
+  const hasEnvKey =
+    existsSync(envAbs) &&
+    (await readFile(envAbs, 'utf8')).includes('UPLOADKIT_API_KEY');
+
+  // Fully configured — nothing to do.
+  if (hasRoute && hasProvider && hasEnvKey) {
+    return { skipped: true, installed: [], created: [], modified: [] };
+  }
+
+  // Partial repair: only apply missing pieces.
+  const skipRoute = hasRoute;
+  const skipProvider = hasProvider;
+  const skipEnv = hasEnvKey;
 
   // Preconditions passed — open the backup session.
   const session = getSession();
@@ -76,38 +89,45 @@ export const initRemix: InitImpl = async (ctx, getSession) => {
   const modified: string[] = [];
 
   // --- (2) Back up root.tsx ----------------------------------------------
-  await session.save(rootAbs);
+  if (!skipProvider) {
+    await session.save(rootAbs);
+  }
 
   // --- (3) Rewrite root.tsx ----------------------------------------------
-  const originalRoot = await readFile(rootAbs, 'utf8');
-  const withImport = addImport(originalRoot, {
-    from: REACT_MODULE,
-    specifiers: [PROVIDER_LOCAL],
-  });
-  const wrapped = wrapChildrenOf(withImport, {
-    parentTag: 'body',
-    wrapperOpen: `<${PROVIDER_LOCAL} endpoint="/api/uploadkit">`,
-    wrapperClose: `</${PROVIDER_LOCAL}>`,
-  });
-  if (wrapped !== originalRoot) {
-    await writeFile(rootAbs, wrapped, 'utf8');
-    modified.push(rootAbs);
+  if (!skipProvider) {
+    const withImport = addImport(existingRoot, {
+      from: REACT_MODULE,
+      specifiers: [PROVIDER_LOCAL],
+    });
+    const wrapped = wrapChildrenOf(withImport, {
+      parentTag: 'body',
+      wrapperOpen: `<${PROVIDER_LOCAL} endpoint="/api/uploadkit">`,
+      wrapperClose: `</${PROVIDER_LOCAL}>`,
+    });
+    if (wrapped !== existingRoot) {
+      await writeFile(rootAbs, wrapped, 'utf8');
+      modified.push(rootAbs);
+    }
   }
 
   // --- (4) Create route handler ------------------------------------------
-  const routeTemplate = await loadTemplate('remix-route.tsx.tpl');
-  await writeIfAbsent(routeAbs, routeTemplate, session, created);
+  if (!skipRoute) {
+    const routeTemplate = await loadTemplate('remix-route.tsx.tpl');
+    await writeIfAbsent(routeAbs, routeTemplate, session, created);
+  }
 
   // --- (5) Merge .env -----------------------------------------------------
-  const envExisted = existsSync(envAbs);
-  const appended = await mergeEnv(envAbs, {
-    UPLOADKIT_API_KEY: 'uk_test_placeholder',
-  });
-  if (!envExisted) {
-    session.recordCreate(envAbs);
-    created.push(envAbs);
-  } else if (appended.length > 0) {
-    modified.push(envAbs);
+  if (!skipEnv) {
+    const envExisted = existsSync(envAbs);
+    const appended = await mergeEnv(envAbs, {
+      UPLOADKIT_API_KEY: 'uk_test_placeholder',
+    });
+    if (!envExisted) {
+      session.recordCreate(envAbs);
+      created.push(envAbs);
+    } else if (appended.length > 0) {
+      modified.push(envAbs);
+    }
   }
 
   // --- (6) Install packages ----------------------------------------------
