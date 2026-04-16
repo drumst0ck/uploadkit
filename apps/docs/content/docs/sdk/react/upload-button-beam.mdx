@@ -1,0 +1,107 @@
+---
+title: UploadButtonBeam
+description: A beam-first upload button where the animated border beam IS the visual identity.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadButtonBeam } from '@/components/preview-components';
+
+A minimal, dark-surface upload button designed around the animated border beam as its primary visual effect. Unlike `<UploadButton beam>` where the beam is an optional add-on, `UploadButtonBeam` is built beam-first -- the animation activates automatically during uploads with no prop toggle needed.
+
+**Design inspiration:** Apple Intelligence processing indicator, Vercel deployment status beam.
+
+<ComponentPreview caption="Beam-first -- the animation IS the button's identity">
+  <UploadButtonBeam route="demo" />
+</ComponentPreview>
+
+## Basic usage
+
+```tsx
+import { UploadButtonBeam } from '@uploadkitdev/react';
+
+export default function Page() {
+  return (
+    <UploadButtonBeam
+      route="imageUploader"
+      accept={['image/*']}
+      maxSize={4 * 1024 * 1024}
+      onUploadComplete={(result) => {
+        console.log('Uploaded:', result.url);
+      }}
+      onUploadError={(error) => {
+        console.error('Upload failed:', error.message);
+      }}
+    />
+  );
+}
+```
+
+## How it differs from `<UploadButton beam>`
+
+| | `<UploadButton beam>` | `<UploadButtonBeam>` |
+|---|---|---|
+| Beam activation | Opt-in via `beam` prop | Always active during uploads |
+| Button surface | Standard UploadButton styling (variants, sizes, progress bar) | Minimal dark surface with thin border |
+| Design intent | Add beam effect to an existing button | Beam IS the visual identity |
+| States | Inherits from UploadButton | Custom: idle, uploading with beam, success flash, error with retry |
+| Use case | Enhance any button variant | Hero sections, landing pages, minimal UI |
+
+## States
+
+- **Idle** -- Clean dark button with subtle border. Label: "Upload"
+- **Uploading** -- Indigo beam spins around the button. Label: "Uploading progress%"
+- **Complete** -- Beam transitions to green. Label: "Uploaded". Auto-resets after 2 seconds
+- **Error** -- Beam transitions to red. Label: "Upload failed" with an inline retry button
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `route` | `string` | -- | **Required.** Route name from your file router. |
+| `accept` | `string[]` | -- | Accepted MIME types for the hidden file input. |
+| `maxSize` | `number` | -- | Maximum file size in bytes. Client-side UX validation only. |
+| `metadata` | `Record<string, unknown>` | -- | JSON-serializable metadata forwarded to the server. |
+| `onUploadComplete` | `(result: UploadResult) => void` | -- | Called after a successful upload. |
+| `onUploadError` | `(error: Error) => void` | -- | Called when an upload fails. |
+| `disabled` | `boolean` | `false` | Disables the button. |
+| `className` | `string` | -- | Additional CSS class(es) merged onto the outer wrapper. |
+| `children` | `ReactNode` | -- | Custom idle label. Defaults to `"Upload"`. |
+
+`UploadButtonBeam` accepts a `ref` forwarded to the underlying `<button>` element.
+
+## Theming
+
+`UploadButtonBeam` reads these CSS custom properties:
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `--uk-beam-bg` | Button background | `rgba(10, 10, 11, 0.9)` |
+| `--uk-beam-text` | Text color | `#fafafa` |
+| `--uk-beam-border` | Border color | `rgba(255, 255, 255, 0.08)` |
+| `--uk-beam-border-hover` | Border on hover | `rgba(255, 255, 255, 0.16)` |
+| `--uk-beam-success-text` | Text color in success state | `#4ade80` |
+| `--uk-beam-error-text` | Text color in error state | `#f87171` |
+| `--uk-radius` | Border radius | `12px` |
+| `--uk-font` | Font family | `inherit` |
+| `--uk-accent` | Focus ring color | `#6366f1` |
+
+```css
+/* Example: warm theme override */
+.my-upload-section {
+  --uk-beam-bg: rgba(20, 16, 12, 0.95);
+  --uk-beam-border: rgba(251, 191, 36, 0.12);
+  --uk-accent: #f59e0b;
+}
+```
+
+## Accessibility
+
+- `aria-busy` is set to `true` during upload
+- `aria-label` updates dynamically to reflect upload state
+- Screen-reader live region announces progress and status changes
+- `focus-visible` outline uses `--uk-accent` color
+- Hidden file `<input>` is `aria-hidden="true"` and `tabIndex={-1}`
+- Error state includes an accessible retry button with `aria-label`
+- Respects `prefers-reduced-motion` via the underlying `UploadBeam` component
+
+See the [Theming guide](/docs/sdk/react/theming) for token overrides and dark mode.

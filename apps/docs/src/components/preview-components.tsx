@@ -111,6 +111,7 @@ export {
   UploadBookFlip,
   UploadStickyBoard,
   UploadBeam,
+  UploadButtonBeam,
 } from '@uploadkitdev/react';
 
 // --- Demo helpers for docs previews ---
