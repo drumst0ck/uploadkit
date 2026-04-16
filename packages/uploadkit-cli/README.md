@@ -31,7 +31,7 @@ Run it again and it prints `already configured` — fully idempotent.
 
 | Framework | Route handler | Provider mount |
 |-----------|---------------|----------------|
-| Next.js App Router | `app/api/uploadkit/[...uploadkit]/route.ts` | `app/layout.tsx` wraps `<body>` children |
+| Next.js App Router | `app/api/uploadkit/[...uploadkit]/route.ts` | `app/layout.tsx` wraps `<body>` children (supports both `app/` and `src/app/` — automatically detected) |
 | SvelteKit | `src/routes/api/uploadkit/[...uploadkit]/+server.ts` | Typed client in `src/lib/uploadkit.ts` (no React provider) |
 | Remix / React Router 7 | `app/routes/api.uploadkit.$.tsx` | `app/root.tsx` wraps children |
 | Vite + React | _(no server)_ | `src/main.tsx` or `src/App.tsx` — prints a BYOS warning |
@@ -86,7 +86,7 @@ rewinds `.env.local` entries it added.
 ```
 uploadkit init [--yes] [--skip-install]
 uploadkit add <component> [--target <path>] [--yes]
-uploadkit restore [--timestamp <iso>]
+uploadkit restore [--timestamp <iso>] [--latest]
 uploadkit --version
 uploadkit --help
 ```
@@ -97,6 +97,7 @@ uploadkit --help
 | `--skip-install` | `init` | Don't run the package manager after wiring — you'll install yourself. |
 | `--target <path>` | `add` | Explicit page/route to insert the component into. |
 | `--timestamp <iso>` | `restore` | Jump straight to a specific backup (skips the picker). |
+| `--latest` | `restore` | Restore the most recent backup without prompting. |
 
 ## Requirements
 

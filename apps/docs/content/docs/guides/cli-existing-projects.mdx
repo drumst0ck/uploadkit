@@ -66,6 +66,7 @@ Grab a free key from [dashboard.uploadkit.dev](https://dashboard.uploadkit.dev).
 <Tabs groupId="framework" items={['Next.js', 'SvelteKit', 'Remix / RR7', 'Vite + React']}>
   <Tab value="Next.js">
     **Detection:** `next` in `dependencies` + `app/layout.*` present.
+    Supports both `app/` and `src/app/` layouts — automatically detected.
 
     **Changes:**
     - Installs `@uploadkitdev/next` and `@uploadkitdev/react`.
@@ -191,6 +192,16 @@ Jump to a specific backup without the picker:
 npx uploadkit restore --timestamp 2026-04-15T13-42-01Z
 ```
 
+Restore the most recent backup without prompting:
+
+```bash
+npx uploadkit restore --latest
+```
+
+`--latest` restores the most recent backup and archives it to
+`.uploadkit-backup/.applied/`. Chain multiple `--latest` calls to walk
+down the backup stack.
+
 ## Command reference
 
 ```
@@ -207,6 +218,7 @@ uploadkit --help
 | `--skip-install` | `init` | Don't run the package manager — you'll install yourself. |
 | `--target <path>` | `add` | Specify the page/route to insert into. |
 | `--timestamp <iso>` | `restore` | Skip the picker, use a specific backup. |
+| `--latest` | `restore` | Restore the most recent backup without prompting. |
 
 ## Troubleshooting
 
