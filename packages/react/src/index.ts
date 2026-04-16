@@ -40,6 +40,8 @@ export { UploadButtonPulse } from './components/upload-button-pulse';
 export type { UploadButtonPulseProps } from './components/upload-button-pulse';
 export { UploadButtonGradient } from './components/upload-button-gradient';
 export type { UploadButtonGradientProps } from './components/upload-button-gradient';
+export { UploadButtonBeam } from './components/upload-button-beam';
+export type { UploadButtonBeamProps } from './components/upload-button-beam';
 
 // Specialty components
 export { UploadAvatar } from './components/upload-avatar';
