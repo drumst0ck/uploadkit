@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: 'Features', href: '/#features', external: false },
   { label: 'Pricing', href: '/#pricing', external: false },
   { label: 'Docs', href: 'https://docs.uploadkit.dev', external: true },
+  { label: 'Blog', href: '/blog', external: false },
   { label: 'Changelog', href: '/changelog', external: false },
 ] as const
 
