@@ -68,7 +68,7 @@ type BeamCSSOptions = {
  * Uses @property for angle interpolation + conic-gradient for the beam.
  */
 function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions): string {
-  const borderWidth = 1;
+  const borderWidth = 2;
   const innerRadius = Math.max(0, borderRadius - borderWidth);
 
   // The beam "spotlight" — brighter in dark mode, darker in light mode
@@ -76,25 +76,25 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
     ? `conic-gradient(
         from var(--beam-angle-${id}),
         transparent 0%, transparent 54%,
-        rgba(255, 255, 255, 0.1) 57%,
-        rgba(255, 255, 255, 0.3) 60%,
-        rgba(255, 255, 255, 0.6) 63%,
-        rgba(255, 255, 255, 0.75) 66%,
-        rgba(255, 255, 255, 0.6) 69%,
-        rgba(255, 255, 255, 0.3) 72%,
-        rgba(255, 255, 255, 0.1) 75%,
+        rgba(99, 102, 241, 0.15) 57%,
+        rgba(99, 102, 241, 0.4) 60%,
+        rgba(129, 140, 248, 0.7) 63%,
+        rgba(165, 180, 252, 0.9) 66%,
+        rgba(129, 140, 248, 0.7) 69%,
+        rgba(99, 102, 241, 0.4) 72%,
+        rgba(99, 102, 241, 0.15) 75%,
         transparent 78%, transparent 100%
       )`
     : `conic-gradient(
         from var(--beam-angle-${id}),
         transparent 0%, transparent 54%,
-        rgba(0, 0, 0, 0.08) 57%,
-        rgba(0, 0, 0, 0.2) 60%,
-        rgba(0, 0, 0, 0.4) 63%,
-        rgba(0, 0, 0, 0.55) 66%,
-        rgba(0, 0, 0, 0.4) 69%,
-        rgba(0, 0, 0, 0.2) 72%,
-        rgba(0, 0, 0, 0.08) 75%,
+        rgba(79, 70, 229, 0.1) 57%,
+        rgba(79, 70, 229, 0.25) 60%,
+        rgba(99, 102, 241, 0.5) 63%,
+        rgba(99, 102, 241, 0.65) 66%,
+        rgba(99, 102, 241, 0.5) 69%,
+        rgba(79, 70, 229, 0.25) 72%,
+        rgba(79, 70, 229, 0.1) 75%,
         transparent 78%, transparent 100%
       )`;
 
@@ -149,6 +149,8 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
 [data-beam="${id}"] {
   position: relative;
   border-radius: ${borderRadius}px;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 /* ---- Active (spinning) ---- */
@@ -201,7 +203,7 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
   mask-composite: intersect, exclude;
   pointer-events: none;
   z-index: 2;
-  opacity: calc(var(--beam-opacity-${id}) * 0.48);
+  opacity: calc(var(--beam-opacity-${id}) * 0.85);
 }
 
 /* ---- Inner glow (::before) ---- */
