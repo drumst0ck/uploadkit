@@ -7,6 +7,7 @@ export type Category =
   | 'button'
   | 'progress'
   | 'motion'
+  | 'effect'
   | 'specialty'
   | 'gallery';
 
@@ -180,6 +181,29 @@ export default function Page({ file }: { file: File }) {
     description: 'Gradient fill that rotates on hover.',
     inspiration: 'Stripe · Resend — gradient',
     usage: base('UploadButtonGradient'),
+  },
+  {
+    name: 'UploadButtonBeam',
+    category: 'button',
+    description: 'Beam-first button with Apple Intelligence-style animated border that activates during uploads. Standalone variant — beam is the visual identity, not an optional prop.',
+    inspiration: 'Apple Intelligence — border beam',
+    usage: base('UploadButtonBeam'),
+  },
+
+  // ─── Effects ────────────────────────────────────────────────────────
+  {
+    name: 'UploadBeam',
+    category: 'effect',
+    description: 'Wrapper component that adds an animated border beam to any element. Uses CSS @property angle animation + conic-gradient + mask-composite. States: idle, uploading, complete, error. Also available as a `beam` prop on UploadDropzone, UploadButton, and all button variants.',
+    inspiration: 'Apple Intelligence — border beam',
+    usage: `import { UploadBeam, UploadDropzone } from '@uploadkitdev/react';
+
+<UploadBeam state="uploading">
+  <UploadDropzone route="imageUploader" />
+</UploadBeam>
+
+{/* Or use the beam prop shortcut: */}
+<UploadDropzone route="imageUploader" beam />`,
   },
 
   // ─── Specialty ────────────────────────────────────────────────────

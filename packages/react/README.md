@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@uploadkitdev/react)](https://www.npmjs.com/package/@uploadkitdev/react)
 [![npm downloads](https://img.shields.io/npm/dm/@uploadkitdev/react)](https://www.npmjs.com/package/@uploadkitdev/react)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml/badge.svg)](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml)
+[![CI](https://github.com/drumst0ck/uploadkit/actions/workflows/ci.yml/badge.svg)](https://github.com/drumst0ck/uploadkit/actions/workflows/ci.yml)
 [![Bundle size](https://img.shields.io/bundlephobia/minzip/@uploadkitdev/react)](https://bundlephobia.com/package/@uploadkitdev/react)
 
 Premium React upload components for UploadKit.

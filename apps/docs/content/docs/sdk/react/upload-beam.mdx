@@ -1,0 +1,119 @@
+---
+title: UploadBeam
+description: Apple Intelligence-style animated border beam for upload components.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadDropzone, UploadBeam } from '@/components/preview-components';
+
+# UploadBeam
+
+An animated border beam effect inspired by Apple Intelligence that activates during file uploads. Uses CSS `@property` angle animation with `conic-gradient` and `mask-composite` to create a spinning beam restricted to the border area.
+
+Zero external dependencies — the CSS technique is vendored directly into the component.
+
+<ComponentPreview caption="Apple Intelligence — border beam during upload" simulateFiles={2}>
+  <UploadDropzone route="demo" beam />
+</ComponentPreview>
+
+## Usage as wrapper
+
+Wrap any element with `<UploadBeam>` and control it via the `state` prop:
+
+```tsx
+import { useState } from 'react';
+import { UploadBeam } from '@uploadkitdev/react';
+
+function MyUploader() {
+  const [state, setState] = useState<'idle' | 'uploading' | 'complete' | 'error'>('idle');
+
+  return (
+    <UploadBeam state={state}>
+      <div className="my-card">
+        Drop files here
+      </div>
+    </UploadBeam>
+  );
+}
+```
+
+## Usage as prop
+
+Both `UploadDropzone` and `UploadButton` accept an optional `beam` prop that automatically wires the beam effect to the component's upload lifecycle:
+
+```tsx
+import { UploadDropzone, UploadButton } from '@uploadkitdev/react';
+
+// Dropzone with beam
+<UploadDropzone route="documents" beam />
+
+// Button with beam
+<UploadButton route="avatars" beam />
+```
+
+When `beam` is enabled, the beam activates automatically when uploading begins, transitions to green on success, or red on error, then fades out.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | required | The element to wrap with the beam effect. |
+| `state` | `'idle' \| 'uploading' \| 'complete' \| 'error'` | `'idle'` | Controls the beam lifecycle and color. |
+| `active` | `boolean` | `false` | Shortcut: `true` sets state to `'uploading'`, `false` sets `'idle'`. Overridden by `state`. |
+| `duration` | `number` | `2` | Beam rotation speed in seconds. |
+| `borderRadius` | `number` | auto-detected | Border radius in pixels. Auto-detected from the child element if omitted. |
+| `className` | `string` | — | Additional CSS class for the wrapper. |
+| `style` | `CSSProperties` | — | Inline styles for the wrapper. |
+
+## States
+
+### idle
+
+No beam, no glow. The component renders cleanly with no visual effect.
+
+### uploading
+
+The beam spins using the `--uk-accent` color (default indigo). A subtle inner glow and outer bloom appear. The beam fades in over 0.6 seconds.
+
+### complete
+
+The beam color transitions to green (`--uk-beam-success`). The effect holds for 1.5 seconds, then fades out over 0.5 seconds, returning to idle.
+
+### error
+
+The beam color transitions to red (`--uk-beam-error`). The effect holds for 1.5 seconds, then fades out over 0.5 seconds, returning to idle.
+
+## CSS custom properties
+
+Customize beam colors via CSS custom properties on any parent element:
+
+```css
+:root {
+  --uk-accent: #6366f1;        /* Beam color during upload (indigo) */
+  --uk-beam-success: #22c55e;  /* Beam color on complete (green) */
+  --uk-beam-error: #ef4444;    /* Beam color on error (red) */
+}
+```
+
+## Accessibility
+
+Animations are wrapped in `@media (prefers-reduced-motion: no-preference)`. When the user prefers reduced motion, the spinning beam is replaced with a static subtle border glow — no animation runs.
+
+## Theme detection
+
+The beam automatically adapts to dark/light mode via `prefers-color-scheme`. In dark mode, the beam uses bright white gradients; in light mode, it uses subtle dark gradients for visibility.
+
+## Browser support
+
+The component relies on CSS `@property` for smooth angle interpolation:
+
+| Browser | Minimum version |
+| --- | --- |
+| Chrome | 85+ |
+| Safari | 15.4+ |
+| Firefox | 128+ |
+| Edge | 85+ |
+
+<Callout type="info">
+In browsers without `@property` support, the beam will not animate but the component will still render its children normally with no visual artifacts.
+</Callout>

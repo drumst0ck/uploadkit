@@ -40,6 +40,8 @@ export { UploadButtonPulse } from './components/upload-button-pulse';
 export type { UploadButtonPulseProps } from './components/upload-button-pulse';
 export { UploadButtonGradient } from './components/upload-button-gradient';
 export type { UploadButtonGradientProps } from './components/upload-button-gradient';
+export { UploadButtonBeam } from './components/upload-button-beam';
+export type { UploadButtonBeamProps } from './components/upload-button-beam';
 
 // Specialty components
 export { UploadAvatar } from './components/upload-avatar';
@@ -100,6 +102,10 @@ export { UploadScannerFrame } from './components/upload-scanner-frame';
 export type { UploadScannerFrameProps } from './components/upload-scanner-frame';
 export { UploadBookFlip } from './components/upload-book-flip';
 export type { UploadBookFlipProps } from './components/upload-book-flip';
+
+// Border beam effect
+export { UploadBeam } from './components/upload-beam';
+export type { UploadBeamProps, UploadBeamState } from './components/upload-beam';
 
 // Floating upload manager
 export { UploadNotificationPanel } from './components/upload-notification-panel';

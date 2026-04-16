@@ -7,6 +7,8 @@ import type { UploadResult } from '@uploadkitdev/core';
 import { useUploadKit } from '../use-upload-kit';
 import { mergeClass } from '../utils/merge-class';
 import { useOptionalMotion, useReducedMotionSafe } from '../utils/motion-optional';
+import { UploadBeam } from './upload-beam';
+import type { UploadBeamState } from './upload-beam';
 
 export type UploadButtonPulseProps = {
   route: string;
@@ -18,6 +20,8 @@ export type UploadButtonPulseProps = {
   disabled?: boolean;
   className?: string;
   children?: React.ReactNode;
+  /** Wrap with an animated border beam that reflects upload state. */
+  beam?: boolean;
 };
 
 // Cloud-upload icon — matches the shimmer component's icon path set.
@@ -47,7 +51,7 @@ function injectCSS() {
 
 export const UploadButtonPulse = forwardRef<HTMLButtonElement, UploadButtonPulseProps>(
   (
-    { route, accept, maxSize, metadata, onUploadComplete, onUploadError, disabled = false, className, children },
+    { route, accept, maxSize, metadata, onUploadComplete, onUploadError, disabled = false, className, children, beam },
     ref,
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -138,9 +142,18 @@ export const UploadButtonPulse = forwardRef<HTMLButtonElement, UploadButtonPulse
       />
     );
 
+    // Map internal status to UploadBeamState
+    const beamState: UploadBeamState =
+      status === 'uploading' ? 'uploading'
+      : status === 'success' ? 'complete'
+      : status === 'error' ? 'error'
+      : 'idle';
+
+    let content: React.ReactNode;
+
     if (animated) {
       // Motion variant: whileTap squeeze + idle box-shadow pulse.
-      return (
+      content = (
         <>
           <m.motion.button
             ref={ref}
@@ -183,39 +196,45 @@ export const UploadButtonPulse = forwardRef<HTMLButtonElement, UploadButtonPulse
           />
         </>
       );
+    } else {
+      // Static / reduced-motion variant: CSS keyframe fallback, no Motion dependency.
+      content = (
+        <>
+          <button
+            ref={ref}
+            type="button"
+            className={mergeClass('uk-btn-pulse', className)}
+            data-uk-element="button"
+            data-state={status}
+            disabled={disabled || isUploading}
+            aria-busy={isUploading}
+            aria-label={isUploading ? `Uploading ${progress}%` : 'Upload file'}
+            onClick={handleClick}
+            style={baseStyle}
+          >
+            {iconSpan}
+            <span className="uk-btn-pulse__label">{label}</span>
+          </button>
+
+          <input
+            ref={inputRef}
+            type="file"
+            hidden
+            accept={accept?.join(',')}
+            onChange={handleFileChange}
+            tabIndex={-1}
+            aria-hidden="true"
+            disabled={disabled}
+          />
+        </>
+      );
     }
 
-    // Static / reduced-motion variant: CSS keyframe fallback, no Motion dependency.
-    return (
-      <>
-        <button
-          ref={ref}
-          type="button"
-          className={mergeClass('uk-btn-pulse', className)}
-          data-uk-element="button"
-          data-state={status}
-          disabled={disabled || isUploading}
-          aria-busy={isUploading}
-          aria-label={isUploading ? `Uploading ${progress}%` : 'Upload file'}
-          onClick={handleClick}
-          style={baseStyle}
-        >
-          {iconSpan}
-          <span className="uk-btn-pulse__label">{label}</span>
-        </button>
+    if (beam) {
+      return <UploadBeam state={beamState}>{content}</UploadBeam>;
+    }
 
-        <input
-          ref={inputRef}
-          type="file"
-          hidden
-          accept={accept?.join(',')}
-          onChange={handleFileChange}
-          tabIndex={-1}
-          aria-hidden="true"
-          disabled={disabled}
-        />
-      </>
-    );
+    return content;
   },
 );
 

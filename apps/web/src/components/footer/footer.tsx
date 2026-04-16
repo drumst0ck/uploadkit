@@ -30,7 +30,7 @@ const columns: FooterColumn[] = [
       { label: 'Documentation', href: 'https://docs.uploadkit.dev', external: true },
       { label: 'API Reference', href: 'https://docs.uploadkit.dev/api', external: true },
       { label: 'SDK Reference', href: 'https://docs.uploadkit.dev/sdk', external: true },
-      { label: 'GitHub', href: 'https://github.com/uploadkit/uploadkit', external: true },
+      { label: 'GitHub', href: 'https://github.com/drumst0ck/uploadkit', external: true },
     ],
   },
 ]

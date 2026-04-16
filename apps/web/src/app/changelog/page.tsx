@@ -32,6 +32,106 @@ export default function ChangelogPage() {
           <div className="container">
             <article className="changelog-entry">
               <div className="changelog-entry-meta">
+                <time className="changelog-date" dateTime="2026-04-16">
+                  April 16, 2026
+                </time>
+                <span className="changelog-version">v1.2.0</span>
+              </div>
+
+              <div className="changelog-entry-body">
+                <h2 className="changelog-entry-title">
+                  UploadBeam &amp; uploadkit CLI
+                </h2>
+
+                <h3 className="changelog-entry-subtitle">UploadBeam</h3>
+                <p className="changelog-entry-lead">
+                  Apple Intelligence-style animated border beam for upload
+                  components. New <code>&lt;UploadBeam&gt;</code> wrapper,{' '}
+                  <code>beam</code> prop on all dropzones and buttons, and a
+                  standalone <code>&lt;UploadButtonBeam&gt;</code> variant.
+                </p>
+
+                <h3 className="changelog-entry-subtitle">
+                  <code>uploadkit</code> CLI
+                </h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    <code>npx uploadkit init</code> — detects your framework and
+                    wires UploadKit in under 60 seconds
+                  </li>
+                  <li>
+                    <code>npx uploadkit add &lt;component&gt;</code> — inserts
+                    components shadcn-style
+                  </li>
+                  <li>
+                    <code>npx uploadkit restore</code> — rolls back changes
+                    safely
+                  </li>
+                  <li>
+                    Supports Next.js (<code>app/</code> and{' '}
+                    <code>src/app/</code>), SvelteKit, Remix, and Vite+React
+                  </li>
+                </ul>
+              </div>
+            </article>
+
+            <article className="changelog-entry">
+              <div className="changelog-entry-meta">
+                <time className="changelog-date" dateTime="2026-04-15">
+                  April 15, 2026
+                </time>
+                <span className="changelog-version">v1.1.0</span>
+              </div>
+
+              <div className="changelog-entry-body">
+                <h2 className="changelog-entry-title">
+                  create-uploadkit-app, blog &amp; docs refresh
+                </h2>
+
+                <h3 className="changelog-entry-subtitle">
+                  <code>create-uploadkit-app</code> CLI
+                </h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    <code>npx create-uploadkit-app my-app</code> — scaffolds a
+                    new project with 4 templates: Next.js 16, SvelteKit, React
+                    Router v7, Vite+React
+                  </li>
+                  <li>
+                    Interactive prompts, auto package manager detection
+                  </li>
+                </ul>
+
+                <h3 className="changelog-entry-subtitle">Blog</h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    16 SEO-optimized posts covering uploads, R2, security, MCP,
+                    and framework tutorials
+                  </li>
+                  <li>
+                    MDX + Shiki syntax highlighting, RSS feed, dynamic OG images,
+                    JSON-LD structured data
+                  </li>
+                </ul>
+
+                <h3 className="changelog-entry-subtitle">Documentation updates</h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    New quickstart leading with existing-project install
+                  </li>
+                  <li>
+                    CLI guides for both <code>uploadkit</code> and{' '}
+                    <code>create-uploadkit-app</code>
+                  </li>
+                  <li>
+                    UploadBeam + UploadButtonBeam component docs
+                  </li>
+                </ul>
+              </div>
+            </article>
+
+            <article className="changelog-entry">
+              <div className="changelog-entry-meta">
                 <time className="changelog-date" dateTime="2026-04-14">
                   April 14, 2026
                 </time>
