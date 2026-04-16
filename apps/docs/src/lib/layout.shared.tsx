@@ -28,7 +28,7 @@ export function baseOptions(): BaseLayoutProps {
       title: <UploadKitLogo />,
       url: 'https://uploadkit.dev',
     },
-    githubUrl: 'https://github.com/uploadkit/uploadkit',
+    githubUrl: 'https://github.com/drumst0ck/uploadkit',
     links: [
       { text: 'Docs', url: '/docs', active: 'nested-url' },
       { text: 'uploadkit.dev', url: 'https://uploadkit.dev' },

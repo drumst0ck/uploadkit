@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@uploadkitdev/core)](https://www.npmjs.com/package/@uploadkitdev/core)
 [![npm downloads](https://img.shields.io/npm/dm/@uploadkitdev/core)](https://www.npmjs.com/package/@uploadkitdev/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml/badge.svg)](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml)
+[![CI](https://github.com/drumst0ck/uploadkit/actions/workflows/ci.yml/badge.svg)](https://github.com/drumst0ck/uploadkit/actions/workflows/ci.yml)
 [![Bundle size](https://img.shields.io/bundlephobia/minzip/@uploadkitdev/core)](https://bundlephobia.com/package/@uploadkitdev/core)
 
 Lightweight TypeScript client for UploadKit file uploads.

@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@uploadkitdev/next)](https://www.npmjs.com/package/@uploadkitdev/next)
 [![npm downloads](https://img.shields.io/npm/dm/@uploadkitdev/next)](https://www.npmjs.com/package/@uploadkitdev/next)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml/badge.svg)](https://github.com/uploadkit/uploadkit/actions/workflows/ci.yml)
+[![CI](https://github.com/drumst0ck/uploadkit/actions/workflows/ci.yml/badge.svg)](https://github.com/drumst0ck/uploadkit/actions/workflows/ci.yml)
 
 Next.js App Router adapter for UploadKit with typed file routes.
 
