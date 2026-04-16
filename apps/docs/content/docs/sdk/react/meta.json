@@ -32,6 +32,8 @@
     "upload-blueprint",
     "upload-data-stream",
     "upload-sticky-board",
+    "---Effects---",
+    "upload-beam",
     "---Motion & Progress---",
     "upload-progress-radial",
     "upload-progress-bar",
