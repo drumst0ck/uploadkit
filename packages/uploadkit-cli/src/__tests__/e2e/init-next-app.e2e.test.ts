@@ -158,10 +158,13 @@ describe.sequential('e2e: uploadkit init (next-app)', () => {
     fx = scaffold('next-app-preconfigured');
     const { root } = fx;
 
+    // .env.local is gitignored so can't live in the fixture — create it here.
+    const envPath = join(root, '.env.local');
+    writeFileSync(envPath, 'UPLOADKIT_API_KEY=uk_test_placeholder\n', 'utf8');
+
     // Snapshot all file contents BEFORE running init.
     const layoutPath = join(root, 'app', 'layout.tsx');
     const routePath = join(root, 'app', 'api', 'uploadkit', '[...uploadkit]', 'route.ts');
-    const envPath = join(root, '.env.local');
     const before = {
       layout: readFileSync(layoutPath, 'utf8'),
       route: readFileSync(routePath, 'utf8'),
