@@ -101,6 +101,10 @@ export type { UploadScannerFrameProps } from './components/upload-scanner-frame'
 export { UploadBookFlip } from './components/upload-book-flip';
 export type { UploadBookFlipProps } from './components/upload-book-flip';
 
+// Border beam effect
+export { UploadBeam } from './components/upload-beam';
+export type { UploadBeamProps, UploadBeamState } from './components/upload-beam';
+
 // Floating upload manager
 export { UploadNotificationPanel } from './components/upload-notification-panel';
 export type { UploadNotificationPanelProps, UploadNotificationPanelHandle } from './components/upload-notification-panel';
