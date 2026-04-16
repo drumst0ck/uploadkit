@@ -35,45 +35,24 @@ export type UploadBeamProps = {
   style?: React.CSSProperties;
 };
 
-/* ---- system theme hook -------------------------------------------------- */
-
-function useSystemTheme(): 'dark' | 'light' {
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    if (typeof window === 'undefined') return 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e: MediaQueryListEvent) => setTheme(e.matches ? 'dark' : 'light');
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-
-  return theme;
-}
-
 /* ---- CSS generation ----------------------------------------------------- */
 
 type BeamCSSOptions = {
   id: string;
   borderRadius: number;
   duration: number;
-  isDark: boolean;
 };
 
 /**
  * Generates all CSS needed for a single UploadBeam instance.
  * Uses @property for angle interpolation + conic-gradient for the beam.
  */
-function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions): string {
+function generateBeamCSS({ id, borderRadius, duration }: BeamCSSOptions): string {
   const borderWidth = 2;
   const innerRadius = Math.max(0, borderRadius - borderWidth);
 
-  // The beam "spotlight" — brighter in dark mode, darker in light mode
-  const beamGradient = isDark
-    ? `conic-gradient(
+  // Dark mode beam variants
+  const darkBeamGradient = `conic-gradient(
         from var(--beam-angle-${id}),
         transparent 0%, transparent 54%,
         rgba(99, 102, 241, 0.15) 57%,
@@ -84,23 +63,9 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
         rgba(99, 102, 241, 0.4) 72%,
         rgba(99, 102, 241, 0.15) 75%,
         transparent 78%, transparent 100%
-      )`
-    : `conic-gradient(
-        from var(--beam-angle-${id}),
-        transparent 0%, transparent 54%,
-        rgba(79, 70, 229, 0.1) 57%,
-        rgba(79, 70, 229, 0.25) 60%,
-        rgba(99, 102, 241, 0.5) 63%,
-        rgba(99, 102, 241, 0.65) 66%,
-        rgba(99, 102, 241, 0.5) 69%,
-        rgba(79, 70, 229, 0.25) 72%,
-        rgba(79, 70, 229, 0.1) 75%,
-        transparent 78%, transparent 100%
       )`;
 
-  // Bloom glow behind the beam
-  const bloomGradient = isDark
-    ? `conic-gradient(
+  const darkBloomGradient = `conic-gradient(
         from var(--beam-angle-${id}),
         transparent 0%, transparent 58%,
         rgba(255, 255, 255, 0.03) 62%,
@@ -114,8 +79,23 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
         rgba(255, 255, 255, 0.08) 75%,
         rgba(255, 255, 255, 0.03) 78%,
         transparent 82%
-      )`
-    : `conic-gradient(
+      )`;
+
+  // Light mode beam variants
+  const lightBeamGradient = `conic-gradient(
+        from var(--beam-angle-${id}),
+        transparent 0%, transparent 54%,
+        rgba(79, 70, 229, 0.1) 57%,
+        rgba(79, 70, 229, 0.25) 60%,
+        rgba(99, 102, 241, 0.5) 63%,
+        rgba(99, 102, 241, 0.65) 66%,
+        rgba(99, 102, 241, 0.5) 69%,
+        rgba(79, 70, 229, 0.25) 72%,
+        rgba(79, 70, 229, 0.1) 75%,
+        transparent 78%, transparent 100%
+      )`;
+
+  const lightBloomGradient = `conic-gradient(
         from var(--beam-angle-${id}),
         transparent 0%, transparent 58%,
         rgba(0, 0, 0, 0.02) 62%,
@@ -131,7 +111,39 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
         transparent 82%
       )`;
 
-  const innerShadow = isDark ? 'rgba(255, 255, 255, 0.27)' : 'rgba(0, 0, 0, 0.14)';
+  // Shared mask for the beam stroke
+  const beamMask = `
+  -webkit-mask:
+    conic-gradient(
+      from var(--beam-angle-${id}),
+      transparent 0%, transparent 30%,
+      rgba(255, 255, 255, 0.1) 36%, rgba(255, 255, 255, 0.35) 44%,
+      white 52%, white 80%,
+      rgba(255, 255, 255, 0.35) 86%, rgba(255, 255, 255, 0.1) 92%,
+      transparent 95%, transparent 100%
+    ),
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: source-in, xor;
+  mask:
+    conic-gradient(
+      from var(--beam-angle-${id}),
+      transparent 0%, transparent 30%,
+      rgba(255, 255, 255, 0.1) 36%, rgba(255, 255, 255, 0.35) 44%,
+      white 52%, white 80%,
+      rgba(255, 255, 255, 0.35) 86%, rgba(255, 255, 255, 0.1) 92%,
+      transparent 95%, transparent 100%
+    ),
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: intersect, exclude;`;
+
+  // Shared bloom mask
+  const bloomMask = `
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;`;
 
   return `
 @property --beam-angle-${id} {
@@ -167,7 +179,7 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
     beam-fade-out-${id} 0.5s ease forwards;
 }
 
-/* ---- Beam stroke (::after) ---- */
+/* ---- Beam stroke (::after) — shared layout ---- */
 [data-beam="${id}"][data-active]::after,
 [data-beam="${id}"][data-fading]::after {
   content: "";
@@ -176,37 +188,13 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
   border-radius: ${innerRadius}px;
   padding: ${borderWidth}px;
   clip-path: inset(0 round ${borderRadius}px);
-  background: ${beamGradient};
-  -webkit-mask:
-    conic-gradient(
-      from var(--beam-angle-${id}),
-      transparent 0%, transparent 30%,
-      rgba(255, 255, 255, 0.1) 36%, rgba(255, 255, 255, 0.35) 44%,
-      white 52%, white 80%,
-      rgba(255, 255, 255, 0.35) 86%, rgba(255, 255, 255, 0.1) 92%,
-      transparent 95%, transparent 100%
-    ),
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: source-in, xor;
-  mask:
-    conic-gradient(
-      from var(--beam-angle-${id}),
-      transparent 0%, transparent 30%,
-      rgba(255, 255, 255, 0.1) 36%, rgba(255, 255, 255, 0.35) 44%,
-      white 52%, white 80%,
-      rgba(255, 255, 255, 0.35) 86%, rgba(255, 255, 255, 0.1) 92%,
-      transparent 95%, transparent 100%
-    ),
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask-composite: intersect, exclude;
+  ${beamMask}
   pointer-events: none;
   z-index: 2;
   opacity: calc(var(--beam-opacity-${id}) * 0.85);
 }
 
-/* ---- Inner glow (::before) ---- */
+/* ---- Inner glow (::before) — shared layout ---- */
 [data-beam="${id}"][data-active]::before,
 [data-beam="${id}"][data-fading]::before {
   content: "";
@@ -214,24 +202,19 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
   inset: 0;
   border-radius: ${borderRadius}px;
   clip-path: inset(0 round ${borderRadius}px);
-  box-shadow: inset 0 0 5px 1px ${innerShadow};
   pointer-events: none;
   z-index: 1;
   opacity: calc(var(--beam-opacity-${id}) * 0.7);
 }
 
-/* ---- Bloom ---- */
+/* ---- Bloom — shared layout ---- */
 [data-beam="${id}"] [data-beam-bloom] {
   display: none;
   position: absolute;
   inset: 0;
   border-radius: ${innerRadius}px;
   clip-path: inset(0 round ${borderRadius}px);
-  background: ${bloomGradient};
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
+  ${bloomMask}
   padding: ${borderWidth}px;
   filter: blur(8px) brightness(1.3) saturate(1.2);
   pointer-events: none;
@@ -243,6 +226,38 @@ function generateBeamCSS({ id, borderRadius, duration, isDark }: BeamCSSOptions)
 [data-beam="${id}"][data-fading] [data-beam-bloom] {
   display: block;
   opacity: calc(var(--beam-opacity-${id}) * 0.8);
+}
+
+/* ---- Dark mode theme ---- */
+@media (prefers-color-scheme: dark) {
+  [data-beam="${id}"][data-active]::after,
+  [data-beam="${id}"][data-fading]::after {
+    background: ${darkBeamGradient};
+  }
+  [data-beam="${id}"][data-active]::before,
+  [data-beam="${id}"][data-fading]::before {
+    box-shadow: inset 0 0 5px 1px rgba(255, 255, 255, 0.27);
+  }
+  [data-beam="${id}"][data-active] [data-beam-bloom],
+  [data-beam="${id}"][data-fading] [data-beam-bloom] {
+    background: ${darkBloomGradient};
+  }
+}
+
+/* ---- Light mode theme ---- */
+@media (prefers-color-scheme: light) {
+  [data-beam="${id}"][data-active]::after,
+  [data-beam="${id}"][data-fading]::after {
+    background: ${lightBeamGradient};
+  }
+  [data-beam="${id}"][data-active]::before,
+  [data-beam="${id}"][data-fading]::before {
+    box-shadow: inset 0 0 5px 1px rgba(0, 0, 0, 0.14);
+  }
+  [data-beam="${id}"][data-active] [data-beam-bloom],
+  [data-beam="${id}"][data-fading] [data-beam-bloom] {
+    background: ${lightBloomGradient};
+  }
 }
 
 /* ---- State color overrides via CSS custom properties ---- */
@@ -317,7 +332,6 @@ export function UploadBeam({
 }: UploadBeamProps) {
   const baseId = useId();
   const id = baseId.replace(/:/g, '-');
-  const systemTheme = useSystemTheme();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Resolve effective state: `active` prop is a convenience shorthand
@@ -354,9 +368,8 @@ export function UploadBeam({
   useEffect(() => {
     if (effectiveState === 'uploading') {
       setBeamColorState('uploading');
-      if (!isActive && !isFading) {
-        setIsActive(true);
-      }
+      setIsFading(false); // cancel any in-progress fade-out
+      setIsActive(true);
     } else if (effectiveState === 'complete' || effectiveState === 'error') {
       setBeamColorState(effectiveState);
       // Hold for 1.5s, then fade out
@@ -389,9 +402,8 @@ export function UploadBeam({
         id,
         borderRadius: finalRadius,
         duration,
-        isDark: systemTheme === 'dark',
       }),
-    [id, finalRadius, duration, systemTheme],
+    [id, finalRadius, duration],
   );
 
   const showBeam = isActive || isFading;

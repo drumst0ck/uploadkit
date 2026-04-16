@@ -231,10 +231,17 @@ export const UploadButtonBeam = forwardRef<HTMLButtonElement, UploadButtonBeamPr
       await upload(file, metadata);
     }
 
-    function handleRetry(e: React.MouseEvent) {
+    function handleRetry(e: React.MouseEvent | React.KeyboardEvent) {
       e.stopPropagation();
       reset();
       inputRef.current?.click();
+    }
+
+    function handleRetryKeyDown(e: React.KeyboardEvent) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleRetry(e);
+      }
     }
 
     // Map internal status to UploadBeamState
@@ -263,15 +270,17 @@ export const UploadButtonBeam = forwardRef<HTMLButtonElement, UploadButtonBeamPr
       label = (
         <>
           <span>Upload failed</span>
-          <button
-            type="button"
+          <span
+            role="button"
+            tabIndex={0}
             className="uk-btn-beam__retry"
             onClick={handleRetry}
+            onKeyDown={handleRetryKeyDown}
             aria-label="Retry upload"
           >
             <span dangerouslySetInnerHTML={{ __html: RETRY_ICON }} />
             Retry
-          </button>
+          </span>
         </>
       );
     } else {
