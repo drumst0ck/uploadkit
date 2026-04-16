@@ -21,6 +21,7 @@ import {
   UploadDataStream,
   UploadScannerFrame,
   UploadKanban,
+  UploadDropzone,
 } from '@uploadkitdev/react'
 import type { UploadResult } from '@uploadkitdev/react'
 
@@ -74,6 +75,14 @@ type ShowcaseEntry = {
 }
 
 const SHOWCASE: ShowcaseEntry[] = [
+  {
+    id: 'beam',
+    label: 'Beam',
+    description: 'Apple Intelligence-style animated border beam',
+    multiFile: true,
+    stageHeight: 320,
+    render: () => <UploadDropzone route="demo" beam />,
+  },
   {
     id: 'glass',
     label: 'Glass',
@@ -234,7 +243,7 @@ function triggerFakeUpload(container: HTMLElement, count: number) {
 // ─────────────────────────────────────────────────────────
 
 export function LandingShowcase() {
-  const [activeId, setActiveId] = useState('glass')
+  const [activeId, setActiveId] = useState('beam')
   const stageRef = useRef<HTMLDivElement>(null)
   const mockClient = useMemo(() => new MockClient(), [])
 
