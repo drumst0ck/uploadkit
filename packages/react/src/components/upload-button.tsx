@@ -4,6 +4,8 @@ import type { ProgressGranularity } from '@uploadkitdev/core';
 import { useUploadKit } from '../use-upload-kit';
 import { mergeClass } from '../utils/merge-class';
 import { getUploadIcon } from '../utils/file-icons';
+import { UploadBeam } from './upload-beam';
+import type { UploadBeamState } from './upload-beam';
 
 export type UploadButtonProps = {
   /** Route name defined in your fileRouter (e.g. 'avatars', 'documents') */
@@ -43,6 +45,8 @@ export type UploadButtonProps = {
   config?: { mode?: 'auto' | 'manual' };
   /** Controls how often onProgress fires. Default: 'coarse' (every 10%). */
   uploadProgressGranularity?: ProgressGranularity;
+  /** Wrap with an animated border beam that reflects upload state. */
+  beam?: boolean;
 };
 
 const variantClass: Record<NonNullable<UploadButtonProps['variant']>, string> = {
@@ -109,6 +113,7 @@ export const UploadButton = forwardRef<HTMLButtonElement, UploadButtonProps>(
       children,
       config,
       uploadProgressGranularity,
+      beam,
     },
     ref,
   ) => {
@@ -216,6 +221,13 @@ export const UploadButton = forwardRef<HTMLButtonElement, UploadButtonProps>(
             ? 'Upload failed'
             : '';
 
+    // Map internal status to UploadBeamState
+    const beamState: UploadBeamState =
+      status === 'uploading' ? 'uploading'
+      : status === 'success' ? 'complete'
+      : status === 'error' ? 'error'
+      : 'idle';
+
     // Manual mode staged filename display (truncated to 20 chars)
     const stagedName = stagedFile
       ? stagedFile.name.length > 20
@@ -223,7 +235,7 @@ export const UploadButton = forwardRef<HTMLButtonElement, UploadButtonProps>(
         : stagedFile.name
       : null;
 
-    return (
+    const content = (
       <>
         <style>{`@keyframes uk-spin{to{transform:rotate(360deg)}}`}</style>
         <button
@@ -309,6 +321,12 @@ export const UploadButton = forwardRef<HTMLButtonElement, UploadButtonProps>(
         />
       </>
     );
+
+    if (beam) {
+      return <UploadBeam state={beamState}>{content}</UploadBeam>;
+    }
+
+    return content;
   },
 );
 

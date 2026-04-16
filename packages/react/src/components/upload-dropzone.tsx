@@ -6,6 +6,8 @@ import { useAutoDismiss } from '../hooks/use-auto-dismiss';
 import { mergeClass } from '../utils/merge-class';
 import { formatBytes } from '../utils/format-bytes';
 import { getUploadIcon } from '../utils/file-icons';
+import { UploadBeam } from './upload-beam';
+import type { UploadBeamState } from './upload-beam';
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
@@ -62,6 +64,8 @@ export type UploadDropzoneProps = {
   config?: { mode?: 'auto' | 'manual' };
   /** Controls how often onProgress fires. Default: 'coarse' (every 10%). */
   uploadProgressGranularity?: ProgressGranularity;
+  /** Wrap with an animated border beam that reflects upload state. */
+  beam?: boolean;
 };
 
 // Small inline SVG icons for file item status indicators
@@ -114,6 +118,7 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
       appearance,
       config,
       uploadProgressGranularity,
+      beam,
     },
     ref,
   ) => {
@@ -367,7 +372,14 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
     const isAnyUploading = files.some((f) => f.status === 'uploading');
     const dropzoneClass = mergeClass('uk-dropzone', appearance?.container);
 
-    return (
+    // Map internal UploadStatus to UploadBeamState
+    const beamState: UploadBeamState =
+      containerState === 'uploading' ? 'uploading'
+      : containerState === 'success' ? 'complete'
+      : containerState === 'error' ? 'error'
+      : 'idle';
+
+    const content = (
       <div>
         {/* Drag-and-drop zone */}
         <div
@@ -538,6 +550,12 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
         />
       </div>
     );
+
+    if (beam) {
+      return <UploadBeam state={beamState}>{content}</UploadBeam>;
+    }
+
+    return content;
   },
 );
 
