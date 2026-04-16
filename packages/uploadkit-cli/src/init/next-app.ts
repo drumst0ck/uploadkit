@@ -110,18 +110,20 @@ export const initNextApp: InitImpl = async (ctx, getSession) => {
   // as well as marker-based projects from a prior `uploadkit init` run.
   const existingLayout = await readFile(layoutAbs, 'utf8');
   const hasRoute = existsSync(routeAbs);
+  const hasClient = existsSync(clientAbs);
   const hasProvider = existingLayout.includes(REACT_MODULE);
   const hasEnvKey =
     existsSync(envAbs) &&
     (await readFile(envAbs, 'utf8')).includes('UPLOADKIT_API_KEY');
 
   // Fully configured — nothing to do.
-  if (hasRoute && hasProvider && hasEnvKey) {
+  if (hasRoute && hasClient && hasProvider && hasEnvKey) {
     return { skipped: true, installed: [], created: [], modified: [] };
   }
 
   // Partial repair: only apply missing pieces.
   const skipRoute = hasRoute;
+  const skipClient = hasClient;
   const skipProvider = hasProvider;
   const skipEnv = hasEnvKey;
 
@@ -160,7 +162,7 @@ export const initNextApp: InitImpl = async (ctx, getSession) => {
   }
 
   // --- (6) Create client stub --------------------------------------------
-  if (!skipRoute) {
+  if (!skipClient) {
     const clientTemplate = await loadTemplate('next-uploadkit-client.ts.tpl');
     await writeIfAbsent(clientAbs, clientTemplate, session, created);
   }
