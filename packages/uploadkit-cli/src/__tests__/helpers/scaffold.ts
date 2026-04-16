@@ -19,6 +19,8 @@ export const CLI_BIN = resolve(HERE, '..', '..', '..', 'dist', 'index.js');
 export type FixtureName =
   | 'next-app'
   | 'next-app-src'
+  | 'next-app-preconfigured'
+  | 'next-app-partial'
   | 'sveltekit'
   | 'remix'
   | 'vite-react';

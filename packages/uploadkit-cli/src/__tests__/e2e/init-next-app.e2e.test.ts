@@ -153,4 +153,59 @@ describe.sequential('e2e: uploadkit init (next-app)', () => {
     };
     expect(after).toEqual(before);
   });
+
+  it('detects create-uploadkit-app project (no markers) as already configured', async () => {
+    fx = scaffold('next-app-preconfigured');
+    const { root } = fx;
+
+    // Snapshot all file contents BEFORE running init.
+    const layoutPath = join(root, 'app', 'layout.tsx');
+    const routePath = join(root, 'app', 'api', 'uploadkit', '[...uploadkit]', 'route.ts');
+    const envPath = join(root, '.env.local');
+    const before = {
+      layout: readFileSync(layoutPath, 'utf8'),
+      route: readFileSync(routePath, 'utf8'),
+      env: readFileSync(envPath, 'utf8'),
+    };
+
+    const res = await runCli(['init', '--yes', '--skip-install'], { cwd: root });
+    expect(res.exitCode, `stderr:\n${res.stderr}`).toBe(0);
+
+    // Should report "already configured".
+    const out = `${res.stdout}\n${res.stderr}`;
+    expect(out).toMatch(/already configured/i);
+
+    // Zero file changes — contents must be identical.
+    expect(readFileSync(layoutPath, 'utf8')).toBe(before.layout);
+    expect(readFileSync(routePath, 'utf8')).toBe(before.route);
+    expect(readFileSync(envPath, 'utf8')).toBe(before.env);
+
+    // No backup dir created since nothing was modified.
+    expect(existsSync(join(root, '.uploadkit-backup'))).toBe(false);
+  });
+
+  it('partial config: has route handler but no provider — only adds provider', async () => {
+    fx = scaffold('next-app-partial');
+    const { root } = fx;
+
+    const routePath = join(root, 'app', 'api', 'uploadkit', '[...uploadkit]', 'route.ts');
+    const routeBefore = readFileSync(routePath, 'utf8');
+
+    const res = await runCli(['init', '--yes', '--skip-install'], { cwd: root });
+    expect(res.exitCode, `stderr:\n${res.stderr}`).toBe(0);
+
+    // Route handler must NOT have been overwritten or recreated.
+    expect(readFileSync(routePath, 'utf8')).toBe(routeBefore);
+
+    // Layout SHOULD now have the provider.
+    const layoutSrc = readFileSync(join(root, 'app', 'layout.tsx'), 'utf8');
+    expect(layoutSrc).toContain("from '@uploadkitdev/react'");
+    expect(layoutSrc).toContain('UploadKitProvider');
+
+    // .env.local SHOULD have been created (didn't exist in partial fixture).
+    expect(existsSync(join(root, '.env.local'))).toBe(true);
+    expect(readFileSync(join(root, '.env.local'), 'utf8')).toContain(
+      'UPLOADKIT_API_KEY=uk_test_placeholder',
+    );
+  });
 });

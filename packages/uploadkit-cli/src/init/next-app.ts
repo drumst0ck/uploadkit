@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pc from 'picocolors';
-import { addImport, hasMarkers, mergeEnv, wrapChildrenOf } from '../codemods/index.js';
+import { addImport, mergeEnv, wrapChildrenOf } from '../codemods/index.js';
 import { installPackages } from './install-deps.js';
 import type { InitImpl } from './types.js';
 
@@ -104,12 +104,26 @@ export const initNextApp: InitImpl = async (ctx, getSession) => {
   const envAbs = join(root, REL_ENV);
 
   // --- (2) Idempotency ----------------------------------------------------
-  if (existsSync(routeAbs)) {
-    const existingLayout = await readFile(layoutAbs, 'utf8');
-    if (hasMarkers(existingLayout) && existingLayout.includes(REACT_MODULE)) {
-      return { skipped: true, installed: [], created: [], modified: [] };
-    }
+  // Detect existing configuration by content-based checks (provider import,
+  // route handler presence, env key). This covers projects scaffolded by
+  // `create-uploadkit-app` which does NOT use `uploadkit:start/end` markers,
+  // as well as marker-based projects from a prior `uploadkit init` run.
+  const existingLayout = await readFile(layoutAbs, 'utf8');
+  const hasRoute = existsSync(routeAbs);
+  const hasProvider = existingLayout.includes(REACT_MODULE);
+  const hasEnvKey =
+    existsSync(envAbs) &&
+    (await readFile(envAbs, 'utf8')).includes('UPLOADKIT_API_KEY');
+
+  // Fully configured — nothing to do.
+  if (hasRoute && hasProvider && hasEnvKey) {
+    return { skipped: true, installed: [], created: [], modified: [] };
   }
+
+  // Partial repair: only apply missing pieces.
+  const skipRoute = hasRoute;
+  const skipProvider = hasProvider;
+  const skipEnv = hasEnvKey;
 
   // Preconditions passed — materialize the backup session.
   const session = getSession();
@@ -118,46 +132,55 @@ export const initNextApp: InitImpl = async (ctx, getSession) => {
   const modified: string[] = [];
 
   // --- (3) Back up the layout BEFORE any mutation ------------------------
-  await session.save(layoutAbs);
+  if (!skipProvider) {
+    await session.save(layoutAbs);
+  }
 
   // --- (4) Rewrite layout -------------------------------------------------
-  const originalLayout = await readFile(layoutAbs, 'utf8');
-  const withImport = addImport(originalLayout, {
-    from: REACT_MODULE,
-    specifiers: [PROVIDER_LOCAL],
-  });
-  const wrapped = wrapChildrenOf(withImport, {
-    parentTag: 'body',
-    wrapperOpen: `<${PROVIDER_LOCAL}>`,
-    wrapperClose: `</${PROVIDER_LOCAL}>`,
-  });
-  if (wrapped !== originalLayout) {
-    await writeFile(layoutAbs, wrapped, 'utf8');
-    modified.push(layoutAbs);
+  if (!skipProvider) {
+    const withImport = addImport(existingLayout, {
+      from: REACT_MODULE,
+      specifiers: [PROVIDER_LOCAL],
+    });
+    const wrapped = wrapChildrenOf(withImport, {
+      parentTag: 'body',
+      wrapperOpen: `<${PROVIDER_LOCAL}>`,
+      wrapperClose: `</${PROVIDER_LOCAL}>`,
+    });
+    if (wrapped !== existingLayout) {
+      await writeFile(layoutAbs, wrapped, 'utf8');
+      modified.push(layoutAbs);
+    }
   }
 
   // --- (5) Create route handler ------------------------------------------
-  const routeTemplate = await loadTemplate('next-route-handler.ts.tpl');
-  await writeIfAbsent(routeAbs, routeTemplate, session, created);
+  if (!skipRoute) {
+    const routeTemplate = await loadTemplate('next-route-handler.ts.tpl');
+    await writeIfAbsent(routeAbs, routeTemplate, session, created);
+  }
 
   // --- (6) Create client stub --------------------------------------------
-  const clientTemplate = await loadTemplate('next-uploadkit-client.ts.tpl');
-  await writeIfAbsent(clientAbs, clientTemplate, session, created);
+  if (!skipRoute) {
+    const clientTemplate = await loadTemplate('next-uploadkit-client.ts.tpl');
+    await writeIfAbsent(clientAbs, clientTemplate, session, created);
+  }
 
   // --- (7) Merge .env.local ----------------------------------------------
-  const envExisted = existsSync(envAbs);
-  const appended = await mergeEnv(envAbs, {
-    UPLOADKIT_API_KEY: 'uk_test_placeholder',
-  });
-  if (!envExisted) {
-    session.recordCreate(envAbs);
-    created.push(envAbs);
-  } else if (appended.length > 0) {
-    // File existed and we appended — treat as modify. Best-effort backup of
-    // the pre-append version (mergeEnv already wrote, so we can't back up
-    // now — this is acceptable since env merges are additive-only and the
-    // user can diff against git).
-    modified.push(envAbs);
+  if (!skipEnv) {
+    const envExisted = existsSync(envAbs);
+    const appended = await mergeEnv(envAbs, {
+      UPLOADKIT_API_KEY: 'uk_test_placeholder',
+    });
+    if (!envExisted) {
+      session.recordCreate(envAbs);
+      created.push(envAbs);
+    } else if (appended.length > 0) {
+      // File existed and we appended — treat as modify. Best-effort backup of
+      // the pre-append version (mergeEnv already wrote, so we can't back up
+      // now — this is acceptable since env merges are additive-only and the
+      // user can diff against git).
+      modified.push(envAbs);
+    }
   }
 
   // --- (8) Install packages ----------------------------------------------
