@@ -110,6 +110,7 @@ export {
   UploadScannerFrame,
   UploadBookFlip,
   UploadStickyBoard,
+  UploadBeam,
 } from '@uploadkitdev/react';
 
 // --- Demo helpers for docs previews ---

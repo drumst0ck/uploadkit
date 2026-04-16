@@ -4,12 +4,17 @@ description: Apple Intelligence-style animated border beam for upload components
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { UploadDropzone, UploadBeam } from '@/components/preview-components';
 
 # UploadBeam
 
 An animated border beam effect inspired by Apple Intelligence that activates during file uploads. Uses CSS `@property` angle animation with `conic-gradient` and `mask-composite` to create a spinning beam restricted to the border area.
 
 Zero external dependencies — the CSS technique is vendored directly into the component.
+
+<ComponentPreview caption="Apple Intelligence — border beam during upload" simulateFiles={2}>
+  <UploadDropzone route="demo" beam />
+</ComponentPreview>
 
 ## Usage as wrapper
 
