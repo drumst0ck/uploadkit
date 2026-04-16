@@ -9,6 +9,8 @@ import type { UploadResult } from '@uploadkitdev/core';
 import { useUploadKit } from '../use-upload-kit';
 import { mergeClass } from '../utils/merge-class';
 import { useOptionalMotion, useReducedMotionSafe, type MotionModule } from '../utils/motion-optional';
+import { UploadBeam } from './upload-beam';
+import type { UploadBeamState } from './upload-beam';
 
 export type UploadButtonGradientProps = {
   route: string;
@@ -20,6 +22,8 @@ export type UploadButtonGradientProps = {
   disabled?: boolean;
   className?: string;
   children?: React.ReactNode;
+  /** Wrap with an animated border beam that reflects upload state. */
+  beam?: boolean;
 };
 
 // Same upload icon used across the SDK button family.
@@ -311,7 +315,7 @@ function GradientStatic(
 
 export const UploadButtonGradient = forwardRef<HTMLButtonElement, UploadButtonGradientProps>(
   (
-    { route, accept, maxSize, metadata, onUploadComplete, onUploadError, disabled = false, className, children },
+    { route, accept, maxSize, metadata, onUploadComplete, onUploadError, disabled = false, className, children, beam },
     ref,
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -357,6 +361,13 @@ export const UploadButtonGradient = forwardRef<HTMLButtonElement, UploadButtonGr
           ? 'Done'
           : (children ?? 'Upload file');
 
+    // Map internal status to UploadBeamState
+    const beamState: UploadBeamState =
+      status === 'uploading' ? 'uploading'
+      : status === 'success' ? 'complete'
+      : status === 'error' ? 'error'
+      : 'idle';
+
     const shared: SharedState & SharedHandlers = {
       status,
       progress,
@@ -369,10 +380,15 @@ export const UploadButtonGradient = forwardRef<HTMLButtonElement, UploadButtonGr
       onFileChange: handleFileChange,
     };
 
-    if (animated && m) {
-      return <GradientAnimated {...shared} m={m} forwardedRef={ref} inputRef={inputRef} />;
+    const content = animated && m
+      ? <GradientAnimated {...shared} m={m} forwardedRef={ref} inputRef={inputRef} />
+      : <GradientStatic {...shared} forwardedRef={ref} inputRef={inputRef} />;
+
+    if (beam) {
+      return <UploadBeam state={beamState}>{content}</UploadBeam>;
     }
-    return <GradientStatic {...shared} forwardedRef={ref} inputRef={inputRef} />;
+
+    return content;
   },
 );
 

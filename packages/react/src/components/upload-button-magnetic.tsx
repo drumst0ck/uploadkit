@@ -10,6 +10,8 @@ import {
   useReducedMotionSafe,
   type MotionModule,
 } from '../utils/motion-optional';
+import { UploadBeam } from './upload-beam';
+import type { UploadBeamState } from './upload-beam';
 
 export type UploadButtonMagneticProps = {
   route: string;
@@ -21,6 +23,8 @@ export type UploadButtonMagneticProps = {
   disabled?: boolean;
   className?: string;
   children?: React.ReactNode;
+  /** Wrap with an animated border beam that reflects upload state. */
+  beam?: boolean;
 };
 
 const ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>`;
@@ -144,7 +148,7 @@ function MagneticStatic(
 
 export const UploadButtonMagnetic = forwardRef<HTMLButtonElement, UploadButtonMagneticProps>(
   (
-    { route, accept, maxSize, metadata, onUploadComplete, onUploadError, disabled = false, className, children },
+    { route, accept, maxSize, metadata, onUploadComplete, onUploadError, disabled = false, className, children, beam },
     ref,
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -179,6 +183,13 @@ export const UploadButtonMagnetic = forwardRef<HTMLButtonElement, UploadButtonMa
 
     const label = isUploading ? `Uploading ${progress}%` : (children ?? 'Upload file');
 
+    // Map internal status to UploadBeamState
+    const beamState: UploadBeamState =
+      status === 'uploading' ? 'uploading'
+      : status === 'success' ? 'complete'
+      : status === 'error' ? 'error'
+      : 'idle';
+
     const shared: SharedState & SharedHandlers = {
       status,
       progress,
@@ -191,10 +202,15 @@ export const UploadButtonMagnetic = forwardRef<HTMLButtonElement, UploadButtonMa
       onFileChange: handleFileChange,
     };
 
-    if (animated && m) {
-      return <MagneticAnimated {...shared} m={m} forwardedRef={ref} inputRef={inputRef} />;
+    const content = animated && m
+      ? <MagneticAnimated {...shared} m={m} forwardedRef={ref} inputRef={inputRef} />
+      : <MagneticStatic {...shared} forwardedRef={ref} inputRef={inputRef} />;
+
+    if (beam) {
+      return <UploadBeam state={beamState}>{content}</UploadBeam>;
     }
-    return <MagneticStatic {...shared} forwardedRef={ref} inputRef={inputRef} />;
+
+    return content;
   },
 );
 

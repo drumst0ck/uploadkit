@@ -6,6 +6,8 @@ import type { UploadResult } from '@uploadkitdev/core';
 import { useUploadKit } from '../use-upload-kit';
 import { mergeClass } from '../utils/merge-class';
 import { useOptionalMotion, useReducedMotionSafe } from '../utils/motion-optional';
+import { UploadBeam } from './upload-beam';
+import type { UploadBeamState } from './upload-beam';
 
 export type UploadButtonShimmerProps = {
   route: string;
@@ -17,13 +19,15 @@ export type UploadButtonShimmerProps = {
   disabled?: boolean;
   className?: string;
   children?: React.ReactNode;
+  /** Wrap with an animated border beam that reflects upload state. */
+  beam?: boolean;
 };
 
 const UPLOAD_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>`;
 
 export const UploadButtonShimmer = forwardRef<HTMLButtonElement, UploadButtonShimmerProps>(
   (
-    { route, accept, maxSize, metadata, onUploadComplete, onUploadError, disabled = false, className, children },
+    { route, accept, maxSize, metadata, onUploadComplete, onUploadError, disabled = false, className, children, beam },
     ref,
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -58,7 +62,14 @@ export const UploadButtonShimmer = forwardRef<HTMLButtonElement, UploadButtonShi
 
     const label = isUploading ? `Uploading ${progress}%` : (children ?? 'Upload file');
 
-    return (
+    // Map internal status to UploadBeamState
+    const beamState: UploadBeamState =
+      status === 'uploading' ? 'uploading'
+      : status === 'success' ? 'complete'
+      : status === 'error' ? 'error'
+      : 'idle';
+
+    const content = (
       <>
         <button
           ref={ref}
@@ -111,6 +122,12 @@ export const UploadButtonShimmer = forwardRef<HTMLButtonElement, UploadButtonShi
         />
       </>
     );
+
+    if (beam) {
+      return <UploadBeam state={beamState}>{content}</UploadBeam>;
+    }
+
+    return content;
   },
 );
 
