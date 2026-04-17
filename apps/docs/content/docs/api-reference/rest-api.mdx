@@ -17,11 +17,11 @@ All requests must be made over HTTPS. HTTP requests are rejected.
 
 ## Authentication
 
-Every request requires an API key passed in the `x-api-key` header:
+Every request requires an API key passed as a Bearer token in the `Authorization` header:
 
 ```bash
 curl https://api.uploadkit.dev/api/v1/files \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
 ```
 
 API keys come in two forms:
@@ -35,24 +35,34 @@ See [Authentication](/docs/api-reference/authentication) for full details on key
 
 ## Response Format
 
-All responses are JSON. Successful responses return the requested resource directly:
+All responses are JSON. Successful responses are typically wrapped in a resource envelope — the exact key depends on the endpoint (`file`, `files`, `project`, `projects`, `router`, `routers`, `keys`, `usage`, `logs`, etc.). Simple acknowledgements return `{ "ok": true }`.
+
+Example — single-file response:
 
 ```json
 {
-  "id": "abc123",
-  "key": "uploads/abc123/photo.jpg",
-  "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
-  "status": "UPLOADED"
+  "file": {
+    "id": "65f1a2b3c4d5e6f7a8b9c0d1",
+    "key": "65f0.../imageUploader/abc123.../photo.jpg",
+    "name": "photo.jpg",
+    "size": 204800,
+    "type": "image/jpeg",
+    "url": "https://cdn.uploadkit.dev/65f0.../imageUploader/abc123.../photo.jpg",
+    "status": "UPLOADED",
+    "metadata": { "userId": "user_123" },
+    "createdAt": "2026-04-08T12:00:00.000Z"
+  }
 }
 ```
 
-Error responses always have the shape:
+Error responses always follow this shape:
 
 ```json
 {
   "error": {
-    "code": "FILE_TOO_LARGE",
-    "message": "File size 6291456 bytes exceeds the 4194304 byte limit",
+    "type": "invalid_request",
+    "code": "TIER_LIMIT_EXCEEDED",
+    "message": "You have exceeded your file size limit",
     "suggestion": "Upgrade your plan at app.uploadkit.dev/billing"
   }
 }
@@ -62,29 +72,30 @@ See [Error Codes](/docs/api-reference/errors) for the complete list.
 
 ## Rate Limiting
 
-The API uses a **sliding window** rate limiter backed by Upstash Redis. Limits are per API key:
+The API enforces per-API-key rate limits in a fixed 60-second window, backed by Redis with an in-memory fallback:
 
-| Tier | Requests per minute |
-|------|-------------------|
-| Free | 60 |
-| Pro | 300 |
-| Team | 1000 |
-| Enterprise | Custom |
+| Endpoint group | Limit |
+|----------------|-------|
+| Upload endpoints (`/upload/*`) | 30 requests / minute |
+| All other endpoints | 10 requests / minute |
 
-When the limit is exceeded, the API returns `429 Too Many Requests` with these headers:
+When the limit is exceeded, the API returns `429 Too Many Requests`:
 
-| Header | Description |
-|--------|-------------|
-| `X-RateLimit-Limit` | Maximum requests allowed per window |
-| `X-RateLimit-Remaining` | Requests remaining in the current window |
-| `Retry-After` | Seconds until the window resets |
-
-```bash
-HTTP/1.1 429 Too Many Requests
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 0
-Retry-After: 23
+```json
+{
+  "error": {
+    "type": "rate_limit_error",
+    "code": "RATE_LIMITED",
+    "message": "Rate limit exceeded. Retry after 23 seconds"
+  }
+}
 ```
+
+The retry delay is embedded in the error message. The SDK parses this automatically and retries with exponential backoff.
+
+<Callout type="info">
+  Need higher limits? Enterprise customers can request custom rate limits — [contact sales](mailto:sales@uploadkit.dev).
+</Callout>
 
 ## Pagination
 
@@ -94,20 +105,20 @@ List endpoints use **cursor-based pagination** for consistent results even when 
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `limit` | number | 20 | Number of results per page (max 100) |
+| `limit` | number | 50 | Number of results per page (max 100) |
 | `cursor` | string | — | Opaque cursor from the previous response |
 
-**Response shape:**
+**Response shape (files):**
 
 ```json
 {
-  "items": [...],
-  "nextCursor": "eyJpZCI6ImFiYzEyMyJ9",
+  "files": [...],
+  "nextCursor": "65f1a2b3c4d5e6f7a8b9c0d1",
   "hasMore": true
 }
 ```
 
-Pass `nextCursor` as `cursor` on the next request to get the following page. When `hasMore` is `false`, you have reached the last page.
+Pass `nextCursor` as `cursor` on the next request to get the following page. When `hasMore` is `false`, you have reached the last page and `nextCursor` is `null`.
 
 ## Endpoints
 

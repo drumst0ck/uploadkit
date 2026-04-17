@@ -51,7 +51,7 @@ export default function Page() {
 | `onUploadError` | `(error: Error) => void` | — | Called on upload failure. |
 | `disabled` | `boolean` | `false` | Disables the button. |
 | `className` | `string` | — | Additional CSS class(es). |
-| `children` | `ReactNode` | `'Upload file'` | Button label. |
+| `children` | `ReactNode` | `'Upload file'` | Button label. Replaced automatically with `"Uploading {progress}%"` during upload and `"Done"` on success. |
 
 `UploadButtonGradient` accepts a `ref` forwarded to the `<button>`.
 

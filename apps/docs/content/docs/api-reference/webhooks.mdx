@@ -9,7 +9,7 @@ UploadKit fires a webhook after each successful upload. Webhooks are delivered v
 
 ## Configuring Webhook URLs
 
-Set a webhook URL per file route in the dashboard under **File Routes**, or pass `webhookUrl` when creating a file route via the API:
+Set a `webhookUrl` per file route — either in the dashboard under **File Routes**, or when creating/updating a file route via the API:
 
 ```json
 {
@@ -18,43 +18,41 @@ Set a webhook URL per file route in the dashboard under **File Routes**, or pass
 }
 ```
 
-The URL must be publicly accessible over HTTPS. Localhost URLs are not supported in production — use a tunnel (e.g., `ngrok`) during development.
+The URL must be publicly accessible over HTTPS. Localhost URLs are not reachable by QStash in production — use a tunnel (e.g., `ngrok`) during development.
 
-## The `onUploadComplete` Event
+## Webhook Payload
 
-UploadKit fires one event type: `onUploadComplete`. It is sent after:
+UploadKit sends one event after a successful upload is confirmed. The payload is a JSON body with the following shape:
+
+```json
+{
+  "file": {
+    "id": "65f1a2b3c4d5e6f7a8b9c0d1",
+    "key": "65f0.../imageUploader/abc123.../photo.jpg",
+    "name": "photo.jpg",
+    "size": 204800,
+    "type": "image/jpeg",
+    "url": "https://cdn.uploadkit.dev/65f0.../imageUploader/abc123.../photo.jpg",
+    "metadata": {
+      "userId": "user_123",
+      "category": "avatar"
+    }
+  },
+  "projectId": "65f0..."
+}
+```
+
+The `file.metadata` field contains whatever was passed to the `metadata` field of the upload request (or merged via `/upload/complete`) — use it to correlate uploads with your application's data.
+
+A webhook fires after:
 
 1. The client calls `POST /api/v1/upload/complete` (or the SDK confirms the upload)
 2. UploadKit verifies the file exists in R2
 3. The file record is marked `UPLOADED` in the database
 
-**Webhook payload:**
-
-```json
-{
-  "event": "onUploadComplete",
-  "file": {
-    "id": "file_abc123",
-    "key": "uploads/abc123/photo.jpg",
-    "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
-    "fileName": "photo.jpg",
-    "fileSize": 1048576,
-    "contentType": "image/jpeg",
-    "status": "UPLOADED",
-    "createdAt": "2026-04-08T12:00:00.000Z"
-  },
-  "metadata": {
-    "userId": "user_123",
-    "category": "avatar"
-  }
-}
-```
-
-The `metadata` field contains whatever was passed to the `metadata` field of the upload request — use it to correlate uploads with your application's data.
-
 ## Verifying Webhook Signatures
 
-QStash signs every delivery with a `Upstash-Signature` header. You should verify this signature to ensure the request is genuine.
+QStash signs every delivery with an `Upstash-Signature` header. You should verify this signature to ensure the request is genuine.
 
 Install the QStash SDK:
 
@@ -87,10 +85,14 @@ export async function POST(request: Request) {
   }
 
   const payload = JSON.parse(body);
-  const { file, metadata } = payload;
+  const { file, projectId } = payload;
 
   // Save to your database
-  await db.files.create({ url: file.url, userId: metadata.userId });
+  await db.files.create({
+    url: file.url,
+    userId: file.metadata.userId,
+    projectId,
+  });
 
   return new Response('OK', { status: 200 });
 }
@@ -104,15 +106,7 @@ The signing keys are available in your [Upstash console](https://console.upstash
 
 ## Retry Behavior
 
-QStash retries failed deliveries (non-2xx responses, timeouts, DNS failures) with exponential backoff:
-
-| Attempt | Delay |
-|---------|-------|
-| 1st retry | 1 minute |
-| 2nd retry | 5 minutes |
-| 3rd retry | 30 minutes |
-
-After 3 retries, the message is moved to the **Dead Letter Queue (DLQ)**.
+QStash retries failed deliveries (non-2xx responses, timeouts, DNS failures) up to **3 times** with exponential backoff. After all retries are exhausted, the message is moved to the **Dead Letter Queue (DLQ)**.
 
 ## Dead Letter Queue
 

@@ -5,32 +5,34 @@ description: Control progress reporting granularity for custom progress UIs.
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-The `uploadProgressGranularity` prop controls how frequently `onUploadProgress` is called during an upload.
+The `uploadProgressGranularity` prop controls how often the upload state machine updates its `progress` value during an upload. Lower granularity = fewer state updates = fewer re-renders.
 
 | Value | Behavior |
 |-------|----------|
-| `'coarse'` (default) | Progress reported at 0%, 25%, 50%, 75%, 100% |
+| `'coarse'` (default) | Progress reported in ~10% increments |
 | `'fine'` | Every ~5% increment |
-| `'all'` | Every XHR progress event — highest frequency, use for smooth animated bars |
+| `'all'` | Every underlying XHR progress event — highest frequency, use for smooth animated bars |
 
-## Basic usage
+## Reading progress
+
+`UploadButton` and `UploadDropzone` render their own progress bar automatically. If you want to render your own progress UI around an upload, use the `useUploadKit` hook — it exposes a reactive `progress` number (0–100) alongside `status`, `error`, and `result`.
 
 ```tsx
-import { useState } from 'react';
-import { UploadButton } from '@uploadkitdev/react';
+import { useUploadKit } from '@uploadkitdev/react';
 
-export default function Page() {
-  const [progress, setProgress] = useState(0);
+export default function CustomUploader() {
+  const { upload, progress, isUploading } = useUploadKit('imageUploader');
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await upload(file, undefined, { progressGranularity: 'all' });
+  }
 
   return (
     <div>
-      <UploadButton
-        route="imageUploader"
-        uploadProgressGranularity="all"
-        onUploadProgress={({ progress }) => setProgress(progress)}
-        onUploadComplete={() => setProgress(0)}
-      />
-      {progress > 0 && (
+      <input type="file" accept="image/*" onChange={handleChange} />
+      {isUploading && (
         <div style={{ width: '100%', background: '#eee', borderRadius: 4 }}>
           <div
             style={{
@@ -41,6 +43,7 @@ export default function Page() {
               transition: 'width 80ms linear',
             }}
           />
+          <span>{progress}%</span>
         </div>
       )}
     </div>
@@ -48,18 +51,18 @@ export default function Page() {
 }
 ```
 
-## With UploadDropzone
+## Passing granularity to built-in components
+
+`UploadButton` and `UploadDropzone` accept `uploadProgressGranularity` directly as a prop. The built-in progress bar uses the same value internally:
 
 ```tsx
-<UploadDropzone
-  route="documentUploader"
-  uploadProgressGranularity="fine"
-  onUploadProgress={({ progress }) => console.log(`${progress}%`)}
-/>
+<UploadButton route="imageUploader" uploadProgressGranularity="all" />
+
+<UploadDropzone route="documentUploader" uploadProgressGranularity="fine" />
 ```
 
 <Callout>
-  Use `'coarse'` (the default) unless you are rendering a custom animated progress bar. Frequent state updates from `'all'` can degrade upload performance and cause unnecessary re-renders in your React tree.
+  Use `'coarse'` (the default) unless you are rendering a custom animated progress bar. Frequent state updates from `'all'` can cause extra re-renders in your React tree.
 </Callout>
 
 ## Choosing the right value

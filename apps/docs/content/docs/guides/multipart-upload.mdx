@@ -111,13 +111,11 @@ Users can cancel an in-progress upload. The SDK cleans up the partial multipart 
 import { useUploadKit } from '@uploadkitdev/react';
 
 export function UploadWithCancel() {
-  const { upload, abort, isUploading, progress } = useUploadKit({
-    route: 'videoUploader',
-  });
+  const { upload, abort, isUploading, progress } = useUploadKit('videoUploader');
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    await upload(files);
+    const file = e.target.files?.[0];
+    if (file) await upload(file);
   };
 
   return (

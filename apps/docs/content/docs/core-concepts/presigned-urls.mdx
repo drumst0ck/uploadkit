@@ -14,7 +14,7 @@ Every upload in UploadKit follows this five-step flow. Your server validates and
               (validate, authorize, generate URL)
 
 2. Your server ──► Storage        CreatePresignedPost / PutObject
-              (URL expires in 1 hour)
+              (URL expires in 15 minutes for single PUT, 1 hour for multipart parts)
 
 3. Your server ──► Client         Return presigned URL + fileId
 
@@ -153,7 +153,7 @@ This prevents **quota bypass** — a client cannot request a URL for a 1 MB file
 
 ### URL expiry
 
-Presigned URLs expire after **1 hour**. After expiry, the URL is rejected by the storage provider regardless of the signature. This limits the window during which a leaked URL could be exploited.
+Presigned URLs expire after **15 minutes for single-PUT uploads** and **1 hour for multipart part URLs**. After expiry, the URL is rejected by the storage provider regardless of the signature. This limits the window during which a leaked URL could be exploited.
 
 <Callout>
   ContentType and ContentLength locking are enforced at the storage layer, not by UploadKit's servers. Even if UploadKit's API were bypassed, the storage provider would reject mismatched uploads.

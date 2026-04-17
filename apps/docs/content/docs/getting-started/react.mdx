@@ -125,28 +125,21 @@ When you need full control over the upload UI — a custom progress bar, inline 
 import { useUploadKit } from '@uploadkitdev/react';
 
 export function CustomUploader() {
-  const { upload, files, isUploading } = useUploadKit({
-    route: 'imageUploader',
-    onUploadComplete: (uploadedFiles) => {
-      console.log('Done:', uploadedFiles);
-    },
-  });
+  const { upload, progress, isUploading, result, error } = useUploadKit('imageUploader');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) upload(file);
+    if (file) {
+      await upload(file);
+    }
   };
 
   return (
     <div>
       <input type="file" accept="image/*" onChange={handleChange} disabled={isUploading} />
-      {isUploading && <p>Uploading...</p>}
-      {files.map((f) => (
-        <div key={f.id}>
-          <span>{f.name}</span>
-          <progress value={f.progress} max={100} />
-        </div>
-      ))}
+      {isUploading && <progress value={progress} max={100} />}
+      {result && <p>Uploaded: <a href={result.url}>{result.name}</a></p>}
+      {error && <p>Error: {error.message}</p>}
     </div>
   );
 }

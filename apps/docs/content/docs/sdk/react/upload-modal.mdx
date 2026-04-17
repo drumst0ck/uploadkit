@@ -58,6 +58,9 @@ export default function Page() {
 | `className` | `string` | — | Additional CSS class(es) for the `<dialog>` element. |
 | `title` | `string` | — | Heading text shown inside the modal. Also used as `aria-label`. |
 | `appearance` | `Partial<Record<'modal' \| 'backdrop' \| 'content' \| 'container' \| 'label' \| 'icon' \| 'fileItem' \| 'progressBar' \| 'button', string>>` | — | Override CSS classes on inner elements. |
+| `onBeforeUploadBegin` | `(files: File[]) => File[] \| Promise<File[]>` | — | Called with the selected files before upload begins. Return modified array, or empty array to cancel. |
+| `config` | `{ mode?: 'auto' \| 'manual' }` | `{ mode: 'auto' }` | `'auto'` uploads immediately; `'manual'` stages files and requires clicking submit. |
+| `uploadProgressGranularity` | `'coarse' \| 'fine' \| 'all'` | `'coarse'` | Progress update frequency. See the [progress guide](/docs/sdk/react/progress). |
 
 ## Native dialog element
 

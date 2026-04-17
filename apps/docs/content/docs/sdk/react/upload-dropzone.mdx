@@ -44,7 +44,11 @@ export default function Page() {
 | `onUploadError` | `(error: Error) => void` | — | Called when any individual file upload fails. |
 | `disabled` | `boolean` | `false` | Disables the dropzone and file input. |
 | `className` | `string` | — | Additional CSS class(es) for the outer wrapper. |
-| `appearance` | `Partial<Record<'container' \| 'label' \| 'icon' \| 'fileItem' \| 'progressBar' \| 'button', string>>` | — | Override CSS classes on specific inner elements. |
+| `appearance` | `Partial<Record<'container' \| 'label' \| 'icon' \| 'fileItem' \| 'progressBar' \| 'button', string>>` | — | Override CSS classes on inner elements. `button` targets the manual-mode submit button. |
+| `onBeforeUploadBegin` | `(files: File[]) => File[] \| Promise<File[]>` | — | Called with the selected files before upload begins. Return modified array, or empty array to cancel. |
+| `config` | `{ mode?: 'auto' \| 'manual' }` | `{ mode: 'auto' }` | `'auto'` uploads immediately; `'manual'` stages files and requires a click on the submit button. |
+| `uploadProgressGranularity` | `'coarse' \| 'fine' \| 'all'` | `'coarse'` | Progress update frequency. See the [progress guide](/docs/sdk/react/progress). |
+| `beam` | `boolean` | `false` | Wrap the dropzone with an animated `UploadBeam` border. |
 
 `UploadDropzone` accepts a `ref` forwarded to the outer container `<div>`.
 

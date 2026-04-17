@@ -513,7 +513,7 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
         {mode === 'manual' && hasIdleFiles && (
           <button
             type="button"
-            className="uk-dropzone__submit"
+            className={mergeClass('uk-dropzone__submit', appearance?.button)}
             data-uk-element="submit-button"
             disabled={isAnyUploading}
             onClick={() => void startUploads()}

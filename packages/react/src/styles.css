@@ -1215,6 +1215,12 @@
   --uk-cloud-fill: color-mix(in srgb, #6366f1 14%, transparent);
   --uk-particle-color: #6366f1;
   --uk-stepwizard-accent: var(--uk-primary);
+  --uk-stream-color: #00ff41;
+  --uk-stream-bg: #0a0a0a;
+  --uk-scanner-accent: var(--uk-primary);
+  --uk-scanner-bg: #0a0a0b;
+  --uk-vinyl-color: var(--uk-primary);
+  --uk-vinyl-bg: #1a1a1a;
 }
 
 @media (prefers-color-scheme: dark) {
