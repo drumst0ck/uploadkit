@@ -13,12 +13,12 @@ All endpoints return the same file object shape:
 
 ```json
 {
-  "id": "file_abc123",
-  "key": "uploads/abc123/photo.jpg",
-  "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
-  "fileName": "photo.jpg",
-  "fileSize": 1048576,
-  "contentType": "image/jpeg",
+  "id": "65f1a2b3c4d5e6f7a8b9c0d1",
+  "key": "65f0.../imageUploader/abc123.../photo.jpg",
+  "name": "photo.jpg",
+  "size": 204800,
+  "type": "image/jpeg",
+  "url": "https://cdn.uploadkit.dev/65f0.../imageUploader/abc123.../photo.jpg",
   "status": "UPLOADED",
   "metadata": { "userId": "user_123" },
   "createdAt": "2026-04-08T12:00:00.000Z",
@@ -39,20 +39,20 @@ All endpoints return the same file object shape:
 
 ## GET /api/v1/files
 
-List files in the current project, ordered by creation date descending.
+List files in the current project, ordered by creation date descending. Deleted files are excluded.
 
 **Query parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `limit` | number | 20 | Results per page (max 100) |
+| `limit` | number | 50 | Results per page (1–100) |
 | `cursor` | string | — | Pagination cursor from previous response |
 
 **curl example:**
 
 ```bash
 curl "https://api.uploadkit.dev/api/v1/files?limit=20" \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
 ```
 
 **Response:**
@@ -61,17 +61,17 @@ curl "https://api.uploadkit.dev/api/v1/files?limit=20" \
 {
   "files": [
     {
-      "id": "file_abc123",
-      "key": "uploads/abc123/photo.jpg",
-      "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
-      "fileName": "photo.jpg",
-      "fileSize": 1048576,
-      "contentType": "image/jpeg",
+      "id": "65f1a2b3c4d5e6f7a8b9c0d1",
+      "key": "65f0.../imageUploader/abc123.../photo.jpg",
+      "name": "photo.jpg",
+      "size": 204800,
+      "type": "image/jpeg",
+      "url": "https://cdn.uploadkit.dev/65f0.../imageUploader/abc123.../photo.jpg",
       "status": "UPLOADED",
       "createdAt": "2026-04-08T12:00:00.000Z"
     }
   ],
-  "nextCursor": "eyJpZCI6ImZpbGVfYWJjMTIzIn0",
+  "nextCursor": "65f1a2b3c4d5e6f7a8b9c0d1",
   "hasMore": true
 }
 ```
@@ -79,54 +79,73 @@ curl "https://api.uploadkit.dev/api/v1/files?limit=20" \
 To paginate, pass the `nextCursor` value as `cursor` on the next request:
 
 ```bash
-curl "https://api.uploadkit.dev/api/v1/files?cursor=eyJpZCI6ImZpbGVfYWJjMTIzIn0" \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+curl "https://api.uploadkit.dev/api/v1/files?cursor=65f1a2b3c4d5e6f7a8b9c0d1" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
 ```
+
+When `hasMore` is `false`, `nextCursor` is `null` and you have reached the end.
 
 ---
 
 ## GET /api/v1/files/:key
 
-Retrieve a single file by its storage key.
+Retrieve a single file by its storage key. The key contains slashes and must be URL-encoded.
 
 **Path parameters:**
 
 | Parameter | Description |
 |-----------|-------------|
-| `key` | URL-encoded file key (e.g., `uploads%2Fabc123%2Fphoto.jpg`) |
+| `key` | URL-encoded file key (e.g., `65f0...%2FimageUploader%2Fabc123...%2Fphoto.jpg`) |
 
 **curl example:**
 
 ```bash
-curl "https://api.uploadkit.dev/api/v1/files/uploads%2Fabc123%2Fphoto.jpg" \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+curl "https://api.uploadkit.dev/api/v1/files/65f0...%2FimageUploader%2Fabc123...%2Fphoto.jpg" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
 ```
 
-**Response:** The file object as described above.
+**Response:**
+
+```json
+{
+  "file": {
+    "id": "65f1a2b3c4d5e6f7a8b9c0d1",
+    "key": "65f0.../imageUploader/abc123.../photo.jpg",
+    "name": "photo.jpg",
+    "size": 204800,
+    "type": "image/jpeg",
+    "url": "https://cdn.uploadkit.dev/65f0.../imageUploader/abc123.../photo.jpg",
+    "status": "UPLOADED",
+    "metadata": { "userId": "user_123" },
+    "createdAt": "2026-04-08T12:00:00.000Z",
+    "updatedAt": "2026-04-08T12:00:05.000Z"
+  }
+}
+```
 
 **Error cases:**
 
-| Code | Cause |
-|------|-------|
-| `NOT_FOUND` | No file with that key exists in the current project |
+| Code | HTTP | Cause |
+|------|------|-------|
+| `NOT_FOUND` | 404 | No file with that key exists in the current project |
 
 ---
 
 ## PATCH /api/v1/files/:key
 
-Update a file's metadata. Metadata is merged — existing keys not present in the request are preserved.
+Replace a file's metadata. The `metadata` object is written as-is — it does not merge with existing metadata.
 
 **Request body:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `metadata` | object | Yes | Key-value pairs to merge into the file's metadata |
+| `metadata` | object | Yes | Key-value pairs to store as the file's metadata |
 
 **curl example:**
 
 ```bash
-curl -X PATCH "https://api.uploadkit.dev/api/v1/files/uploads%2Fabc123%2Fphoto.jpg" \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+curl -X PATCH "https://api.uploadkit.dev/api/v1/files/65f0...%2FimageUploader%2Fabc123...%2Fphoto.jpg" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
     "metadata": {
@@ -136,36 +155,33 @@ curl -X PATCH "https://api.uploadkit.dev/api/v1/files/uploads%2Fabc123%2Fphoto.j
   }'
 ```
 
-**Response:** The updated file object.
+**Response:** `{ "file": { ... } }` with the updated file object.
 
 ---
 
 ## DELETE /api/v1/files/:key
 
-Permanently delete a file from storage and mark its record as deleted in the database.
+Permanently delete a file from Cloudflare R2 and soft-delete its database record. Also decrements the project's storage usage counter for the current period.
 
 <Callout type="warn">
-  Deletion is permanent. The file is removed from Cloudflare R2 and the CDN URL stops resolving immediately.
+  Deletion is permanent. The file is removed from storage and the CDN URL stops resolving immediately.
 </Callout>
 
 **curl example:**
 
 ```bash
-curl -X DELETE "https://api.uploadkit.dev/api/v1/files/uploads%2Fabc123%2Fphoto.jpg" \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+curl -X DELETE "https://api.uploadkit.dev/api/v1/files/65f0...%2FimageUploader%2Fabc123...%2Fphoto.jpg" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
 ```
 
 **Response:**
 
 ```json
-{ "deleted": true }
+{ "ok": true }
 ```
-
-Deletion also decrements the project's storage usage counter, reflected on the next usage report.
 
 **Error cases:**
 
-| Code | Cause |
-|------|-------|
-| `NOT_FOUND` | File does not exist or already deleted |
-| `UNAUTHORIZED` | API key does not belong to the file's project |
+| Code | HTTP | Cause |
+|------|------|-------|
+| `NOT_FOUND` | 404 | File does not exist, already deleted, or belongs to a different project |

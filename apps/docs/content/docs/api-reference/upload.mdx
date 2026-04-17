@@ -9,26 +9,26 @@ The upload flow is a two-step process: **request** a presigned URL, then **confi
 
 ## POST /api/v1/upload/request
 
-Request a presigned URL for a single-file upload.
+Request a presigned URL for a single-file upload. Presigned URLs are valid for **15 minutes**.
 
 **Request body:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fileName` | string | Yes | Original file name (e.g., `photo.jpg`) |
-| `fileSize` | number | Yes | File size in bytes |
+| `fileName` | string | Yes | Original file name (1–255 chars) |
+| `fileSize` | number | Yes | File size in bytes (positive integer) |
 | `contentType` | string | Yes | MIME type (e.g., `image/jpeg`) |
-| `routeSlug` | string | Yes | File route slug defined in your file router |
-| `metadata` | object | No | Arbitrary key-value pairs forwarded to `onUploadComplete` |
+| `routeSlug` | string | Yes | File route slug defined in your file router (1–100 chars) |
+| `metadata` | object | No | Arbitrary key-value pairs stored with the file |
 
 **Response:**
 
 ```json
 {
-  "fileId": "file_abc123",
-  "uploadUrl": "https://your-bucket.r2.cloudflarestorage.com/uploads/abc123/photo.jpg?X-Amz-Signature=...",
-  "key": "uploads/abc123/photo.jpg",
-  "cdnUrl": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg"
+  "fileId": "65f1a2b3c4d5e6f7a8b9c0d1",
+  "uploadUrl": "https://<account>.r2.cloudflarestorage.com/<key>?X-Amz-Signature=...",
+  "key": "65f0.../imageUploader/abc123.../photo.jpg",
+  "cdnUrl": "https://cdn.uploadkit.dev/65f0.../imageUploader/abc123.../photo.jpg"
 }
 ```
 
@@ -36,18 +36,18 @@ Request a presigned URL for a single-file upload.
 
 ```bash
 curl -X POST https://api.uploadkit.dev/api/v1/upload/request \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
     "fileName": "photo.jpg",
-    "fileSize": 1048576,
+    "fileSize": 204800,
     "contentType": "image/jpeg",
     "routeSlug": "imageUploader",
     "metadata": { "userId": "user_123" }
   }'
 ```
 
-After receiving the `uploadUrl`, the client performs a `PUT` directly to that URL:
+After receiving the `uploadUrl`, the client performs a `PUT` directly to that URL. The `Content-Type` header **must** match the `contentType` sent to `/upload/request` — it is locked into the signature.
 
 ```bash
 curl -X PUT "<uploadUrl>" \
@@ -57,13 +57,13 @@ curl -X PUT "<uploadUrl>" \
 
 **Error cases:**
 
-| Code | Cause |
-|------|-------|
-| `UNAUTHORIZED` | Invalid or missing API key |
-| `FILE_TOO_LARGE` | `fileSize` exceeds route or tier limit |
-| `FILE_TYPE_NOT_ALLOWED` | `contentType` not in route's `allowedTypes` |
-| `TIER_LIMIT_EXCEEDED` | Monthly upload quota reached |
-| `NOT_FOUND` | `routeSlug` does not exist in your project |
+| Code | HTTP | Cause |
+|------|------|-------|
+| `UNAUTHORIZED` | 401 | Invalid or missing API key |
+| `VALIDATION_ERROR` | 400 | Required field missing or wrong type |
+| `NOT_FOUND` | 404 | `routeSlug` does not exist in your project |
+| `INVALID_FILE_TYPE` | 400 | `contentType` not in the route's `allowedTypes` |
+| `TIER_LIMIT_EXCEEDED` | 403 | File size exceeds route/tier limit, or monthly upload/storage quota reached (FREE tier) |
 
 ---
 
@@ -76,20 +76,23 @@ Notify the API that the client-side PUT to the presigned URL has finished. This 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `fileId` | string | Yes | `fileId` returned from `/upload/request` |
-| `metadata` | object | No | Optional metadata update (merges with existing) |
+| `metadata` | object | No | Optional metadata update (replaces existing metadata if provided) |
 
 **Response:**
 
 ```json
 {
-  "id": "file_abc123",
-  "key": "uploads/abc123/photo.jpg",
-  "url": "https://cdn.uploadkit.dev/uploads/abc123/photo.jpg",
-  "fileName": "photo.jpg",
-  "fileSize": 1048576,
-  "contentType": "image/jpeg",
-  "status": "UPLOADED",
-  "createdAt": "2026-04-08T12:00:00.000Z"
+  "file": {
+    "id": "65f1a2b3c4d5e6f7a8b9c0d1",
+    "key": "65f0.../imageUploader/abc123.../photo.jpg",
+    "name": "photo.jpg",
+    "size": 204800,
+    "type": "image/jpeg",
+    "url": "https://cdn.uploadkit.dev/65f0.../imageUploader/abc123.../photo.jpg",
+    "status": "UPLOADED",
+    "metadata": { "userId": "user_123" },
+    "createdAt": "2026-04-08T12:00:00.000Z"
+  }
 }
 ```
 
@@ -97,58 +100,58 @@ Notify the API that the client-side PUT to the presigned URL has finished. This 
 
 ```bash
 curl -X POST https://api.uploadkit.dev/api/v1/upload/complete \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "fileId": "file_abc123"
+    "fileId": "65f1a2b3c4d5e6f7a8b9c0d1"
   }'
 ```
 
 **Error cases:**
 
-| Code | Cause |
-|------|-------|
-| `UPLOAD_NOT_FOUND` | `fileId` does not exist or belongs to another project |
-| `UPLOAD_NOT_VERIFIED` | R2 object not found — the PUT may have failed |
+| Code | HTTP | Cause |
+|------|------|-------|
+| `NOT_FOUND` | 404 | `fileId` does not exist, belongs to another project, or is no longer in `UPLOADING` state |
+| `FILE_NOT_IN_STORAGE` | 422 | R2 object not found — the client-side PUT may have failed |
 
 ---
 
 ## POST /api/v1/upload/multipart/init
 
-Initialize a multipart upload for files over 10 MB. Returns presigned URLs for each chunk.
+Initialize a multipart upload for files **over 10 MB**. Returns presigned URLs for each 5 MB part. Part URLs are valid for **1 hour**.
 
 **Request body:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `fileName` | string | Yes | Original file name |
-| `fileSize` | number | Yes | Total file size in bytes |
+| `fileSize` | number | Yes | Total file size in bytes (must be > 10 MB) |
 | `contentType` | string | Yes | MIME type |
 | `routeSlug` | string | Yes | File route slug |
-| `metadata` | object | No | Forwarded to `onUploadComplete` |
+| `metadata` | object | No | Stored with the file |
 
 **Response:**
 
 ```json
 {
-  "fileId": "file_abc123",
+  "fileId": "65f1a2b3c4d5e6f7a8b9c0d1",
   "uploadId": "mpu_xyz789",
-  "key": "uploads/abc123/large-video.mp4",
+  "key": "65f0.../videoUploader/abc123.../large-video.mp4",
   "parts": [
-    { "partNumber": 1, "uploadUrl": "https://...?partNumber=1&uploadId=mpu_xyz789&..." },
-    { "partNumber": 2, "uploadUrl": "https://...?partNumber=2&uploadId=mpu_xyz789&..." },
-    { "partNumber": 3, "uploadUrl": "https://...?partNumber=3&uploadId=mpu_xyz789&..." }
+    { "partNumber": 1, "uploadUrl": "https://<account>.r2.cloudflarestorage.com/...?partNumber=1&uploadId=mpu_xyz789&..." },
+    { "partNumber": 2, "uploadUrl": "https://<account>.r2.cloudflarestorage.com/...?partNumber=2&uploadId=mpu_xyz789&..." },
+    { "partNumber": 3, "uploadUrl": "https://<account>.r2.cloudflarestorage.com/...?partNumber=3&uploadId=mpu_xyz789&..." }
   ]
 }
 ```
 
-Each part URL is for a `PUT` request with a chunk of the file. Chunks must be at least 5 MB except the last part.
+Each part URL is for a `PUT` request with a 5 MB chunk of the file. The last part may be smaller than 5 MB.
 
 **curl example:**
 
 ```bash
 curl -X POST https://api.uploadkit.dev/api/v1/upload/multipart/init \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
     "fileName": "large-video.mp4",
@@ -157,6 +160,15 @@ curl -X POST https://api.uploadkit.dev/api/v1/upload/multipart/init \
     "routeSlug": "videoUploader"
   }'
 ```
+
+**Error cases:**
+
+| Code | HTTP | Cause |
+|------|------|-------|
+| `FILE_TOO_SMALL_FOR_MULTIPART` | 400 | `fileSize` is ≤ 10 MB — use `/upload/request` instead |
+| `INVALID_FILE_TYPE` | 400 | `contentType` not in the route's `allowedTypes` |
+| `TIER_LIMIT_EXCEEDED` | 403 | File size, storage, or upload quota exceeded |
+| `NOT_FOUND` | 404 | `routeSlug` does not exist |
 
 ---
 
@@ -177,10 +189,10 @@ Signal that all parts have been uploaded. R2 assembles the parts into the final 
 
 ```bash
 curl -X POST https://api.uploadkit.dev/api/v1/upload/multipart/complete \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "fileId": "file_abc123",
+    "fileId": "65f1a2b3c4d5e6f7a8b9c0d1",
     "uploadId": "mpu_xyz789",
     "parts": [
       { "partNumber": 1, "etag": "\"etag-value-1\"" },
@@ -190,13 +202,19 @@ curl -X POST https://api.uploadkit.dev/api/v1/upload/multipart/complete \
   }'
 ```
 
-The response is the same file object returned by `/upload/complete`.
+The response is the same `{ "file": { ... } }` shape returned by `/upload/complete`.
+
+**Error cases:**
+
+| Code | HTTP | Cause |
+|------|------|-------|
+| `NOT_FOUND` | 404 | `fileId` + `uploadId` pair not found or no longer in `UPLOADING` state |
 
 ---
 
 ## POST /api/v1/upload/multipart/abort
 
-Abort an in-progress multipart upload and clean up all uploaded parts.
+Abort an in-progress multipart upload and clean up all uploaded parts. Also removes the pending file record.
 
 **Request body:**
 
@@ -209,10 +227,10 @@ Abort an in-progress multipart upload and clean up all uploaded parts.
 
 ```bash
 curl -X POST https://api.uploadkit.dev/api/v1/upload/multipart/abort \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "fileId": "file_abc123",
+    "fileId": "65f1a2b3c4d5e6f7a8b9c0d1",
     "uploadId": "mpu_xyz789"
   }'
 ```
@@ -220,7 +238,7 @@ curl -X POST https://api.uploadkit.dev/api/v1/upload/multipart/abort \
 **Response:**
 
 ```json
-{ "aborted": true }
+{ "ok": true }
 ```
 
 <Callout type="info">

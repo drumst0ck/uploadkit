@@ -13,12 +13,13 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 All visual properties are controlled by CSS variables. Override them on `:root` or any ancestor element to theme the components.
 
-### Token reference
+### Core tokens
 
 | Variable | Light default | Dark default | Controls |
 |----------|--------------|--------------|---------|
-| `--uk-primary` | `#0070f3` | `#0070f3` | Button background, dropzone border on hover, progress bar, focus rings |
+| `--uk-primary` | `#0070f3` | `#0070f3` | Button background, dropzone border on hover, progress bar |
 | `--uk-primary-hover` | `#005bb5` | `#005bb5` | Button background on hover |
+| `--uk-accent` | `#6366f1` | `#6366f1` | Focus rings, subtle accent highlights |
 | `--uk-bg` | `#ffffff` | `#0a0a0b` | Component background |
 | `--uk-bg-secondary` | `#fafafa` | `#141416` | File item backgrounds, icon container backgrounds |
 | `--uk-border` | `#eaeaea` | `rgba(255,255,255,0.08)` | Borders and dividers |
@@ -26,9 +27,13 @@ All visual properties are controlled by CSS variables. Override them on `:root` 
 | `--uk-text-secondary` | `#666666` | `#a1a1aa` | Secondary text, labels, hints |
 | `--uk-success` | `#00c853` | `#00c853` | Success state (checkmark, button after upload) |
 | `--uk-error` | `#dc2626` | `#dc2626` | Error state (X icon, button on failure, toast text) |
+| `--uk-beam-success` | `#22c55e` | `#22c55e` | Animated border-beam success color |
+| `--uk-beam-error` | `#ef4444` | `#ef4444` | Animated border-beam error color |
 | `--uk-radius` | `12px` | `12px` | Border radius on buttons, dropzone, modal, file items |
 | `--uk-font` | System UI stack | System UI stack | Font family for all component text |
 | `--uk-transition` | `200ms ease-out` | `200ms ease-out` | Transition duration and easing |
+
+Many components expose additional CSS variables specific to their visual language (e.g. `--uk-aurora-from`, `--uk-brutal-shadow`, `--uk-terminal-fg`). See the individual component reference pages for the full list.
 
 ## Overriding tokens
 
@@ -134,48 +139,54 @@ For deeper customization, override CSS variables in your Tailwind theme:
 
 ## data-uk-element targeting
 
-Every rendered element in `@uploadkitdev/react` components has a `data-uk-element` attribute. You can use CSS attribute selectors to target and restyle specific elements without overriding CSS custom properties.
+Every rendered element in `@uploadkitdev/react` components has a `data-uk-element` attribute (no `uk-` prefix — just the element name). Use CSS attribute selectors to target and restyle specific elements without overriding CSS custom properties.
 
 ### Element names
 
 | Attribute value | Element |
 |-----------------|---------|
-| `uk-button` | The upload button |
-| `uk-dropzone` | The dropzone container |
-| `uk-modal` | The modal dialog |
-| `uk-file-list` | The list of staged/uploaded files |
-| `uk-file-item` | A single file row |
-| `uk-progress` | The progress bar track |
-| `uk-overlay` | The modal backdrop |
+| `button` | The upload button |
+| `container` | The dropzone container |
+| `label` | The dropzone label |
+| `upload-icon` | The cloud/upload icon in the dropzone |
+| `allowed-content` | The "Images up to 4 MB" hint under the dropzone |
+| `file-item` | A single file row in the list |
+| `preview` | A file preview thumbnail |
+| `progress-bar` | The progress bar wrapper |
+| `progress-text` | The progress percentage text |
+| `modal` | The modal dialog |
+| `submit-button` | The modal's primary submit button |
 
 ### data-state values
 
-Elements also carry a `data-state` attribute reflecting the current upload lifecycle:
+Elements also carry a `data-state` attribute reflecting the current lifecycle:
 
 | Value | Meaning |
 |-------|---------|
-| `idle` | No upload in progress |
+| `idle` | No upload in progress (dropzone default) |
+| `ready` | Button is idle and ready to receive a click |
+| `dragging` | Dropzone is receiving a drag-over |
 | `uploading` | Upload in progress |
-| `complete` | Upload finished successfully |
+| `success` | Upload finished successfully |
 | `error` | Upload failed |
 
 ### Direct CSS targeting
 
 ```css
 /* Style the button */
-[data-uk-element="uk-button"] {
+[data-uk-element="button"] {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border-radius: 999px;
 }
 
-/* Style the dropzone when dragging */
-[data-uk-element="uk-dropzone"][data-state="uploading"] {
+/* Style the dropzone during upload */
+[data-uk-element="container"][data-state="uploading"] {
   opacity: 0.6;
   pointer-events: none;
 }
 
 /* Style file items */
-[data-uk-element="uk-file-item"] {
+[data-uk-element="file-item"] {
   background: #f8f9fa;
   border-radius: 8px;
 }
@@ -183,23 +194,23 @@ Elements also carry a `data-state` attribute reflecting the current upload lifec
 
 ## Tailwind withUk wrapper
 
-For Tailwind CSS users, `@uploadkitdev/next` ships a `withUk` plugin that generates Tailwind variants matching the `data-uk-element` and `data-state` attributes.
+`@uploadkitdev/react` ships a `withUk` Tailwind plugin that generates variants matching the `data-uk-element` and `data-state` attributes.
 
 ### Setup
 
-Add `withUk` to your Tailwind CSS config:
+For Tailwind CSS v4:
 
 ```css
-/* globals.css (Tailwind v4) */
+/* globals.css */
 @import "tailwindcss";
-@plugin "@uploadkitdev/next/tailwind";
+@plugin "@uploadkitdev/react/tailwind";
 ```
 
-Or for Tailwind v3:
+For Tailwind CSS v3:
 
 ```js
 // tailwind.config.js
-const { withUk } = require('@uploadkitdev/next/tailwind');
+const { withUk } = require('@uploadkitdev/react/tailwind');
 
 module.exports = withUk({
   content: ['./src/**/*.{ts,tsx}'],
@@ -210,18 +221,30 @@ module.exports = withUk({
 
 ### Available variants
 
+**Element variants** (target elements by `data-uk-element`):
+
 | Variant | Targets |
 |---------|---------|
-| `uk-button:` | `[data-uk-element="uk-button"]` |
-| `uk-dropzone:` | `[data-uk-element="uk-dropzone"]` |
-| `uk-modal:` | `[data-uk-element="uk-modal"]` |
-| `uk-file-list:` | `[data-uk-element="uk-file-list"]` |
-| `uk-file-item:` | `[data-uk-element="uk-file-item"]` |
-| `uk-progress:` | `[data-uk-element="uk-progress"]` |
-| `uk-overlay:` | `[data-uk-element="uk-overlay"]` |
+| `uk-button:` | `[data-uk-element="button"]` |
+| `uk-container:` | `[data-uk-element="container"]` |
+| `uk-label:` | `[data-uk-element="label"]` |
+| `uk-upload-icon:` | `[data-uk-element="upload-icon"]` |
+| `uk-allowed-content:` | `[data-uk-element="allowed-content"]` |
+| `uk-file-item:` | `[data-uk-element="file-item"]` |
+| `uk-progress-bar:` | `[data-uk-element="progress-bar"]` |
+| `uk-preview:` | `[data-uk-element="preview"]` |
+| `uk-modal:` | `[data-uk-element="modal"]` |
+| `uk-submit:` | `[data-uk-element="submit-button"]` |
+
+**State variants** (target elements by `data-state`):
+
+| Variant | Targets |
+|---------|---------|
+| `uk-ready:` | `[data-state="ready"]` |
 | `uk-idle:` | `[data-state="idle"]` |
+| `uk-dragging:` | `[data-state="dragging"]` |
 | `uk-uploading:` | `[data-state="uploading"]` |
-| `uk-complete:` | `[data-state="complete"]` |
+| `uk-success:` | `[data-state="success"]` |
 | `uk-error:` | `[data-state="error"]` |
 
 ### Usage examples
@@ -239,7 +262,7 @@ module.exports = withUk({
 ```
 
 <Callout>
-  CSS custom properties (`--uk-accent`, `--uk-radius`, etc.) remain the recommended approach for color and spacing overrides. `data-uk-element` targeting is best suited for structural or layout changes that can't be expressed as token values.
+  CSS custom properties (`--uk-primary`, `--uk-radius`, etc.) remain the recommended approach for color and spacing overrides. `data-uk-element` targeting is best suited for structural or layout changes that can't be expressed as token values.
 </Callout>
 
 ## CSS keyframes

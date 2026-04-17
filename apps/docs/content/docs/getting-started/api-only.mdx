@@ -12,11 +12,11 @@ All file uploads follow the [presigned URL flow](/docs/core-concepts/presigned-u
 
 ## Authentication
 
-Pass your API key in the `x-api-key` header on every request:
+Pass your API key as a Bearer token in the `Authorization` header on every request:
 
 ```bash
 curl https://api.uploadkit.dev/api/v1/upload/request \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
 ```
 
 <Callout type="warn">
@@ -25,7 +25,7 @@ curl https://api.uploadkit.dev/api/v1/upload/request \
 
 ## Request a presigned URL
 
-Before uploading, request a presigned PUT URL from the UploadKit API. This validates your API key, checks file type and size against your route configuration, and generates a temporary upload URL.
+Before uploading, request a presigned PUT URL from the UploadKit API. This validates your API key, checks file type and size against your route configuration, and generates a temporary upload URL (valid for 15 minutes).
 
 **POST** `/api/v1/upload/request`
 
@@ -37,13 +37,13 @@ Request body:
 | `fileSize` | number | Yes | File size in bytes (positive integer) |
 | `contentType` | string | Yes | MIME type (e.g. `image/jpeg`) |
 | `routeSlug` | string | Yes | Your file route name (1–100 chars) |
-| `metadata` | object | No | Arbitrary key/value pairs passed to your webhook |
+| `metadata` | object | No | Arbitrary key/value pairs stored with the file and passed to your webhook |
 
 <Tabs items={['curl', 'JavaScript', 'Python']}>
   <Tab value="curl">
     ```bash
     curl -X POST https://api.uploadkit.dev/api/v1/upload/request \
-      -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+      -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
       -H "Content-Type: application/json" \
       -d '{
         "fileName": "profile.jpg",
@@ -58,7 +58,7 @@ Request body:
     const response = await fetch('https://api.uploadkit.dev/api/v1/upload/request', {
       method: 'POST',
       headers: {
-        'x-api-key': 'uk_live_xxxxxxxxxxxxxxxxxxxxx',
+        Authorization: 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -79,7 +79,7 @@ Request body:
     response = requests.post(
         'https://api.uploadkit.dev/api/v1/upload/request',
         headers={
-            'x-api-key': 'uk_live_xxxxxxxxxxxxxxxxxxxxx',
+            'Authorization': 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx',
             'Content-Type': 'application/json',
         },
         json={
@@ -101,10 +101,10 @@ Request body:
 
 ```json
 {
-  "fileId": "file_01J9KXYZ...",
-  "uploadUrl": "https://pub-xxx.r2.dev/uploads/abc123?X-Amz-Signature=...",
-  "cdnUrl": "https://cdn.uploadkit.dev/uploads/abc123.jpg",
-  "key": "uploads/abc123.jpg"
+  "fileId": "65f1a2b3c4d5e6f7a8b9c0d1",
+  "uploadUrl": "https://<account>.r2.cloudflarestorage.com/<key>?X-Amz-Signature=...",
+  "key": "65f0.../imageUploader/abc123.../profile.jpg",
+  "cdnUrl": "https://cdn.uploadkit.dev/65f0.../imageUploader/abc123.../profile.jpg"
 }
 ```
 
@@ -115,7 +115,7 @@ Use the presigned URL to PUT the file directly to R2/S3. You **must** include th
 <Tabs items={['curl', 'JavaScript', 'Python']}>
   <Tab value="curl">
     ```bash
-    curl -X PUT "https://pub-xxx.r2.dev/uploads/abc123?X-Amz-Signature=..." \
+    curl -X PUT "<uploadUrl>" \
       -H "Content-Type: image/jpeg" \
       --data-binary @profile.jpg
     ```
@@ -152,9 +152,9 @@ After the PUT succeeds, notify UploadKit that the upload is complete. This trigg
   <Tab value="curl">
     ```bash
     curl -X POST https://api.uploadkit.dev/api/v1/upload/complete \
-      -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+      -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
       -H "Content-Type: application/json" \
-      -d '{"fileId": "file_01J9KXYZ..."}'
+      -d '{"fileId": "65f1a2b3c4d5e6f7a8b9c0d1"}'
     ```
   </Tab>
   <Tab value="JavaScript">
@@ -162,13 +162,13 @@ After the PUT succeeds, notify UploadKit that the upload is complete. This trigg
     const result = await fetch('https://api.uploadkit.dev/api/v1/upload/complete', {
       method: 'POST',
       headers: {
-        'x-api-key': 'uk_live_xxxxxxxxxxxxxxxxxxxxx',
+        Authorization: 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ fileId }),
     });
 
-    const file = await result.json();
+    const { file } = await result.json();
     // file.url — permanent CDN URL for the uploaded file
     ```
   </Tab>
@@ -177,13 +177,13 @@ After the PUT succeeds, notify UploadKit that the upload is complete. This trigg
     result = requests.post(
         'https://api.uploadkit.dev/api/v1/upload/complete',
         headers={
-            'x-api-key': 'uk_live_xxxxxxxxxxxxxxxxxxxxx',
+            'Authorization': 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx',
             'Content-Type': 'application/json',
         },
         json={'fileId': file_id},
     )
 
-    file = result.json()
+    file = result.json()['file']
     print(file['url'])  # permanent CDN URL
     ```
   </Tab>
@@ -193,14 +193,16 @@ After the PUT succeeds, notify UploadKit that the upload is complete. This trigg
 
 ```json
 {
-  "id": "file_01J9KXYZ...",
-  "key": "uploads/abc123/profile.jpg",
-  "name": "profile.jpg",
-  "size": 204800,
-  "type": "image/jpeg",
-  "url": "https://cdn.uploadkit.dev/uploads/abc123/profile.jpg",
-  "status": "UPLOADED",
-  "createdAt": "2026-04-07T11:59:30Z"
+  "file": {
+    "id": "65f1a2b3c4d5e6f7a8b9c0d1",
+    "key": "65f0.../imageUploader/abc123.../profile.jpg",
+    "name": "profile.jpg",
+    "size": 204800,
+    "type": "image/jpeg",
+    "url": "https://cdn.uploadkit.dev/65f0.../imageUploader/abc123.../profile.jpg",
+    "status": "UPLOADED",
+    "createdAt": "2026-04-07T11:59:30Z"
+  }
 }
 ```
 
@@ -214,22 +216,22 @@ Returns paginated files for the current project, newest first.
   <Tab value="curl">
     ```bash
     curl "https://api.uploadkit.dev/api/v1/files?limit=20" \
-      -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+      -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
     ```
   </Tab>
   <Tab value="JavaScript">
     ```javascript
     const response = await fetch('https://api.uploadkit.dev/api/v1/files?limit=20', {
-      headers: { 'x-api-key': 'uk_live_xxxxxxxxxxxxxxxxxxxxx' },
+      headers: { Authorization: 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx' },
     });
-    const { files, nextCursor } = await response.json();
+    const { files, nextCursor, hasMore } = await response.json();
     ```
   </Tab>
   <Tab value="Python">
     ```python
     response = requests.get(
         'https://api.uploadkit.dev/api/v1/files',
-        headers={'x-api-key': 'uk_live_xxxxxxxxxxxxxxxxxxxxx'},
+        headers={'Authorization': 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx'},
         params={'limit': 20},
     )
     data = response.json()
@@ -249,22 +251,22 @@ Returns paginated files for the current project, newest first.
 
 **DELETE** `/api/v1/files/:key`
 
-Permanently removes the file from storage and marks it deleted in the database.
+Permanently removes the file from storage and marks it deleted in the database. The `key` path parameter must be URL-encoded.
 
 <Tabs items={['curl', 'JavaScript', 'Python']}>
   <Tab value="curl">
     ```bash
     curl -X DELETE \
-      "https://api.uploadkit.dev/api/v1/files/uploads%2Fabc123%2Fprofile.jpg" \
-      -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+      "https://api.uploadkit.dev/api/v1/files/65f0...%2FimageUploader%2Fabc123...%2Fprofile.jpg" \
+      -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
     ```
   </Tab>
   <Tab value="JavaScript">
     ```javascript
-    const key = 'uploads/abc123/profile.jpg';
+    const key = '65f0.../imageUploader/abc123.../profile.jpg';
     await fetch(`https://api.uploadkit.dev/api/v1/files/${encodeURIComponent(key)}`, {
       method: 'DELETE',
-      headers: { 'x-api-key': 'uk_live_xxxxxxxxxxxxxxxxxxxxx' },
+      headers: { Authorization: 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx' },
     });
     ```
   </Tab>
@@ -272,31 +274,39 @@ Permanently removes the file from storage and marks it deleted in the database.
     ```python
     from urllib.parse import quote
 
-    key = 'uploads/abc123/profile.jpg'
+    key = '65f0.../imageUploader/abc123.../profile.jpg'
     requests.delete(
         f'https://api.uploadkit.dev/api/v1/files/{quote(key, safe="")}',
-        headers={'x-api-key': 'uk_live_xxxxxxxxxxxxxxxxxxxxx'},
+        headers={'Authorization': 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx'},
     )
     ```
   </Tab>
 </Tabs>
 
+Response: `{ "ok": true }`.
+
 ## Error responses
 
-All errors follow a consistent shape:
+All errors follow a consistent shape — see the [Error Codes](/docs/api-reference/errors) reference for the full list.
 
 ```json
 {
-  "error": "File size exceeds the 4 MB limit for route imageUploader",
-  "code": "FILE_TOO_LARGE"
+  "error": {
+    "type": "invalid_request",
+    "code": "TIER_LIMIT_EXCEEDED",
+    "message": "You have exceeded your file size limit",
+    "suggestion": "Upgrade your plan at app.uploadkit.dev/billing"
+  }
 }
 ```
 
-| HTTP status | When |
-|-------------|------|
-| 400 | Invalid request body (missing fields, wrong types) |
-| 401 | Missing or invalid API key |
-| 403 | File type or size rejected by route configuration |
-| 404 | File not found |
-| 429 | Rate limit exceeded |
-| 500 | Internal server error |
+| HTTP status | Typical code | When |
+|-------------|--------------|------|
+| 400 | `VALIDATION_ERROR`, `INVALID_FILE_TYPE` | Invalid request body or file type rejected |
+| 401 | `UNAUTHORIZED` | Missing or invalid API key |
+| 403 | `TIER_LIMIT_EXCEEDED` | File size, quota, or project/key count exceeded |
+| 404 | `NOT_FOUND` | Resource not found in this project |
+| 409 | `DUPLICATE_SLUG` | A file router with that slug already exists |
+| 422 | `FILE_NOT_IN_STORAGE` | Confirm called but PUT did not complete |
+| 429 | `RATE_LIMITED` | Rate limit exceeded |
+| 500 | `INTERNAL_ERROR` | Server-side error |

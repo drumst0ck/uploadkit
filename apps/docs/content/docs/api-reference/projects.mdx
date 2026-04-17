@@ -11,9 +11,10 @@ Projects are the top-level resource in UploadKit. Each project has its own API k
 
 ```json
 {
-  "id": "proj_abc123",
+  "_id": "65f1a2b3c4d5e6f7a8b9c0d1",
   "name": "My Application",
-  "slug": "my-application",
+  "slug": "my-application-a1b2c3",
+  "userId": "65f0...",
   "createdAt": "2026-04-08T12:00:00.000Z",
   "updatedAt": "2026-04-08T12:00:00.000Z"
 }
@@ -29,18 +30,19 @@ List all projects belonging to the authenticated account.
 
 ```bash
 curl https://api.uploadkit.dev/api/v1/projects \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
 ```
 
 **Response:**
 
 ```json
 {
-  "items": [
+  "projects": [
     {
-      "id": "proj_abc123",
+      "_id": "65f1a2b3c4d5e6f7a8b9c0d1",
       "name": "My Application",
-      "slug": "my-application",
+      "slug": "my-application-a1b2c3",
+      "userId": "65f0...",
       "createdAt": "2026-04-08T12:00:00.000Z"
     }
   ]
@@ -51,32 +53,32 @@ curl https://api.uploadkit.dev/api/v1/projects \
 
 ## POST /api/v1/projects
 
-Create a new project.
+Create a new project. A default file router (slug: `default`) is created automatically so the project is ready to accept uploads.
 
 **Request body:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | string | Yes | Human-readable project name (max 100 characters) |
+| `name` | string | Yes | Human-readable project name (1–100 characters) |
 
 **curl example:**
 
 ```bash
 curl -X POST https://api.uploadkit.dev/api/v1/projects \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "My New Application"
   }'
 ```
 
-**Response:** The created project object with HTTP `201 Created`.
+**Response:** `{ "project": { ... } }` with the created project and HTTP `201 Created`.
 
 **Error cases:**
 
-| Code | Cause |
-|------|-------|
-| `TIER_LIMIT_EXCEEDED` | Project limit for your tier has been reached |
+| Code | HTTP | Cause |
+|------|------|-------|
+| `TIER_LIMIT_EXCEEDED` | 403 | Project limit for your tier has been reached |
 
 Project limits by tier:
 
@@ -97,49 +99,55 @@ Update a project's name.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | string | No | New project name |
+| `name` | string | No | New project name (1–100 characters) |
 
 **curl example:**
 
 ```bash
-curl -X PATCH https://api.uploadkit.dev/api/v1/projects/proj_abc123 \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+curl -X PATCH https://api.uploadkit.dev/api/v1/projects/65f1a2b3c4d5e6f7a8b9c0d1 \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Renamed Application"
   }'
 ```
 
-**Response:** The updated project object.
+**Response:** `{ "project": { ... } }` with the updated project.
+
+**Error cases:**
+
+| Code | HTTP | Cause |
+|------|------|-------|
+| `NOT_FOUND` | 404 | Project does not exist or belongs to a different account |
 
 ---
 
 ## DELETE /api/v1/projects/:id
 
-Delete a project and all of its resources.
+Delete a project. All API keys associated with the project are revoked; uploaded files and file routes remain in storage.
 
 <Callout type="warn">
-  **Cascading deletion.** Deleting a project permanently removes all associated files (from R2 and the database), API keys, file routes, and usage records. This action cannot be undone.
+  Deleting a project revokes **all** API keys that target it. Any service using those keys will begin receiving `401 UNAUTHORIZED` immediately.
 </Callout>
 
 **curl example:**
 
 ```bash
-curl -X DELETE https://api.uploadkit.dev/api/v1/projects/proj_abc123 \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+curl -X DELETE https://api.uploadkit.dev/api/v1/projects/65f1a2b3c4d5e6f7a8b9c0d1 \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
 ```
 
 **Response:**
 
 ```json
-{ "deleted": true }
+{ "ok": true }
 ```
 
 **Error cases:**
 
-| Code | Cause |
-|------|-------|
-| `NOT_FOUND` | Project does not exist or belongs to a different account |
+| Code | HTTP | Cause |
+|------|------|-------|
+| `NOT_FOUND` | 404 | Project does not exist or belongs to a different account |
 
 <Callout type="info">
   You can also manage projects from the [Projects](/docs/dashboard/projects) section of the dashboard.

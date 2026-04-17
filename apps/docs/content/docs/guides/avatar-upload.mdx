@@ -121,16 +121,16 @@ import { useUploadKit } from '@uploadkitdev/react';
 
 export function CustomAvatarUpload({ onSuccess }: { onSuccess: (url: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { upload, isUploading, progress } = useUploadKit({ route: 'avatarUploader' });
+  const { upload, isUploading, progress, result } = useUploadKit('avatarUploader');
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const results = await upload([file]);
-    if (results[0]) {
-      onSuccess(results[0].url);
-    }
+    await upload(file);
+    // `result` will populate once the upload succeeds — consume it via useEffect
+    // or by reading `result` directly in render.
+    if (result) onSuccess(result.url);
   };
 
   return (

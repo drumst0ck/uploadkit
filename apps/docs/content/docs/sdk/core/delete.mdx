@@ -61,7 +61,7 @@ try {
   await client.deleteFile(key);
 } catch (err) {
   if (err instanceof UploadKitError) {
-    if (err.status === 404) {
+    if (err.statusCode === 404) {
       console.log('File not found — may have already been deleted');
     } else {
       console.error(`Delete failed: [${err.code}] ${err.message}`);

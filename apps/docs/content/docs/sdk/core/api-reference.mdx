@@ -110,7 +110,7 @@ try {
   await client.upload({ file, route: 'imageUploader' });
 } catch (err) {
   if (err instanceof UploadKitError) {
-    console.error(err.code, err.message, err.status);
+    console.error(err.code, err.message, err.statusCode);
   }
 }
 ```
@@ -121,7 +121,7 @@ try {
 |----------|------|-------------|
 | `code` | `string` | Machine-readable error code (e.g. `'FILE_TOO_LARGE'`, `'INVALID_FILE_TYPE'`, `'UNAUTHORIZED'`). |
 | `message` | `string` | Human-readable error description. |
-| `status` | `number` | HTTP status code from the API. |
+| `statusCode` | `number` | HTTP status code from the API. |
 | `suggestion` | `string` | Actionable hint for resolving the error. |
 
 ### Common error codes
@@ -169,5 +169,5 @@ Internal response from `POST /api/v1/upload/multipart/init` (files >10 MB).
 
 ```typescript
 import { VERSION } from '@uploadkitdev/core';
-// '0.1.0'
+// '0.2.1'
 ```

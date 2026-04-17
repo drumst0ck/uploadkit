@@ -102,7 +102,7 @@ try {
   if (err instanceof UploadKitError) {
     console.error(`[${err.code}] ${err.message}`);
     // err.code — machine-readable code (e.g. 'FILE_TOO_LARGE', 'INVALID_FILE_TYPE')
-    // err.status — HTTP status code
+    // err.statusCode — HTTP status code
     // err.suggestion — human-readable fix hint
   } else {
     // Network error, timeout, etc.

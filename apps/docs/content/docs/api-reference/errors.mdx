@@ -10,8 +10,9 @@ Every error response from the UploadKit API has the same shape:
 ```json
 {
   "error": {
-    "code": "FILE_TOO_LARGE",
-    "message": "File size 6291456 bytes exceeds the 4194304 byte limit",
+    "type": "invalid_request",
+    "code": "TIER_LIMIT_EXCEEDED",
+    "message": "You have exceeded your file size limit",
     "suggestion": "Upgrade your plan at app.uploadkit.dev/billing"
   }
 }
@@ -19,70 +20,69 @@ Every error response from the UploadKit API has the same shape:
 
 | Field | Description |
 |-------|-------------|
+| `type` | Broad category — `invalid_request`, `authentication_error`, `rate_limit_error`, `api_error` |
 | `code` | Machine-readable error code — use this in your error handling logic |
 | `message` | Human-readable description of what went wrong |
-| `suggestion` | Optional — actionable fix (shown to developers, not end users) |
+| `suggestion` | Optional — actionable fix (shown on tier-limit and auth errors) |
+| `details` | Optional — field-level validation errors on `VALIDATION_ERROR` |
 
-## Error Codes
+Validation errors include a `details` field with per-field messages:
 
-### Authentication Errors
-
-| Code | HTTP Status | Description | Fix |
-|------|-------------|-------------|-----|
-| `UNAUTHORIZED` | 401 | API key is missing, malformed, or has been revoked | Check your `x-api-key` header; create a new key if revoked |
-
-### Upload Errors
-
-| Code | HTTP Status | Description | Fix |
-|------|-------------|-------------|-----|
-| `FILE_TOO_LARGE` | 413 | File size exceeds the route's `maxFileSize` or your tier's limit | Reduce file size, increase route limit, or upgrade tier |
-| `FILE_TYPE_NOT_ALLOWED` | 415 | MIME type not in the route's `allowedTypes` list | Check the route config in your dashboard |
-| `UPLOAD_NOT_FOUND` | 404 | `fileId` does not exist or belongs to another project | Verify the `fileId` came from a `/upload/request` call on the same project |
-| `UPLOAD_NOT_VERIFIED` | 422 | R2 object not found when confirming — the PUT upload may have failed | Retry the upload from the beginning |
-
-### Resource Errors
-
-| Code | HTTP Status | Description | Fix |
-|------|-------------|-------------|-----|
-| `NOT_FOUND` | 404 | The requested resource (file, project, route) does not exist | Check the ID or key in the request |
-
-### Quota and Billing Errors
-
-| Code | HTTP Status | Description | Fix |
-|------|-------------|-------------|-----|
-| `TIER_LIMIT_EXCEEDED` | 403 | Monthly upload count, storage, or project limit reached | Upgrade your plan at app.uploadkit.dev/billing |
-| `RATE_LIMITED` | 429 | Too many requests within the sliding window | Wait for the window to reset (see `Retry-After` header) |
-
-### Server Errors
-
-| Code | HTTP Status | Description | Fix |
-|------|-------------|-------------|-----|
-| `INTERNAL_SERVER_ERROR` | 500 | Unexpected server-side error | Retry with exponential backoff; report persistent issues at github.com/drumst0ck/uploadkit |
-
-## Rate Limit Headers
-
-When rate-limited (`429`), the response includes headers to guide your retry logic:
-
-```bash
-HTTP/1.1 429 Too Many Requests
-Content-Type: application/json
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 0
-Retry-After: 23
-
+```json
 {
   "error": {
-    "code": "RATE_LIMITED",
-    "message": "Rate limit exceeded. Retry after 23 seconds"
+    "type": "invalid_request",
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request body",
+    "details": {
+      "fileName": ["String must contain at least 1 character(s)"],
+      "fileSize": ["Expected number, received string"]
+    }
   }
 }
 ```
 
-| Header | Description |
-|--------|-------------|
-| `X-RateLimit-Limit` | Maximum requests per window |
-| `X-RateLimit-Remaining` | Requests remaining in the current window (0 when limited) |
-| `Retry-After` | Seconds until the sliding window resets |
+## Error Codes
+
+### Authentication
+
+| Code | HTTP | Description | Fix |
+|------|------|-------------|-----|
+| `UNAUTHORIZED` | 401 | API key is missing, malformed, or has been revoked | Send `Authorization: Bearer <key>`; create a new key if revoked |
+
+### Request Validation
+
+| Code | HTTP | Description | Fix |
+|------|------|-------------|-----|
+| `VALIDATION_ERROR` | 400 | Request body failed schema validation — see `details` | Correct the offending fields |
+| `INVALID_FILE_TYPE` | 400 | MIME type not in the route's `allowedTypes` | Check the route config in the dashboard |
+| `FILE_TOO_SMALL_FOR_MULTIPART` | 400 | `fileSize` is ≤ 10 MB on `/upload/multipart/init` | Use `/upload/request` for files under 10 MB |
+| `DUPLICATE_SLUG` | 409 | A file router with the requested slug already exists | Choose a different slug |
+
+### Resources
+
+| Code | HTTP | Description | Fix |
+|------|------|-------------|-----|
+| `NOT_FOUND` | 404 | Requested resource (file, project, route, key) does not exist or belongs to another account | Check the ID/key and that your API key targets the correct project |
+
+### Upload Verification
+
+| Code | HTTP | Description | Fix |
+|------|------|-------------|-----|
+| `FILE_NOT_IN_STORAGE` | 422 | R2 object not found when confirming — the client-side PUT may have failed | Retry the upload from `/upload/request` |
+
+### Quota and Billing
+
+| Code | HTTP | Description | Fix |
+|------|------|-------------|-----|
+| `TIER_LIMIT_EXCEEDED` | 403 | File size, monthly uploads, storage, project, or API key limit reached | Upgrade your plan at app.uploadkit.dev/billing |
+| `RATE_LIMITED` | 429 | Too many requests — 10/min general, 30/min on `/upload/*` | Back off and retry; the SDK does this automatically |
+
+### Server
+
+| Code | HTTP | Description | Fix |
+|------|------|-------------|-----|
+| `INTERNAL_ERROR` | 500 | Unexpected server-side error | Retry with exponential backoff; report persistent issues at github.com/drumst0ck/uploadkit |
 
 ## Handling Errors in Code
 
@@ -90,7 +90,7 @@ Retry-After: 23
 const response = await fetch('https://api.uploadkit.dev/api/v1/upload/request', {
   method: 'POST',
   headers: {
-    'x-api-key': process.env.UPLOADKIT_API_KEY!,
+    Authorization: `Bearer ${process.env.UPLOADKIT_API_KEY}`,
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({ fileName, fileSize, contentType, routeSlug }),
@@ -100,15 +100,16 @@ if (!response.ok) {
   const { error } = await response.json();
 
   switch (error.code) {
-    case 'FILE_TOO_LARGE':
-      throw new Error('Please upload a smaller file.');
-    case 'FILE_TYPE_NOT_ALLOWED':
+    case 'VALIDATION_ERROR':
+      throw new Error(`Invalid request: ${JSON.stringify(error.details)}`);
+    case 'INVALID_FILE_TYPE':
       throw new Error('This file type is not supported.');
-    case 'RATE_LIMITED':
-      const retryAfter = response.headers.get('Retry-After');
-      throw new Error(`Too many requests. Try again in ${retryAfter}s.`);
     case 'TIER_LIMIT_EXCEEDED':
-      throw new Error('Upload quota reached. Upgrade your plan.');
+      throw new Error('Quota reached — upgrade your plan.');
+    case 'RATE_LIMITED':
+      throw new Error('Too many requests. Try again shortly.');
+    case 'UNAUTHORIZED':
+      throw new Error('API key missing or invalid.');
     default:
       throw new Error(error.message);
   }
@@ -116,5 +117,5 @@ if (!response.ok) {
 ```
 
 <Callout type="info">
-  When using the `@uploadkitdev/core` or `@uploadkitdev/react` SDK, errors are surfaced via the `onError` callback with the same `code` values. You do not need to parse the HTTP response manually.
+  When using the `@uploadkitdev/core` or `@uploadkitdev/react` SDK, errors are surfaced via the `onError` callback with the same `code` values. You do not need to parse the HTTP response manually. Retryable failures (`429`, `5xx`) are automatically retried with exponential backoff up to `maxRetries`.
 </Callout>

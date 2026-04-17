@@ -6,7 +6,7 @@
 
 export const SERVER_INFO = {
   name: 'uploadkit',
-  version: '0.4.0',
+  version: '0.5.2',
 } as const;
 
 export const SERVER_CAPABILITIES = {

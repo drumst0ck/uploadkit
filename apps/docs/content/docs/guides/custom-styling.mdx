@@ -103,22 +103,20 @@ import { useDropzone } from 'react-dropzone';
 import { useUploadKit } from '@uploadkitdev/react';
 
 export function CustomDropzone() {
-  const { upload, isUploading, progress } = useUploadKit({
-    route: 'imageUploader',
-    onUploadComplete: (files) => {
-      console.log('Uploaded:', files.map((f) => f.url));
-    },
-    onUploadError: (error) => {
-      console.error('Upload failed:', error.message);
-    },
-  });
+  const { upload, isUploading, progress, result, error } = useUploadKit('imageUploader');
 
   const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      upload(acceptedFiles);
+    async (acceptedFiles: File[]) => {
+      for (const file of acceptedFiles) {
+        await upload(file);
+      }
     },
     [upload],
   );
+
+  // React to result/error via effects or render branches
+  // useEffect(() => { if (result) console.log('Uploaded:', result.url); }, [result]);
+  // useEffect(() => { if (error) console.error('Upload failed:', error.message); }, [error]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

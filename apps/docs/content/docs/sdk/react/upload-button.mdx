@@ -40,12 +40,16 @@ export default function Page() {
 | `metadata` | `Record<string, unknown>` | — | JSON-serializable metadata forwarded to `onUploadComplete` on the server. |
 | `onUploadComplete` | `(result: UploadResult) => void` | — | Called after a successful upload. Receives the full file record. |
 | `onUploadError` | `(error: Error) => void` | — | Called when an upload fails (network error, type rejection, size rejection). |
+| `onBeforeUploadBegin` | `(files: File[]) => File[] \| Promise<File[]>` | — | Called with the selected files before upload begins. Return a modified array, or an empty array to cancel. |
 | `variant` | `'default' \| 'outline' \| 'ghost'` | `'default'` | Visual style variant. |
 | `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Size variant. |
 | `disabled` | `boolean` | `false` | Disables the button. |
 | `className` | `string` | — | Additional CSS class(es) for the button wrapper. |
 | `appearance` | `Partial<Record<'button' \| 'progressBar' \| 'progressText', string>>` | — | Override CSS classes on specific inner elements. |
 | `children` | `ReactNode` | — | Custom button label content. Omit to use the built-in state labels. |
+| `config` | `{ mode?: 'auto' \| 'manual' }` | `{ mode: 'auto' }` | `'auto'` uploads immediately on file pick; `'manual'` stages the file and uploads on a second click. |
+| `uploadProgressGranularity` | `'coarse' \| 'fine' \| 'all'` | `'coarse'` | How often progress updates fire. See the [progress guide](/docs/sdk/react/progress). |
+| `beam` | `boolean` | `false` | Wrap the button with an animated `UploadBeam` border that reflects upload state. |
 
 `UploadButton` accepts a `ref` forwarded to the underlying `<button>` element.
 

@@ -5,28 +5,28 @@ description: API key authentication — key types, header format, security model
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-The UploadKit REST API authenticates using **API keys** passed in the `x-api-key` request header. There are no cookies, no OAuth flows, and no JWTs for API access.
+The UploadKit REST API authenticates using **API keys** passed as a Bearer token in the `Authorization` header. There are no cookies, no OAuth flows, and no JWTs for API access.
 
 ## Key Types
 
 | Prefix | Environment | Behavior |
 |--------|-------------|----------|
 | `uk_live_` | Production | Real uploads, counted against storage and upload quotas |
-| `uk_test_` | Test / sandbox | Isolated environment, no quota impact, uploads purged after 24 hours |
+| `uk_test_` | Test / sandbox | Isolated environment, no quota impact |
 
 Use `uk_test_` keys during development and CI. Switch to a `uk_live_` key before going to production.
 
 ## Header Format
 
-Pass your API key in the `x-api-key` header on every request:
+Pass your API key as a Bearer token on every request:
 
 ```bash
 curl https://api.uploadkit.dev/api/v1/files \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx"
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
 ```
 
 <Callout type="warn">
-  Never put API keys in query string parameters — they end up in server logs, browser history, and referrer headers. Always use the `x-api-key` header.
+  Never put API keys in query string parameters — they end up in server logs, browser history, and referrer headers. Always use the `Authorization` header.
 </Callout>
 
 ## Creating API Keys
@@ -44,7 +44,7 @@ See the [API Keys dashboard guide](/docs/dashboard/api-keys) for screenshots and
 
 UploadKit stores only a **SHA-256 hash** of each key — the plaintext is never persisted:
 
-- The key hash is stored alongside a masked prefix (`uk_live_xxx...xxx`) for display in the dashboard
+- The key hash is stored alongside a masked prefix (`uk_live_xxx...`) for display in the dashboard
 - When you make a request, the server hashes your key and compares it to the stored hash
 - If you lose a key, you must revoke it and create a new one — there is no recovery
 
@@ -57,6 +57,7 @@ If your key is missing, malformed, or has been revoked, the API returns `401`:
 ```json
 {
   "error": {
+    "type": "authentication_error",
     "code": "UNAUTHORIZED",
     "message": "Invalid or missing API key",
     "suggestion": "Check your API key at app.uploadkit.dev"
@@ -68,8 +69,9 @@ If your key is missing, malformed, or has been revoked, the API returns `401`:
 
 | Cause | Fix |
 |-------|-----|
-| Missing `x-api-key` header | Add the header to every request |
-| Key prefixed with `Bearer ` | Remove the `Bearer ` prefix — use the key directly |
+| Missing `Authorization` header | Add `Authorization: Bearer <key>` to every request |
+| Using `x-api-key` header | UploadKit does not read `x-api-key` — switch to Bearer |
+| Authorization value missing `Bearer ` prefix | Format must be exactly `Bearer <key>` |
 | Using a test key against a live route (or vice versa) | Match key type to environment |
 | Key has been revoked | Create a new key in the dashboard |
 | Key belongs to a different project | Check you are using the correct project key |
@@ -77,8 +79,8 @@ If your key is missing, malformed, or has been revoked, the API returns `401`:
 ## Example: Authenticated Request
 
 ```bash
-curl -X GET https://api.uploadkit.dev/api/v1/files?limit=10 \
-  -H "x-api-key: uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+curl -X GET "https://api.uploadkit.dev/api/v1/files?limit=10" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json"
 ```
 
