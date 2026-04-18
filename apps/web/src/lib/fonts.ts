@@ -1,5 +1,5 @@
 import localFont from 'next/font/local'
-import { Inter } from 'next/font/google'
+import { Inter, Geist, Geist_Mono } from 'next/font/google'
 
 export const satoshi = localFont({
   src: [
@@ -15,5 +15,18 @@ export const satoshi = localFont({
 export const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
+})
+
+// Geist + Geist Mono — used by the redesigned landing (Claude Design shell)
+export const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist',
+  display: 'swap',
+})
+
+export const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
   display: 'swap',
 })
