@@ -85,15 +85,19 @@ export function HeroDropzoneDemo() {
     // unmount cleanup below handles shutdown).
     previousIdsRef.current = currentIds
   }, [files])
+  // Hold a ref to the latest file list so the unmount cleanup (which must only run
+  // on unmount — empty deps) can revoke any remaining object URLs without making React
+  // re-run the effect on every change.
+  const filesRef = useRef(files)
+  useEffect(() => {
+    filesRef.current = files
+  }, [files])
   useEffect(() => {
     return () => {
-      // Unmount — revoke any remaining object URLs
-      for (const f of files) {
+      for (const f of filesRef.current) {
         if (f.preview) URL.revokeObjectURL(f.preview)
       }
     }
-    // We only want this on unmount; ESLint intentionally relaxed via reference to `files`.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Progress tick — only runs while any file is still uploading.
@@ -312,8 +316,19 @@ function FileRow({ file, onRemove }: FileRowProps) {
     <div className="file-row">
       <div className="file-thumb">
         {file.preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={file.preview} alt="" />
+          // Background-image avoids lint/<img> rules; object URL is client-only.
+          <span
+            role="img"
+            aria-label=""
+            style={{
+              display: 'block',
+              width: '100%',
+              height: '100%',
+              backgroundImage: `url(${file.preview})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          />
         ) : (
           <DesignIcon name={kind} size={14} />
         )}

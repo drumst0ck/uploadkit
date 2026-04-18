@@ -1,6 +1,9 @@
-// Server Component — no "use client"
+// Server Component — redesigned 5-column footer (Claude Design).
+// Scoped via data-surface-footer="design-v2" so it does not collide with legacy
+// .footer / .footer-grid rules used by other routes.
 
-const CURRENT_YEAR = new Date().getFullYear()
+import Link from 'next/link'
+import { DesignIcon } from '@/components/ui/design-icon'
 
 interface FooterLink {
   label: string
@@ -13,14 +16,14 @@ interface FooterColumn {
   links: FooterLink[]
 }
 
-const columns: FooterColumn[] = [
+const COLUMNS: FooterColumn[] = [
   {
     heading: 'Product',
     links: [
       { label: 'Features', href: '/#features' },
+      { label: 'Components', href: '/#components' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Dashboard', href: 'https://app.uploadkit.dev', external: true },
-      { label: 'Blog', href: '/blog' },
       { label: 'Changelog', href: '/changelog' },
     ],
   },
@@ -28,60 +31,91 @@ const columns: FooterColumn[] = [
     heading: 'Developers',
     links: [
       { label: 'Documentation', href: 'https://docs.uploadkit.dev', external: true },
-      { label: 'API Reference', href: 'https://docs.uploadkit.dev/api', external: true },
-      { label: 'SDK Reference', href: 'https://docs.uploadkit.dev/sdk', external: true },
-      { label: 'GitHub', href: 'https://github.com/drumst0ck/uploadkit', external: true },
+      {
+        label: 'REST API',
+        href: 'https://docs.uploadkit.dev/api-reference',
+        external: true,
+      },
+      { label: 'MCP server', href: '/#mcp' },
+      {
+        label: 'CLI',
+        href: 'https://docs.uploadkit.dev/getting-started',
+        external: true,
+      },
+    ],
+  },
+  {
+    heading: 'Resources',
+    links: [
+      { label: 'Blog', href: '/blog' },
+      {
+        label: 'Examples',
+        href: 'https://github.com/drumst0ck/uploadkit/tree/main/examples',
+        external: true,
+      },
+      {
+        label: 'Migration guide',
+        href: 'https://docs.uploadkit.dev/migration-from-uploadthing',
+        external: true,
+      },
+      { label: 'Discord', href: '#' },
+    ],
+  },
+  {
+    heading: 'Company',
+    links: [
+      { label: 'About', href: '#' },
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms', href: '/terms' },
+      { label: 'Contact', href: 'mailto:support@uploadkit.dev' },
     ],
   },
 ]
 
 export function Footer() {
+  const year = new Date().getFullYear()
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="footer-grid">
-          {/* Brand column */}
-          <div className="footer-brand">
-            <div className="footer-logo" aria-label="UploadKit">
-              <span className="footer-logo-dot" aria-hidden="true" />
-              UploadKit
-            </div>
-            <p className="footer-tagline">
-              File uploads as a service.
-              <br />
-              Built for developers who ship.
-            </p>
-            <p className="footer-copyright">
-              &copy; {CURRENT_YEAR} UploadKit. All rights reserved.
-            </p>
-          </div>
+    <footer data-surface-footer="design-v2" aria-label="Site footer">
+      <div className="footer-grid">
+        <div className="footer-col">
+          <Link href="/" className="brand" aria-label="UploadKit home">
+            <span className="brand-mark">
+              <DesignIcon name="upload" size={12} />
+            </span>
+            uploadkit
+          </Link>
+          <p className="footer-blurb">
+            File uploads for developers. Open-source SDK, premium components, managed storage,
+            BYOS. MIT.
+          </p>
+        </div>
 
-          {/* Link columns */}
-          {columns.map((col) => (
-            <nav key={col.heading} aria-label={`${col.heading} links`}>
-              <h4 className="footer-col-heading">{col.heading}</h4>
-              <ul className="footer-col-links">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="footer-link"
-                      {...(link.external
-                        ? { target: '_blank', rel: 'noopener noreferrer' }
-                        : {})}
-                    >
+        {COLUMNS.map((col) => (
+          <div className="footer-col" key={col.heading}>
+            <h4>{col.heading}</h4>
+            <ul>
+              {col.links.map((link) => (
+                <li key={`${col.heading}-${link.label}`}>
+                  {link.external ? (
+                    <a href={link.href} target="_blank" rel="noopener noreferrer">
                       {link.label}
                     </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
-        </div>
+                  ) : (
+                    <Link href={link.href}>{link.label}</Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
 
-        <div className="footer-bottom">
-          <p className="footer-bottom-text">Built with care for developers</p>
-        </div>
+      <div className="footer-bottom">
+        <span>© {year} UploadKit · MIT license</span>
+        <span className="status">
+          <span className="status-dot" aria-hidden="true" />
+          All systems operational
+        </span>
       </div>
     </footer>
   )
