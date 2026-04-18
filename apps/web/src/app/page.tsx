@@ -1,23 +1,18 @@
 import type { Metadata } from 'next'
-import {
-  CloudUpload,
-  HardDrive,
-  Palette,
-  Shield,
-  Zap,
-  LayoutDashboard,
-  Check,
-} from 'lucide-react'
+import { Check } from 'lucide-react'
 import Navbar from '@/components/nav/navbar'
-import { HeroCodeWindow } from '@/components/hero/hero-code-window'
 import { InstallCommand } from '@/components/hero/install-command'
+import { HeroDropzoneDemo } from '@/components/hero/hero-dropzone-demo'
+import { LogosStrip } from '@/components/logos/logos-strip'
+import { DesignFeatures } from '@/components/features/design-features'
+import { FeatureMosaic } from '@/components/features/feature-mosaic'
+import { ByosSection } from '@/components/byos/byos-section'
 import { Footer } from '@/components/footer/footer'
 import { AnimatedButton } from '@/components/ui/animated-button'
-import { BlurText } from '@/components/react-bits/blur-text'
-import { DarkVeil } from '@/components/react-bits/dark-veil'
-import { SpotlightCard } from '@/components/react-bits/spotlight-card'
 import { LandingShowcase } from '@/components/showcase/landing-showcase'
 import { McpSection } from '@/components/mcp/mcp-section'
+import { TweaksPanel } from '@/components/tweaks/tweaks-panel'
+import { DesignIcon } from '@/components/ui/design-icon'
 
 export const metadata: Metadata = {
   title: 'UploadKit — The developer platform for file uploads',
@@ -74,107 +69,60 @@ function JsonLd() {
 }
 
 // ─────────────────────────────────────────────────────────
-// Hero Section
+// Hero (Claude Design)
 // ─────────────────────────────────────────────────────────
 
-async function HeroSection() {
+function HeroSection() {
   return (
-    <section
-      className="relative overflow-hidden pb-24 pt-28 md:pb-32 md:pt-36"
-      aria-labelledby="hero-headline"
-    >
-      {/* DarkVeil — full-section animated gradient background */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-70 [mask-image:linear-gradient(to_bottom,black_0%,black_70%,transparent_100%)]"
-        aria-hidden="true"
-      >
-        <DarkVeil
-          speed={0.4}
-          hueShift={-25}
-          warpAmount={0.6}
-          noiseIntensity={0.02}
-        />
-      </div>
-      <div className="relative mx-auto flex max-w-[1200px] flex-col items-center px-6 text-center">
-        {/* Beta badge */}
-        <div
-          className="mb-8 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium"
-          style={{
-            background: 'rgba(99,102,241,0.08)',
-            border: '1px solid rgba(99,102,241,0.30)',
-            color: '#818cf8',
-          }}
-        >
-          <span
-            className="inline-block h-1.5 w-1.5 rounded-full"
-            style={{ background: '#818cf8' }}
-            aria-hidden="true"
-          />
-          Now in beta — 5GB free forever
-        </div>
+    <section className="hero" aria-labelledby="hero-headline">
+      <div className="d2-container">
+        <div className="hero-grid">
+          <div>
+            <span className="eyebrow">v1.0 · 5 GB free forever</span>
+            <h1 id="hero-headline">
+              File uploads <br />
+              for developers,
+              <br />
+              <em>done right.</em>
+            </h1>
+            <p className="lead hero-lead">
+              Open-source TypeScript SDK, 40+ premium React components, and managed storage on
+              Cloudflare R2 — or bring your own bucket. Ship uploads in an afternoon.
+            </p>
+            <div className="hero-cta">
+              <a
+                href="https://app.uploadkit.dev/login"
+                className="btn btn-primary btn-lg"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Start for free <DesignIcon name="arrow" size={14} />
+              </a>
+              <a
+                href="https://docs.uploadkit.dev"
+                className="btn btn-ghost btn-lg"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <DesignIcon name="code" size={14} /> Read the docs
+              </a>
+            </div>
+            <div className="hero-meta">
+              <span>
+                <DesignIcon name="check" size={12} /> MIT licensed
+              </span>
+              <span>
+                <DesignIcon name="check" size={12} /> BYOS · S3 · R2 · GCS · B2
+              </span>
+              <span>
+                <DesignIcon name="check" size={12} /> Works with Next, Remix, Vite
+              </span>
+            </div>
+          </div>
 
-        {/* Headline — BlurText staggered reveal */}
-        <h1
-          id="hero-headline"
-          className="mb-6 flex flex-col items-center font-display font-black leading-[1.05]"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(42px, 6vw, 68px)',
-            letterSpacing: '-0.025em',
-            color: 'var(--color-text-primary)',
-          }}
-        >
-          <BlurText
-            as="span"
-            text="The developer platform"
-            delay={80}
-            animateBy="words"
-            direction="top"
-            className="justify-center whitespace-nowrap"
-          />
-          <BlurText
-            as="span"
-            text="for file uploads"
-            delay={80}
-            animateBy="words"
-            direction="top"
-            className="justify-center whitespace-nowrap"
-          />
-        </h1>
-
-        {/* Subline */}
-        <p
-          className="mb-10 max-w-[580px] text-lg"
-          style={{ color: '#71717A', lineHeight: '1.75' }}
-        >
-          UploadKit provides the infrastructure, SDK, and components to add
-          production-ready file uploads to any app — in minutes.
-        </p>
-
-        {/* CTAs */}
-        <div className="mb-10 flex flex-col items-center gap-3 sm:flex-row">
-          <AnimatedButton
-            href="https://app.uploadkit.dev/login"
-            variant="primary"
-            external
-          >
-            Start Building
-          </AnimatedButton>
-          <AnimatedButton
-            href="https://docs.uploadkit.dev"
-            variant="ghost"
-            external
-          >
-            Read the Docs
-          </AnimatedButton>
-        </div>
-
-        {/* Install command — client component with pm tabs + copy feedback */}
-        <InstallCommand />
-
-        {/* Code window */}
-        <div className="w-full max-w-[720px]">
-          <HeroCodeWindow />
+          <div>
+            <HeroDropzoneDemo />
+          </div>
         </div>
       </div>
     </section>
@@ -182,105 +130,58 @@ async function HeroSection() {
 }
 
 // ─────────────────────────────────────────────────────────
-// Features Section
+// Install section (Claude Design — 2-col grid with 3 cards)
 // ─────────────────────────────────────────────────────────
 
-const FEATURES = [
-  {
-    icon: CloudUpload,
-    title: 'Managed Storage',
-    description:
-      'Upload files directly to UploadKit-managed S3-compatible storage. CDN delivery included, no infrastructure setup required.',
-  },
-  {
-    icon: HardDrive,
-    title: 'Bring Your Own Storage',
-    description:
-      'Point UploadKit at your own S3 bucket, R2, or GCS. Keep your data in your cloud — we just handle the plumbing.',
-  },
-  {
-    icon: Palette,
-    title: 'Premium Components',
-    description:
-      'Drop-in React components — dropzone, button, progress bar — styled beautifully and fully customizable.',
-  },
-  {
-    icon: Shield,
-    title: 'End-to-End Type Safety',
-    description:
-      'Your file router is fully typed. Endpoint names, MIME types, and metadata flow from server to client without casting.',
-  },
-  {
-    icon: Zap,
-    title: 'Direct Uploads',
-    description:
-      'Files go straight from the browser to storage via presigned URLs. Your server never touches the bytes.',
-  },
-  {
-    icon: LayoutDashboard,
-    title: 'Dashboard & Analytics',
-    description:
-      'Monitor uploads, bandwidth, and storage in real time. Set alerts and inspect individual files from one place.',
-  },
-] as const
-
-function FeaturesSection() {
+function InstallSection() {
   return (
-    <section
-      id="features"
-      className="py-24 md:py-32"
-      aria-labelledby="features-headline"
-    >
-      <div className="mx-auto max-w-[1200px] px-6">
-        {/* Header */}
-        <div className="mb-16 flex flex-col items-center text-center">
-          <p
-            className="mb-4 text-xs font-semibold uppercase tracking-[0.14em]"
-            style={{ color: '#818cf8' }}
-          >
-            Features
-          </p>
-          <h2
-            id="features-headline"
-            className="font-display text-4xl font-black leading-tight md:text-5xl"
-            style={{
-              fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.02em',
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            Everything you need.
-            <br />
-            Nothing you don&apos;t.
+    <section id="install" aria-labelledby="install-headline">
+      <div className="d2-container">
+        <div className="section-head">
+          <span className="eyebrow">Zero to uploading</span>
+          <h2 id="install-headline" style={{ marginTop: 16 }}>
+            Three ways in. Pick whichever hurts least.
           </h2>
         </div>
 
-        {/* 3×2 grid — SpotlightCard hover */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(({ icon: Icon, title, description }) => (
-            <SpotlightCard
-              key={title}
-              spotlightColor="rgba(129, 140, 248, 0.22)"
-              className="flex flex-col gap-4 rounded-[var(--radius-md)] border border-white/[0.06] bg-[#0C0C0F] p-6 transition-colors duration-300 hover:border-white/[0.14]"
-            >
-              {/* Icon container */}
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)]"
-                style={{ background: 'rgba(99,102,241,0.12)' }}
-              >
-                <Icon className="h-5 w-5" style={{ color: '#818cf8' }} aria-hidden="true" />
-              </div>
-              <h3
-                className="font-display text-base font-semibold"
-                style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-display)' }}
-              >
-                {title}
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: '#52525B' }}>
-                {description}
-              </p>
-            </SpotlightCard>
-          ))}
+        <div className="install-grid">
+          {/* Primary card — reuses existing InstallCommand (pm tabs + copy feedback).
+              Span both columns on desktop. */}
+          <div className="install-card" style={{ gridColumn: 'span 2' }}>
+            <h3>Add to an existing project</h3>
+            <p>
+              Most people land here with a Next.js app already running. Install the packages, drop
+              in a route handler, wrap your layout — done.
+            </p>
+            <InstallCommand />
+          </div>
+
+          <div className="install-card">
+            <h3>Use the CLI</h3>
+            <p>
+              Detects your framework, installs deps, creates the route handler, wraps your layout
+              — one command.
+            </p>
+            <div className="install-terminal">
+              <span className="prompt">$</span>
+              <span className="cmd">
+                <em>npx</em> uploadkit init
+              </span>
+            </div>
+          </div>
+
+          <div className="install-card">
+            <h3>Starting fresh</h3>
+            <p>
+              Scaffold a new Next.js, SvelteKit, Remix, or Vite app with UploadKit pre-wired.
+            </p>
+            <div className="install-terminal">
+              <span className="prompt">$</span>
+              <span className="cmd">
+                <em>npx</em> create-uploadkit-app my-app
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -288,57 +189,32 @@ function FeaturesSection() {
 }
 
 // ─────────────────────────────────────────────────────────
-// Component Showcase Section
+// Showcase Section (kept — wraps LandingShowcase with a heading)
 // ─────────────────────────────────────────────────────────
 
 function ShowcaseSection() {
   return (
-    <section
-      id="components"
-      className="py-24 md:py-32"
-      aria-labelledby="showcase-headline"
-    >
-      <div className="mx-auto max-w-[1200px] px-6">
-        {/* Header */}
-        <div className="mb-16 flex flex-col items-center text-center">
-          <p
-            className="mb-4 text-xs font-semibold uppercase tracking-[0.14em]"
-            style={{ color: '#818cf8' }}
-          >
-            Components
-          </p>
-          <h2
-            id="showcase-headline"
-            className="font-display text-4xl font-black leading-tight md:text-5xl"
-            style={{
-              fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.02em',
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            40+ upload components.
-            <br />
-            Pick your style.
+    <section id="showcase" aria-labelledby="showcase-headline">
+      <div className="d2-container">
+        <div className="section-head">
+          <span className="eyebrow">Live previews</span>
+          <h2 id="showcase-headline" style={{ marginTop: 16 }}>
+            Every component, interactive.
           </h2>
-          <p
-            className="mt-4 max-w-[520px] text-lg"
-            style={{ color: '#71717A', lineHeight: '1.75' }}
-          >
-            From minimal Stripe-style dropzones to 3D envelopes and vinyl
-            records. Every component is themeable, accessible, and works with
-            or without Motion.
+          <p className="lead">
+            From minimal Stripe-style dropzones to 3D envelopes and vinyl records. Themeable,
+            accessible, motion-aware.
           </p>
         </div>
       </div>
-
-      {/* Showcase — full width for the grid layout */}
+      {/* LandingShowcase is intentionally untouched — real @uploadkitdev/react components. */}
       <LandingShowcase />
     </section>
   )
 }
 
 // ─────────────────────────────────────────────────────────
-// Pricing Section
+// Pricing Section (kept — preserves existing tiers so no duplication)
 // ─────────────────────────────────────────────────────────
 
 interface PricingTier {
@@ -408,93 +284,79 @@ const PRICING_TIERS: PricingTier[] = [
 
 function PricingSection() {
   return (
-    <section
-      id="pricing"
-      className="py-24 md:py-32"
-      aria-labelledby="pricing-headline"
-    >
-      <div className="mx-auto max-w-[1200px] px-6">
-        {/* Header */}
-        <div className="mb-16 flex flex-col items-center text-center">
-          <p
-            className="mb-4 text-xs font-semibold uppercase tracking-[0.14em]"
-            style={{ color: '#818cf8' }}
-          >
-            Pricing
-          </p>
-          <h2
-            id="pricing-headline"
-            className="font-display text-4xl font-black leading-tight md:text-5xl"
-            style={{
-              fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.02em',
-              color: 'var(--color-text-primary)',
-            }}
-          >
+    <section id="pricing" aria-labelledby="pricing-headline">
+      <div className="d2-container">
+        <div className="section-head">
+          <span className="eyebrow">Pricing</span>
+          <h2 id="pricing-headline" style={{ marginTop: 16 }}>
             Simple, transparent pricing
           </h2>
         </div>
 
-        {/* Cards */}
         <div className="grid gap-6 md:grid-cols-3">
           {PRICING_TIERS.map((tier) => (
             <div
               key={tier.name}
-              className="relative flex flex-col rounded-[var(--radius-lg)] p-8"
+              className="relative flex flex-col rounded-[14px] p-8"
               style={
                 tier.featured
                   ? {
-                      background: '#0C0C0F',
-                      border: '1px solid rgba(99,102,241,0.5)',
-                      boxShadow: '0 0 60px -20px rgba(99,102,241,0.35)',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--accent)',
+                      boxShadow:
+                        '0 0 0 1px var(--accent), 0 20px 50px -20px var(--accent-glow)',
                     }
                   : {
-                      background: '#0C0C0F',
-                      border: '1px solid rgba(255,255,255,0.06)',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--line)',
                     }
               }
             >
-              {/* Most Popular badge */}
               {tier.featured && (
                 <div
                   className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-xs font-semibold"
-                  style={{ background: '#6366f1', color: '#fff' }}
+                  style={{
+                    background: 'var(--accent)',
+                    color: 'var(--accent-ink)',
+                    fontFamily: 'var(--font-mono)',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                  }}
                 >
                   Most Popular
                 </div>
               )}
 
-              {/* Tier name */}
               <p
                 className="mb-2 text-sm font-semibold"
-                style={{ color: tier.featured ? '#818cf8' : '#a1a1aa' }}
+                style={{ color: tier.featured ? 'var(--accent)' : 'var(--fg-muted)' }}
               >
                 {tier.name}
               </p>
 
-              {/* Price */}
               <div className="mb-1 flex items-end gap-1">
                 <span
-                  className="font-display text-5xl font-black"
+                  className="text-5xl font-medium"
                   style={{
-                    fontFamily: 'var(--font-display)',
+                    fontFamily: 'var(--font-sans)',
                     letterSpacing: '-0.03em',
-                    color: 'var(--color-text-primary)',
+                    color: 'var(--fg)',
                   }}
                 >
                   {tier.price}
                 </span>
-                <span className="mb-2 text-sm" style={{ color: '#71717A' }}>
+                <span className="mb-2 text-sm" style={{ color: 'var(--fg-muted)' }}>
                   /{tier.period}
                 </span>
               </div>
 
-              {/* Description */}
-              <p className="mb-8 text-sm leading-relaxed" style={{ color: '#71717A' }}>
+              <p
+                className="mb-8 text-sm leading-relaxed"
+                style={{ color: 'var(--fg-muted)' }}
+              >
                 {tier.description}
               </p>
 
-              {/* CTA */}
               <div className="mb-8">
                 <AnimatedButton
                   href={tier.ctaHref}
@@ -507,22 +369,19 @@ function PricingSection() {
                 </AnimatedButton>
               </div>
 
-              {/* Divider */}
-              <div
-                className="mb-6 h-px"
-                style={{ background: 'rgba(255,255,255,0.06)' }}
-              />
+              <div className="mb-6 h-px" style={{ background: 'var(--line)' }} />
 
-              {/* Feature list */}
-              <ul className="flex flex-col gap-3">
+              <ul className="flex flex-col gap-3" role="list">
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
                     <Check
                       className="h-4 w-4 flex-shrink-0"
-                      style={{ color: tier.featured ? '#818cf8' : '#52525B' }}
+                      style={{
+                        color: tier.featured ? 'var(--accent)' : 'var(--fg-dim)',
+                      }}
                       aria-hidden="true"
                     />
-                    <span className="text-sm" style={{ color: '#a1a1aa' }}>
+                    <span className="text-sm" style={{ color: 'var(--fg-muted)' }}>
                       {feature}
                     </span>
                   </li>
@@ -537,68 +396,27 @@ function PricingSection() {
 }
 
 // ─────────────────────────────────────────────────────────
-// Final CTA Section
-// ─────────────────────────────────────────────────────────
-
-function CtaSection() {
-  return (
-    <section className="py-24 md:py-32" aria-labelledby="cta-headline">
-      <div className="mx-auto max-w-[1200px] px-6">
-        <div
-          className="flex flex-col items-center rounded-[var(--radius-lg)] px-8 py-20 text-center"
-          style={{
-            background:
-              'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(99,102,241,0.14) 0%, transparent 70%), #0C0C0F',
-            border: '1px solid rgba(255,255,255,0.06)',
-          }}
-        >
-          <h2
-            id="cta-headline"
-            className="mb-4 max-w-[500px] font-display font-black leading-tight"
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(32px, 4vw, 44px)',
-              letterSpacing: '-0.025em',
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            Ready to ship uploads?
-          </h2>
-          <p className="mb-10 text-lg" style={{ color: '#71717A' }}>
-            Start with 5GB free. No credit card required.
-          </p>
-          <AnimatedButton
-            href="https://app.uploadkit.dev/login"
-            variant="primary"
-            external
-            className="px-8 py-3"
-          >
-            Get Started Free
-          </AnimatedButton>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────
 
-export default async function WebPage() {
+export default function WebPage() {
   return (
     <>
       <JsonLd />
       <Navbar />
-      <main>
+      <main data-surface="design-v2">
         <HeroSection />
-        <FeaturesSection />
+        <LogosStrip />
+        <DesignFeatures />
+        <FeatureMosaic />
         <ShowcaseSection />
+        <InstallSection />
+        <ByosSection />
         <McpSection />
         <PricingSection />
-        <CtaSection />
       </main>
       <Footer />
+      <TweaksPanel />
     </>
   )
 }
