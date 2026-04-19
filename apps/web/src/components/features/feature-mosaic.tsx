@@ -54,7 +54,7 @@ export function FeatureMosaic() {
 
         <div style={{ textAlign: 'center', marginTop: 40 }}>
           <a
-            href="https://docs.uploadkit.dev/docs/sdk/react"
+            href="https://docs.uploadkit.dev/docs/sdk/react/upload-dropzone-glass"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-ghost btn-lg"
