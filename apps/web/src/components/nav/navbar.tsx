@@ -159,18 +159,6 @@ export default function Navbar() {
             ))}
 
             <div className="mt-6 flex items-center gap-2">
-              <button
-                type="button"
-                className="icon-btn"
-                aria-label={
-                  ready && theme === 'dark'
-                    ? 'Switch to light theme'
-                    : 'Switch to dark theme'
-                }
-                onClick={toggleTheme}
-              >
-                <DesignIcon name={theme === 'dark' ? 'sun' : 'moon'} size={15} />
-              </button>
               <a
                 className="icon-btn"
                 href="https://github.com/drumst0ck/uploadkit"
