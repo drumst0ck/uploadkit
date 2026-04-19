@@ -2484,6 +2484,11 @@ details[open] .faq-question::after {
   [data-surface='design-v2'] .nav-links {
     display: none;
   }
+  /* Mobile: hide theme toggle, GitHub icon, and CTAs from the nav bar —
+     they live inside the hamburger panel instead. */
+  [data-surface='design-v2'] .nav-right .nav-desktop-only {
+    display: none;
+  }
 }
 
 /* Buttons */

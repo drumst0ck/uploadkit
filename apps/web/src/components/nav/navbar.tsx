@@ -72,7 +72,7 @@ export default function Navbar() {
           <div className="nav-right">
             <button
               type="button"
-              className="icon-btn"
+              className="icon-btn nav-desktop-only"
               aria-label={
                 ready && theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
               }
@@ -83,7 +83,7 @@ export default function Navbar() {
               <DesignIcon name={theme === 'dark' ? 'sun' : 'moon'} size={15} />
             </button>
             <a
-              className="icon-btn"
+              className="icon-btn nav-desktop-only"
               href="https://github.com/drumst0ck/uploadkit"
               target="_blank"
               rel="noopener noreferrer"
@@ -93,7 +93,7 @@ export default function Navbar() {
             </a>
             <Link
               href="https://app.uploadkit.dev/login"
-              className="btn btn-ghost"
+              className="btn btn-ghost nav-desktop-only"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -101,7 +101,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="https://app.uploadkit.dev/login"
-              className="btn btn-primary"
+              className="btn btn-primary nav-desktop-only"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -158,7 +158,32 @@ export default function Navbar() {
               </Link>
             ))}
 
-            <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-6 flex items-center gap-2">
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label={
+                  ready && theme === 'dark'
+                    ? 'Switch to light theme'
+                    : 'Switch to dark theme'
+                }
+                onClick={toggleTheme}
+              >
+                <DesignIcon name={theme === 'dark' ? 'sun' : 'moon'} size={15} />
+              </button>
+              <a
+                className="icon-btn"
+                href="https://github.com/drumst0ck/uploadkit"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="UploadKit on GitHub"
+                onClick={close}
+              >
+                <DesignIcon name="gh" size={15} />
+              </a>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-3">
               <Link
                 href="https://app.uploadkit.dev/login"
                 onClick={close}
