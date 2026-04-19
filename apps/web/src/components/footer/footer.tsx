@@ -33,13 +33,13 @@ const COLUMNS: FooterColumn[] = [
       { label: 'Documentation', href: 'https://docs.uploadkit.dev', external: true },
       {
         label: 'REST API',
-        href: 'https://docs.uploadkit.dev/api-reference',
+        href: 'https://docs.uploadkit.dev/docs/api-reference/rest-api',
         external: true,
       },
       { label: 'MCP server', href: '/#mcp' },
       {
         label: 'CLI',
-        href: 'https://docs.uploadkit.dev/getting-started',
+        href: 'https://docs.uploadkit.dev/docs/getting-started/quickstart',
         external: true,
       },
     ],
@@ -50,24 +50,25 @@ const COLUMNS: FooterColumn[] = [
       { label: 'Blog', href: '/blog' },
       {
         label: 'Examples',
-        href: 'https://github.com/drumst0ck/uploadkit/tree/main/examples',
+        href: 'https://github.com/drumst0ck/uploadkit/tree/master/examples',
         external: true,
       },
       {
         label: 'Migration guide',
-        href: 'https://docs.uploadkit.dev/migration-from-uploadthing',
+        href: 'https://docs.uploadkit.dev/docs/guides/migration-from-uploadthing',
         external: true,
       },
-      { label: 'Discord', href: '#' },
     ],
   },
   {
     heading: 'Company',
     links: [
-      { label: 'About', href: '#' },
-      { label: 'Privacy', href: '/privacy' },
-      { label: 'Terms', href: '/terms' },
       { label: 'Contact', href: 'mailto:support@uploadkit.dev' },
+      {
+        label: 'GitHub',
+        href: 'https://github.com/drumst0ck/uploadkit',
+        external: true,
+      },
     ],
   },
 ]
