@@ -41,7 +41,7 @@ export default function Navbar() {
   const close = () => setOpen(false)
 
   return (
-    <>
+    <div data-surface="design-v2">
       <nav className="nav" aria-label="Main navigation">
         <div className="d2-container nav-inner">
           <div className="nav-left">
@@ -183,6 +183,6 @@ export default function Navbar() {
           </nav>
         </div>
       )}
-    </>
+    </div>
   )
 }
