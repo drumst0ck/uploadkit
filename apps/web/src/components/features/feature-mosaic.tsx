@@ -53,7 +53,12 @@ export function FeatureMosaic() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 40 }}>
-          <a href="/#components-all" className="btn btn-ghost btn-lg">
+          <a
+            href="https://docs.uploadkit.dev/docs/sdk/react"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-ghost btn-lg"
+          >
             Browse all 40+ components <DesignIcon name="arrow" size={14} />
           </a>
         </div>
