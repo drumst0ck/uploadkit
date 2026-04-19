@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react'
 import { Check, Copy, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+import { copyToClipboard } from '@/lib/copy'
 
 const INSTALL_CMD = 'npx -y @uploadkitdev/mcp'
 
@@ -25,13 +26,10 @@ export function McpSection() {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(INSTALL_CMD)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1800)
-    } catch {
-      /* clipboard unavailable — fail silently */
-    }
+    const ok = await copyToClipboard(INSTALL_CMD)
+    if (!ok) return
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1800)
   }, [])
 
   return (

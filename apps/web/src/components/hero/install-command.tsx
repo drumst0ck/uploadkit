@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { Check, Copy } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+import { copyToClipboard } from '@/lib/copy'
 
 const PACKAGES = '@uploadkitdev/next @uploadkitdev/react'
 
@@ -25,23 +26,17 @@ export function InstallCommand() {
   const current = MANAGERS.find((m) => m.id === active) ?? MANAGERS[0]
 
   const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(current.cmd)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1800)
-    } catch {
-      /* clipboard unavailable — fail silently */
-    }
+    const ok = await copyToClipboard(current.cmd)
+    if (!ok) return
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1800)
   }, [current.cmd])
 
   const handleCopyScaffold = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(SCAFFOLD_CMD)
-      setCopiedScaffold(true)
-      window.setTimeout(() => setCopiedScaffold(false), 1800)
-    } catch {
-      /* clipboard unavailable — fail silently */
-    }
+    const ok = await copyToClipboard(SCAFFOLD_CMD)
+    if (!ok) return
+    setCopiedScaffold(true)
+    window.setTimeout(() => setCopiedScaffold(false), 1800)
   }, [])
 
   return (

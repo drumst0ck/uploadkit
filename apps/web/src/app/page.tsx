@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Check } from 'lucide-react'
 import Navbar from '@/components/nav/navbar'
 import { InstallCommand } from '@/components/hero/install-command'
+import { TerminalSnippet } from '@/components/hero/terminal-snippet'
 import { HeroDropzoneDemo } from '@/components/hero/hero-dropzone-demo'
 import { LogosStrip } from '@/components/logos/logos-strip'
 import { DesignFeatures } from '@/components/features/design-features'
@@ -162,12 +163,11 @@ function InstallSection() {
               Detects your framework, installs deps, creates the route handler, wraps your layout
               — one command.
             </p>
-            <div className="install-terminal">
-              <span className="prompt">$</span>
-              <span className="cmd">
-                <em>npx</em> uploadkit init
-              </span>
-            </div>
+            <TerminalSnippet
+              emphasized="npx"
+              command="uploadkit init"
+              ariaLabel="Copy uploadkit init command"
+            />
           </div>
 
           <div className="install-card">
@@ -175,12 +175,11 @@ function InstallSection() {
             <p>
               Scaffold a new Next.js, SvelteKit, Remix, or Vite app with UploadKit pre-wired.
             </p>
-            <div className="install-terminal">
-              <span className="prompt">$</span>
-              <span className="cmd">
-                <em>npx</em> create-uploadkit-app my-app
-              </span>
-            </div>
+            <TerminalSnippet
+              emphasized="npx"
+              command="create-uploadkit-app my-app"
+              ariaLabel="Copy create-uploadkit-app command"
+            />
           </div>
         </div>
       </div>
