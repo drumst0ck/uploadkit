@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: Phase defined — awaiting `/gsd-plan-phase 12`
 stopped_at: Completed 12.5-09-PLAN.md
-last_updated: "2026-04-15T13:37:50.697Z"
-last_activity: "2026-04-17 - Completed quick task 260417-4zl: Audit and fix every docs page against actual code"
+last_updated: "2026-04-18T15:30:00.000Z"
+last_activity: "2026-04-18 - Completed quick task 260418-ns8: Redesign landing page per Claude Design bundle"
 progress:
   total_phases: 17
   completed_phases: 12
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 Phase: 12
 Plan: Not started
 Status: Phase defined — awaiting `/gsd-plan-phase 12`
-Last activity: 2026-04-17 - Completed quick task 260417-4zl: Audit and fix every docs page against actual code
+Last activity: 2026-04-18 - Completed quick task 260418-ns8: Redesign landing page per Claude Design bundle
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -243,6 +243,7 @@ None yet.
 | 260410-kw3 | Build 8 motion/progress components and add live previews to docs | 2026-04-10 | b6ae738 | [260410-kw3-build-8-motion-progress-components-and-a](./quick/260410-kw3-build-8-motion-progress-components-and-a/) |
 | 260415-d8w | Blog MDX infrastructure — routes, loader, JSON-LD, OG images, RSS, sitemap | 2026-04-15 | 905f754 | [260415-d8w-blog-mdx-infrastructure](./quick/260415-d8w-blog-mdx-infrastructure/) |
 | 260417-4zl | Audit and fix every docs page against actual code | 2026-04-17 | 712f6c8 | [260417-4zl-audit-and-fix-every-docs-page-against-ac](./quick/260417-4zl-audit-and-fix-every-docs-page-against-ac/) |
+| 260418-ns8 | Redesign landing page per Claude Design bundle (keep violet accent, keep real showcase) | 2026-04-18 | c79beb1 | [260418-ns8-redesign-landing-page-per-claude-design-](./quick/260418-ns8-redesign-landing-page-per-claude-design-/) |
 
 ## Session Continuity
 
