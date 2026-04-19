@@ -3,18 +3,20 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Menu, X } from 'lucide-react'
-import { Logo } from '@/components/logo'
+import { DesignIcon } from '@/components/ui/design-icon'
+import { usePreferences } from '@/components/tweaks/use-preferences'
 
 const NAV_LINKS = [
   { label: 'Features', href: '/#features', external: false },
-  { label: 'Pricing', href: '/#pricing', external: false },
+  { label: 'Components', href: '/#components', external: false },
   { label: 'Docs', href: 'https://docs.uploadkit.dev', external: true },
-  { label: 'Blog', href: '/blog', external: false },
+  { label: 'Pricing', href: '/pricing', external: false },
   { label: 'Changelog', href: '/changelog', external: false },
 ] as const
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const { theme, toggleTheme, ready } = usePreferences()
 
   // Lock body scroll while the mobile menu is open
   useEffect(() => {
@@ -40,106 +42,90 @@ export default function Navbar() {
 
   return (
     <>
-      <header
-        className="sticky top-0 z-50"
-        style={{
-          background: 'rgba(9,9,11,0.80)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}
-      >
-        <nav
-          aria-label="Main navigation"
-          className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-3"
-        >
-          {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center no-underline"
-            aria-label="UploadKit home"
-            onClick={close}
-          >
-            <Logo size={28} />
-          </Link>
+      <nav className="nav" aria-label="Main navigation">
+        <div className="d2-container nav-inner">
+          <div className="nav-left">
+            <Link href="/" className="brand" aria-label="UploadKit home" onClick={close}>
+              <span className="brand-mark">
+                <DesignIcon name="upload" size={12} />
+              </span>
+              uploadkit
+              <span className="brand-beta">v1.0</span>
+            </Link>
 
-          {/* Desktop nav links */}
-          <ul className="hidden items-center gap-7 md:flex" role="list">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="text-sm transition-colors duration-200 hover:text-[var(--color-text-primary)]"
-                  style={{ color: '#71717A' }}
-                  {...(link.external
-                    ? { target: '_blank', rel: 'noopener noreferrer' }
-                    : {})}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+            <ul className="nav-links" role="list">
+              {NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    {...(link.external
+                      ? { target: '_blank', rel: 'noopener noreferrer' }
+                      : {})}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          {/* Desktop CTAs */}
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="nav-right">
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label={
+                ready && theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+              }
+              onClick={toggleTheme}
+            >
+              {/* Before hydration we render the moon (matches default dark theme) to avoid
+                  mismatch — server renders moon, client corrects on effect if needed. */}
+              <DesignIcon name={theme === 'dark' ? 'sun' : 'moon'} size={15} />
+            </button>
             <a
+              className="icon-btn"
               href="https://github.com/drumst0ck/uploadkit"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="UploadKit on GitHub"
-              className="flex h-8 w-8 items-center justify-center rounded-md text-[#71717A] transition-colors duration-200 hover:bg-white/[0.06] hover:text-[var(--color-text-primary)]"
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-              </svg>
+              <DesignIcon name="gh" size={15} />
             </a>
             <Link
               href="https://app.uploadkit.dev/login"
-              className="text-sm transition-colors duration-200 hover:text-[var(--color-text-primary)]"
-              style={{ color: '#71717A' }}
+              className="btn btn-ghost"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Log in
+              Sign in
             </Link>
             <Link
               href="https://app.uploadkit.dev/login"
-              className="rounded-[var(--radius-sm)] px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_20px_-5px_rgba(250,250,250,0.25)]"
-              style={{
-                background: '#fafafa',
-                color: '#09090b',
-              }}
+              className="btn btn-primary"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Get Started
+              Start building <DesignIcon name="arrow" size={13} />
             </Link>
-          </div>
 
-          {/* Mobile hamburger button */}
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-[var(--color-surface-border)] text-[var(--color-text-secondary)] transition-colors hover:bg-white/[0.06] md:hidden"
-          >
-            {open ? (
-              <X className="h-5 w-5" aria-hidden="true" />
-            ) : (
-              <Menu className="h-5 w-5" aria-hidden="true" />
-            )}
-          </button>
-        </nav>
-      </header>
+            {/* Mobile hamburger — visible only on narrow viewports (CSS utility below) */}
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              className="icon-btn md:hidden"
+            >
+              {open ? (
+                <X className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Menu className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+        </div>
+      </nav>
 
       {/* Mobile slide-in panel */}
       {open && (
@@ -147,7 +133,7 @@ export default function Navbar() {
           id="mobile-menu"
           className="fixed inset-0 z-40 flex flex-col md:hidden"
           style={{
-            background: 'rgba(9,9,11,0.97)',
+            background: 'color-mix(in oklab, var(--bg) 97%, transparent)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
             paddingTop: 'calc(env(safe-area-inset-top, 0px) + 64px)',
@@ -162,7 +148,8 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={close}
-                className="rounded-[var(--radius-sm)] px-3 py-3 text-base text-[var(--color-text-primary)] transition-colors hover:bg-[var(--color-surface-elevated)]"
+                className="rounded-md px-3 py-3 text-base"
+                style={{ color: 'var(--fg)' }}
                 {...(link.external
                   ? { target: '_blank', rel: 'noopener noreferrer' }
                   : {})}
@@ -175,21 +162,22 @@ export default function Navbar() {
               <Link
                 href="https://app.uploadkit.dev/login"
                 onClick={close}
-                className="rounded-[var(--radius-sm)] border border-[var(--color-surface-border)] px-4 py-3 text-center text-sm text-[var(--color-text-primary)]"
+                className="btn btn-ghost"
+                style={{ justifyContent: 'center' }}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Log in
+                Sign in
               </Link>
               <Link
                 href="https://app.uploadkit.dev/login"
                 onClick={close}
-                className="rounded-[var(--radius-sm)] px-4 py-3 text-center text-sm font-semibold"
-                style={{ background: '#fafafa', color: '#09090b' }}
+                className="btn btn-primary"
+                style={{ justifyContent: 'center' }}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Get Started
+                Start building
               </Link>
             </div>
           </nav>
