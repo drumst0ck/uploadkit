@@ -146,8 +146,8 @@ function InstallSection() {
 
         <div className="install-grid">
           {/* Primary card — reuses existing InstallCommand (pm tabs + copy feedback).
-              Span both columns on desktop. */}
-          <div className="install-card" style={{ gridColumn: 'span 2' }}>
+              Spans both columns on desktop; collapses to single column on mobile. */}
+          <div className="install-card install-card-wide">
             <h3>Add to an existing project</h3>
             <p>
               Most people land here with a Next.js app already running. Install the packages, drop
