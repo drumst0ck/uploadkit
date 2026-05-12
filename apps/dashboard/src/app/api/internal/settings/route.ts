@@ -9,6 +9,7 @@ import {
   File,
   ApiKey,
 } from '@uploadkitdev/db';
+import { deleteR2Objects } from '../../../../lib/r2-delete';
 
 export const dynamic = 'force-dynamic';
 
@@ -141,6 +142,28 @@ export async function DELETE() {
 
   // Cascade delete: files → API keys → projects → user
   if (projectIds.length > 0) {
+    const files = await File.find({ projectId: { $in: projectIds } }).select('key').lean();
+    const { failures } = await deleteR2Objects(
+      files.map((file) => file.key).filter((key): key is string => typeof key === 'string'),
+    );
+
+    if (failures.length > 0) {
+      failures.forEach((failure) => {
+        console.warn(
+          `[account-deletion] R2 DeleteObject failed for key=${failure.key}:`,
+          failure.reason,
+        );
+      });
+
+      return NextResponse.json(
+        {
+          error: 'Failed to delete account files from storage',
+          failed: failures.length,
+        },
+        { status: 502 },
+      );
+    }
+
     await File.deleteMany({ projectId: { $in: projectIds } });
     await ApiKey.deleteMany({ projectId: { $in: projectIds } });
     await Project.deleteMany({ userId });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
 import { auth } from '../../../../../../auth';
 import { connectDB, Project, ApiKey, File, FileRouter } from '@uploadkitdev/db';
+import { deleteR2Objects } from '../../../../../lib/r2-delete';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,6 +118,28 @@ export async function DELETE(
     userId: session.user.id,
     timestamp: new Date().toISOString(),
   });
+
+  const files = await File.find({ projectId }).select('key').lean();
+  const { failures } = await deleteR2Objects(
+    files.map((file) => file.key).filter((key): key is string => typeof key === 'string'),
+  );
+
+  if (failures.length > 0) {
+    failures.forEach((failure) => {
+      console.warn(
+        `[project-deletion] R2 DeleteObject failed for key=${failure.key}:`,
+        failure.reason,
+      );
+    });
+
+    return NextResponse.json(
+      {
+        error: 'Failed to delete project files from storage',
+        failed: failures.length,
+      },
+      { status: 502 },
+    );
+  }
 
   // Cascade delete: files → API keys → file routers → project
   await File.deleteMany({ projectId });
