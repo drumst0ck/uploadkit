@@ -84,6 +84,10 @@ export const UpdateFileMetadataSchema = z.object({
   metadata: z.record(z.string(), z.unknown()),
 });
 
+export const DeleteFilesSchema = z.object({
+  keys: z.array(z.string().min(1)).min(1).max(100),
+});
+
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
 export const PaginationSchema = z.object({

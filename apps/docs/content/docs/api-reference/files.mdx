@@ -185,3 +185,57 @@ curl -X DELETE "https://api.uploadkit.dev/api/v1/files/65f0...%2FimageUploader%2
 | Code | HTTP | Cause |
 |------|------|-------|
 | `NOT_FOUND` | 404 | File does not exist, already deleted, or belongs to a different project |
+
+---
+
+## DELETE /api/v1/files
+
+Bulk delete files from Cloudflare R2 and soft-delete their database records in a single request. Use this endpoint when deleting several files from your app so you do not spend one rate-limit point per file.
+
+Deletes are scoped to the project associated with the API key. Keys that do not exist, are already deleted, or belong to another project are reported in `failures`.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `keys` | string[] | Yes | Storage keys to delete. Accepts 1–100 keys per request. |
+
+**curl example:**
+
+```bash
+curl -X DELETE "https://api.uploadkit.dev/api/v1/files" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "keys": [
+      "65f0.../imageUploader/abc123.../photo.jpg",
+      "65f0.../imageUploader/def456.../avatar.webp"
+    ]
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "deleted": 2,
+  "failed": 0,
+  "failures": [],
+  "reclaimedBytes": 481920
+}
+```
+
+If only some files delete successfully, the API returns `207 Multi-Status` with per-key failures:
+
+```json
+{
+  "deleted": 1,
+  "failed": 1,
+  "failures": [
+    {
+      "key": "other-project/photo.jpg",
+      "code": "NOT_FOUND",
+      "message": "File does not exist, is already deleted, or belongs to a different project"
+    }
+  ],
+  "reclaimedBytes": 240960
+}
+```
