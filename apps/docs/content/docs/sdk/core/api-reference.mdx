@@ -99,6 +99,25 @@ Permanently deletes the file with the given storage key. Returns `Promise<void>`
 
 ---
 
+## deleteFiles
+
+```typescript
+client.deleteFiles(keys: string[]): Promise<DeleteFilesResult>
+```
+
+Permanently deletes multiple files by storage key in one API request. Accepts 1–100 keys. Use this for bulk cleanup instead of calling `deleteFile()` repeatedly.
+
+### DeleteFilesResult
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `deleted` | `number` | Number of files deleted from storage and soft-deleted in UploadKit. |
+| `failed` | `number` | Number of keys that could not be deleted. |
+| `reclaimedBytes` | `number` | Total storage bytes reclaimed by successful deletes. |
+| `failures` | `{ key: string; code: string; message: string }[]` | Per-key failure details. |
+
+---
+
 ## UploadKitError
 
 Thrown by all client methods on API or network errors. Import from `@uploadkitdev/core`.

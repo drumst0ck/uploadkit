@@ -285,6 +285,50 @@ Permanently removes the file from storage and marks it deleted in the database. 
 
 Response: `{ "ok": true }`.
 
+## Delete multiple files
+
+**DELETE** `/api/v1/files`
+
+Bulk delete up to 100 files in one request. Prefer this endpoint when your app needs to remove several UploadKit files at once.
+
+<Tabs items={['curl', 'JavaScript', 'Python']}>
+  <Tab value="curl">
+    ```bash
+    curl -X DELETE "https://api.uploadkit.dev/api/v1/files" \
+      -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{"keys":["65f0.../imageUploader/abc123.../profile.jpg"]}'
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const res = await fetch('https://api.uploadkit.dev/api/v1/files', {
+      method: 'DELETE',
+      headers: {
+        Authorization: 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ keys }),
+    });
+
+    const result = await res.json();
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    response = requests.delete(
+        'https://api.uploadkit.dev/api/v1/files',
+        headers={
+            'Authorization': 'Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx',
+            'Content-Type': 'application/json',
+        },
+        json={'keys': keys},
+    )
+    result = response.json()
+    ```
+  </Tab>
+</Tabs>
+
 ## Error responses
 
 All errors follow a consistent shape — see the [Error Codes](/docs/api-reference/errors) reference for the full list.

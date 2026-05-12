@@ -23,6 +23,31 @@ await client.deleteFile(result.key);
 
 The method returns `Promise<void>` and resolves when the file has been permanently removed from storage.
 
+## deleteFiles
+
+Delete multiple files in one API request. This is the recommended path for cleanup jobs, gallery removals, or replacing several generated images at once.
+
+```typescript
+const result = await client.deleteFiles([
+  '65f0.../imageUploader/abc123.../photo.jpg',
+  '65f0.../imageUploader/def456.../avatar.webp',
+]);
+
+console.log(result.deleted, result.failed, result.reclaimedBytes);
+```
+
+`deleteFiles()` accepts 1–100 keys per request and returns per-key failures instead of throwing when only part of the batch fails.
+
+```typescript
+const result = await client.deleteFiles(keys);
+
+for (const failure of result.failures) {
+  console.warn(failure.key, failure.code, failure.message);
+}
+```
+
+Use `deleteFiles()` instead of calling `deleteFile()` in a tight loop. It avoids spending one rate-limit point per file and keeps bulk cleanup predictable.
+
 ## Extracting the key from UploadResult
 
 The `key` property on `UploadResult` is the storage path within the bucket — it uniquely identifies the file and is what you store in your database for future deletion.
@@ -87,8 +112,8 @@ for (const file of files) {
   console.log(file.key, file.name, file.url);
 }
 
-// Delete a specific file
-await client.deleteFile(files[0].key);
+// Delete selected files in one request
+await client.deleteFiles(files.slice(0, 10).map((file) => file.key));
 ```
 
 See the [API reference](/docs/sdk/core/api-reference) for the full `listFiles` signature.
