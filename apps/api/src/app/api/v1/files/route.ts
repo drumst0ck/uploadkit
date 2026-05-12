@@ -10,7 +10,7 @@ import { serializeValidationError, serializeError } from '@/lib/errors';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 
 type BulkDeleteFile = {
-  _id: unknown;
+  _id: Types.ObjectId;
   key: string;
   size?: number;
 };
@@ -83,7 +83,7 @@ async function handleDelete(req: NextRequest, ctx: ApiContext): Promise<NextResp
     ),
   );
 
-  const successIds: unknown[] = [];
+  const successIds: Types.ObjectId[] = [];
   let reclaimedBytes = 0;
 
   r2Results.forEach((result, idx) => {
