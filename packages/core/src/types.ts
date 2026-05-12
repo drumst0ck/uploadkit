@@ -44,6 +44,17 @@ export interface ListFilesResult {
   nextCursor?: string;
 }
 
+export interface DeleteFilesResult {
+  deleted: number;
+  failed: number;
+  reclaimedBytes: number;
+  failures: Array<{
+    key: string;
+    code: string;
+    message: string;
+  }>;
+}
+
 // Internal: response from POST /api/v1/upload/request
 export interface UploadRequestResponse {
   fileId: string;

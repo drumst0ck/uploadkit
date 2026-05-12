@@ -23,11 +23,12 @@ describe('createUploadKit', () => {
     vi.clearAllMocks();
   });
 
-  it('returns object with upload, listFiles, deleteFile methods', () => {
+  it('returns object with upload, listFiles, deleteFile, deleteFiles methods', () => {
     const client = createUploadKit({ apiKey: 'uk_live_test123' });
     expect(typeof client.upload).toBe('function');
     expect(typeof client.listFiles).toBe('function');
     expect(typeof client.deleteFile).toBe('function');
+    expect(typeof client.deleteFiles).toBe('function');
   });
 
   it('throws UploadKitError if apiKey is missing', () => {
@@ -110,5 +111,28 @@ describe('createUploadKit', () => {
       '/api/v1/files/proj%2Froute%2Fid%2Ftest.jpg',
       expect.objectContaining({ method: 'DELETE' }),
     );
+  });
+
+  it('deleteFiles() calls bulk DELETE /api/v1/files with keys', async () => {
+    mockFetchApi.mockResolvedValue({
+      deleted: 2,
+      failed: 0,
+      failures: [],
+      reclaimedBytes: 4096,
+    });
+
+    const client = createUploadKit({ apiKey: 'uk_live_test123' });
+    const result = await client.deleteFiles(['proj/a.jpg', 'proj/b.jpg']);
+
+    expect(mockFetchApi).toHaveBeenCalledWith(
+      expect.any(String),
+      'uk_live_test123',
+      '/api/v1/files',
+      expect.objectContaining({
+        method: 'DELETE',
+        body: { keys: ['proj/a.jpg', 'proj/b.jpg'] },
+      }),
+    );
+    expect(result.deleted).toBe(2);
   });
 });

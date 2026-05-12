@@ -5,6 +5,7 @@ import type {
   UploadResult,
   ListFilesOptions,
   ListFilesResult,
+  DeleteFilesResult,
 } from './types';
 import { fetchApi } from './http';
 import { executeUpload } from './upload';
@@ -72,6 +73,18 @@ export class UploadKitClient {
       this.#apiKey,
       `/api/v1/files/${encodeURIComponent(key)}`,
       { method: 'DELETE' },
+    );
+  }
+
+  /**
+   * Delete multiple files by storage key in a single API request.
+   */
+  async deleteFiles(keys: string[]): Promise<DeleteFilesResult> {
+    return fetchApi<DeleteFilesResult>(
+      this.#baseUrl,
+      this.#apiKey,
+      '/api/v1/files',
+      { method: 'DELETE', body: { keys } },
     );
   }
 }

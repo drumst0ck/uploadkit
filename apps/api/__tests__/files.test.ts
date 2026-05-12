@@ -13,6 +13,7 @@ vi.mock('@uploadkitdev/db', () => ({
   File: {
     find: vi.fn(),
     findOne: vi.fn(),
+    updateMany: vi.fn(),
     findByIdAndUpdate: vi.fn(),
     findOneAndUpdate: vi.fn(),
   },
@@ -32,7 +33,7 @@ vi.mock('@/lib/storage', () => ({
   CDN_URL: 'https://cdn.uploadkit.dev',
 }));
 
-import { GET } from '@/app/api/v1/files/route';
+import { DELETE as BULK_DELETE, GET } from '@/app/api/v1/files/route';
 import { DELETE } from '@/app/api/v1/files/[key]/route';
 import { ApiKey, Subscription, File, UsageRecord } from '@uploadkitdev/db';
 import { ratelimit } from '@/lib/rate-limit';
@@ -121,6 +122,82 @@ describe('GET /api/v1/files', () => {
     expect(body.files).toHaveLength(0);
     expect(body.hasMore).toBe(false);
     expect(body.nextCursor).toBeNull();
+  });
+});
+
+describe('DELETE /api/v1/files', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setupAuth();
+    vi.mocked(r2Client.send).mockResolvedValue({} as any);
+    vi.mocked(File.updateMany).mockResolvedValue({ modifiedCount: 2 } as any);
+    vi.mocked(UsageRecord.findOneAndUpdate).mockResolvedValue({} as any);
+  });
+
+  it('bulk deletes files from R2 and soft-deletes DB records', async () => {
+    vi.mocked(File.find).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      lean: vi.fn().mockResolvedValue([
+        { _id: 'file-1', key: 'proj/img/a/photo.jpg', size: 1024 },
+        { _id: 'file-2', key: 'proj/img/b/doc.pdf', size: 2048 },
+      ]),
+    } as any);
+
+    const req = new NextRequest('http://localhost/api/v1/files', {
+      method: 'DELETE',
+      headers: {
+        authorization: 'Bearer uk_live_testtoken',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ keys: ['proj/img/a/photo.jpg', 'proj/img/b/doc.pdf'] }),
+    });
+
+    const res = await BULK_DELETE(req, { params: Promise.resolve({}) });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.deleted).toBe(2);
+    expect(body.failed).toBe(0);
+    expect(r2Client.send).toHaveBeenCalledTimes(2);
+    expect(File.updateMany).toHaveBeenCalledWith(
+      { _id: { $in: ['file-1', 'file-2'] }, projectId: 'proj-files' },
+      expect.objectContaining({ $set: expect.objectContaining({ status: 'DELETED' }) }),
+    );
+    expect(UsageRecord.findOneAndUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'user-files' }),
+      expect.objectContaining({ $inc: { storageUsed: -3072 } }),
+      expect.anything(),
+    );
+  });
+
+  it('reports missing keys without deleting unrelated files', async () => {
+    vi.mocked(File.find).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      lean: vi.fn().mockResolvedValue([
+        { _id: 'file-1', key: 'proj/img/a/photo.jpg', size: 1024 },
+      ]),
+    } as any);
+
+    const req = new NextRequest('http://localhost/api/v1/files', {
+      method: 'DELETE',
+      headers: {
+        authorization: 'Bearer uk_live_testtoken',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ keys: ['proj/img/a/photo.jpg', 'other-project/photo.jpg'] }),
+    });
+
+    const res = await BULK_DELETE(req, { params: Promise.resolve({}) });
+    const body = await res.json();
+
+    expect(res.status).toBe(207);
+    expect(body.deleted).toBe(1);
+    expect(body.failed).toBe(1);
+    expect(body.failures[0]).toMatchObject({
+      key: 'other-project/photo.jpg',
+      code: 'NOT_FOUND',
+    });
+    expect(r2Client.send).toHaveBeenCalledTimes(1);
   });
 });
 
