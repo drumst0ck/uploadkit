@@ -2266,7 +2266,7 @@ details[open] .faq-question::after {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Claude Design tokens (v2 landing) — scoped to [data-surface="design-v2"]
+   Design tokens (v2 landing) - scoped to [data-surface="design-v2"]
    Default accent = violet (#6366f1). No yellow tokens.
    ───────────────────────────────────────────────────────────── */
 :root {

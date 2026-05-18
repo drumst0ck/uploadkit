@@ -18,7 +18,7 @@ export const inter = Inter({
   display: 'swap',
 })
 
-// Geist + Geist Mono — used by the redesigned landing (Claude Design shell)
+// Geist + Geist Mono - used by the redesigned landing.
 export const geist = Geist({
   subsets: ['latin'],
   variable: '--font-geist',

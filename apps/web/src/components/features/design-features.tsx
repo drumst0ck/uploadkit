@@ -1,4 +1,4 @@
-// Server Component — 6-feature grid with 1px hairline dividers (Claude Design shell).
+// Server Component - 6-feature grid with 1px hairline dividers.
 // Scoped under [data-surface="design-v2"] so it does not collide with the legacy
 // .features-grid / .feature-card rules on /pricing.
 
