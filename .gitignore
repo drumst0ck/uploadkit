@@ -30,6 +30,18 @@ e2e/.auth/
 **/.mcpregistry_*_token
 skills-lock.json
 
+# Local agent/context artifacts (Claude, Codex, GSD, MCP client config)
+.agents/
+.claude/
+.codex/
+.planning/
+.mcp.json
+AGENTS.md
+**/AGENTS.md
+CLAUDE.md
+**/CLAUDE.md
+UPLOADKIT-GSD.md
+
 # Marketing (local-only, never push)
 marketing/
 

@@ -1,4 +1,4 @@
-// Server Component — redesigned 5-column footer (Claude Design).
+// Server Component - redesigned 5-column footer.
 // Scoped via data-surface-footer="design-v2" so it does not collide with legacy
 // .footer / .footer-grid rules used by other routes.
 

@@ -1,4 +1,4 @@
-// Server Component — stroke-based SVG icon set (Claude Design).
+// Server Component - stroke-based SVG icon set.
 // Ported from /tmp/design-fetch/extracted/todolol/project/components/Icons.jsx with
 // strict typing. Zero-dependency (no lucide-react).
 

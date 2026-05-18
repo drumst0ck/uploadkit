@@ -70,7 +70,7 @@ function JsonLd() {
 }
 
 // ─────────────────────────────────────────────────────────
-// Hero (Claude Design)
+// Hero
 // ─────────────────────────────────────────────────────────
 
 function HeroSection() {
@@ -131,7 +131,7 @@ function HeroSection() {
 }
 
 // ─────────────────────────────────────────────────────────
-// Install section (Claude Design — 2-col grid with 3 cards)
+// Install section - 2-col grid with 3 cards
 // ─────────────────────────────────────────────────────────
 
 function InstallSection() {
