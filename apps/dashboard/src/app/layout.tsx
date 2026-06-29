@@ -1,22 +1,22 @@
-import "@/lib/env";
-import type { Metadata, Viewport } from "next";
-import Script from "next/script";
-import "./globals.css";
-import { SWRProvider } from "../providers/swr-provider";
-import { ThemeProvider } from "../providers/theme-provider";
-import { AnalyticsConsent, TooltipProvider } from "@uploadkitdev/ui";
+import '@/lib/env';
+import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
+import './globals.css';
+import { SWRProvider } from '../providers/swr-provider';
+import { ThemeProvider } from '../providers/theme-provider';
+import { AnalyticsConsent, TooltipProvider } from '@uploadkitdev/ui';
 
-const GOOGLE_TAG_MANAGER_ID = "GTM-NDNZS4KX";
+const GOOGLE_TAG_MANAGER_ID = 'GTM-NDNZS4KX';
 const GOOGLE_CONSENT_DEFAULT_SCRIPT = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',functionality_storage:'granted',security_storage:'granted',wait_for_update:500});`;
 
 export const metadata: Metadata = {
-  title: "UploadKit Dashboard",
-  description: "Manage file uploads, projects, and billing on UploadKit.",
-  icons: { icon: "/favicon.svg" },
+  title: 'UploadKit Dashboard',
+  description: 'Manage file uploads, projects, and billing on UploadKit.',
+  icons: { icon: '/favicon.svg' },
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
 };

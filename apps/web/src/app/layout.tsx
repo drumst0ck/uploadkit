@@ -1,18 +1,18 @@
-import type { Metadata } from "next";
-import Script from "next/script";
-import { AnalyticsConsent } from "@uploadkitdev/ui";
-import { satoshi, inter, geist, geistMono } from "@/lib/fonts";
-import "./globals.css";
+import type { Metadata } from 'next';
+import Script from 'next/script';
+import { AnalyticsConsent } from '@uploadkitdev/ui';
+import { satoshi, inter, geist, geistMono } from '@/lib/fonts';
+import './globals.css';
 
-const GOOGLE_TAG_MANAGER_ID = "GTM-NDNZS4KX";
+const GOOGLE_TAG_MANAGER_ID = 'GTM-NDNZS4KX';
 
 export const metadata: Metadata = {
-  title: "UploadKit — File Uploads for Developers",
+  title: 'UploadKit — File Uploads for Developers',
   description:
-    "Add beautiful, type-safe file uploads to your app in minutes. Free tier included.",
-  metadataBase: new URL("https://uploadkit.dev"),
+    'Add beautiful, type-safe file uploads to your app in minutes. Free tier included.',
+  metadataBase: new URL('https://uploadkit.dev'),
   robots: { index: true, follow: true },
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: '/favicon.svg' },
 };
 
 // Pre-hydration script: restores theme + accent from localStorage BEFORE React paints.
