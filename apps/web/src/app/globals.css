@@ -2490,6 +2490,12 @@ details[open] .faq-question::after {
     display: none;
   }
 }
+/* Hide hamburger on desktop — it only makes sense on narrow viewports */
+@media (min-width: 781px) {
+  [data-surface='design-v2'] .nav-right .mobile-menu-btn {
+    display: none;
+  }
+}
 
 /* Buttons */
 [data-surface='design-v2'] .btn {
