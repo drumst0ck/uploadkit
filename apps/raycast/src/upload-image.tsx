@@ -10,6 +10,7 @@ import {
   getPreferenceValues,
   openExtensionPreferences,
   showToast,
+  useNavigation,
 } from '@raycast/api';
 import { useState } from 'react';
 import { UploadKitApiError, type UploadedImage, uploadImage } from './lib/uploadkit';
@@ -29,7 +30,8 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 ** unitIndex).toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
-function Result({ image, onUploadAnother }: { image: UploadedImage; onUploadAnother: () => void }) {
+function Result({ image }: { image: UploadedImage }) {
+  const { pop } = useNavigation();
   const markdown = `# Upload complete
 
 ![${image.name}](${image.url})
@@ -49,7 +51,7 @@ function Result({ image, onUploadAnother }: { image: UploadedImage; onUploadAnot
             title="Upload Another Image"
             icon={Icon.ArrowLeft}
             shortcut={Keyboard.Shortcut.Common.New}
-            onAction={onUploadAnother}
+            onAction={pop}
           />
         </ActionPanel>
       }
@@ -59,9 +61,9 @@ function Result({ image, onUploadAnother }: { image: UploadedImage; onUploadAnot
 
 export default function UploadImageCommand() {
   const { apiKey } = getPreferenceValues<ExtensionPreferences>();
+  const { push } = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
   const [fieldError, setFieldError] = useState<string>();
-  const [uploadedImage, setUploadedImage] = useState<UploadedImage>();
 
   async function handleSubmit(values: FormValues) {
     const filePath = values.image[0];
@@ -81,7 +83,7 @@ export default function UploadImageCommand() {
     try {
       const image = await uploadImage(filePath, apiKey);
       await Clipboard.copy(image.url);
-      setUploadedImage(image);
+      push(<Result image={image} />);
       toast.style = Toast.Style.Success;
       toast.title = 'Image Uploaded';
       toast.message = 'CDN URL copied to clipboard';
@@ -102,10 +104,6 @@ export default function UploadImageCommand() {
     } finally {
       setIsLoading(false);
     }
-  }
-
-  if (uploadedImage) {
-    return <Result image={uploadedImage} onUploadAnother={() => setUploadedImage(undefined)} />;
   }
 
   return (
