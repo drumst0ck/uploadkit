@@ -1,9 +1,12 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { auth } from '../../../../auth';
 import { connectDB, Subscription, User } from '@uploadkitdev/db';
 import { stripe } from '../../../lib/stripe';
+
+const X_CLICK_ID_PATTERN = /^[A-Za-z0-9._-]{1,256}$/;
 
 /**
  * Creates a Stripe Checkout Session and redirects the user to it.
@@ -18,6 +21,11 @@ export async function createCheckoutSession(priceId: string): Promise<never> {
     redirect('/login');
   }
   const userId = session.user.id;
+
+  const cookieStore = await cookies();
+  const cookieTwclid = cookieStore.get('uk_twclid')?.value;
+  const twclid =
+    cookieTwclid && X_CLICK_ID_PATTERN.test(cookieTwclid) ? cookieTwclid : undefined;
 
   // T-07-02: Validate priceId against known values
   const validPriceIds = [
@@ -58,15 +66,17 @@ export async function createCheckoutSession(priceId: string): Promise<never> {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001';
+  const tier = priceId === process.env.STRIPE_PRO_PRICE_ID ? 'PRO' : 'TEAM';
+  const attributionMetadata = twclid ? { xTwclid: twclid } : {};
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: 'subscription',
     customer: stripeCustomerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/dashboard/billing?success=1`,
+    success_url: `${appUrl}/dashboard/billing?success=1&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/dashboard/billing`,
-    metadata: { userId },
-    subscription_data: { metadata: { userId } },
+    metadata: { userId, tier, ...attributionMetadata },
+    subscription_data: { metadata: { userId, tier, ...attributionMetadata } },
   });
 
   if (!checkoutSession.url) {

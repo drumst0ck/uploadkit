@@ -5,6 +5,7 @@ import { stripe } from '../../../lib/stripe';
 import { createCheckoutSession } from './actions';
 import { Button } from '@uploadkitdev/ui';
 import { ManageBillingButton } from '../../../components/manage-billing-button';
+import { SubscriptionPurchaseTracker } from '../../../components/subscription-purchase-tracker';
 import type { Tier } from '@uploadkitdev/shared';
 
 export const dynamic = 'force-dynamic';
@@ -56,7 +57,66 @@ function formatDate(timestamp: number): string {
 }
 
 interface BillingPageProps {
-  searchParams: Promise<{ success?: string }>;
+  searchParams: Promise<{ success?: string; session_id?: string }>;
+}
+
+interface VerifiedPurchase {
+  conversionId: string;
+  currency: string;
+  plan: 'PRO' | 'TEAM';
+  value: number;
+}
+
+async function getVerifiedPurchase(
+  checkoutSessionId: string | undefined,
+  userId: string,
+  stripeCustomerId: string | undefined,
+): Promise<VerifiedPurchase | null> {
+  if (!checkoutSessionId || !stripeCustomerId) return null;
+
+  try {
+    const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+    const customerId =
+      typeof checkoutSession.customer === 'string'
+        ? checkoutSession.customer
+        : checkoutSession.customer?.id;
+    const invoiceId =
+      typeof checkoutSession.invoice === 'string'
+        ? checkoutSession.invoice
+        : checkoutSession.invoice?.id;
+    const plan = checkoutSession.metadata?.tier;
+
+    if (
+      checkoutSession.mode !== 'subscription' ||
+      checkoutSession.payment_status !== 'paid' ||
+      checkoutSession.metadata?.userId !== userId ||
+      customerId !== stripeCustomerId ||
+      !invoiceId ||
+      (plan !== 'PRO' && plan !== 'TEAM')
+    ) {
+      return null;
+    }
+
+    const invoice = await stripe.invoices.retrieve(invoiceId);
+    const invoiceCustomerId =
+      typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id;
+    if (
+      invoice.status !== 'paid' ||
+      invoiceCustomerId !== stripeCustomerId ||
+      invoice.amount_paid <= 0
+    ) {
+      return null;
+    }
+
+    return {
+      conversionId: invoiceId,
+      currency: invoice.currency.toUpperCase(),
+      plan,
+      value: invoice.amount_paid / 100,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export default async function BillingPage({ searchParams }: BillingPageProps) {
@@ -94,13 +154,22 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
   }
 
   const params = await searchParams;
-  const showSuccess = params.success === '1';
+  const purchase =
+    params.success === '1'
+      ? await getVerifiedPurchase(
+          params.session_id,
+          session.user.id,
+          subscription?.stripeCustomerId,
+        )
+      : null;
+  const showSuccess = purchase !== null;
 
   const proPriceId = process.env.STRIPE_PRO_PRICE_ID ?? '';
   const teamPriceId = process.env.STRIPE_TEAM_PRICE_ID ?? '';
 
   return (
     <div className="flex flex-col gap-8">
+      {purchase && <SubscriptionPurchaseTracker {...purchase} />}
       {/* Header */}
       <div>
         <h1 className="text-xl font-semibold text-foreground">Billing</h1>
