@@ -9,6 +9,7 @@ export const runtime = 'nodejs';
 const bodySchema = z.object({
   userId: z.string().min(1),
   priceId: z.string().min(1),
+  twclid: z.string().regex(/^[A-Za-z0-9._-]{1,256}$/).optional(),
 });
 
 /**
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!parsed.success) {
       return serializeValidationError(parsed.error);
     }
-    const { userId, priceId } = parsed.data;
+    const { userId, priceId, twclid } = parsed.data;
 
     // T-07-02: Validate priceId against known values — reject unknown prices
     const validPriceIds = [
@@ -85,15 +86,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001';
+    const tier = priceId === process.env.STRIPE_PRO_PRICE_ID ? 'PRO' : 'TEAM';
+    const attributionMetadata = twclid ? { xTwclid: twclid } : {};
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: stripeCustomerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${appUrl}/dashboard/billing?success=1`,
+      success_url: `${appUrl}/dashboard/billing?success=1&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/dashboard/billing`,
-      metadata: { userId },
-      subscription_data: { metadata: { userId } },
+      metadata: { userId, tier, ...attributionMetadata },
+      subscription_data: { metadata: { userId, tier, ...attributionMetadata } },
     });
 
     return NextResponse.json({ url: session.url }, { status: 200 });

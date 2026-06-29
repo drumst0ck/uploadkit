@@ -26,11 +26,14 @@ vi.mock('@uploadkitdev/emails', () => ({
   sendInvoiceEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('@/lib/x-conversions', () => ({
+  sendXPurchaseConversion: vi.fn().mockResolvedValue(true),
+}));
+
 import { POST } from '@/app/api/v1/webhooks/stripe/route';
 import { Subscription } from '@uploadkitdev/db';
 import { stripe } from '@/lib/stripe';
-
-const FAKE_WEBHOOK_SECRET = 'whsec_test_fake';
+import { sendXPurchaseConversion } from '@/lib/x-conversions';
 
 function makeWebhookRequest(body: string, signature: string = 'test-sig'): NextRequest {
   return new NextRequest('http://localhost/api/v1/webhooks/stripe', {
@@ -178,5 +181,73 @@ describe('POST /api/v1/webhooks/stripe', () => {
         $unset: expect.objectContaining({ stripeSubscriptionId: '' }),
       }),
     );
+  });
+
+  it('invoice.paid sends an initial subscription purchase to X', async () => {
+    vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(
+      makeStripeEvent('invoice.paid', {
+        id: 'in_initial',
+        customer: 'cus_buyer',
+        amount_paid: 1500,
+        currency: 'usd',
+        created: 1_782_729_600,
+        billing_reason: 'subscription_create',
+        status_transitions: { paid_at: 1_782_729_610 },
+        parent: {
+          type: 'subscription_details',
+          subscription_details: {
+            metadata: {
+              userId: 'user-buyer',
+              tier: 'PRO',
+              xTwclid: 'x-click-123',
+            },
+          },
+        },
+      }) as any,
+    );
+    vi.mocked(stripe.customers.retrieve).mockResolvedValue({
+      id: 'cus_buyer',
+      deleted: false,
+      email: 'buyer@example.com',
+      name: 'Buyer',
+    } as any);
+
+    const res = await POST(makeWebhookRequest('{}'));
+
+    expect(res.status).toBe(200);
+    expect(sendXPurchaseConversion).toHaveBeenCalledWith({
+      conversionId: 'in_initial',
+      conversionTime: '2026-06-29T10:40:10.000Z',
+      currency: 'usd',
+      email: 'buyer@example.com',
+      plan: 'PRO',
+      twclid: 'x-click-123',
+      value: 15,
+    });
+  });
+
+  it('invoice.paid does not count subscription renewals as acquisitions', async () => {
+    vi.mocked(stripe.webhooks.constructEvent).mockReturnValue(
+      makeStripeEvent('invoice.paid', {
+        id: 'in_renewal',
+        customer: 'cus_buyer',
+        amount_paid: 1500,
+        currency: 'usd',
+        created: 1_782_729_600,
+        billing_reason: 'subscription_cycle',
+        status_transitions: { paid_at: 1_782_729_610 },
+      }) as any,
+    );
+    vi.mocked(stripe.customers.retrieve).mockResolvedValue({
+      id: 'cus_buyer',
+      deleted: false,
+      email: 'buyer@example.com',
+      name: 'Buyer',
+    } as any);
+
+    const res = await POST(makeWebhookRequest('{}'));
+
+    expect(res.status).toBe(200);
+    expect(sendXPurchaseConversion).not.toHaveBeenCalled();
   });
 });

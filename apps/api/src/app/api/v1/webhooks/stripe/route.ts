@@ -6,6 +6,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, Subscription } from '@uploadkitdev/db';
 import { stripe } from '@/lib/stripe';
 import { sendInvoiceEmail } from '@uploadkitdev/emails';
+import { sendXPurchaseConversion } from '@/lib/x-conversions';
 
 // Map Stripe subscription status strings to our SubscriptionStatus enum
 function mapStripeStatus(
@@ -196,6 +197,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
               amount: `$${(invoice.amount_paid / 100).toFixed(2)}`,
               ...(invoice.hosted_invoice_url ? { invoiceUrl: invoice.hosted_invoice_url } : {}),
               date: new Date(invoice.created * 1000).toLocaleDateString('en-US'),
+            });
+          }
+
+          if (
+            invoice.billing_reason === 'subscription_create' &&
+            invoice.amount_paid > 0
+          ) {
+            const subscriptionMetadata =
+              invoice.parent?.type === 'subscription_details'
+                ? invoice.parent.subscription_details?.metadata
+                : null;
+            const paidAt = invoice.status_transitions.paid_at ?? invoice.created;
+
+            await sendXPurchaseConversion({
+              conversionId: invoice.id,
+              conversionTime: new Date(paidAt * 1000).toISOString(),
+              currency: invoice.currency,
+              value: invoice.amount_paid / 100,
+              ...(paidEmail ? { email: paidEmail } : {}),
+              ...(subscriptionMetadata?.xTwclid
+                ? { twclid: subscriptionMetadata.xTwclid }
+                : {}),
+              ...(subscriptionMetadata?.tier ? { plan: subscriptionMetadata.tier } : {}),
             });
           }
         }
