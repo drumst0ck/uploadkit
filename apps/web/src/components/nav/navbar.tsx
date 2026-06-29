@@ -115,7 +115,7 @@ export default function Navbar() {
               aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={open}
               aria-controls="mobile-menu"
-              className="icon-btn md:hidden"
+              className="icon-btn mobile-menu-btn"
             >
               {open ? (
                 <X className="h-5 w-5" aria-hidden="true" />
