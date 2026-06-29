@@ -2,6 +2,8 @@
 
 Upload an image to UploadKit without leaving Raycast. The extension uses UploadKit's secure presigned upload flow and automatically copies the resulting CDN URL.
 
+![Upload complete result in Raycast](media/upload-complete.png)
+
 ## Setup
 
 1. Open the [UploadKit dashboard](https://app.uploadkit.dev).
