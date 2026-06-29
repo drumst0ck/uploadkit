@@ -11,4 +11,5 @@ export * from './components/ui/separator';
 export * from './components/ui/avatar';
 export * from './components/ui/table';
 export * from './components/ui/sheet';
+export * from './components/analytics-consent';
 export { cn } from './lib/utils';
