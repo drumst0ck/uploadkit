@@ -250,7 +250,7 @@ const PRICING_TIERS: PricingTier[] = [
     price: '$15',
     period: 'per month',
     description: 'For production apps that need reliable infrastructure.',
-    cta: 'Start Pro Trial',
+    cta: 'Get Started with Pro',
     ctaHref: 'https://app.uploadkit.dev/login',
     featured: true,
     features: [
@@ -267,7 +267,7 @@ const PRICING_TIERS: PricingTier[] = [
     price: '$35',
     period: 'per month',
     description: 'For growing teams with higher volume and more projects.',
-    cta: 'Start Team Trial',
+    cta: 'Get Started with Team',
     ctaHref: 'https://app.uploadkit.dev/login',
     featured: false,
     features: [
