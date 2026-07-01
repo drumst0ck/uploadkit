@@ -8,6 +8,7 @@ import { ImageTransformSchema } from '@/lib/schemas';
 import {
   createImageTransformUrl,
   imageTransformFingerprint,
+  imageTransformUnits,
   reserveUniqueImageTransform,
 } from '@/lib/image-transforms';
 import { serializeError, serializeValidationError } from '@/lib/errors';
@@ -19,6 +20,14 @@ async function handlePost(req: NextRequest, ctx: ApiContext): Promise<NextRespon
       'Image transformations are available on paid UploadKit Cloud plans only',
       403,
       'Upgrade at app.uploadkit.dev/billing',
+    );
+  }
+  if (ctx.apiKey.isTest) {
+    throw new UploadKitError(
+      'IMAGE_TRANSFORMS_REQUIRE_LIVE_KEY',
+      'Image transformations require a live API key',
+      403,
+      'Use an API key with the uk_live_ prefix',
     );
   }
 
@@ -49,11 +58,18 @@ async function handlePost(req: NextRequest, ctx: ApiContext): Promise<NextRespon
     period,
     fingerprint: imageTransformFingerprint(file.key, transform),
     limit,
+    units: imageTransformUnits(transform),
   });
   return NextResponse.json({
     ...result,
     transform,
-    usage: { period, used: reservation.usage, limit, counted: reservation.counted },
+    usage: {
+      period,
+      used: reservation.usage,
+      limit,
+      units: imageTransformUnits(transform),
+      counted: reservation.counted,
+    },
   });
 }
 
@@ -63,4 +79,4 @@ export const POST = withApiKey(async (req, ctx) => {
   } catch (err) {
     return serializeError(err);
   }
-});
+}, 'transform');

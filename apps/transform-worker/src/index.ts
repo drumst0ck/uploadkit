@@ -2,6 +2,7 @@ interface Env {
   UPLOADS: R2Bucket;
   IMAGES: ImagesBinding;
   IMAGE_TRANSFORM_SECRET: string;
+  IMAGE_TRANSFORM_SECRET_PREVIOUS?: string;
   CACHE_TTL_SECONDS?: string;
 }
 
@@ -37,10 +38,10 @@ interface ImageTransform extends ImageResizeOptions {
 }
 
 const PREFIX = '/t/';
-const edgeCache = (caches as CacheStorage & { default: Cache }).default;
-
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const edgeCache = (caches as CacheStorage & { default: Cache }).default;
+    const startedAt = Date.now();
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return jsonError('METHOD_NOT_ALLOWED', 405, { Allow: 'GET, HEAD' });
     }
@@ -52,11 +53,11 @@ export default {
       }
       if (!env.IMAGE_TRANSFORM_SECRET) return jsonError('WORKER_NOT_CONFIGURED', 503);
 
-      const valid = await verifySignature(
-        env.IMAGE_TRANSFORM_SECRET,
-        parsed.signature,
-        signingPayload(parsed.expires, parsed.encodedTransform, parsed.key),
-      );
+      const payload = signingPayload(parsed.expires, parsed.encodedTransform, parsed.key);
+      const valid = await verifySignature(env.IMAGE_TRANSFORM_SECRET, parsed.signature, payload)
+        || (env.IMAGE_TRANSFORM_SECRET_PREVIOUS
+          ? await verifySignature(env.IMAGE_TRANSFORM_SECRET_PREVIOUS, parsed.signature, payload)
+          : false);
       if (!valid) return jsonError('INVALID_TRANSFORM_SIGNATURE', 403);
 
       const transform = decodeTransform(parsed.encodedTransform);
@@ -66,7 +67,11 @@ export default {
       cacheUrl.searchParams.set('uk-format', outputFormat);
       const cacheKey = new Request(cacheUrl);
       const cached = await edgeCache.match(cacheKey);
-      if (cached) return request.method === 'HEAD' ? headResponse(cached) : cached;
+      if (cached) {
+        const response = withOperationalHeaders(cached, 'HIT');
+        logRequest('cache_hit', parsed.key, outputFormat, startedAt);
+        return request.method === 'HEAD' ? headResponse(response) : response;
+      }
 
       const source = await env.UPLOADS.get(parsed.key);
       if (!source?.body) return jsonError('SOURCE_NOT_FOUND', 404);
@@ -85,12 +90,20 @@ export default {
       response.headers.set('Cache-Control', `public, max-age=${ttl}, immutable`);
       response.headers.set('Vary', 'Accept');
       response.headers.set('X-Content-Type-Options', 'nosniff');
+      response.headers.set('X-UploadKit-Cache', 'MISS');
 
       ctx.waitUntil(edgeCache.put(cacheKey, response.clone()));
+      logRequest('transformed', parsed.key, outputFormat, startedAt);
       return request.method === 'HEAD' ? headResponse(response) : response;
     } catch (error) {
       const message = error instanceof TransformRequestError ? error.message : 'TRANSFORM_FAILED';
       const status = error instanceof TransformRequestError ? 400 : 500;
+      console.error(JSON.stringify({
+        event: 'image_transform_error',
+        code: message,
+        status,
+        durationMs: Date.now() - startedAt,
+      }));
       return jsonError(message, status);
     }
   },
@@ -98,7 +111,7 @@ export default {
 
 class TransformRequestError extends Error {}
 
-function parseTransformRequest(url: URL) {
+export function parseTransformRequest(url: URL) {
   if (!url.pathname.startsWith(PREFIX)) throw new TransformRequestError('NOT_FOUND');
   const parts = url.pathname.slice(PREFIX.length).split('/');
   const [expiresRaw, signature, encodedTransform, ...keyParts] = parts;
@@ -106,12 +119,17 @@ function parseTransformRequest(url: URL) {
   if (!Number.isSafeInteger(expires) || !signature || !encodedTransform || keyParts.length === 0) {
     throw new TransformRequestError('INVALID_TRANSFORM_URL');
   }
-  const key = keyParts.map((part) => decodeURIComponent(part)).join('/');
+  let key: string;
+  try {
+    key = keyParts.map((part) => decodeURIComponent(part)).join('/');
+  } catch {
+    throw new TransformRequestError('INVALID_FILE_KEY');
+  }
   if (!key || key.includes('\0')) throw new TransformRequestError('INVALID_FILE_KEY');
   return { expires, signature, encodedTransform, key };
 }
 
-function decodeTransform(encoded: string): ImageTransform {
+export function decodeTransform(encoded: string): ImageTransform {
   let value: unknown;
   try {
     value = JSON.parse(new TextDecoder().decode(base64UrlDecode(encoded)));
@@ -137,14 +155,29 @@ function validDimension(value: number | undefined): boolean {
   return Number.isInteger(value) && (value ?? 0) >= 1 && (value ?? 0) <= 4096;
 }
 
-function negotiateFormat(format: ImageTransform['format'], accept: string | null): Exclude<ImageTransform['format'], 'auto'> {
+export function negotiateFormat(format: ImageTransform['format'], accept: string | null): Exclude<ImageTransform['format'], 'auto'> {
   if (format !== 'auto') return format;
-  if (accept?.includes('image/avif')) return 'avif';
-  if (accept?.includes('image/webp')) return 'webp';
+  const accepted = parseAccept(accept);
+  const avif = accepted.get('image/avif') ?? 0;
+  const webp = accepted.get('image/webp') ?? 0;
+  if (avif > 0 && avif >= webp) return 'avif';
+  if (webp > 0) return 'webp';
   return 'jpeg';
 }
 
-async function verifySignature(secret: string, provided: string, payload: string): Promise<boolean> {
+function parseAccept(header: string | null): Map<string, number> {
+  const values = new Map<string, number>();
+  for (const entry of (header ?? '').split(',')) {
+    const [mediaTypeRaw, ...parameters] = entry.trim().toLowerCase().split(';');
+    if (!mediaTypeRaw) continue;
+    const qualityParameter = parameters.find((part) => part.trim().startsWith('q='));
+    const quality = qualityParameter ? Number.parseFloat(qualityParameter.trim().slice(2)) : 1;
+    values.set(mediaTypeRaw, Number.isFinite(quality) ? Math.min(1, Math.max(0, quality)) : 0);
+  }
+  return values;
+}
+
+export async function verifySignature(secret: string, provided: string, payload: string): Promise<boolean> {
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(secret),
@@ -153,7 +186,12 @@ async function verifySignature(secret: string, provided: string, payload: string
     ['sign'],
   );
   const expected = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload)));
-  const actual = base64UrlDecode(provided);
+  let actual: Uint8Array;
+  try {
+    actual = base64UrlDecode(provided);
+  } catch {
+    return false;
+  }
   if (actual.length !== expected.length) return false;
   let difference = 0;
   for (let i = 0; i < expected.length; i++) difference |= expected[i]! ^ actual[i]!;
@@ -172,9 +210,30 @@ function base64UrlDecode(value: string): Uint8Array {
 }
 
 function parseCacheTtl(raw: string | undefined, expires: number): number {
-  const configured = Number.parseInt(raw ?? '86400', 10);
+  const configured = Number.parseInt(raw ?? '3600', 10);
   const remaining = Math.max(0, expires - Math.floor(Date.now() / 1000));
-  return Math.min(Number.isFinite(configured) ? Math.max(60, configured) : 86_400, remaining);
+  return Math.min(Number.isFinite(configured) ? Math.max(60, configured) : 3_600, remaining);
+}
+
+function withOperationalHeaders(response: Response, cacheStatus: 'HIT' | 'MISS'): Response {
+  const copy = new Response(response.body, response);
+  copy.headers.set('X-UploadKit-Cache', cacheStatus);
+  return copy;
+}
+
+function logRequest(event: 'cache_hit' | 'transformed', key: string, format: string, startedAt: number): void {
+  console.log(JSON.stringify({
+    event: `image_transform_${event}`,
+    keyHash: keyHash(key),
+    format,
+    durationMs: Date.now() - startedAt,
+  }));
+}
+
+function keyHash(key: string): string {
+  let hash = 2166136261;
+  for (let i = 0; i < key.length; i++) hash = Math.imul(hash ^ key.charCodeAt(i), 16777619);
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 function headResponse(response: Response): Response {

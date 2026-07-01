@@ -4,7 +4,7 @@ import { connectDB, ApiKey, Subscription } from '@uploadkitdev/db';
 import type { IApiKey, IProject } from '@uploadkitdev/db';
 import { UnauthorizedError, RateLimitError } from '@uploadkitdev/shared';
 import type { Tier } from '@uploadkitdev/shared';
-import { ratelimit, uploadRatelimit } from './rate-limit';
+import { ratelimit, transformRatelimit, uploadRatelimit } from './rate-limit';
 import { serializeError } from './errors';
 
 export interface ApiContext {
@@ -31,7 +31,7 @@ type Handler = (
  * @param handler - The inner route handler to wrap
  * @param useUploadLimit - Use the higher upload rate limit (30/min) instead of default (10/min)
  */
-export function withApiKey(handler: Handler, useUploadLimit = false) {
+export function withApiKey(handler: Handler, rateLimitProfile: boolean | 'transform' = false) {
   return async (
     req: NextRequest,
     segmentData: { params: Promise<Record<string, string | string[]>> },
@@ -48,7 +48,11 @@ export function withApiKey(handler: Handler, useUploadLimit = false) {
       }
 
       // 2. Rate limit BEFORE DB lookup (Upstash HTTP, no connection needed)
-      const limiter = useUploadLimit ? uploadRatelimit : ratelimit;
+      const limiter = rateLimitProfile === 'transform'
+        ? transformRatelimit
+        : rateLimitProfile
+          ? uploadRatelimit
+          : ratelimit;
       const rateLimitKey = `apikey:${token.slice(0, 20)}`;
       const { success, reset } = await limiter.limit(rateLimitKey);
       if (!success) {

@@ -13,7 +13,7 @@ UploadKit generates signed, CDN-cached image variants without creating additiona
 
 ## Plan limits
 
-| Plan | Unique transformations/month |
+| Plan | Transformation units/month |
 |------|-----------------------------:|
 | Free | Not available |
 | Pro | 5,000 |
@@ -22,9 +22,11 @@ UploadKit generates signed, CDN-cached image variants without creating additiona
 
 Usage is shared across every project owned by the account and resets each calendar month.
 
-## What counts as unique?
+## How units are counted
 
-A unique transformation is one combination of source file, dimensions, fit mode, quality, and output format. Requesting the same combination again does not consume another transformation. CDN cache hits also do not consume quota. Changing any option creates a new unique transformation.
+A transformation unit is reserved when the API issues the first signed URL for a combination of source file, dimensions, fit mode, quality, and explicit output format during the current month. Requesting the same combination again does not consume more units, even after the URL expires. CDN cache hits do not consume quota. Changing any option creates a new variant.
+
+Explicit formats (`avif`, `webp`, `jpeg`, or `png`) reserve **1 unit**. `format: 'auto'` reserves **3 units** because it can create separate AVIF, WebP, and JPEG variants based on the browser's `Accept` header. Units are reserved when the URL is issued, whether or not the URL is subsequently fetched.
 
 ## Supported options
 
@@ -46,4 +48,6 @@ The cloud API verifies the plan, project ownership, upload status, MIME type, an
 https://cdn.uploadkit.dev/t/<expires>/<signature>/<options>/<file-key>
 ```
 
-Generate URLs in trusted server code with the Core SDK or REST API. Never expose an UploadKit API key in browser code.
+Generate URLs in trusted server code with a **live** (`uk_live_`) key through the Core SDK or REST API. Test keys cannot issue transformation URLs. Never expose an UploadKit API key in browser code.
+
+Signed URLs are valid for at most 25 hours and transformed responses are cached at the edge for at most one hour. Deleting the source immediately prevents new cache misses from being generated; an already cached response can remain available until that one-hour cache window ends.

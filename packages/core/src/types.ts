@@ -72,6 +72,7 @@ export interface ImageTransformResult {
     period: string;
     used: number;
     limit: number;
+    units: number;
     counted: boolean;
   };
 }

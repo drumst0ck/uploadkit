@@ -9,8 +9,10 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 Creates a signed URL for an image variant using the project API key.
 
+The endpoint allows 120 requests per minute per API key. Reuse returned URLs and avoid generating them on every browser request.
+
 <Callout type="warn">
-  This endpoint is unavailable on Free plans and cannot transform BYOS files.
+  This endpoint requires a paid plan, a live (`uk_live_`) key, and UploadKit Cloud storage. It cannot transform BYOS files.
 </Callout>
 
 ```bash
@@ -43,19 +45,20 @@ curl -X POST "https://api.uploadkit.dev/api/v1/transforms/image" \
 ```json
 {
   "url": "https://cdn.uploadkit.dev/t/...",
-  "expiresAt": "2026-07-03T00:00:00.000Z",
+  "expiresAt": "2026-07-02T13:00:00.000Z",
   "transform": { "width": 800, "height": 600, "fit": "cover", "quality": 80, "format": "auto" },
-  "usage": { "period": "2026-07", "used": 143, "limit": 5000, "counted": true }
+  "usage": { "period": "2026-07", "used": 143, "limit": 5000, "units": 3, "counted": true }
 }
 ```
 
-`usage.counted` is `false` when that exact variant already exists in the current period.
+`usage.counted` is `false` when that exact variant already exists in the current period. `usage.units` is `1` for an explicit format and `3` for `auto`.
 
 ### Errors
 
 | Code | HTTP | Cause |
 |------|-----:|-------|
 | `IMAGE_TRANSFORMS_REQUIRE_PAID_PLAN` | 403 | Account is on Free. |
+| `IMAGE_TRANSFORMS_REQUIRE_LIVE_KEY` | 403 | A test key was used. |
 | `NOT_FOUND` | 404 | File is missing or belongs to another project. |
 | `UNSUPPORTED_TRANSFORM_TYPE` | 415 | File is not an image. |
 | `IMAGE_TRANSFORM_LIMIT_EXCEEDED` | 429 | Monthly quota is exhausted. |

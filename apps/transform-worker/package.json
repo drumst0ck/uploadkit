@@ -7,7 +7,7 @@
     "dev": "pnpm dlx wrangler@latest dev",
     "deploy": "pnpm dlx wrangler@latest deploy",
     "typecheck": "tsc --noEmit",
-    "test": "tsc --noEmit",
+    "test": "vitest run",
     "build": "tsc --noEmit"
   }
 }

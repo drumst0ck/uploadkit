@@ -18,6 +18,10 @@
     }
   ],
   "vars": {
-    "CACHE_TTL_SECONDS": "86400"
+    "CACHE_TTL_SECONDS": "3600"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
   }
 }
