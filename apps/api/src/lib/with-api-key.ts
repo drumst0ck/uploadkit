@@ -53,7 +53,8 @@ export function withApiKey(handler: Handler, rateLimitProfile: boolean | 'transf
         : rateLimitProfile
           ? uploadRatelimit
           : ratelimit;
-      const rateLimitKey = `apikey:${token.slice(0, 20)}`;
+      const hash = createHash('sha256').update(token).digest('hex');
+      const rateLimitKey = `apikey:${hash}`;
       const { success, reset } = await limiter.limit(rateLimitKey);
       if (!success) {
         const retryAfterSeconds = Math.ceil((reset - Date.now()) / 1000);
@@ -62,7 +63,6 @@ export function withApiKey(handler: Handler, rateLimitProfile: boolean | 'transf
 
       // 3. Hash token with SHA256 and look up in DB
       await connectDB();
-      const hash = createHash('sha256').update(token).digest('hex');
       const apiKeyDoc = await ApiKey.findOne({ keyHash: hash, revokedAt: null }).populate<{
         projectId: IProject;
       }>('projectId');

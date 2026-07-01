@@ -8,7 +8,10 @@ vi.mock('@uploadkitdev/db', () => ({
   ApiKey: { findOne: vi.fn(), updateOne: vi.fn().mockResolvedValue({}) },
   Subscription: { findOne: vi.fn() },
   File: { findOne: vi.fn() },
-  ImageTransformation: { findOne: vi.fn(), create: vi.fn() },
+  ImageTransformation: {
+    findOne: vi.fn(), find: vi.fn(), create: vi.fn(), updateOne: vi.fn(),
+  },
+  ImageTransformLock: { findOneAndUpdate: vi.fn(), deleteOne: vi.fn() },
   UsageRecord: { findOne: vi.fn(), findOneAndUpdate: vi.fn() },
 }));
 
@@ -19,7 +22,9 @@ vi.mock('@/lib/rate-limit', () => ({
 }));
 
 import { POST } from '@/app/api/v1/transforms/image/route';
-import { ApiKey, File, ImageTransformation, Subscription, UsageRecord } from '@uploadkitdev/db';
+import {
+  ApiKey, File, ImageTransformation, ImageTransformLock, Subscription, UsageRecord,
+} from '@uploadkitdev/db';
 import { transformRatelimit } from '@/lib/rate-limit';
 
 const project = { _id: 'project-1', userId: 'user-1', name: 'Cloud project' };
@@ -28,6 +33,7 @@ const apiKey = { _id: 'key-1', projectId: project, revokedAt: null, isTest: fals
 function queryResult<T>(value: T) {
   return {
     session: vi.fn().mockReturnThis(),
+    sort: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
     lean: vi.fn().mockResolvedValue(value),
   };
@@ -62,7 +68,12 @@ beforeEach(() => {
     }),
   } as never);
   vi.mocked(ImageTransformation.findOne).mockReturnValue(queryResult(null) as never);
-  vi.mocked(ImageTransformation.create).mockResolvedValue([] as never);
+  vi.mocked(ImageTransformation.find).mockReturnValue(queryResult([]) as never);
+  vi.mocked(ImageTransformation.create).mockResolvedValue({ _id: 'reservation-1' } as never);
+  vi.mocked(ImageTransformation.updateOne).mockResolvedValue({} as never);
+  vi.mocked(ImageTransformLock.findOneAndUpdate).mockImplementation(((_filter: unknown, update: unknown) =>
+    queryResult({ owner: (update as { $set: { owner: string } }).$set.owner })) as never);
+  vi.mocked(ImageTransformLock.deleteOne).mockResolvedValue({} as never);
   vi.mocked(UsageRecord.findOne).mockReturnValue(queryResult(null) as never);
   vi.mocked(UsageRecord.findOneAndUpdate).mockReturnValue(queryResult({ imageTransforms: 3 }) as never);
 });
@@ -99,8 +110,10 @@ describe('POST /api/v1/transforms/image', () => {
 
   it('does not consume quota twice for the same transform', async () => {
     setTier('PRO');
-    vi.mocked(ImageTransformation.findOne).mockReturnValue(queryResult({ _id: 'transform-1' }) as never);
-    vi.mocked(UsageRecord.findOne).mockReturnValue(queryResult({ imageTransforms: 42 }) as never);
+    vi.mocked(ImageTransformation.findOne).mockReturnValue(queryResult({
+      _id: 'transform-1', usageAfter: 42, status: 'COMMITTED',
+    }) as never);
+    vi.mocked(UsageRecord.findOneAndUpdate).mockReturnValue(queryResult({ imageTransforms: 42 }) as never);
 
     const response = await POST(request({ key: 'project-1/images/photo.jpg', width: 320 }), {
       params: Promise.resolve({}),
@@ -136,8 +149,31 @@ describe('POST /api/v1/transforms/image', () => {
     expect(body.usage).toMatchObject({ used: 1, units: 1, counted: true });
     expect(UsageRecord.findOneAndUpdate).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ $inc: { imageTransforms: 1 } }),
+      expect.objectContaining({ $max: { imageTransforms: 1 } }),
       expect.objectContaining({ upsert: true }),
+    );
+  });
+
+  it('recovers an interrupted reservation without double-counting', async () => {
+    setTier('PRO');
+    vi.mocked(ImageTransformation.find).mockReturnValue(queryResult([{
+      _id: 'pending-1', status: 'PENDING', usageAfter: 7,
+    }]) as never);
+    vi.mocked(UsageRecord.findOne)
+      .mockReturnValueOnce(queryResult({ imageTransforms: 7 }) as never);
+    vi.mocked(UsageRecord.findOneAndUpdate)
+      .mockReturnValueOnce(queryResult({ imageTransforms: 7 }) as never)
+      .mockReturnValueOnce(queryResult({ imageTransforms: 10 }) as never);
+
+    const response = await POST(request({ key: 'project-1/images/photo.jpg', width: 320 }), {
+      params: Promise.resolve({}),
+    });
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.usage.used).toBe(10);
+    expect(ImageTransformation.updateOne).toHaveBeenCalledWith(
+      { _id: 'pending-1', status: 'PENDING' },
+      { $set: { status: 'COMMITTED' } },
     );
   });
 
