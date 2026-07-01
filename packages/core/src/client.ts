@@ -6,6 +6,8 @@ import type {
   ListFilesOptions,
   ListFilesResult,
   DeleteFilesResult,
+  ImageTransformOptions,
+  ImageTransformResult,
 } from './types';
 import { fetchApi } from './http';
 import { executeUpload } from './upload';
@@ -85,6 +87,19 @@ export class UploadKitClient {
       this.#apiKey,
       '/api/v1/files',
       { method: 'DELETE', body: { keys } },
+    );
+  }
+
+  /**
+   * Create a signed, CDN-cacheable image transformation URL.
+   * Available only for paid projects using UploadKit-managed storage.
+   */
+  async transformImage(key: string, options: ImageTransformOptions): Promise<ImageTransformResult> {
+    return fetchApi<ImageTransformResult>(
+      this.#baseUrl,
+      this.#apiKey,
+      '/api/v1/transforms/image',
+      { method: 'POST', body: { key, ...options } },
     );
   }
 }

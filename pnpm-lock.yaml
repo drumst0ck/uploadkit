@@ -301,6 +301,8 @@ importers:
         specifier: latest
         version: 6.0.2
 
+  apps/transform-worker: {}
+
   apps/web:
     dependencies:
       '@uploadkitdev/react':

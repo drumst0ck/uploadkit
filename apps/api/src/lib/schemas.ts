@@ -88,6 +88,20 @@ export const DeleteFilesSchema = z.object({
   keys: z.array(z.string().min(1)).min(1).max(100),
 });
 
+export const ImageTransformSchema = z
+  .object({
+    key: z.string().min(1).max(1024),
+    width: z.number().int().min(1).max(4096).optional(),
+    height: z.number().int().min(1).max(4096).optional(),
+    fit: z.enum(['scale-down', 'contain', 'cover', 'crop', 'pad']).default('scale-down'),
+    quality: z.number().int().min(1).max(100).default(85),
+    format: z.enum(['auto', 'avif', 'webp', 'jpeg', 'png']).default('auto'),
+  })
+  .refine((value) => value.width !== undefined || value.height !== undefined, {
+    message: 'At least one of width or height is required',
+    path: ['width'],
+  });
+
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
 export const PaginationSchema = z.object({

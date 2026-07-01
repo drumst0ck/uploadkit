@@ -23,12 +23,13 @@ describe('createUploadKit', () => {
     vi.clearAllMocks();
   });
 
-  it('returns object with upload, listFiles, deleteFile, deleteFiles methods', () => {
+  it('returns object with upload, file management, and transform methods', () => {
     const client = createUploadKit({ apiKey: 'uk_live_test123' });
     expect(typeof client.upload).toBe('function');
     expect(typeof client.listFiles).toBe('function');
     expect(typeof client.deleteFile).toBe('function');
     expect(typeof client.deleteFiles).toBe('function');
+    expect(typeof client.transformImage).toBe('function');
   });
 
   it('throws UploadKitError if apiKey is missing', () => {
@@ -134,5 +135,38 @@ describe('createUploadKit', () => {
       }),
     );
     expect(result.deleted).toBe(2);
+  });
+
+  it('transformImage() requests a signed transform URL', async () => {
+    mockFetchApi.mockResolvedValue({
+      url: 'https://cdn.uploadkit.dev/t/signed',
+      expiresAt: '2026-07-03T00:00:00.000Z',
+      transform: { width: 800, fit: 'cover', quality: 80, format: 'auto' },
+    });
+
+    const client = createUploadKit({ apiKey: 'uk_live_test123' });
+    const result = await client.transformImage('proj/images/photo.jpg', {
+      width: 800,
+      fit: 'cover',
+      quality: 80,
+      format: 'auto',
+    });
+
+    expect(mockFetchApi).toHaveBeenCalledWith(
+      expect.any(String),
+      'uk_live_test123',
+      '/api/v1/transforms/image',
+      expect.objectContaining({
+        method: 'POST',
+        body: {
+          key: 'proj/images/photo.jpg',
+          width: 800,
+          fit: 'cover',
+          quality: 80,
+          format: 'auto',
+        },
+      }),
+    );
+    expect(result.url).toContain('cdn.uploadkit.dev/t/');
   });
 });
