@@ -20,6 +20,11 @@ function getRedis(): Redis | null {
 
 function createLimiter(points: number, prefix: string) {
   const redis = getRedis();
+  const memoryFallback = new RateLimiterMemory({
+    points,
+    duration: 60,
+    keyPrefix: `${prefix}:fallback`,
+  });
   const limiter: RateLimiterRedis | RateLimiterMemory = redis
     ? new RateLimiterRedis({
         storeClient: redis,
@@ -48,7 +53,21 @@ function createLimiter(points: number, prefix: string) {
         const reset = Date.now() + (res.msBeforeNext ?? 0);
         return { success: true, reset };
       } catch (err: unknown) {
-        // RateLimiterRes is thrown on exhaustion; it also carries msBeforeNext
+        // Exhaustion is a plain RateLimiterRes. Infrastructure failures are
+        // Error instances and must not become false 429s for fresh API keys.
+        if (err instanceof Error && redis) {
+          console.error('[ratelimit] Redis unavailable, using memory fallback:', err.message);
+          try {
+            const fallback = await memoryFallback.consume(key);
+            return { success: true, reset: Date.now() + (fallback.msBeforeNext ?? 0) };
+          } catch (fallbackError: unknown) {
+            const fallbackResult = fallbackError as { msBeforeNext?: number };
+            return {
+              success: false,
+              reset: Date.now() + (fallbackResult.msBeforeNext ?? 60_000),
+            };
+          }
+        }
         const rlErr = err as { msBeforeNext?: number };
         const reset = Date.now() + (rlErr.msBeforeNext ?? 60_000);
         return { success: false, reset };

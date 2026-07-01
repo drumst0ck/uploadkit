@@ -7,6 +7,8 @@ export interface IImageTransformation extends Document {
   period: string;
   fingerprint: string;
   units: number;
+  status: 'PENDING' | 'COMMITTED';
+  usageAfter: number;
   expiresAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -20,6 +22,8 @@ const imageTransformationSchema = new Schema<IImageTransformation>(
     period: { type: String, required: true },
     fingerprint: { type: String, required: true },
     units: { type: Number, required: true, min: 1 },
+    status: { type: String, enum: ['PENDING', 'COMMITTED'], required: true, default: 'PENDING' },
+    usageAfter: { type: Number, required: true, min: 1 },
     expiresAt: { type: Date, required: true },
   },
   { timestamps: true },
