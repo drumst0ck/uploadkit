@@ -155,6 +155,34 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: {} },
   },
   {
+    name: 'transform_image',
+    description:
+      'Generate a signed, CDN-cached image variant for a file stored in UploadKit Cloud. Requires a paid plan, a live API key in the MCP process environment as UPLOADKIT_API_KEY, and an image key returned by UploadKit. BYOS files are not supported. Explicit formats consume 1 transformation unit; auto consumes 3 units and negotiates AVIF, WebP, or JPEG from the browser Accept header.\n\nWhen to use: after an image is uploaded and the user wants a resized, cropped, optimized, or converted delivery URL. The returned URL is safe to send to browsers; the API key remains server-side.\n\nReturns: JSON { url, expiresAt, transform, usage }. Has the side effect of reserving monthly transformation units for a new unique variant.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        key: {
+          type: 'string',
+          description: 'Exact UploadKit Cloud storage key returned by upload or listFiles. Not a public CDN URL.',
+        },
+        width: { type: 'number', minimum: 1, maximum: 4096, description: 'Output width in pixels. Width or height is required.' },
+        height: { type: 'number', minimum: 1, maximum: 4096, description: 'Output height in pixels. Width or height is required.' },
+        fit: {
+          type: 'string',
+          enum: ['scale-down', 'contain', 'cover', 'crop', 'pad'],
+          default: 'scale-down',
+        },
+        quality: { type: 'number', minimum: 1, maximum: 100, default: 85 },
+        format: {
+          type: 'string',
+          enum: ['auto', 'avif', 'webp', 'jpeg', 'png'],
+          default: 'auto',
+        },
+      },
+      required: ['key'],
+    },
+  },
+  {
     name: 'search_docs',
     description:
       'Full-text search across every UploadKit docs page (88+ pages — getting-started, core-concepts, SDK reference, API reference, dashboard, guides). Ranks matches by keyword frequency in title, description, and body.\n\nWhen to use: any question about UploadKit behaviour, configuration, or integration that the component tools do not answer — middleware, onUploadComplete callbacks, REST API endpoints, webhooks, presigned URLs, CSS theming variables, type-safety setup, migration from UploadThing, rate limits, etc.\n\nReturns: JSON { query, count, indexGeneratedAt, matches: [{ path, url, title, description, snippet, score }] }. Sorted by score descending. Read-only. Bundled index (no network call) — results reflect docs at build time.',
@@ -305,6 +333,46 @@ export function registerTools(server: Server): void {
 
       case 'get_quickstart': {
         return textResult(QUICKSTART);
+      }
+
+      case 'transform_image': {
+        const apiKey = process.env['UPLOADKIT_API_KEY'];
+        if (!apiKey) {
+          return textResult(
+            'transform_image requires UPLOADKIT_API_KEY in the MCP server environment. Configure a paid-plan uk_live_ key when launching @uploadkitdev/mcp; never pass the key as a tool argument or expose it to browser code.',
+          );
+        }
+        if (!apiKey.startsWith('uk_live_')) {
+          return textResult('transform_image requires a live API key with the uk_live_ prefix.');
+        }
+        const width = typeof args.width === 'number' ? args.width : undefined;
+        const height = typeof args.height === 'number' ? args.height : undefined;
+        if (width === undefined && height === undefined) {
+          return textResult('transform_image requires width or height.');
+        }
+        const payload = {
+          key: String(args.key ?? ''),
+          ...(width !== undefined ? { width } : {}),
+          ...(height !== undefined ? { height } : {}),
+          fit: typeof args.fit === 'string' ? args.fit : 'scale-down',
+          quality: typeof args.quality === 'number' ? args.quality : 85,
+          format: typeof args.format === 'string' ? args.format : 'auto',
+        };
+        const baseUrl = (process.env['UPLOADKIT_API_URL'] ?? 'https://api.uploadkit.dev')
+          .replace(/\/+$/, '');
+        const response = await fetch(`${baseUrl}/api/v1/transforms/image`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        const body = await response.json() as unknown;
+        if (!response.ok) {
+          return textResult(`UploadKit transform failed (${response.status}): ${JSON.stringify(body)}`);
+        }
+        return jsonResult(body);
       }
 
       case 'search_docs': {

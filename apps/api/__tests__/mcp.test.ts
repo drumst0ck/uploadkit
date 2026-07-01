@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { POST, OPTIONS } from '../src/app/api/v1/mcp/route';
 
 type JsonRpc = {
@@ -77,15 +77,64 @@ describe('POST /api/v1/mcp', () => {
     expect(json?.result?.capabilities?.tools).toBeDefined();
   });
 
-  it('lists exactly 11 tools including list_components, get_doc, search_docs, scaffold_route_handler', async () => {
+  it('lists exactly 12 tools including transform_image and the documentation tools', async () => {
     const { json } = await call({ jsonrpc: '2.0', id: 2, method: 'tools/list' });
     const tools: Array<{ name: string }> = json?.result?.tools ?? [];
-    expect(tools).toHaveLength(11);
+    expect(tools).toHaveLength(12);
     const names = tools.map((t) => t.name);
     expect(names).toContain('list_components');
     expect(names).toContain('get_doc');
     expect(names).toContain('search_docs');
     expect(names).toContain('scaffold_route_handler');
+    expect(names).toContain('transform_image');
+  });
+
+  it('transform_image explains how to configure its server-side key', async () => {
+    const previous = process.env.UPLOADKIT_API_KEY;
+    delete process.env.UPLOADKIT_API_KEY;
+    try {
+      const { json } = await call({
+        jsonrpc: '2.0', id: 20, method: 'tools/call',
+        params: { name: 'transform_image', arguments: { key: 'project/photo.jpg', width: 320 } },
+      });
+      expect(json?.result?.content?.[0]?.text).toContain('UPLOADKIT_API_KEY');
+    } finally {
+      if (previous !== undefined) process.env.UPLOADKIT_API_KEY = previous;
+    }
+  });
+
+  it('transform_image calls the cloud API without exposing its key in arguments', async () => {
+    const previous = process.env.UPLOADKIT_API_KEY;
+    process.env.UPLOADKIT_API_KEY = 'uk_live_mcp_test_secret';
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      url: 'https://cdn.uploadkit.dev/t/signed',
+      expiresAt: '2026-07-02T00:00:00.000Z',
+      transform: { width: 320, fit: 'cover', quality: 80, format: 'webp' },
+      usage: { period: '2026-07', used: 1, limit: 5000, units: 1, counted: true },
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      const { json } = await call({
+        jsonrpc: '2.0', id: 21, method: 'tools/call',
+        params: {
+          name: 'transform_image',
+          arguments: { key: 'project/photo.jpg', width: 320, fit: 'cover', quality: 80, format: 'webp' },
+        },
+      });
+      const result = JSON.parse(json?.result?.content?.[0]?.text) as { url: string };
+      expect(result.url).toBe('https://cdn.uploadkit.dev/t/signed');
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://api.uploadkit.dev/api/v1/transforms/image',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({ Authorization: 'Bearer uk_live_mcp_test_secret' }),
+        }),
+      );
+    } finally {
+      vi.unstubAllGlobals();
+      if (previous === undefined) delete process.env.UPLOADKIT_API_KEY;
+      else process.env.UPLOADKIT_API_KEY = previous;
+    }
   });
 
   it('tools/call list_components returns a JSON-parseable catalog', async () => {
