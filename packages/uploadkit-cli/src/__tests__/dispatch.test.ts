@@ -55,7 +55,13 @@ describe('dispatch', () => {
     expect(calls).toMatch(/No command provided/);
   });
 
-  it('registers exactly the three canonical subcommands', () => {
-    expect(Object.keys(handlers).sort()).toEqual(['add', 'init', 'restore']);
+  it('registers the canonical subcommands', () => {
+    expect(Object.keys(handlers).sort()).toEqual([
+      'add',
+      'init',
+      'migrate-supabase',
+      'restore',
+      'rewrite-urls',
+    ]);
   });
 });

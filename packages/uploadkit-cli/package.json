@@ -50,6 +50,7 @@
   },
   "dependencies": {
     "@clack/prompts": "latest",
+    "@uploadkitdev/shared": "workspace:*",
     "execa": "latest",
     "fast-glob": "^3.3.3",
     "magicast": "latest",

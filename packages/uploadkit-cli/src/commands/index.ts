@@ -3,6 +3,8 @@ import type { ParsedArgs } from '../args.js';
 import * as init from './init.js';
 import * as add from './add.js';
 import * as restore from './restore.js';
+import * as migrateSupabase from './migrate-supabase.js';
+import * as rewriteUrls from './rewrite-urls.js';
 
 export type CommandHandler = (parsed: ParsedArgs) => Promise<number>;
 
@@ -15,6 +17,8 @@ export const handlers: Readonly<Record<string, CommandHandler>> = {
   init: init.run,
   add: add.run,
   restore: restore.run,
+  'migrate-supabase': migrateSupabase.run,
+  'rewrite-urls': rewriteUrls.run,
 };
 
 /**
