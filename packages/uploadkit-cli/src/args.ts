@@ -21,20 +21,62 @@ export interface ParsedArgs {
     latest: boolean;
     target: string | undefined;
     timestamp: string | undefined;
+    // migrate-supabase flags
+    supabaseUrl: string | undefined;
+    supabaseKey: string | undefined;
+    supabaseBucket: string | undefined;
+    uploadkitKey: string | undefined;
+    uploadkitRoute: string | undefined;
+    uploadkitApi: string | undefined;
+    prefix: string | undefined;
+    concurrency: number | undefined;
+    out: string | undefined;
+    resume: string | undefined;
+    dryRun: boolean;
+    // rewrite-urls flags
+    mapping: string | undefined;
+    glob: string | undefined;
     /** Any extra flags we did not explicitly declare, preserved verbatim. */
     extra: Record<string, unknown>;
   };
 }
 
+const STRING_FLAGS = [
+  'target',
+  'timestamp',
+  'supabase-url',
+  'supabase-key',
+  'supabase-bucket',
+  'uploadkit-key',
+  'uploadkit-route',
+  'uploadkit-api',
+  'prefix',
+  'concurrency',
+  'out',
+  'resume',
+  'mapping',
+  'glob',
+] as const;
+
+const BOOLEAN_FLAGS = [
+  'version',
+  'help',
+  'yes',
+  'skip-install',
+  'latest',
+  'dry-run',
+] as const;
+
 /**
  * Thin mri wrapper. Keeps the parser generic enough that subcommand-specific
- * flags (e.g. `--target` for `add`, `--timestamp` for `restore`) all live in
- * one table — individual commands pick what they need.
+ * flags (e.g. `--target` for `add`, `--timestamp` for `restore`,
+ * `--supabase-bucket` for `migrate-supabase`) all live in one table —
+ * individual commands pick what they need.
  */
 export function parseArgs(argv: string[]): ParsedArgs {
   const raw = mri(argv, {
-    boolean: ['version', 'help', 'yes', 'skip-install', 'latest'],
-    string: ['target', 'timestamp'],
+    boolean: [...BOOLEAN_FLAGS],
+    string: [...STRING_FLAGS],
     alias: {
       v: 'version',
       h: 'help',
@@ -63,8 +105,24 @@ export function parseArgs(argv: string[]): ParsedArgs {
     latest,
     target,
     timestamp,
+    'supabase-url': supabaseUrl,
+    'supabase-key': supabaseKey,
+    'supabase-bucket': supabaseBucket,
+    'uploadkit-key': uploadkitKey,
+    'uploadkit-route': uploadkitRoute,
+    'uploadkit-api': uploadkitApi,
+    prefix,
+    concurrency,
+    out,
+    resume,
+    'dry-run': dryRun,
+    mapping,
+    glob,
     ...extra
   } = raw as Record<string, unknown> & { _: unknown[] };
+
+  const concurrencyNum =
+    typeof concurrency === 'string' ? Number.parseInt(concurrency, 10) : undefined;
 
   return {
     command,
@@ -77,6 +135,20 @@ export function parseArgs(argv: string[]): ParsedArgs {
       latest: Boolean(latest),
       target: typeof target === 'string' ? target : undefined,
       timestamp: typeof timestamp === 'string' ? timestamp : undefined,
+      supabaseUrl: typeof supabaseUrl === 'string' ? supabaseUrl : undefined,
+      supabaseKey: typeof supabaseKey === 'string' ? supabaseKey : undefined,
+      supabaseBucket: typeof supabaseBucket === 'string' ? supabaseBucket : undefined,
+      uploadkitKey: typeof uploadkitKey === 'string' ? uploadkitKey : undefined,
+      uploadkitRoute: typeof uploadkitRoute === 'string' ? uploadkitRoute : undefined,
+      uploadkitApi: typeof uploadkitApi === 'string' ? uploadkitApi : undefined,
+      prefix: typeof prefix === 'string' ? prefix : undefined,
+      concurrency:
+        concurrencyNum === undefined || Number.isNaN(concurrencyNum) ? undefined : concurrencyNum,
+      out: typeof out === 'string' ? out : undefined,
+      resume: typeof resume === 'string' ? resume : undefined,
+      dryRun: Boolean(dryRun),
+      mapping: typeof mapping === 'string' ? mapping : undefined,
+      glob: typeof glob === 'string' ? glob : undefined,
       extra,
     },
   };
