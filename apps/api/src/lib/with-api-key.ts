@@ -11,6 +11,7 @@ export interface ApiContext {
   apiKey: IApiKey;
   project: IProject;
   tier: Tier;
+  imageTransformLimit?: number;
 }
 
 type Handler = (
@@ -86,7 +87,18 @@ export function withApiKey(handler: Handler, useUploadLimit = false) {
       // 6. Await segment params for Next.js App Router compatibility
       const params = await segmentData.params;
 
-      return handler(req, { apiKey, project, tier }, params);
+      return handler(
+        req,
+        {
+          apiKey,
+          project,
+          tier,
+          ...(subscription?.imageTransformLimit !== undefined
+            ? { imageTransformLimit: subscription.imageTransformLimit }
+            : {}),
+        },
+        params,
+      );
     } catch (err) {
       return serializeError(err);
     }

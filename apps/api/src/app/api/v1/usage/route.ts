@@ -25,6 +25,7 @@ async function handleGet(
       storageUsed: record?.storageUsed ?? 0,
       bandwidth: record?.bandwidth ?? 0,
       uploads: record?.uploads ?? 0,
+      imageTransforms: record?.imageTransforms ?? 0,
     },
     limits: TIER_LIMITS[ctx.tier],
   });

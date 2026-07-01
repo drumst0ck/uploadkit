@@ -11,6 +11,7 @@ export const TIER_LIMITS = {
     maxUploadsPerMonth: 1000,
     maxProjects: 2,
     maxApiKeys: 2,
+    maxImageTransformsPerMonth: 0,
   },
   PRO: {
     maxStorageBytes: 100 * 1024 * 1024 * 1024,      // 100 GB
@@ -19,6 +20,7 @@ export const TIER_LIMITS = {
     maxUploadsPerMonth: 50000,
     maxProjects: 10,
     maxApiKeys: 10,
+    maxImageTransformsPerMonth: 5_000,
   },
   TEAM: {
     maxStorageBytes: 1024 * 1024 * 1024 * 1024,     // 1 TB
@@ -27,6 +29,7 @@ export const TIER_LIMITS = {
     maxUploadsPerMonth: 500000,
     maxProjects: 50,
     maxApiKeys: 50,
+    maxImageTransformsPerMonth: 25_000,
   },
   ENTERPRISE: {
     maxStorageBytes: Infinity,
@@ -35,6 +38,7 @@ export const TIER_LIMITS = {
     maxUploadsPerMonth: Infinity,
     maxProjects: Infinity,
     maxApiKeys: Infinity,
+    maxImageTransformsPerMonth: 100_000,
   },
 } as const satisfies Record<
   Tier,
@@ -45,6 +49,7 @@ export const TIER_LIMITS = {
     maxUploadsPerMonth: number;
     maxProjects: number;
     maxApiKeys: number;
+    maxImageTransformsPerMonth: number;
   }
 >;
 

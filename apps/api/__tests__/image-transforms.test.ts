@@ -6,6 +6,8 @@ vi.mock('@uploadkitdev/db', () => ({
   ApiKey: { findOne: vi.fn(), updateOne: vi.fn().mockResolvedValue({}) },
   Subscription: { findOne: vi.fn() },
   File: { findOne: vi.fn() },
+  ImageTransformation: { exists: vi.fn(), updateOne: vi.fn() },
+  UsageRecord: { findOne: vi.fn(), updateOne: vi.fn(), findOneAndUpdate: vi.fn() },
 }));
 
 vi.mock('@/lib/rate-limit', () => ({
@@ -14,7 +16,7 @@ vi.mock('@/lib/rate-limit', () => ({
 }));
 
 import { POST } from '@/app/api/v1/transforms/image/route';
-import { ApiKey, File, Subscription } from '@uploadkitdev/db';
+import { ApiKey, File, ImageTransformation, Subscription, UsageRecord } from '@uploadkitdev/db';
 import { ratelimit } from '@/lib/rate-limit';
 
 const project = { _id: 'project-1', userId: 'user-1', name: 'Cloud project' };
@@ -45,8 +47,14 @@ beforeEach(() => {
   } as never);
   vi.mocked(File.findOne).mockReturnValue({
     lean: vi.fn().mockResolvedValue({
-      key: 'project-1/images/photo.jpg', type: 'image/jpeg', status: 'UPLOADED',
+      _id: 'file-1', key: 'project-1/images/photo.jpg', type: 'image/jpeg', status: 'UPLOADED',
     }),
+  } as never);
+  vi.mocked(ImageTransformation.exists).mockResolvedValue(null);
+  vi.mocked(ImageTransformation.updateOne).mockResolvedValue({ upsertedCount: 1 } as never);
+  vi.mocked(UsageRecord.updateOne).mockResolvedValue({} as never);
+  vi.mocked(UsageRecord.findOneAndUpdate).mockReturnValue({
+    lean: vi.fn().mockResolvedValue({ imageTransforms: 1 }),
   } as never);
 });
 
@@ -72,9 +80,41 @@ describe('POST /api/v1/transforms/image', () => {
     expect(body.url).toMatch(/^https:\/\/cdn\.uploadkit\.dev\/t\/\d+\/[A-Za-z0-9_-]+\//);
     expect(body.url).toContain('/project-1/images/photo.jpg');
     expect(body.transform).toEqual({ width: 800, fit: 'cover', quality: 85, format: 'auto' });
+    expect(body.usage).toEqual({ period: expect.any(String), used: 1, limit: 5000, counted: true });
     expect(File.findOne).toHaveBeenCalledWith(expect.objectContaining({
       key: 'project-1/images/photo.jpg', projectId: 'project-1', status: 'UPLOADED',
     }));
+  });
+
+  it('does not consume quota twice for the same transform', async () => {
+    setTier('PRO');
+    vi.mocked(ImageTransformation.exists).mockResolvedValue({ _id: 'transform-1' } as never);
+    vi.mocked(UsageRecord.findOne).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      lean: vi.fn().mockResolvedValue({ imageTransforms: 42 }),
+    } as never);
+
+    const response = await POST(request({ key: 'project-1/images/photo.jpg', width: 320 }), {
+      params: Promise.resolve({}),
+    });
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.usage).toMatchObject({ used: 42, counted: false });
+    expect(UsageRecord.findOneAndUpdate).not.toHaveBeenCalled();
+  });
+
+  it('returns a quota error when the paid plan limit is exhausted', async () => {
+    setTier('PRO');
+    vi.mocked(UsageRecord.findOneAndUpdate).mockReturnValue({
+      lean: vi.fn().mockResolvedValue(null),
+    } as never);
+
+    const response = await POST(request({ key: 'project-1/images/photo.jpg', width: 320 }), {
+      params: Promise.resolve({}),
+    });
+    const body = await response.json();
+    expect(response.status).toBe(429);
+    expect(body.error.code).toBe('IMAGE_TRANSFORM_LIMIT_EXCEEDED');
   });
 
   it('rejects non-image files', async () => {

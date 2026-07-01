@@ -84,4 +84,11 @@ describe('TIER_LIMITS', () => {
   it('PRO.maxStorageBytes equals 100GB', () => {
     expect(TIER_LIMITS.PRO.maxStorageBytes).toBe(100 * 1024 * 1024 * 1024);
   });
+
+  it('defines monthly image transformation limits by tier', () => {
+    expect(TIER_LIMITS.FREE.maxImageTransformsPerMonth).toBe(0);
+    expect(TIER_LIMITS.PRO.maxImageTransformsPerMonth).toBe(5_000);
+    expect(TIER_LIMITS.TEAM.maxImageTransformsPerMonth).toBe(25_000);
+    expect(TIER_LIMITS.ENTERPRISE.maxImageTransformsPerMonth).toBe(100_000);
+  });
 });

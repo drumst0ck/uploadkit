@@ -70,6 +70,14 @@ export function PricingPreview() {
                     {formatBytes(tier.limits.maxBandwidthBytes)}
                   </span>
                 </li>
+                <li>
+                  <span className="pricing-limit-label">Image transforms/mo</span>
+                  <span className="pricing-limit-value">
+                    {tier.limits.maxImageTransformsPerMonth === 0
+                      ? 'Not included'
+                      : formatNumber(tier.limits.maxImageTransformsPerMonth)}
+                  </span>
+                </li>
               </ul>
 
               <a

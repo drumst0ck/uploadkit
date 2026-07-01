@@ -12,6 +12,7 @@ export interface ISubscription extends Document {
   currentPeriodStart?: Date;
   currentPeriodEnd?: Date;
   cancelAtPeriodEnd: boolean;
+  imageTransformLimit?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +36,7 @@ const subscriptionSchema = new Schema<ISubscription>(
     currentPeriodStart: { type: Date },
     currentPeriodEnd: { type: Date },
     cancelAtPeriodEnd: { type: Boolean, default: false },
+    imageTransformLimit: { type: Number, min: 0 },
   },
   { timestamps: true },
 );

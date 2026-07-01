@@ -32,6 +32,7 @@ The main SDK client. Created by `createUploadKit()`.
 | `upload` | `(options: UploadOptions) => Promise<UploadResult>` | Upload a file. Automatically uses multipart for files >10 MB. |
 | `listFiles` | `(options?: ListFilesOptions) => Promise<ListFilesResult>` | List files for this API key's project. |
 | `deleteFile` | `(key: string) => Promise<void>` | Permanently delete a file by its storage key. |
+| `transformImage` | `(key: string, options: ImageTransformOptions) => Promise<ImageTransformResult>` | Create a signed image variant URL. |
 
 ---
 
@@ -153,6 +154,8 @@ try {
 | `INVALID_FILE_TYPE` | 415 | MIME type not in the route's `allowedTypes`. |
 | `ROUTE_NOT_FOUND` | 404 | Route name does not exist in your file router. |
 | `UPLOAD_FAILED` | 500 | Unexpected error during upload. |
+| `IMAGE_TRANSFORMS_REQUIRE_PAID_PLAN` | 403 | Image transforms are not included on Free. |
+| `IMAGE_TRANSFORM_LIMIT_EXCEEDED` | 429 | Monthly unique transformation quota is exhausted. |
 
 ---
 

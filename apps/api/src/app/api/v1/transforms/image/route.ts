@@ -2,10 +2,14 @@ export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, File } from '@uploadkitdev/db';
-import { NotFoundError, UploadKitError } from '@uploadkitdev/shared';
+import { NotFoundError, TIER_LIMITS, UploadKitError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { ImageTransformSchema } from '@/lib/schemas';
-import { createImageTransformUrl } from '@/lib/image-transforms';
+import {
+  createImageTransformUrl,
+  imageTransformFingerprint,
+  reserveUniqueImageTransform,
+} from '@/lib/image-transforms';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 
 async function handlePost(req: NextRequest, ctx: ApiContext): Promise<NextResponse> {
@@ -36,7 +40,21 @@ async function handlePost(req: NextRequest, ctx: ApiContext): Promise<NextRespon
 
   const { key: _key, ...transform } = parsed.data;
   const result = createImageTransformUrl(file.key, transform);
-  return NextResponse.json({ ...result, transform });
+  const period = new Date().toISOString().slice(0, 7);
+  const limit = ctx.imageTransformLimit ?? TIER_LIMITS[ctx.tier].maxImageTransformsPerMonth;
+  const reservation = await reserveUniqueImageTransform({
+    userId: ctx.project.userId,
+    projectId: ctx.project._id,
+    fileId: file._id,
+    period,
+    fingerprint: imageTransformFingerprint(file.key, transform),
+    limit,
+  });
+  return NextResponse.json({
+    ...result,
+    transform,
+    usage: { period, used: reservation.usage, limit, counted: reservation.counted },
+  });
 }
 
 export const POST = withApiKey(async (req, ctx) => {

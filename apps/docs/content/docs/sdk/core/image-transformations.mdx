@@ -1,0 +1,24 @@
+---
+title: Image Transformations
+description: Generate signed image variants with @uploadkitdev/core.
+---
+
+```typescript
+import { createUploadKit } from '@uploadkitdev/core';
+
+const uploadkit = createUploadKit({ apiKey: process.env.UPLOADKIT_API_KEY! });
+
+const variant = await uploadkit.transformImage(
+  'project/imageUploader/id/photo.jpg',
+  { width: 800, height: 600, fit: 'cover', quality: 80, format: 'auto' },
+);
+
+console.log(variant.url);
+console.log(`${variant.usage.used}/${variant.usage.limit}`);
+```
+
+Call `transformImage()` only in trusted server code because the client contains your project API key. The returned CDN URL is safe to send to browsers or store in application data.
+
+Repeated calls with the same file and options do not consume another unique transformation in the current month.
+
+See [Image Transformations](/docs/core-concepts/image-transformations) for options, quotas, caching, and BYOS restrictions.

@@ -18,6 +18,7 @@ UploadKit offers four subscription tiers. All plans include access to the full S
 | **Uploads/month** | 1,000 | 50,000 | 500,000 | Unlimited |
 | **Projects** | 2 | 10 | 50 | Unlimited |
 | **API keys** | 2 | 10 | 50 | Unlimited |
+| **Image transforms/month** | — | 5,000 | 25,000 | From 100,000 |
 | **Overage billing** | — | Yes | Yes | Negotiated |
 
 <Callout type="info">
@@ -35,6 +36,10 @@ Pro and Team plans continue to work after quota is reached by charging for overa
 | Uploads | $0.001 per upload |
 
 Overages are billed via Stripe at the end of each calendar month. You can monitor usage in real time from the **Usage** page to avoid unexpected charges.
+
+<Callout type="warn">
+  Image transformations do not use overage billing in the initial release. New variants are blocked when the monthly transformation quota is reached; existing cached URLs continue to work.
+</Callout>
 
 ## Upgrading your plan
 
@@ -76,6 +81,7 @@ The **Usage** page shows real-time usage for the current billing period:
 - **Storage** — current storage used vs. your plan limit
 - **Bandwidth** — egress from CDN this month
 - **Uploads** — number of successful uploads this month
+- **Image transforms** — unique image variants created this month
 
 Usage updates within a few minutes of each upload or deletion.
 

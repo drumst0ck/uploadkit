@@ -93,6 +93,10 @@ export function TierCard({ tier, yearly }: TierCardProps) {
               <span className="tier-limit-label">Projects</span>
               <span className="tier-limit-value">Unlimited</span>
             </li>
+            <li className="tier-limit-item">
+              <span className="tier-limit-label">Image transforms/mo</span>
+              <span className="tier-limit-value">From 100,000</span>
+            </li>
           </>
         ) : (
           <>
@@ -118,6 +122,12 @@ export function TierCard({ tier, yearly }: TierCardProps) {
               <span className="tier-limit-label">Projects</span>
               <span className="tier-limit-value">
                 {formatNumber(tier.limits.maxProjects)}
+              </span>
+            </li>
+            <li className="tier-limit-item">
+              <span className="tier-limit-label">Image transforms/mo</span>
+              <span className="tier-limit-value">
+                {formatNumber(tier.limits.maxImageTransformsPerMonth)}
               </span>
             </li>
           </>

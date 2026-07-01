@@ -142,6 +142,7 @@ describe('createUploadKit', () => {
       url: 'https://cdn.uploadkit.dev/t/signed',
       expiresAt: '2026-07-03T00:00:00.000Z',
       transform: { width: 800, fit: 'cover', quality: 80, format: 'auto' },
+      usage: { period: '2026-07', used: 1, limit: 5000, counted: true },
     });
 
     const client = createUploadKit({ apiKey: 'uk_live_test123' });

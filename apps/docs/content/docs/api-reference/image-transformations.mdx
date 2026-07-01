@@ -1,0 +1,62 @@
+---
+title: Image Transformations API
+description: Generate signed edge transformation URLs for images stored in UploadKit Cloud.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## POST /api/v1/transforms/image
+
+Creates a signed URL for an image variant using the project API key.
+
+<Callout type="warn">
+  This endpoint is unavailable on Free plans and cannot transform BYOS files.
+</Callout>
+
+```bash
+curl -X POST "https://api.uploadkit.dev/api/v1/transforms/image" \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "project/imageUploader/id/photo.jpg",
+    "width": 800,
+    "height": 600,
+    "fit": "cover",
+    "quality": 80,
+    "format": "auto"
+  }'
+```
+
+### Request body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `key` | string | Yes | Storage key returned after upload. |
+| `width` | integer | Conditional | Width from 1–4096. Width or height is required. |
+| `height` | integer | Conditional | Height from 1–4096. Width or height is required. |
+| `fit` | string | No | `scale-down`, `contain`, `cover`, `crop`, or `pad`. |
+| `quality` | integer | No | Output quality from 1–100. Default `85`. |
+| `format` | string | No | `auto`, `avif`, `webp`, `jpeg`, or `png`. |
+
+### Response
+
+```json
+{
+  "url": "https://cdn.uploadkit.dev/t/...",
+  "expiresAt": "2026-07-03T00:00:00.000Z",
+  "transform": { "width": 800, "height": 600, "fit": "cover", "quality": 80, "format": "auto" },
+  "usage": { "period": "2026-07", "used": 143, "limit": 5000, "counted": true }
+}
+```
+
+`usage.counted` is `false` when that exact variant already exists in the current period.
+
+### Errors
+
+| Code | HTTP | Cause |
+|------|-----:|-------|
+| `IMAGE_TRANSFORMS_REQUIRE_PAID_PLAN` | 403 | Account is on Free. |
+| `NOT_FOUND` | 404 | File is missing or belongs to another project. |
+| `UNSUPPORTED_TRANSFORM_TYPE` | 415 | File is not an image. |
+| `IMAGE_TRANSFORM_LIMIT_EXCEEDED` | 429 | Monthly quota is exhausted. |
+| `VALIDATION_ERROR` | 400 | Invalid options. |

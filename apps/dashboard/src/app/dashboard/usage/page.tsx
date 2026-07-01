@@ -32,6 +32,9 @@ export default async function UsagePage() {
   const storageUsed = current?.storageUsed ?? 0;
   const bandwidthUsed = current?.bandwidth ?? 0;
   const uploadsUsed = current?.uploads ?? 0;
+  const imageTransformsUsed = current?.imageTransforms ?? 0;
+  const imageTransformLimit = subscription?.imageTransformLimit
+    ?? limits.maxImageTransformsPerMonth;
 
   // 6-month history for the chart
   const history = await UsageRecord.find({ userId })
@@ -84,6 +87,12 @@ export default async function UsagePage() {
             label="Uploads this month"
             used={uploadsUsed}
             limit={limits.maxUploadsPerMonth}
+            formatFn={formatNumber}
+          />
+          <UsageProgressBar
+            label="Image transforms this month"
+            used={imageTransformsUsed}
+            limit={imageTransformLimit}
             formatFn={formatNumber}
           />
         </div>

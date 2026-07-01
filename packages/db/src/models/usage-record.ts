@@ -6,6 +6,7 @@ export interface IUsageRecord extends Document {
   storageUsed: number;
   bandwidth: number;
   uploads: number;
+  imageTransforms: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +18,7 @@ const usageRecordSchema = new Schema<IUsageRecord>(
     storageUsed: { type: Number, default: 0 },
     bandwidth: { type: Number, default: 0 },
     uploads: { type: Number, default: 0 },
+    imageTransforms: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

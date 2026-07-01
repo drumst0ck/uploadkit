@@ -68,6 +68,12 @@ export interface ImageTransformResult {
   expiresAt: string;
   transform: Required<Pick<ImageTransformOptions, 'fit' | 'quality' | 'format'>> &
     Pick<ImageTransformOptions, 'width' | 'height'>;
+  usage: {
+    period: string;
+    used: number;
+    limit: number;
+    counted: boolean;
+  };
 }
 
 // Internal: response from POST /api/v1/upload/request
