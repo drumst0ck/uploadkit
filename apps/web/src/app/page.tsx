@@ -14,6 +14,7 @@ import { LandingShowcase } from '@/components/showcase/landing-showcase'
 import { McpSection } from '@/components/mcp/mcp-section'
 import { TweaksPanel } from '@/components/tweaks/tweaks-panel'
 import { DesignIcon } from '@/components/ui/design-icon'
+import { ImageTransformsSection } from '@/components/image-transforms/image-transforms-section'
 
 export const metadata: Metadata = {
   title: 'UploadKit — The developer platform for file uploads',
@@ -410,6 +411,7 @@ export default function WebPage() {
         <FeatureMosaic />
         <ShowcaseSection />
         <InstallSection />
+        <ImageTransformsSection />
         <ByosSection />
         <McpSection />
         <PricingSection />

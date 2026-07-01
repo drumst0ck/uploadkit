@@ -20,6 +20,7 @@ const CAPABILITIES = [
   'Scaffolds the Next.js route handler',
   'Wires the UploadKitProvider',
   'Generates BYOS config (S3 · R2 · GCS · B2)',
+  'Creates signed image variants with a configured live key',
 ] as const
 
 export function McpSection() {
@@ -80,7 +81,8 @@ export function McpSection() {
           >
             Install the official MCP server and Claude Code, Cursor, Windsurf, or
             Zed gain first-class knowledge of every component and scaffold. No API
-            key. No config. Runs locally.
+            key for docs and scaffolds. Add a server-side live key only when you
+            want the MCP to create image variants. Runs locally.
           </p>
 
           {/* Install command pill */}

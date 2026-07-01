@@ -18,6 +18,14 @@ UploadKit ships an official **Model Context Protocol** server. Once you add it t
 
 No API key. No config. Runs locally via `npx`.
 
+Documentation, component discovery, and scaffolding require no credentials. To let the MCP generate signed image variants with `transform_image`, launch it with a paid-plan live key in the server environment:
+
+```bash
+UPLOADKIT_API_KEY=uk_live_... npx -y @uploadkitdev/mcp
+```
+
+The key is read by the local MCP process and is never passed as a tool argument. Image transformations work only for files stored in UploadKit Cloud, not BYOS.
+
 <Callout>
   The MCP server ships the component catalog bundled — it never calls home, never sees your code, and works offline.
 </Callout>
