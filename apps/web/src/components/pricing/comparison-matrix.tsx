@@ -52,6 +52,7 @@ const FEATURE_ROWS: FeatureRow[] = [
   { feature: 'Bandwidth/mo',  free: '10 GB',     pro: '100 GB',     team: '500 GB',   enterprise: 'Unlimited' },
   { feature: 'Max file size', free: '4 MB',      pro: '512 MB',     team: '5 GB',     enterprise: '10 GB' },
   { feature: 'Uploads/mo',    free: '1,000',     pro: '10,000',     team: '50,000',   enterprise: 'Unlimited' },
+  { feature: 'Image transforms/mo', free: 'x', pro: '5,000', team: '25,000', enterprise: 'From 100,000' },
   { feature: 'Projects',      free: '2',         pro: '10',         team: '50',       enterprise: 'Unlimited' },
   { feature: 'API keys',      free: '2',         pro: '10',         team: '50',       enterprise: 'Unlimited' },
   { feature: 'BYOS support',  free: 'check',     pro: 'check',      team: 'check',    enterprise: 'check' },

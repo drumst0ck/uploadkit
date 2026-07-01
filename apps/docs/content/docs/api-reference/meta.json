@@ -1,4 +1,4 @@
 {
   "title": "API Reference",
-  "pages": ["rest-api", "authentication", "upload", "files", "projects", "webhooks", "errors"]
+  "pages": ["rest-api", "authentication", "upload", "files", "image-transformations", "projects", "webhooks", "errors"]
 }

@@ -1,4 +1,4 @@
 {
   "title": "@uploadkitdev/core",
-  "pages": ["installation", "configuration", "upload", "delete", "api-reference"]
+  "pages": ["installation", "configuration", "upload", "image-transformations", "delete", "api-reference"]
 }

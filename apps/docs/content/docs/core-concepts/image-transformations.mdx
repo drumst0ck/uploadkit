@@ -1,0 +1,53 @@
+---
+title: Image Transformations
+description: Resize, crop, optimize, and convert UploadKit Cloud images at the edge.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+UploadKit generates signed, CDN-cached image variants without creating additional objects in your project. Originals remain unchanged in Cloudflare R2; variants are generated and cached at `cdn.uploadkit.dev/t/*`.
+
+<Callout type="warn">
+  Image transformations require a paid plan and UploadKit-managed cloud storage. Files uploaded through BYOS adapters are never accessible to the transformation service.
+</Callout>
+
+## Plan limits
+
+| Plan | Transformation units/month |
+|------|-----------------------------:|
+| Free | Not available |
+| Pro | 5,000 |
+| Team | 25,000 |
+| Enterprise | Custom, starting at 100,000 |
+
+Usage is shared across every project owned by the account and resets each calendar month.
+
+## How units are counted
+
+A transformation unit is reserved when the API issues the first signed URL for a combination of source file, dimensions, fit mode, quality, and explicit output format during the current month. Requesting the same combination again does not consume more units, even after the URL expires. CDN cache hits do not consume quota. Changing any option creates a new variant.
+
+Explicit formats (`avif`, `webp`, `jpeg`, or `png`) reserve **1 unit**. `format: 'auto'` reserves **3 units** because it can create separate AVIF, WebP, and JPEG variants based on the browser's `Accept` header. Units are reserved when the URL is issued, whether or not the URL is subsequently fetched.
+
+## Supported options
+
+| Option | Values | Default |
+|--------|--------|---------|
+| `width` | 1–4096 pixels | — |
+| `height` | 1–4096 pixels | — |
+| `fit` | `scale-down`, `contain`, `cover`, `crop`, `pad` | `scale-down` |
+| `quality` | 1–100 | `85` |
+| `format` | `auto`, `avif`, `webp`, `jpeg`, `png` | `auto` |
+
+At least one dimension is required. `format: 'auto'` negotiates AVIF or WebP from the browser's `Accept` header and falls back to JPEG.
+
+## Signed URLs
+
+The cloud API verifies the plan, project ownership, upload status, MIME type, and monthly quota before issuing a URL. Every URL contains an HMAC signature and expiry; altering its file key or options invalidates it.
+
+```text
+https://cdn.uploadkit.dev/t/<expires>/<signature>/<options>/<file-key>
+```
+
+Generate URLs in trusted server code with a **live** (`uk_live_`) key through the Core SDK or REST API. Test keys cannot issue transformation URLs. Never expose an UploadKit API key in browser code.
+
+Signed URLs are valid for at most 25 hours and transformed responses are cached at the edge for at most one hour. Deleting the source immediately prevents new cache misses from being generated; an already cached response can remain available until that one-hour cache window ends.

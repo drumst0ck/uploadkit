@@ -8,6 +8,7 @@ export { File } from './models/file';
 export { FileRouter } from './models/file-router';
 export { Subscription } from './models/subscription';
 export { UsageRecord } from './models/usage-record';
+export { ImageTransformation } from './models/image-transformation';
 
 export type { IUser } from './models/user';
 export type { IAccount } from './models/account';
@@ -17,3 +18,4 @@ export type { IFile } from './models/file';
 export type { IFileRouter } from './models/file-router';
 export type { ISubscription } from './models/subscription';
 export type { IUsageRecord } from './models/usage-record';
+export type { IImageTransformation } from './models/image-transformation';

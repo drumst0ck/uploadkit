@@ -55,6 +55,28 @@ export interface DeleteFilesResult {
   }>;
 }
 
+export interface ImageTransformOptions {
+  width?: number;
+  height?: number;
+  fit?: 'scale-down' | 'contain' | 'cover' | 'crop' | 'pad';
+  quality?: number;
+  format?: 'auto' | 'avif' | 'webp' | 'jpeg' | 'png';
+}
+
+export interface ImageTransformResult {
+  url: string;
+  expiresAt: string;
+  transform: Required<Pick<ImageTransformOptions, 'fit' | 'quality' | 'format'>> &
+    Pick<ImageTransformOptions, 'width' | 'height'>;
+  usage: {
+    period: string;
+    used: number;
+    limit: number;
+    units: number;
+    counted: boolean;
+  };
+}
+
 // Internal: response from POST /api/v1/upload/request
 export interface UploadRequestResponse {
   fileId: string;

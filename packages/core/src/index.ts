@@ -15,6 +15,8 @@ export type {
   ListFilesResult,
   UploadRequestResponse,
   MultipartInitResponse,
+  ImageTransformOptions,
+  ImageTransformResult,
 } from './types';
 
 // Re-export UploadKitError for SDK consumers to use in catch blocks

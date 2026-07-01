@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { connectDB, User, Account, Project, ApiKey, File, FileRouter, Subscription, UsageRecord } from '../src/index';
+import { connectDB, User, Account, Project, ApiKey, File, FileRouter, Subscription, UsageRecord, ImageTransformation } from '../src/index';
 import { FILE_STATUSES, TIERS } from '@uploadkitdev/shared';
 
 describe('connectDB export', () => {
@@ -47,6 +47,11 @@ describe('Model exports', () => {
   it('exports UsageRecord model', () => {
     expect(UsageRecord).toBeDefined();
     expect(UsageRecord.modelName).toBe('UsageRecord');
+  });
+
+  it('exports ImageTransformation model', () => {
+    expect(ImageTransformation).toBeDefined();
+    expect(ImageTransformation.modelName).toBe('ImageTransformation');
   });
 });
 

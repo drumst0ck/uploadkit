@@ -1,0 +1,13 @@
+{
+  "name": "@uploadkitdev/transform-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm dlx wrangler@latest dev",
+    "deploy": "pnpm dlx wrangler@latest deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  }
+}
