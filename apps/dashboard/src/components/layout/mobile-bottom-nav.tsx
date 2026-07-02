@@ -54,8 +54,9 @@ export function MobileBottomNav({ onMenuOpen }: { onMenuOpen: () => void }) {
       <button
         type="button"
         onClick={onMenuOpen}
-        className="flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium text-muted-foreground active:bg-accent"
+        className="flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium text-muted-foreground transition-colors active:bg-accent active:text-foreground"
         aria-label="Open full menu"
+        aria-haspopup="dialog"
       >
         <Menu className="h-5 w-5" aria-hidden="true" />
         <span>More</span>

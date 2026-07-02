@@ -32,6 +32,8 @@ export function MobileMenuWrapper({
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [cmdkOpen, setCmdkOpen] = React.useState(false);
   const [createProjectOpen, setCreateProjectOpen] = React.useState(false);
+  const openMobileMenu = React.useCallback(() => setMobileOpen(true), []);
+  const closeMobileMenu = React.useCallback(() => setMobileOpen(false), []);
 
   // Register global cmd+k / ctrl+k keyboard shortcut
   React.useEffect(() => {
@@ -50,13 +52,13 @@ export function MobileMenuWrapper({
       <Sidebar
         initialProjects={initialProjects}
         mobileOpen={mobileOpen}
-        onMobileClose={() => setMobileOpen(false)}
+        onMobileClose={closeMobileMenu}
       />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header
           user={user}
           onSignOut={onSignOut}
-          onMobileMenuOpen={() => setMobileOpen(true)}
+          onMobileMenuOpen={openMobileMenu}
           onSearchOpen={() => setCmdkOpen(true)}
         />
         <main className="dashboard-canvas flex-1 overflow-y-auto px-4 pb-24 pt-5 sm:px-6 sm:pt-6 lg:px-8 lg:pb-8 xl:px-10">
@@ -64,7 +66,7 @@ export function MobileMenuWrapper({
         </main>
       </div>
 
-      <MobileBottomNav onMenuOpen={() => setMobileOpen(true)} />
+      <MobileBottomNav onMenuOpen={openMobileMenu} />
 
       {/* Global command palette — rendered outside the scroll container */}
       <CommandPalette
