@@ -18,6 +18,7 @@ const schema = z.object({
   fit: z.enum(['scale-down', 'contain', 'cover', 'crop', 'pad']),
   quality: z.number().int().min(1).max(100),
   format: z.enum(['auto', 'avif', 'webp', 'jpeg', 'png']),
+  delivery: z.enum(['signed', 'public']).default('public'),
 }).refine((value) => value.width !== undefined || value.height !== undefined, {
   message: 'Set a width or height.',
 });
@@ -53,10 +54,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Transformations require a paid plan', upgradeRequired: true }, { status: 403 });
   }
 
-  const { fileId: _fileId, ...rawTransform } = parsed.data;
+  const { fileId: _fileId, delivery, ...rawTransform } = parsed.data;
   const transform = rawTransform as DashboardImageTransform;
   try {
-    const result = createDashboardTransformUrl(file.key, transform);
+    const result = createDashboardTransformUrl(file.key, transform, delivery);
     const usage = await reserveDashboardTransform({
       userId: project.userId,
       projectId: project._id,
