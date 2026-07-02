@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import {
   createColumnHelper,
   type ColumnDef,
@@ -10,7 +11,7 @@ import {
   Button,
   Checkbox,
 } from '@uploadkitdev/ui';
-import { Link2, ArrowUpDown, Trash2, Check } from 'lucide-react';
+import { Link2, ArrowUpDown, Trash2, Check, WandSparkles } from 'lucide-react';
 import { DataTable } from '../data-table/data-table';
 import { DataTableToolbar } from '../data-table/data-table-toolbar';
 import { DataTablePagination } from '../data-table/data-table-pagination';
@@ -234,6 +235,13 @@ export function FileBrowser({ slug }: FileBrowserProps) {
       id: 'actions',
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
+          {row.original.type.startsWith('image/') ? (
+            <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-indigo-400">
+              <Link href={`/dashboard/projects/${slug}/transforms?file=${row.original._id}`} aria-label={`Transform ${row.original.name}`} title="Transform image">
+                <WandSparkles className="h-4 w-4" />
+              </Link>
+            </Button>
+          ) : null}
           <Button
             variant="ghost"
             size="icon"
@@ -303,6 +311,11 @@ export function FileBrowser({ slug }: FileBrowserProps) {
                 <span className={`mt-1.5 inline-flex rounded-full border px-2 py-0.5 text-[9px] font-medium ${getTypeBadgeClasses(file.type)}`}>{file.type}</span>
               </div>
               <div className="flex flex-col gap-1">
+                {file.type.startsWith('image/') ? (
+                  <Button asChild variant="ghost" size="icon" className="h-9 w-9 text-indigo-400">
+                    <Link href={`/dashboard/projects/${slug}/transforms?file=${file._id}`} aria-label={`Transform ${file.name}`}><WandSparkles className="h-4 w-4" /></Link>
+                  </Button>
+                ) : null}
                 <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleCopyUrl(file._id, file.url)} aria-label={`Copy URL for ${file.name}`}>
                   {copiedId === file._id ? <Check className="h-4 w-4 text-emerald-400" /> : <Link2 className="h-4 w-4" />}
                 </Button>
