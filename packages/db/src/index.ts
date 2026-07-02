@@ -20,7 +20,9 @@ export type {
   IProject,
   IByosConfig,
   ILifecyclePolicy,
+  ICdnValidationRecord,
   StorageMode,
+  CustomCdnStatus,
 } from './models/project';
 export type { ITeamMember, TeamMemberRole, TeamMemberStatus } from './models/team-member';
 export type { IWebhookDelivery, WebhookDeliveryStatus } from './models/webhook-delivery';

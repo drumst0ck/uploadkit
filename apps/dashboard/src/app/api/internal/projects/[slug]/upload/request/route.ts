@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { connectDB, File, Subscription, UsageRecord } from '@uploadkitdev/db';
-import { TIER_LIMITS, type Tier } from '@uploadkitdev/shared';
+import { TIER_LIMITS, type Tier, buildFileCdnUrl } from '@uploadkitdev/shared';
 import { auth } from '../../../../../../../../auth';
 import { Project } from '@uploadkitdev/db';
 import { generatePresignedPutUrl } from '@/lib/presign';
@@ -98,7 +98,7 @@ export async function POST(
     name: fileName,
     size: fileSize,
     type: contentType,
-    url: `${CDN_URL}/${key}`,
+    url: buildFileCdnUrl(project, CDN_URL, key),
     status: 'UPLOADING',
     projectId: project._id,
     ...(metadata !== undefined ? { metadata } : {}),

@@ -6,7 +6,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
 import { NotFoundError, TierLimitError } from '@uploadkitdev/shared';
-import { TIER_LIMITS } from '@uploadkitdev/shared';
+import { TIER_LIMITS, buildFileCdnUrl } from '@uploadkitdev/shared';
 import { withApiKey } from '@/lib/with-api-key';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 import { MultipartInitSchema } from '@/lib/schemas';
@@ -139,7 +139,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       name: fileName,
       size: fileSize,
       type: contentType,
-      url: `${CDN_URL}/${key}`,
+      url: buildFileCdnUrl(ctx.project, CDN_URL, key),
       status: 'UPLOADING',
       uploadId: UploadId,
       ...(metadata !== undefined ? { metadata } : {}),

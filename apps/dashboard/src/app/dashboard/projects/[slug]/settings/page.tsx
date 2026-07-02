@@ -7,6 +7,7 @@ import {
   CustomDomainSettings,
   LifecycleSettings,
 } from '../../../../../components/project-advanced-settings';
+import { getCloudflareConfig } from '@uploadkitdev/cloudflare';
 import { getUserTier } from '../../../../../lib/tier';
 
 export const dynamic = 'force-dynamic';
@@ -27,6 +28,7 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
   if (!project) notFound();
 
   const tier = await getUserTier(session.user.id);
+  const cfConfig = getCloudflareConfig();
 
   return (
     <div className="flex flex-col gap-8">
@@ -62,7 +64,11 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
         slug={project.slug}
         tier={tier}
         {...(project.customCdnDomain ? { initialDomain: project.customCdnDomain } : {})}
-        verified={project.customCdnVerified ?? false}
+        initialStatus={project.customCdnStatus ?? 'none'}
+        initialVerified={project.customCdnVerified ?? false}
+        initialValidationRecords={project.customCdnValidationRecords ?? []}
+        {...(project.customCdnLastError ? { initialLastError: project.customCdnLastError } : {})}
+        fallbackOrigin={cfConfig?.fallbackOrigin ?? null}
       />
 
       <LifecycleSettings

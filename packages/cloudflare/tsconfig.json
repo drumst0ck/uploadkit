@@ -1,0 +1,10 @@
+{
+  "extends": "@uploadkitdev/config/typescript/library",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

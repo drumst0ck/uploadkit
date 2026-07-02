@@ -12,6 +12,9 @@ services:
       - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
       - R2_BUCKET_NAME=${R2_BUCKET_NAME:-uploadkit-prod}
       - CDN_URL=${CDN_URL:-https://cdn.uploadkit.dev}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      - CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID:-}
+      - CLOUDFLARE_CDN_FALLBACK=${CLOUDFLARE_CDN_FALLBACK:-cdn.uploadkit.dev}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}
@@ -48,6 +51,10 @@ services:
       - STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}
       - STRIPE_TEAM_PRICE_ID=${STRIPE_TEAM_PRICE_ID}
       - NEXT_PUBLIC_APP_URL=https://app.uploadkit.dev
+      - CDN_URL=${CDN_URL:-https://cdn.uploadkit.dev}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      - CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID:-}
+      - CLOUDFLARE_CDN_FALLBACK=${CLOUDFLARE_CDN_FALLBACK:-cdn.uploadkit.dev}
       - SENTRY_DSN=${SENTRY_DSN:-}
     depends_on:
       mongodb:

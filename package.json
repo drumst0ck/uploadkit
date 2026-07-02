@@ -20,6 +20,8 @@
     "test": "turbo test",
     "seed": "tsx scripts/seed.ts",
     "verify-r2": "tsx scripts/verify-r2.ts",
+    "verify-cloudflare-cdn": "tsx scripts/verify-cloudflare-cdn.ts",
+    "setup-cloudflare-saas": "tsx scripts/setup-cloudflare-saas.ts",
     "format": "prettier --write .",
     "verify": "turbo lint && turbo typecheck && turbo test && turbo build"
   },

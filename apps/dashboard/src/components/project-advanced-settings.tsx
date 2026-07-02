@@ -252,14 +252,42 @@ interface CustomDomainSettingsProps {
   slug: string;
   tier: Tier;
   initialDomain?: string;
-  verified: boolean;
+  initialStatus?: string;
+  initialVerified: boolean;
+  initialValidationRecords?: Array<{ type: 'cname' | 'txt'; name: string; value: string }>;
+  initialLastError?: string;
+  fallbackOrigin?: string | null;
 }
 
-export function CustomDomainSettings({ slug, tier, initialDomain, verified }: CustomDomainSettingsProps) {
+const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  none: { label: 'Not configured', className: 'text-muted-foreground' },
+  pending: { label: 'Registering…', className: 'text-amber-400' },
+  pending_validation: { label: 'Awaiting DNS', className: 'text-amber-400' },
+  active: { label: 'Active', className: 'text-emerald-400' },
+  failed: { label: 'Failed', className: 'text-red-400' },
+};
+
+export function CustomDomainSettings({
+  slug,
+  tier,
+  initialDomain,
+  initialStatus = 'none',
+  initialVerified,
+  initialValidationRecords = [],
+  initialLastError,
+  fallbackOrigin,
+}: CustomDomainSettingsProps) {
   const [domain, setDomain] = React.useState(initialDomain ?? '');
+  const [status, setStatus] = React.useState(initialStatus);
+  const [verified, setVerified] = React.useState(initialVerified);
+  const [validationRecords, setValidationRecords] = React.useState(initialValidationRecords);
+  const [lastError, setLastError] = React.useState(initialLastError ?? '');
   const [saving, setSaving] = React.useState(false);
+  const [verifying, setVerifying] = React.useState(false);
   const [error, setError] = React.useState('');
   const [message, setMessage] = React.useState('');
+
+  const statusUi = STATUS_LABELS[status] ?? STATUS_LABELS.none!;
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -273,16 +301,56 @@ export function CustomDomainSettings({ slug, tier, initialDomain, verified }: Cu
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customCdnDomain: domain.trim() || null }),
       });
-      const data = (await res.json()) as { error?: string };
+      const data = (await res.json()) as {
+        error?: string;
+        status?: string;
+        verified?: boolean;
+        validationRecords?: typeof validationRecords;
+        lastError?: string;
+      };
       if (!res.ok) {
         setError(data.error ?? 'Failed to save domain.');
         return;
       }
-      setMessage('Domain saved. Add the DNS record below to verify.');
+      setStatus(data.status ?? 'pending_validation');
+      setVerified(Boolean(data.verified));
+      setValidationRecords(data.validationRecords ?? []);
+      setLastError(data.lastError ?? '');
+      setMessage('Domain registered. Add the DNS records below, then verify.');
     } catch {
       setError('Network error.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function verifyNow() {
+    setVerifying(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const res = await fetch(`/api/internal/projects/${slug}/cdn/verify`, { method: 'POST' });
+      const data = (await res.json()) as {
+        error?: string;
+        status?: string;
+        verified?: boolean;
+        validationRecords?: typeof validationRecords;
+        lastError?: string;
+      };
+      if (!res.ok) {
+        setError(data.error ?? 'Verification failed.');
+        return;
+      }
+      setStatus(data.status ?? status);
+      setVerified(Boolean(data.verified));
+      setValidationRecords(data.validationRecords ?? validationRecords);
+      setLastError(data.lastError ?? '');
+      setMessage(data.verified ? 'Custom domain is active. New uploads use your domain.' : 'Still pending — check DNS records.');
+    } catch {
+      setError('Network error.');
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -291,7 +359,8 @@ export function CustomDomainSettings({ slug, tier, initialDomain, verified }: Cu
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="mb-1 text-sm font-medium text-foreground">Custom CDN domain</h2>
         <p className="mb-5 text-xs text-muted-foreground">
-          Serve files from your own domain via Cloudflare. Verification runs after DNS propagates.
+          Serve files from your domain via Cloudflare SSL for SaaS. Image transforms (/t/, /p/) still use{' '}
+          <code className="text-indigo-400">cdn.uploadkit.dev</code>.
         </p>
 
         <form onSubmit={(e) => { void save(e); }} className="flex flex-col gap-4">
@@ -304,27 +373,54 @@ export function CustomDomainSettings({ slug, tier, initialDomain, verified }: Cu
 
           {domain && (
             <div className="rounded-lg border border-border bg-muted p-4 text-xs text-muted-foreground">
-              <p className="mb-2 font-medium text-foreground">DNS setup</p>
-              <p>CNAME <code className="text-indigo-400">{domain}</code> → <code>cdn.uploadkit.dev</code></p>
-              <p className="mt-2">
-                Status:{' '}
-                <span className={verified ? 'text-emerald-400' : 'text-amber-400'}>
-                  {verified ? 'Verified' : 'Pending verification'}
-                </span>
+              <p className="mb-2 font-medium text-foreground">
+                Status: <span className={statusUi.className}>{statusUi.label}</span>
+                {verified && ' — URLs use your domain'}
               </p>
+
+              {(validationRecords.length > 0 || fallbackOrigin) && (
+                <div className="mb-3">
+                  <p className="mb-2 font-medium text-foreground">DNS records</p>
+                  <ul className="space-y-2">
+                    {(validationRecords.length > 0 ? validationRecords : fallbackOrigin
+                      ? [{ type: 'cname' as const, name: domain, value: fallbackOrigin }]
+                      : []
+                    ).map((record) => (
+                      <li key={`${record.type}-${record.name}`} className="font-mono text-[11px]">
+                        <span className="uppercase text-indigo-400">{record.type}</span>{' '}
+                        {record.name} → {record.value}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {lastError && <p className="text-red-400">{lastError}</p>}
             </div>
           )}
 
           {error && <p className="text-xs text-red-400">{error}</p>}
           {message && <p className="text-xs text-emerald-400">{message}</p>}
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-fit rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400 disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : 'Save domain'}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : domain ? 'Update domain' : 'Remove domain'}
+            </button>
+            {domain && status !== 'active' && (
+              <button
+                type="button"
+                disabled={verifying}
+                onClick={() => { void verifyNow(); }}
+                className="rounded-lg border border-border bg-accent px-4 py-2 text-sm text-foreground hover:bg-muted disabled:opacity-50"
+              >
+                {verifying ? 'Checking…' : 'Verify DNS'}
+              </button>
+            )}
+          </div>
         </form>
       </div>
     </TierGate>
