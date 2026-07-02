@@ -46,6 +46,8 @@ export type { UploadButtonBeamProps } from './components/upload-button-beam';
 // Specialty components
 export { UploadAvatar } from './components/upload-avatar';
 export type { UploadAvatarProps } from './components/upload-avatar';
+export { UploadCropper } from './components/upload-cropper';
+export type { UploadCropperProps } from './components/upload-cropper';
 export { UploadInlineChat } from './components/upload-inline-chat';
 export type { UploadInlineChatProps } from './components/upload-inline-chat';
 

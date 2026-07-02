@@ -1,19 +1,9 @@
 /**
- * Component catalog for `uploadkit add <component>` — per D-09.
- *
- * Each canonical alias maps to a named export from `@uploadkitdev/react`.
- * The exports were verified against packages/react/src/index.ts at the time
- * this catalog was written (plan 12.5-06). If an SDK export is renamed, update
- * the `import` field here and keep the alias stable — users' muscle memory
- * lives in the alias, not in the underlying component name.
- *
- * No cropper alias ships in this iteration — the SDK does not yet export a
- * cropper component. The alias can be added later when one lands.
+ * Component catalog for `uploadkit add <component>`.
+ * Aliases map to named exports from `@uploadkitdev/react`.
  */
 export interface ComponentSpec {
-  /** Named import from the `pkg` module. */
   import: string;
-  /** Source package (runtime SDK, not this CLI). */
   pkg: string;
 }
 
@@ -24,14 +14,26 @@ export const COMPONENTS = {
   gallery: { import: 'UploadGalleryGrid', pkg: '@uploadkitdev/react' },
   queue: { import: 'FileList', pkg: '@uploadkitdev/react' },
   progress: { import: 'UploadProgressBar', pkg: '@uploadkitdev/react' },
+  cropper: { import: 'UploadCropper', pkg: '@uploadkitdev/react' },
+  avatar: { import: 'UploadAvatar', pkg: '@uploadkitdev/react' },
+  'dropzone-glass': { import: 'UploadDropzoneGlass', pkg: '@uploadkitdev/react' },
+  'dropzone-aurora': { import: 'UploadDropzoneAurora', pkg: '@uploadkitdev/react' },
+  'dropzone-neon': { import: 'UploadDropzoneNeon', pkg: '@uploadkitdev/react' },
+  'dropzone-minimal': { import: 'UploadDropzoneMinimal', pkg: '@uploadkitdev/react' },
+  'button-shimmer': { import: 'UploadButtonShimmer', pkg: '@uploadkitdev/react' },
+  'button-beam': { import: 'UploadButtonBeam', pkg: '@uploadkitdev/react' },
+  'progress-radial': { import: 'UploadProgressRadial', pkg: '@uploadkitdev/react' },
+  timeline: { import: 'UploadTimeline', pkg: '@uploadkitdev/react' },
+  kanban: { import: 'UploadKanban', pkg: '@uploadkitdev/react' },
+  polaroid: { import: 'UploadPolaroid', pkg: '@uploadkitdev/react' },
+  wizard: { import: 'UploadStepWizard', pkg: '@uploadkitdev/react' },
+  envelope: { import: 'UploadEnvelope', pkg: '@uploadkitdev/react' },
 } as const satisfies Record<string, ComponentSpec>;
 
 export type ComponentAlias = keyof typeof COMPONENTS;
 
-/** Canonical list of aliases (array form for listings + prompts). */
 export const COMPONENT_ALIASES = Object.keys(COMPONENTS) as ComponentAlias[];
 
-/** Type-narrowing guard: returns true iff `s` is a known alias. */
 export function isComponentAlias(s: string): s is ComponentAlias {
   return Object.prototype.hasOwnProperty.call(COMPONENTS, s);
 }

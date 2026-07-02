@@ -1,5 +1,14 @@
 // Server Component — no "use client"
-// Full feature comparison table across all 4 tiers
+// Full feature comparison table across all 4 tiers — sourced from @uploadkitdev/shared
+
+import {
+  TIER_FEATURES,
+  TIER_LIMITS,
+  formatImageTransformLimit,
+  formatTeamMemberLimit,
+  formatTierLimitValue,
+  type Tier,
+} from '@uploadkitdev/shared'
 
 const CheckIcon = () => (
   <svg
@@ -47,23 +56,47 @@ interface FeatureRow {
   enterprise: CellValue
 }
 
-const FEATURE_ROWS: FeatureRow[] = [
-  { feature: 'Storage',       free: '5 GB',      pro: '50 GB',      team: '200 GB',   enterprise: 'Unlimited' },
-  { feature: 'Bandwidth/mo',  free: '10 GB',     pro: '100 GB',     team: '500 GB',   enterprise: 'Unlimited' },
-  { feature: 'Max file size', free: '4 MB',      pro: '512 MB',     team: '5 GB',     enterprise: '10 GB' },
-  { feature: 'Uploads/mo',    free: '1,000',     pro: '10,000',     team: '50,000',   enterprise: 'Unlimited' },
-  { feature: 'Image transforms/mo', free: 'x', pro: '5,000', team: '25,000', enterprise: 'From 100,000' },
-  { feature: 'Projects',      free: '2',         pro: '10',         team: '50',       enterprise: 'Unlimited' },
-  { feature: 'API keys',      free: '2',         pro: '10',         team: '50',       enterprise: 'Unlimited' },
-  { feature: 'BYOS support',  free: 'check',     pro: 'check',      team: 'check',    enterprise: 'check' },
-  { feature: 'Custom CDN domain', free: 'x',    pro: 'check',      team: 'check',    enterprise: 'check' },
-  { feature: 'Analytics',     free: 'Basic',     pro: 'Advanced',   team: 'Advanced', enterprise: 'Custom' },
-  { feature: 'Support',       free: 'Community', pro: 'Email',      team: 'Priority', enterprise: 'Dedicated' },
-  { feature: 'Webhooks',      free: 'x',         pro: 'check',      team: 'check',    enterprise: 'check' },
-  { feature: 'Team members',  free: '1',         pro: '1',          team: '5',        enterprise: 'Custom' },
-  { feature: 'SLA',           free: 'x',         pro: 'x',          team: '99.9%',    enterprise: '99.99%' },
-  { feature: 'SOC 2',         free: 'x',         pro: 'x',          team: 'x',        enterprise: 'check' },
-]
+function boolCell(tier: Tier, enabled: boolean): CellValue {
+  return enabled ? 'check' : 'x'
+}
+
+function buildFeatureRows(): FeatureRow[] {
+  const tiers: Tier[] = ['FREE', 'PRO', 'TEAM', 'ENTERPRISE']
+  const keys = ['free', 'pro', 'team', 'enterprise'] as const
+
+  function row(
+    feature: string,
+    getter: (tier: Tier) => CellValue,
+  ): FeatureRow {
+    const result = { feature } as FeatureRow
+    tiers.forEach((tier, i) => {
+      result[keys[i]!] = getter(tier)
+    })
+    return result
+  }
+
+  return [
+    row('Storage', (t) => formatTierLimitValue(t, 'maxStorageBytes')),
+    row('Bandwidth/mo', (t) => formatTierLimitValue(t, 'maxBandwidthBytes')),
+    row('Max file size', (t) => formatTierLimitValue(t, 'maxFileSizeBytes')),
+    row('Uploads/mo', (t) => formatTierLimitValue(t, 'maxUploadsPerMonth')),
+    row('Image transforms/mo', (t) => formatImageTransformLimit(t)),
+    row('Projects', (t) => formatTierLimitValue(t, 'maxProjects')),
+    row('API keys', (t) => formatTierLimitValue(t, 'maxApiKeys')),
+    row('BYOS support', () => 'check'),
+    row('Custom CDN domain', (t) => boolCell(t, TIER_FEATURES[t].customCdnDomain)),
+    row('Analytics', (t) =>
+      TIER_FEATURES[t].advancedAnalytics ? 'Advanced' : 'Basic',
+    ),
+    row('Support', (t) => TIER_FEATURES[t].support),
+    row('Webhooks', (t) => boolCell(t, TIER_FEATURES[t].webhooks)),
+    row('Team members', (t) => formatTeamMemberLimit(t)),
+    row('SLA', (t) => TIER_FEATURES[t].sla ?? 'x'),
+    row('SOC 2', (t) => boolCell(t, TIER_FEATURES[t].soc2)),
+  ]
+}
+
+const FEATURE_ROWS = buildFeatureRows()
 
 function Cell({ value }: { value: CellValue }) {
   if (value === 'check') return <CheckIcon />
@@ -90,7 +123,6 @@ export function ComparisonMatrix() {
                 <tr className="matrix-header-row">
                   <th className="matrix-th matrix-th--feature">Feature</th>
                   <th className="matrix-th">Free</th>
-                  {/* Pro column is highlighted as popular */}
                   <th className="matrix-th matrix-th--pro">
                     <span className="matrix-th-inner">Pro</span>
                   </th>
@@ -132,3 +164,6 @@ export function ComparisonMatrix() {
     </section>
   )
 }
+
+// Re-export for tests that assert limits match TIER_LIMITS
+export { TIER_LIMITS }

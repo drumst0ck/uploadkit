@@ -5,6 +5,7 @@ import * as add from './add.js';
 import * as restore from './restore.js';
 import * as migrateSupabase from './migrate-supabase.js';
 import * as rewriteUrls from './rewrite-urls.js';
+import * as migrateUploadthing from './migrate-uploadthing.js';
 
 export type CommandHandler = (parsed: ParsedArgs) => Promise<number>;
 
@@ -18,6 +19,7 @@ export const handlers: Readonly<Record<string, CommandHandler>> = {
   add: add.run,
   restore: restore.run,
   'migrate-supabase': migrateSupabase.run,
+  'migrate-uploadthing': migrateUploadthing.run,
   'rewrite-urls': rewriteUrls.run,
 };
 
