@@ -26,10 +26,19 @@ const STATUS_BADGE_CLASS: Record<string, string> = {
   CANCELED: 'bg-red-500/10 text-red-400 ring-red-500/20',
 };
 
-export default async function AdminSubscriptionsPage() {
+export default async function AdminSubscriptionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; tier?: string; status?: string }>;
+}) {
   await connectDB();
+  const { q, tier, status } = await searchParams;
 
-  const subs = await Subscription.find({})
+  const filter: Record<string, unknown> = {};
+  if (tier && tier !== 'ALL') filter.tier = tier;
+  if (status && status !== 'ALL') filter.status = status;
+
+  const subs = await Subscription.find(filter)
     .sort({ createdAt: -1 })
     .limit(500)
     .lean();
@@ -40,18 +49,34 @@ export default async function AdminSubscriptionsPage() {
     .lean();
   const userMap = new Map(users.map((u) => [String(u._id), u]));
 
-  const byTier = subs.reduce<Record<string, number>>((acc, s) => {
+  // Filter by user email/name if q is present
+  let filteredSubs = subs;
+  if (q && q.trim()) {
+    const lower = q.trim().toLowerCase();
+    filteredSubs = subs.filter((s) => {
+      const u = userMap.get(String(s.userId));
+      return (
+        u?.email?.toLowerCase().includes(lower) ||
+        u?.name?.toLowerCase().includes(lower)
+      );
+    });
+  }
+
+  const byTier = filteredSubs.reduce<Record<string, number>>((acc, s) => {
     acc[s.tier] = (acc[s.tier] ?? 0) + 1;
     return acc;
   }, {});
-  const byStatus = subs.reduce<Record<string, number>>((acc, s) => {
+  const byStatus = filteredSubs.reduce<Record<string, number>>((acc, s) => {
     acc[s.status] = (acc[s.status] ?? 0) + 1;
     return acc;
   }, {});
 
   const canceledCount = byStatus.CANCELED ?? 0;
   const activeCount = (byStatus.ACTIVE ?? 0) + (byStatus.TRIALING ?? 0);
-  const churnRate = subs.length > 0 ? Math.round((canceledCount / subs.length) * 100) : 0;
+  const churnRate = filteredSubs.length > 0
+    ? Math.round((canceledCount / filteredSubs.length) * 100)
+    : 0;
+  const pastDueCount = byStatus.PAST_DUE ?? 0;
 
   return (
     <div className="space-y-5 sm:space-y-8">
@@ -60,23 +85,75 @@ export default async function AdminSubscriptionsPage() {
           Subscriptions
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {subs.length} total · {activeCount} active · {canceledCount} canceled · {churnRate}% churn
+          {filteredSubs.length} total · {activeCount} active · {canceledCount} canceled · {pastDueCount} past due · {churnRate}% churn
         </p>
       </div>
 
+      {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-        {(['FREE', 'PRO', 'TEAM', 'ENTERPRISE'] as const).map((tier) => (
-          <div
-            key={tier}
-            className="rounded-2xl border border-border bg-card p-4 sm:p-5"
-          >
-            <p className="text-xs text-muted-foreground">{tier}</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">{byTier[tier] ?? 0}</p>
+        {(['FREE', 'PRO', 'TEAM', 'ENTERPRISE'] as const).map((t) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+            <p className="text-xs text-muted-foreground">{t}</p>
+            <p className="mt-2 text-2xl font-semibold text-foreground">{byTier[t] ?? 0}</p>
             <p className="mt-1 text-xs text-muted-foreground">subscriptions</p>
+            <Link
+              href={`/dashboard/admin/subscriptions?tier=${t}`}
+              className="mt-2 inline-block text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Filter →
+            </Link>
           </div>
         ))}
       </div>
 
+      {/* Filters */}
+      <form className="flex flex-wrap gap-2">
+        <input
+          type="text"
+          name="q"
+          defaultValue={q ?? ''}
+          placeholder="Search by user name or email"
+          className="w-full max-w-xs rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none"
+        />
+        <select
+          name="tier"
+          defaultValue={tier ?? 'ALL'}
+          className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-indigo-500 focus:outline-none"
+        >
+          <option value="ALL">All tiers</option>
+          <option value="FREE">FREE</option>
+          <option value="PRO">PRO</option>
+          <option value="TEAM">TEAM</option>
+          <option value="ENTERPRISE">ENTERPRISE</option>
+        </select>
+        <select
+          name="status"
+          defaultValue={status ?? 'ALL'}
+          className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-indigo-500 focus:outline-none"
+        >
+          <option value="ALL">All statuses</option>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="TRIALING">TRIALING</option>
+          <option value="PAST_DUE">PAST_DUE</option>
+          <option value="CANCELED">CANCELED</option>
+        </select>
+        <button
+          type="submit"
+          className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
+        >
+          Filter
+        </button>
+        {(q || (tier && tier !== 'ALL') || (status && status !== 'ALL')) && (
+          <Link
+            href="/dashboard/admin/subscriptions"
+            className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Clear
+          </Link>
+        )}
+      </form>
+
+      {/* Table */}
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <Table>
           <TableHeader>
@@ -87,23 +164,31 @@ export default async function AdminSubscriptionsPage() {
               <TableHead className="text-muted-foreground">Cancel at EoP</TableHead>
               <TableHead className="text-muted-foreground">Current Period</TableHead>
               <TableHead className="text-muted-foreground">Started</TableHead>
+              <TableHead className="text-muted-foreground">Stripe Customer</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {subs.length === 0 ? (
+            {filteredSubs.length === 0 ? (
               <TableRow className="border-border">
-                <TableCell colSpan={6} className="py-12 text-center text-sm text-muted-foreground">
-                  No subscriptions yet.
+                <TableCell colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
+                  No subscriptions match your filters.
                 </TableCell>
               </TableRow>
             ) : (
-              subs.map((s) => {
+              filteredSubs.map((s) => {
                 const user = userMap.get(String(s.userId));
                 return (
                   <TableRow key={String(s._id)} className="border-border hover:bg-accent">
                     <TableCell>
-                      <div className="font-medium text-foreground">{user?.name ?? '—'}</div>
-                      <div className="text-xs text-muted-foreground">{user?.email ?? '—'}</div>
+                      <Link
+                        href={`/dashboard/admin/subscriptions/${String(s._id)}`}
+                        className="group"
+                      >
+                        <div className="font-medium text-foreground group-hover:underline underline-offset-2 transition-colors">
+                          {user?.name ?? '—'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{user?.email ?? '—'}</div>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <span
@@ -126,24 +211,23 @@ export default async function AdminSubscriptionsPage() {
                     <TableCell className="text-muted-foreground">
                       {s.cancelAtPeriodEnd ? 'Yes' : 'No'}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
                       {s.currentPeriodStart && s.currentPeriodEnd
                         ? `${formatDate(s.currentPeriodStart)} → ${formatDate(s.currentPeriodEnd)}`
                         : '—'}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(s.createdAt)}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
+                      {formatDate(s.createdAt)}
+                    </TableCell>
+                    <TableCell className="font-mono text-[10px] text-muted-foreground">
+                      {s.stripeCustomerId ?? '—'}
+                    </TableCell>
                   </TableRow>
                 );
               })
             )}
           </TableBody>
         </Table>
-      </div>
-
-      <div className="text-xs text-muted-foreground">
-        <Link href="/dashboard/admin" className="hover:text-foreground">
-          ← Back to overview
-        </Link>
       </div>
     </div>
   );
