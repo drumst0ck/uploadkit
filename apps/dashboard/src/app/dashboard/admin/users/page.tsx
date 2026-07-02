@@ -52,11 +52,11 @@ export default async function AdminUsersPage({
   }
 
   const sortOption: Record<string, 1 | -1> =
-    sort === 'name' ? { name: 1 as 1 }
-    : sort === '-name' ? { name: -1 as -1 }
-    : sort === 'email' ? { email: 1 as 1 }
-    : sort === '-email' ? { email: -1 as -1 }
-    : { createdAt: -1 as -1 };
+    sort === 'name' ? { name: 1 as const }
+    : sort === '-name' ? { name: -1 as const }
+    : sort === 'email' ? { email: 1 as const }
+    : sort === '-email' ? { email: -1 as const }
+    : { createdAt: -1 as const };
 
   const users = await User.find(filter).sort(sortOption).limit(500).lean();
 

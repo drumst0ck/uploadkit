@@ -44,10 +44,10 @@ export default async function AdminFilesPage({
   }
 
   const sortOption: Record<string, 1 | -1> =
-    sort === 'size' ? { size: -1 as -1 }
-    : sort === '-size' ? { size: 1 as 1 }
-    : sort === 'name' ? { name: 1 as 1 }
-    : { _id: -1 as -1 };
+    sort === 'size' ? { size: -1 as const }
+    : sort === '-size' ? { size: 1 as const }
+    : sort === 'name' ? { name: 1 as const }
+    : { _id: -1 as const };
 
   const fileLimit = Math.min(parseInt(limit ?? '200', 10) || 200, 1000);
 
