@@ -4,247 +4,33 @@ import * as React from 'react';
 import type { Tier } from '@uploadkitdev/shared';
 import { TierGate } from './tier-gate';
 
-interface ByosSettingsProps {
-  slug: string;
-  tier: Tier;
-  initial: {
-    storageMode: 'managed' | 'byos';
-    hasByosConfig: boolean;
-    provider?: string;
-    endpoint?: string;
-    region?: string;
-    bucket?: string;
-    accessKeyId?: string;
-    publicUrl?: string;
-  };
-}
+const DOCS_BYOS_URL =
+  `${process.env.NEXT_PUBLIC_DOCS_URL ?? 'https://docs.uploadkit.dev'}/docs/core-concepts/byos`;
 
-export function ByosSettings({ slug, tier: _tier, initial }: ByosSettingsProps) {
-  const [storageMode, setStorageMode] = React.useState(initial.storageMode);
-  const [provider, setProvider] = React.useState(initial.provider ?? 'r2');
-  const [endpoint, setEndpoint] = React.useState(initial.endpoint ?? '');
-  const [region, setRegion] = React.useState(initial.region ?? 'auto');
-  const [bucket, setBucket] = React.useState(initial.bucket ?? '');
-  const [accessKeyId, setAccessKeyId] = React.useState(initial.accessKeyId ?? '');
-  const [secretAccessKey, setSecretAccessKey] = React.useState('');
-  const [publicUrl, setPublicUrl] = React.useState(initial.publicUrl ?? '');
-  const [saving, setSaving] = React.useState(false);
-  const [testing, setTesting] = React.useState(false);
-  const [message, setMessage] = React.useState('');
-  const [error, setError] = React.useState('');
-
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const res = await fetch(`/api/internal/projects/${slug}/storage`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          storageMode,
-          byosConfig:
-            storageMode === 'byos'
-              ? {
-                  provider,
-                  endpoint: endpoint || undefined,
-                  region,
-                  bucket,
-                  accessKeyId,
-                  ...(secretAccessKey ? { secretAccessKey } : {}),
-                  publicUrl: publicUrl || undefined,
-                }
-              : null,
-        }),
-      });
-
-      const data = (await res.json()) as { error?: string; message?: string };
-      if (!res.ok) {
-        setError(data.error ?? 'Failed to save storage settings.');
-        return;
-      }
-
-      setMessage(data.message ?? 'Storage settings saved.');
-      setSecretAccessKey('');
-    } catch {
-      setError('Network error.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function testConnection() {
-    setTesting(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const res = await fetch(`/api/internal/projects/${slug}/storage/test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider,
-          endpoint: endpoint || undefined,
-          region,
-          bucket,
-          accessKeyId,
-          secretAccessKey: secretAccessKey || undefined,
-        }),
-      });
-
-      const data = (await res.json()) as { error?: string; ok?: boolean };
-      if (!res.ok || !data.ok) {
-        setError(data.error ?? 'Connection test failed.');
-        return;
-      }
-
-      setMessage('Connection successful — bucket is reachable.');
-    } catch {
-      setError('Network error during connection test.');
-    } finally {
-      setTesting(false);
-    }
-  }
-
+export function SelfHostedSdkCard() {
   return (
     <div className="rounded-xl border border-border bg-card p-6">
-      <h2 className="mb-1 text-sm font-medium text-foreground">Storage mode</h2>
-      <p className="mb-5 text-xs text-muted-foreground">
-        BYOS keeps uploads on your bucket. Credentials are encrypted and never sent to the browser.
-        Use the generated snippet in your server handler.
+      <h2 className="mb-1 text-sm font-medium text-foreground">UploadKit Cloud storage</h2>
+      <p className="mb-4 text-xs text-muted-foreground">
+        This project stores files on UploadKit&apos;s managed R2 + CDN. API keys from this dashboard
+        always target <code className="text-indigo-400">api.uploadkit.dev</code> — not your own bucket.
       </p>
-
-      <form onSubmit={(e) => { void save(e); }} className="flex flex-col gap-4">
-        <div className="flex gap-3">
-          {(['managed', 'byos'] as const).map((mode) => (
-            <label
-              key={mode}
-              className={`flex flex-1 cursor-pointer items-center gap-2 rounded-lg border px-4 py-3 text-sm transition-colors ${
-                storageMode === mode
-                  ? 'border-indigo-500/50 bg-indigo-500/10 text-foreground'
-                  : 'border-border bg-accent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <input
-                type="radio"
-                name="storageMode"
-                value={mode}
-                checked={storageMode === mode}
-                onChange={() => setStorageMode(mode)}
-                className="accent-indigo-500"
-              />
-              {mode === 'managed' ? 'UploadKit Cloud' : 'Bring Your Own Storage'}
-            </label>
-          ))}
-        </div>
-
-        {storageMode === 'byos' && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Provider">
-              <select
-                value={provider}
-                onChange={(e) => setProvider(e.target.value)}
-                className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
-              >
-                <option value="r2">Cloudflare R2</option>
-                <option value="s3">AWS S3</option>
-                <option value="minio">MinIO</option>
-                <option value="other">Other S3-compatible</option>
-              </select>
-            </Field>
-            <Field label="Region">
-              <input value={region} onChange={(e) => setRegion(e.target.value)} className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30" />
-            </Field>
-            <Field label="Endpoint (optional)">
-              <input
-                value={endpoint}
-                onChange={(e) => setEndpoint(e.target.value)}
-                placeholder="https://account.r2.cloudflarestorage.com"
-                className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
-              />
-            </Field>
-            <Field label="Bucket">
-              <input value={bucket} onChange={(e) => setBucket(e.target.value)} className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30" />
-            </Field>
-            <Field label="Access key ID">
-              <input value={accessKeyId} onChange={(e) => setAccessKeyId(e.target.value)} className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30" />
-            </Field>
-            <Field label={initial.hasByosConfig ? 'Secret key (leave blank to keep)' : 'Secret access key'}>
-              <input
-                type="password"
-                value={secretAccessKey}
-                onChange={(e) => setSecretAccessKey(e.target.value)}
-                className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
-                autoComplete="new-password"
-              />
-            </Field>
-            <Field label="Public URL (optional)">
-              <input
-                value={publicUrl}
-                onChange={(e) => setPublicUrl(e.target.value)}
-                placeholder="https://cdn.example.com"
-                className="rounded-lg border border-border bg-accent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 sm:col-span-2"
-              />
-            </Field>
-          </div>
-        )}
-
-        {error && <p className="text-xs text-red-400">{error}</p>}
-        {message && <p className="text-xs text-emerald-400">{message}</p>}
-
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400 disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : 'Save storage settings'}
-          </button>
-          {storageMode === 'byos' && (
-            <button
-              type="button"
-              disabled={testing || !bucket || !accessKeyId}
-              onClick={() => { void testConnection(); }}
-              className="rounded-lg border border-border bg-accent px-4 py-2 text-sm text-foreground hover:bg-muted disabled:opacity-50"
-            >
-              {testing ? 'Testing…' : 'Test connection'}
-            </button>
-          )}
-        </div>
-      </form>
-
-      {storageMode === 'byos' && initial.hasByosConfig && (
-        <pre className="mt-4 overflow-x-auto rounded-lg bg-muted p-4 text-xs text-muted-foreground">
-{`import { createUploadKitHandler } from '@uploadkitdev/next';
-import { createR2Storage } from '@uploadkitdev/next/byos';
-
-export const { GET, POST } = createUploadKitHandler({
-  router: fileRouter,
-  storage: createR2Storage({
-    accountId: '...',
-    accessKeyId: '${accessKeyId || 'YOUR_KEY'}',
-    secretAccessKey: process.env.BYOS_SECRET!,
-    bucket: '${bucket || 'your-bucket'}',
-  }),
-});`}
-        </pre>
-      )}
-
-      <p className="mt-3 text-xs text-amber-400/90">
-        Image transforms require UploadKit Cloud — BYOS projects use your bucket directly without transform CDN.
+      <p className="mb-4 text-xs text-muted-foreground">
+        Want to self-host with your S3, R2, GCS, or B2 bucket? Use the open-source SDK in your app
+        and pass <code className="text-indigo-400">storage</code> to{' '}
+        <code className="text-indigo-400">createUploadKitHandler</code>. No dashboard toggle — credentials
+        stay in your server env.
       </p>
+      <a
+        href={DOCS_BYOS_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400 hover:text-indigo-300"
+      >
+        Self-hosted BYOS guide
+        <span aria-hidden>↗</span>
+      </a>
     </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-      {label}
-      {children}
-    </label>
   );
 }
 

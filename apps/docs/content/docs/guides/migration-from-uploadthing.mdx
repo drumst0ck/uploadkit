@@ -221,7 +221,7 @@ If you have hardcoded the UploadThing API route path anywhere (e.g., in the Uplo
 
 Beyond the migration, UploadKit adds several capabilities that UploadThing does not offer:
 
-**BYOS (Bring Your Own Storage)** — Use your own S3 or Cloudflare R2 bucket. Your files never touch UploadKit's infrastructure, but you still get the full SDK and dashboard experience.
+**Self-hosted BYOS** — Use your own S3 or Cloudflare R2 bucket with the open-source SDK (`storage` in `createUploadKitHandler`). Your files never touch UploadKit Cloud storage. The dashboard is for managed Cloud projects only.
 
 **More generous free tier** — 5 GB storage, 2 GB bandwidth, and 1,000 uploads per month on the free plan. No credit card required.
 

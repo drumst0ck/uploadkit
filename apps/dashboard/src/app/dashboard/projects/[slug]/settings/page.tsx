@@ -3,9 +3,9 @@ import { auth } from '../../../../../../auth';
 import { connectDB, Project } from '@uploadkitdev/db';
 import { ProjectSettingsForm } from '../../../../../components/project-settings-form';
 import {
-  ByosSettings,
   CustomDomainSettings,
   LifecycleSettings,
+  SelfHostedSdkCard,
 } from '../../../../../components/project-advanced-settings';
 import { getCloudflareConfig } from '@uploadkitdev/cloudflare';
 import { getUserTier } from '../../../../../lib/tier';
@@ -41,24 +41,7 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
 
       <ProjectSettingsForm initialName={project.name} slug={project.slug} />
 
-      <ByosSettings
-        slug={project.slug}
-        tier={tier}
-        initial={{
-          storageMode: project.storageMode ?? 'managed',
-          hasByosConfig: Boolean(project.byosConfig),
-          ...(project.byosConfig
-            ? {
-                provider: project.byosConfig.provider,
-                ...(project.byosConfig.endpoint ? { endpoint: project.byosConfig.endpoint } : {}),
-                region: project.byosConfig.region,
-                bucket: project.byosConfig.bucket,
-                accessKeyId: project.byosConfig.accessKeyId,
-                ...(project.byosConfig.publicUrl ? { publicUrl: project.byosConfig.publicUrl } : {}),
-              }
-            : {}),
-        }}
-      />
+      <SelfHostedSdkCard />
 
       <CustomDomainSettings
         slug={project.slug}

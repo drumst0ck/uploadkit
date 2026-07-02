@@ -51,7 +51,7 @@ interface ComparisonRow {
 
 const rows: ComparisonRow[] = [
   { feature: 'Free storage',            uploadkit: '5 GB',      others: '2 GB' },
-  { feature: 'BYOS (bring your bucket)',uploadkit: 'check',     others: 'x' },
+  { feature: 'Self-hosted SDK (your bucket)', uploadkit: 'check', others: 'x' },
   { feature: 'Open-source SDK',         uploadkit: 'check',     others: 'x' },
   { feature: 'Zero egress fees',        uploadkit: 'check',     others: 'x' },
   { feature: 'Direct uploads (presigned URLs)', uploadkit: 'check', others: 'check' },
