@@ -14,6 +14,7 @@ import {
   Route,
   ScrollText,
   WandSparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkitdev/ui';
 import { cn } from '../../lib/cn';
@@ -43,6 +44,7 @@ const PROJECT_NAV_ITEMS: NavItem[] = [
 
 interface SidebarNavProps {
   collapsed: boolean;
+  isAdmin?: boolean;
 }
 
 function NavItemLink({
@@ -83,7 +85,7 @@ function NavItemLink({
   return linkContent;
 }
 
-export function SidebarNav({ collapsed }: SidebarNavProps) {
+export function SidebarNav({ collapsed, isAdmin = false }: SidebarNavProps) {
   const pathname = usePathname();
 
   // Detect if we are on a project-specific route: /dashboard/projects/[slug]/*
@@ -110,6 +112,14 @@ export function SidebarNav({ collapsed }: SidebarNavProps) {
           collapsed={collapsed}
         />
       ))}
+
+      {isAdmin && (
+        <NavItemLink
+          item={{ label: 'Admin', href: '/dashboard/admin', icon: ShieldCheck }}
+          isActive={isActive('/dashboard/admin')}
+          collapsed={collapsed}
+        />
+      )}
 
       {/* Project-scoped sub-nav — visible when inside a project route */}
       {projectBasePath && (
