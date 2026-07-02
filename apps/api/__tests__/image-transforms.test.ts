@@ -55,6 +55,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   process.env.IMAGE_TRANSFORM_BASE_URL = 'https://cdn.uploadkit.dev';
   process.env.IMAGE_TRANSFORM_SECRET = 'test-secret-at-least-32-characters';
+  process.env.IMAGE_TRANSFORM_PUBLIC_SECRET = 'stable-public-test-secret-at-least-32-characters';
   vi.mocked(transformRatelimit.limit).mockResolvedValue({
     success: true, limit: 10, remaining: 9, reset: Date.now() + 60_000,
     pending: Promise.resolve(), reason: 'cacheBlock',
@@ -99,6 +100,8 @@ describe('POST /api/v1/transforms/image', () => {
     expect(response.status).toBe(200);
     expect(body.url).toMatch(/^https:\/\/cdn\.uploadkit\.dev\/t\/\d+\/[A-Za-z0-9_-]+\//);
     expect(body.url).toContain('/project-1/images/photo.jpg');
+    expect(body.delivery).toBe('signed');
+    expect(body.expiresAt).toEqual(expect.any(String));
     expect(body.transform).toEqual({ width: 800, fit: 'cover', quality: 85, format: 'auto' });
     expect(body.usage).toEqual({
       period: expect.any(String), used: 3, limit: 5000, units: 3, counted: true,
@@ -106,6 +109,19 @@ describe('POST /api/v1/transforms/image', () => {
     expect(File.findOne).toHaveBeenCalledWith(expect.objectContaining({
       key: 'project-1/images/photo.jpg', projectId: 'project-1', status: 'UPLOADED',
     }));
+  });
+
+  it('returns a stable authenticated URL for public delivery', async () => {
+    setTier('PRO');
+    const response = await POST(request({
+      key: 'project-1/images/photo.jpg', width: 800, format: 'webp', delivery: 'public',
+    }), { params: Promise.resolve({}) });
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.url).toMatch(/^https:\/\/cdn\.uploadkit\.dev\/p\/[A-Za-z0-9_-]+\//);
+    expect(body.expiresAt).toBeNull();
+    expect(body.delivery).toBe('public');
+    expect(body.usage).toMatchObject({ units: 1, counted: true });
   });
 
   it('does not consume quota twice for the same transform', async () => {

@@ -39,4 +39,15 @@ describe('image transform worker validation', () => {
     expect(() => parseTransformRequest(new URL('https://cdn.uploadkit.dev/t/9999999999/sig/options/%E0%A4%A')))
       .toThrow('INVALID_FILE_KEY');
   });
+
+  it('parses stable public transform URLs without an expiry', async () => {
+    const { parseTransformRequest } = await import('../src/index');
+    const parsed = parseTransformRequest(new URL(
+      'https://cdn.uploadkit.dev/p/signature/options/project/images/photo.jpg',
+    ));
+    expect(parsed).toMatchObject({
+      delivery: 'public', expires: null, signature: 'signature',
+      encodedTransform: 'options', key: 'project/images/photo.jpg',
+    });
+  });
 });

@@ -61,11 +61,14 @@ export interface ImageTransformOptions {
   fit?: 'scale-down' | 'contain' | 'cover' | 'crop' | 'pad';
   quality?: number;
   format?: 'auto' | 'avif' | 'webp' | 'jpeg' | 'png';
+  /** signed URLs expire; public URLs are stable and suitable for permanent assets. */
+  delivery?: 'signed' | 'public';
 }
 
 export interface ImageTransformResult {
   url: string;
-  expiresAt: string;
+  expiresAt: string | null;
+  delivery: 'signed' | 'public';
   transform: Required<Pick<ImageTransformOptions, 'fit' | 'quality' | 'format'>> &
     Pick<ImageTransformOptions, 'width' | 'height'>;
   usage: {

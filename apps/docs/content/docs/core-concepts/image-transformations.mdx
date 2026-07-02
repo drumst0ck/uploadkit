@@ -5,7 +5,7 @@ description: Resize, crop, optimize, and convert UploadKit Cloud images at the e
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-UploadKit generates signed, CDN-cached image variants without creating additional objects in your project. Originals remain unchanged in Cloudflare R2; variants are generated and cached at `cdn.uploadkit.dev/t/*`.
+UploadKit generates CDN-cached image variants without creating additional objects in your project. Originals remain unchanged in Cloudflare R2. Choose stable public URLs at `cdn.uploadkit.dev/p/*` or expiring signed URLs at `cdn.uploadkit.dev/t/*`.
 
 <Callout type="warn">
   Image transformations require a paid plan and UploadKit-managed cloud storage. Files uploaded through BYOS adapters are never accessible to the transformation service.
@@ -37,10 +37,19 @@ Explicit formats (`avif`, `webp`, `jpeg`, or `png`) reserve **1 unit**. `format:
 | `fit` | `scale-down`, `contain`, `cover`, `crop`, `pad` | `scale-down` |
 | `quality` | 1–100 | `85` |
 | `format` | `auto`, `avif`, `webp`, `jpeg`, `png` | `auto` |
+| `delivery` | `signed`, `public` | `signed` |
 
 At least one dimension is required. `format: 'auto'` negotiates AVIF or WebP from the browser's `Accept` header and falls back to JPEG.
 
-## Signed URLs
+## Public and signed delivery
+
+Use `delivery: 'public'` for assets that must keep working in a website or app without backend refreshes: avatars, product images, article media, Open Graph images, CSS backgrounds, and responsive `srcset` URLs. Public transform URLs are stable and have no expiry:
+
+```text
+https://cdn.uploadkit.dev/p/<signature>/<options>/<file-key>
+```
+
+Use `delivery: 'signed'` for private or temporary content. Signed URLs are valid for at most 25 hours:
 
 The cloud API verifies the plan, project ownership, upload status, MIME type, and monthly quota before issuing a URL. Every URL contains an HMAC signature and expiry; altering its file key or options invalidates it.
 
@@ -48,6 +57,14 @@ The cloud API verifies the plan, project ownership, upload status, MIME type, an
 https://cdn.uploadkit.dev/t/<expires>/<signature>/<options>/<file-key>
 ```
 
+<Callout type="warn">
+  Signed delivery protects and expires the transformed URL. It does not retroactively make the original private if its public Cloud URL has already been exposed. Do not publish the original URL when the transformed asset is access-controlled.
+</Callout>
+
 Generate URLs in trusted server code with a **live** (`uk_live_`) key through the Core SDK or REST API. Test keys cannot issue transformation URLs. Never expose an UploadKit API key in browser code.
 
-Signed URLs are valid for at most 25 hours and transformed responses are cached at the edge for at most one hour. Deleting the source immediately prevents new cache misses from being generated; an already cached response can remain available until that one-hour cache window ends.
+Both URL types include an HMAC signature, so changing the file key or transformation options invalidates the URL. Public means the URL does not expire; it does not mean callers can create arbitrary variants without your API key.
+
+Public URLs remain stable across normal deployments and rotation of the short-lived signing key. UploadKit may invalidate them only during a security incident involving the dedicated public-signing key.
+
+Transformed responses are cached at the edge for at most one hour. The URL remains valid when a cache entry expires: UploadKit regenerates the variant from the original on the next request. Deleting the source prevents new cache misses from being generated; an already cached response can remain available until that cache window ends.

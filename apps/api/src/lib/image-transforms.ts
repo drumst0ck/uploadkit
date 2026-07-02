@@ -11,6 +11,8 @@ export interface CanonicalImageTransform {
   format: 'auto' | 'avif' | 'webp' | 'jpeg' | 'png';
 }
 
+export type ImageTransformDelivery = 'signed' | 'public';
+
 const ONE_HOUR_SECONDS = 3_600;
 const LEDGER_RETENTION_DAYS = 120;
 const LOCK_LEASE_MS = 15_000;
@@ -19,28 +21,47 @@ const LOCK_ATTEMPTS = 8;
 export function createImageTransformUrl(
   key: string,
   transform: CanonicalImageTransform,
+  delivery: ImageTransformDelivery = 'signed',
   now = new Date(),
-): { url: string; expiresAt: string } {
+): { url: string; expiresAt: string | null; delivery: ImageTransformDelivery } {
   const baseUrl = requiredEnv('IMAGE_TRANSFORM_BASE_URL').replace(/\/+$/, '');
-  const secret = requiredEnv('IMAGE_TRANSFORM_SECRET');
+  const secret = delivery === 'public'
+    ? requiredPublicSecret()
+    : requiredEnv('IMAGE_TRANSFORM_SECRET');
   // Stable within an hour for cache reuse, with a maximum lifetime of 25 hours.
   // This bounds access after a file is deleted or a subscription is downgraded.
   const expires = Math.floor(now.getTime() / 1000 / ONE_HOUR_SECONDS) * ONE_HOUR_SECONDS
     + 25 * ONE_HOUR_SECONDS;
   const encodedTransform = Buffer.from(JSON.stringify(transform)).toString('base64url');
+  const encodedKey = key.split('/').map(encodeURIComponent).join('/');
+
+  if (delivery === 'public') {
+    const signature = createHmac('sha256', secret)
+      .update(publicSigningPayload(encodedTransform, key))
+      .digest('base64url');
+    return {
+      url: `${baseUrl}/p/${signature}/${encodedTransform}/${encodedKey}`,
+      expiresAt: null,
+      delivery,
+    };
+  }
+
   const signature = createHmac('sha256', secret)
     .update(signingPayload(expires, encodedTransform, key))
     .digest('base64url');
-  const encodedKey = key.split('/').map(encodeURIComponent).join('/');
-
   return {
     url: `${baseUrl}/t/${expires}/${signature}/${encodedTransform}/${encodedKey}`,
     expiresAt: new Date(expires * 1000).toISOString(),
+    delivery,
   };
 }
 
 export function signingPayload(expires: number, encodedTransform: string, key: string): string {
   return `${expires}\n${encodedTransform}\n${key}`;
+}
+
+export function publicSigningPayload(encodedTransform: string, key: string): string {
+  return `public\n${encodedTransform}\n${key}`;
 }
 
 export function imageTransformFingerprint(key: string, transform: CanonicalImageTransform): string {
@@ -169,8 +190,18 @@ function isDuplicateKeyError(error: unknown): boolean {
     && (error as { code?: unknown }).code === 11000;
 }
 
-function requiredEnv(name: 'IMAGE_TRANSFORM_BASE_URL' | 'IMAGE_TRANSFORM_SECRET'): string {
+function requiredEnv(
+  name: 'IMAGE_TRANSFORM_BASE_URL' | 'IMAGE_TRANSFORM_SECRET' | 'IMAGE_TRANSFORM_PUBLIC_SECRET',
+): string {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is required for image transformations`);
   return value;
+}
+
+function requiredPublicSecret(): string {
+  const publicSecret = requiredEnv('IMAGE_TRANSFORM_PUBLIC_SECRET');
+  if (publicSecret === requiredEnv('IMAGE_TRANSFORM_SECRET')) {
+    throw new Error('IMAGE_TRANSFORM_PUBLIC_SECRET must differ from IMAGE_TRANSFORM_SECRET');
+  }
+  return publicSecret;
 }
