@@ -41,12 +41,12 @@ export function Header({ user, onSignOut, onMobileMenuOpen, onSearchOpen }: Head
   const initials = getUserInitials(user.name, user.email);
 
   return (
-    <header className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-background px-4">
+    <header className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border/70 bg-background/90 px-4 backdrop-blur-xl lg:h-16 lg:px-6">
       {/* Mobile hamburger — triggers off-canvas Sheet */}
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden"
+        className="hidden h-9 w-9 text-muted-foreground hover:text-foreground"
         onClick={onMobileMenuOpen}
         aria-label="Open menu"
       >
@@ -65,7 +65,7 @@ export function Header({ user, onSignOut, onMobileMenuOpen, onSearchOpen }: Head
       </Button>
 
       {/* Breadcrumbs — auto-derived from URL */}
-      <div className="flex-1">
+      <div className="min-w-0 flex-1 overflow-hidden">
         <Breadcrumbs />
       </div>
 

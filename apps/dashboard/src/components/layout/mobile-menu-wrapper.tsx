@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { CommandPalette } from '../command-palette';
+import { MobileBottomNav } from './mobile-bottom-nav';
 
 interface Project {
   _id: string;
@@ -45,7 +46,7 @@ export function MobileMenuWrapper({
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-dvh overflow-hidden bg-background">
       <Sidebar
         initialProjects={initialProjects}
         mobileOpen={mobileOpen}
@@ -58,8 +59,12 @@ export function MobileMenuWrapper({
           onMobileMenuOpen={() => setMobileOpen(true)}
           onSearchOpen={() => setCmdkOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="dashboard-canvas flex-1 overflow-y-auto px-4 pb-24 pt-5 sm:px-6 sm:pt-6 lg:px-8 lg:pb-8 xl:px-10">
+          <div className="mx-auto w-full max-w-[1500px]">{children}</div>
+        </main>
       </div>
+
+      <MobileBottomNav onMenuOpen={() => setMobileOpen(true)} />
 
       {/* Global command palette — rendered outside the scroll container */}
       <CommandPalette

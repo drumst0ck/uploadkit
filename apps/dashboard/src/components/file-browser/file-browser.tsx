@@ -275,14 +275,43 @@ export function FileBrowser({ slug }: FileBrowserProps) {
         selectedCount={selectedIds.length}
         onDeleteSelected={handleDeleteSelected}
       />
-      <DataTable
-        columns={columns as ColumnDef<FileRecord, unknown>[]}
-        data={files}
-        isLoading={isLoading}
-        getRowId={(row) => row._id}
-        rowSelection={rowSelection}
-        onRowSelectionChange={setRowSelection}
-      />
+      <div className="hidden md:block">
+        <DataTable
+          columns={columns as ColumnDef<FileRecord, unknown>[]}
+          data={files}
+          isLoading={isLoading}
+          getRowId={(row) => row._id}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+        />
+      </div>
+
+      <div className="grid gap-3 md:hidden" aria-label="Files">
+        {isLoading ? Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="h-24 animate-pulse rounded-2xl border border-border bg-card" />
+        )) : files.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">No files found.</div>
+        ) : files.map((file) => {
+          const selected = Boolean(rowSelection[file._id]);
+          return (
+            <article key={file._id} className={`flex items-center gap-3 rounded-2xl border bg-card p-3 transition-colors ${selected ? 'border-indigo-500 bg-indigo-500/5' : 'border-border'}`}>
+              <Checkbox checked={selected} onCheckedChange={(value) => setRowSelection((current) => ({ ...current, [file._id]: Boolean(value) }))} aria-label={`Select ${file.name}`} />
+              <FilePreviewCell file={{ name: file.name, type: file.type, url: file.url }} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{file.name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{formatBytes(file.size)} · {formatDate(file.createdAt)}</p>
+                <span className={`mt-1.5 inline-flex rounded-full border px-2 py-0.5 text-[9px] font-medium ${getTypeBadgeClasses(file.type)}`}>{file.type}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleCopyUrl(file._id, file.url)} aria-label={`Copy URL for ${file.name}`}>
+                  {copiedId === file._id ? <Check className="h-4 w-4 text-emerald-400" /> : <Link2 className="h-4 w-4" />}
+                </Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-red-400" onClick={() => handleDeleteSingle(file._id)} aria-label={`Delete ${file.name}`}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
       <DataTablePagination
         hasMore={hasMore}
         isLoading={isLoading}

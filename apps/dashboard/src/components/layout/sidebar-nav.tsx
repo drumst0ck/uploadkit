@@ -13,6 +13,7 @@ import {
   KeyRound,
   Route,
   ScrollText,
+  WandSparkles,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkitdev/ui';
 import { cn } from '../../lib/cn';
@@ -34,6 +35,7 @@ const TOP_NAV_ITEMS: NavItem[] = [
 // Project-scoped nav items that appear when on a /dashboard/projects/[slug]/* route
 const PROJECT_NAV_ITEMS: NavItem[] = [
   { label: 'Files', href: 'files', icon: Files },
+  { label: 'Transformations', href: 'transforms', icon: WandSparkles },
   { label: 'API Keys', href: 'keys', icon: KeyRound },
   { label: 'File Routes', href: 'routes', icon: Route },
   { label: 'Logs', href: 'logs', icon: ScrollText },

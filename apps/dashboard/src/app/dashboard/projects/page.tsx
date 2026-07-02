@@ -28,7 +28,7 @@ export default async function ProjectsPage() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-end justify-between gap-3">
         <div>
           <BlurText
             as="h1"
@@ -43,9 +43,9 @@ export default async function ProjectsPage() {
           </p>
         </div>
         <CreateProjectDialog>
-          <Button className="bg-indigo-600 hover:bg-indigo-500 text-foreground gap-2">
+          <Button className="h-10 shrink-0 gap-2 bg-indigo-600 px-3 text-foreground hover:bg-indigo-500 sm:px-4">
             <Plus className="h-4 w-4" aria-hidden="true" />
-            New project
+            <span className="hidden sm:inline">New project</span><span className="sm:hidden">New</span>
           </Button>
         </CreateProjectDialog>
       </div>
@@ -69,7 +69,7 @@ export default async function ProjectsPage() {
         </div>
       ) : (
         <StaggerList
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3"
           stagger={0.06}
           duration={0.4}
         >
@@ -77,7 +77,7 @@ export default async function ProjectsPage() {
             <Link
               key={String(project._id)}
               href={`/dashboard/projects/${project.slug}`}
-              className="group block rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-500/30 hover:bg-accent hover:shadow-lg hover:shadow-indigo-500/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
+              className="group block rounded-2xl border border-border bg-card p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-500/30 hover:bg-accent hover:shadow-lg hover:shadow-indigo-500/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 sm:p-6"
             >
               {/* Project avatar */}
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-lg font-semibold text-indigo-300 transition-transform duration-300 group-hover:scale-110">

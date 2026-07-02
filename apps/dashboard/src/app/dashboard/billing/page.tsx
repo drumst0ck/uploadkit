@@ -229,7 +229,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="mb-4 text-sm font-medium text-foreground">Invoice History</h2>
 
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">

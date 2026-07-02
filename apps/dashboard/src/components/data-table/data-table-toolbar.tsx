@@ -48,7 +48,7 @@ export function DataTableToolbar({
   return (
     <div className="flex flex-col gap-2 pb-4">
       <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative min-w-0 flex-1 sm:max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search files..."
@@ -58,7 +58,7 @@ export function DataTableToolbar({
           />
         </div>
         <Select onValueChange={(v) => onTypeFilter(v === 'all' ? '' : v)} defaultValue="all">
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[112px] sm:w-[140px]">
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
           <SelectContent>

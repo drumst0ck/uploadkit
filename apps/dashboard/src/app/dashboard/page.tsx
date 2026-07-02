@@ -107,7 +107,7 @@ export default async function DashboardPage() {
   const bandwidth = splitBytes(usage?.bandwidth ?? 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 sm:space-y-8">
       {/* Page header — BlurText reveal */}
       <div>
         <BlurText
@@ -116,12 +116,12 @@ export default async function DashboardPage() {
           delay={60}
           animateBy="letters"
           direction="top"
-          className="text-2xl font-semibold tracking-tight text-foreground"
+          className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
         />
       </div>
 
       {/* 4 Metric cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <MetricCard
           label="Storage Used"
           value={storage.value}
@@ -157,7 +157,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Upload area chart */}
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-sm font-medium text-foreground">Uploads — Last 30 Days</h2>
           <Link href="/dashboard/projects" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
@@ -177,7 +177,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recent files table */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
             <h2 className="text-sm font-medium text-foreground">Recent Files</h2>
@@ -199,7 +199,7 @@ export default async function DashboardPage() {
             <p className="text-sm text-muted-foreground">No files uploaded yet.</p>
           </div>
         ) : (
-          <Table>
+          <div className="hidden sm:block"><Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent">
                 <TableHead className="text-muted-foreground">Name</TableHead>
@@ -246,8 +246,22 @@ export default async function DashboardPage() {
                 );
               })}
             </TableBody>
-          </Table>
+          </Table></div>
         )}
+        {recentFiles.length > 0 ? (
+          <div className="divide-y divide-border sm:hidden">
+            {recentFiles.map((file) => {
+              const slug = projectSlugMap.get(String(file.projectId));
+              return (
+                <Link key={String(file._id)} href={slug ? `/dashboard/projects/${slug}/files` : '/dashboard/projects'} className="flex items-center gap-3 p-4 active:bg-accent">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-500/10 text-indigo-400"><FileText className="h-4 w-4" /></span>
+                  <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{file.name}</span><span className="mt-0.5 block text-xs text-muted-foreground">{formatBytes(file.size)} · {formatDate(file.createdAt)}</span></span>
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" aria-label={file.status} />
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     </div>
   );

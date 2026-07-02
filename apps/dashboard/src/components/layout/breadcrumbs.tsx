@@ -13,6 +13,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   files: 'Files',
   keys: 'API Keys',
   routes: 'File Routes',
+  transforms: 'Transformations',
   logs: 'Logs',
   usage: 'Usage',
   billing: 'Billing',
