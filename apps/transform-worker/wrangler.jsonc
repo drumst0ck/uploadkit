@@ -7,6 +7,10 @@
     {
       "pattern": "cdn.uploadkit.dev/t/*",
       "zone_name": "uploadkit.dev"
+    },
+    {
+      "pattern": "cdn.uploadkit.dev/p/*",
+      "zone_name": "uploadkit.dev"
     }
   ],
   "images": { "binding": "IMAGES" },

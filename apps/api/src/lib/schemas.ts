@@ -96,6 +96,7 @@ export const ImageTransformSchema = z
     fit: z.enum(['scale-down', 'contain', 'cover', 'crop', 'pad']).default('scale-down'),
     quality: z.number().int().min(1).max(100).default(85),
     format: z.enum(['auto', 'avif', 'webp', 'jpeg', 'png']).default('auto'),
+    delivery: z.enum(['signed', 'public']).default('signed'),
   })
   .refine((value) => value.width !== undefined || value.height !== undefined, {
     message: 'At least one of width or height is required',

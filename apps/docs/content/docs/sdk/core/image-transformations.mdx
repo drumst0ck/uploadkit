@@ -1,6 +1,6 @@
 ---
 title: Image Transformations
-description: Generate signed image variants with @uploadkitdev/core.
+description: Generate stable public or expiring signed image variants with @uploadkitdev/core.
 ---
 
 ```typescript
@@ -10,14 +10,23 @@ const uploadkit = createUploadKit({ apiKey: process.env.UPLOADKIT_API_KEY! });
 
 const variant = await uploadkit.transformImage(
   'project/imageUploader/id/photo.jpg',
-  { width: 800, height: 600, fit: 'cover', quality: 80, format: 'auto' },
+  {
+    width: 800,
+    height: 600,
+    fit: 'cover',
+    quality: 80,
+    format: 'auto',
+    delivery: 'public',
+  },
 );
 
 console.log(variant.url);
 console.log(`${variant.usage.used}/${variant.usage.limit}`);
 ```
 
-Call `transformImage()` only in trusted server code because the client contains your project API key. The returned CDN URL is safe to send to browsers or store in application data.
+Call `transformImage()` only in trusted server code because the client contains your project API key. The returned CDN URL is safe to send to browsers.
+
+Use `delivery: 'public'` for permanent public assets such as product images, avatars, blog images, CSS backgrounds, and `srcset` entries. The URL does not expire, `expiresAt` is `null`, and you can store it in application data. Use the default `delivery: 'signed'` for temporary or access-controlled transform delivery; it expires after at most 25 hours and should be refreshed by your backend. Signed delivery does not hide an original Cloud URL that you publish separately.
 
 Repeated calls with the same file and options do not consume more units in the current month. An explicit output format uses 1 unit; `format: 'auto'` uses 3 units because it can generate AVIF, WebP, and JPEG variants. Transformations require a live (`uk_live_`) key.
 

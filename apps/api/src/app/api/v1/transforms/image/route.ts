@@ -47,8 +47,8 @@ async function handlePost(req: NextRequest, ctx: ApiContext): Promise<NextRespon
     throw new UploadKitError('UNSUPPORTED_TRANSFORM_TYPE', 'Only image files can be transformed', 415);
   }
 
-  const { key: _key, ...transform } = parsed.data;
-  const result = createImageTransformUrl(file.key, transform);
+  const { key: _key, delivery, ...transform } = parsed.data;
+  const result = createImageTransformUrl(file.key, transform, delivery);
   const period = new Date().toISOString().slice(0, 7);
   const limit = ctx.imageTransformLimit ?? TIER_LIMITS[ctx.tier].maxImageTransformsPerMonth;
   const reservation = await reserveUniqueImageTransform({

@@ -157,7 +157,7 @@ const TOOLS = [
   {
     name: 'transform_image',
     description:
-      'Generate a signed, CDN-cached image variant for a file stored in UploadKit Cloud. Requires a paid plan, a live API key in the MCP process environment as UPLOADKIT_API_KEY, and an image key returned by UploadKit. BYOS files are not supported. Explicit formats consume 1 transformation unit; auto consumes 3 units and negotiates AVIF, WebP, or JPEG from the browser Accept header.\n\nWhen to use: after an image is uploaded and the user wants a resized, cropped, optimized, or converted delivery URL. The returned URL is safe to send to browsers; the API key remains server-side.\n\nReturns: JSON { url, expiresAt, transform, usage }. Has the side effect of reserving monthly transformation units for a new unique variant.',
+      'Generate a CDN-cached image variant for a file stored in UploadKit Cloud. Requires a paid plan, a live API key in the MCP process environment as UPLOADKIT_API_KEY, and an image key returned by UploadKit. BYOS files are not supported. Use signed delivery for private or temporary content and public delivery for stable URLs in websites, apps, srcset, CSS, or stored application data. Explicit formats consume 1 transformation unit; auto consumes 3 units.\n\nWhen to use: after an image is uploaded and the user wants a resized, cropped, optimized, or converted delivery URL. The returned URL is safe to send to browsers; the API key remains server-side.\n\nReturns: JSON { url, expiresAt, delivery, transform, usage }. Has the side effect of reserving monthly transformation units for a new unique variant.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -177,6 +177,12 @@ const TOOLS = [
           type: 'string',
           enum: ['auto', 'avif', 'webp', 'jpeg', 'png'],
           default: 'auto',
+        },
+        delivery: {
+          type: 'string',
+          enum: ['signed', 'public'],
+          default: 'signed',
+          description: 'signed expires and suits private content; public is stable and suits permanent public assets.',
         },
       },
       required: ['key'],
@@ -357,6 +363,7 @@ export function registerTools(server: Server): void {
           fit: typeof args.fit === 'string' ? args.fit : 'scale-down',
           quality: typeof args.quality === 'number' ? args.quality : 85,
           format: typeof args.format === 'string' ? args.format : 'auto',
+          delivery: typeof args.delivery === 'string' ? args.delivery : 'signed',
         };
         const baseUrl = (process.env['UPLOADKIT_API_URL'] ?? 'https://api.uploadkit.dev')
           .replace(/\/+$/, '');
