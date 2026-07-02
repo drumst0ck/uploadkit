@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FolderOpen, Gauge, Menu, Upload, WandSparkles } from 'lucide-react';
+import { FolderOpen, Gauge, Menu, WandSparkles } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
 export function MobileBottomNav({ onMenuOpen }: { onMenuOpen: () => void }) {
@@ -11,11 +11,6 @@ export function MobileBottomNav({ onMenuOpen }: { onMenuOpen: () => void }) {
   const items = [
     { label: 'Home', href: '/dashboard', icon: Gauge },
     { label: 'Projects', href: '/dashboard/projects', icon: FolderOpen },
-    {
-      label: 'Files',
-      href: slug ? `/dashboard/projects/${slug}/files` : '/dashboard/projects',
-      icon: Upload,
-    },
     {
       label: 'Transform',
       href: slug ? `/dashboard/projects/${slug}/transforms` : '/dashboard/projects',
@@ -26,11 +21,11 @@ export function MobileBottomNav({ onMenuOpen }: { onMenuOpen: () => void }) {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-3 bottom-3 z-40 grid h-16 grid-cols-5 rounded-2xl border border-border/80 bg-background/92 px-1 shadow-2xl shadow-black/20 backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-3 bottom-3 z-40 grid h-16 grid-cols-4 rounded-2xl border border-border/80 bg-background/92 px-1 shadow-2xl shadow-black/20 backdrop-blur-xl lg:hidden"
     >
       {items.map((item) => {
         const Icon = item.icon;
-        const needsProject = item.label === 'Files' || item.label === 'Transform';
+        const needsProject = item.label === 'Transform';
         const active = needsProject && !slug
           ? false
           : item.href === '/dashboard'
