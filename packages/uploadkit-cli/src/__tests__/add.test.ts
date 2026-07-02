@@ -40,11 +40,10 @@ function cloneFixture(name: 'next-app' | 'remix' | 'vite-react' | 'sveltekit'): 
 // --------------------------------------------------------------------------
 
 describe('add/catalog', () => {
-  it('exports exactly 6 canonical aliases', () => {
-    expect(COMPONENT_ALIASES).toHaveLength(6);
-    expect(new Set(COMPONENT_ALIASES)).toEqual(
-      new Set(['dropzone', 'button', 'modal', 'gallery', 'queue', 'progress']),
-    );
+  it('exports expanded canonical aliases including cropper', () => {
+    expect(COMPONENT_ALIASES).toHaveLength(20);
+    expect(COMPONENT_ALIASES).toContain('cropper');
+    expect(COMPONENT_ALIASES).toContain('dropzone');
   });
 
   it('maps each alias to @uploadkitdev/react named export', () => {
@@ -59,7 +58,7 @@ describe('add/catalog', () => {
   it('isComponentAlias narrows on known aliases only', () => {
     expect(isComponentAlias('dropzone')).toBe(true);
     expect(isComponentAlias('progress')).toBe(true);
-    expect(isComponentAlias('cropper')).toBe(false);
+    expect(isComponentAlias('cropper')).toBe(true);
     expect(isComponentAlias('')).toBe(false);
   });
 });
@@ -302,12 +301,12 @@ describe('commands/add.ts', () => {
     const root = cloneFixture('next-app');
     cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue(root);
 
-    const code = await addRun(parseArgs(['add', 'cropper']));
+    const code = await addRun(parseArgs(['add', 'not-a-component']));
     expect(code).toBe(1);
     const raw = stderrSpy.mock.calls.flat().join('');
     // eslint-disable-next-line no-control-regex
     const err = raw.replace(/\u001b\[[0-9;]*m/g, '');
-    expect(err).toMatch(/Unknown component: cropper/);
+    expect(err).toMatch(/Unknown component: not-a-component/);
     expect(err).toMatch(/dropzone/);
   });
 

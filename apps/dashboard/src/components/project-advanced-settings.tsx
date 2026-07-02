@@ -19,7 +19,7 @@ interface ByosSettingsProps {
   };
 }
 
-export function ByosSettings({ slug, tier, initial }: ByosSettingsProps) {
+export function ByosSettings({ slug, tier: _tier, initial }: ByosSettingsProps) {
   const [storageMode, setStorageMode] = React.useState(initial.storageMode);
   const [provider, setProvider] = React.useState(initial.provider ?? 'r2');
   const [endpoint, setEndpoint] = React.useState(initial.endpoint ?? '');

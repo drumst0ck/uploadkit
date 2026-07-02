@@ -1,0 +1,1 @@
+<UploadKanban endpoint="uploads" />

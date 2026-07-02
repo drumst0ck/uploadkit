@@ -1,0 +1,1 @@
+<UploadEnvelope endpoint="uploads" />

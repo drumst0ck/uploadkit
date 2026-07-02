@@ -1,0 +1,1 @@
+<UploadPolaroid endpoint="uploads" />

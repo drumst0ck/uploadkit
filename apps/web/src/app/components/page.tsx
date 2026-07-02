@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ComponentShowcase } from '../../test/components/component-showcase';
+import { ComponentShowcase } from '../test/components/component-showcase';
 
 export const metadata: Metadata = {
   title: 'React Upload Components — UploadKit',

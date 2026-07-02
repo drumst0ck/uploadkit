@@ -1,4 +1,4 @@
-import 'server-only';
+// Server-side only — do not import in browser code
 
 import type { S3CompatibleStorage } from './types';
 
@@ -35,13 +35,14 @@ export function createR2Storage(config: R2StorageConfig): S3CompatibleStorage {
 
 /** Factory for AWS S3 BYOS storage config. */
 export function createS3Storage(config: S3StorageConfig): S3CompatibleStorage {
-  return {
+  const storage: S3CompatibleStorage = {
     region: config.region,
-    endpoint: config.endpoint,
     accessKeyId: config.accessKeyId,
     secretAccessKey: config.secretAccessKey,
     bucket: config.bucket,
   };
+  if (config.endpoint) storage.endpoint = config.endpoint;
+  return storage;
 }
 
 /** Factory for Google Cloud Storage (S3-compatible interoperability). */

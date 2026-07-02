@@ -7,8 +7,8 @@ import type { ParsedArgs } from '../args.js';
  * Generates UploadKit config from UploadThing env vars.
  * Reads UPLOADTHING_SECRET / UPLOADTHING_APP_ID and writes lib/uploadkit.ts.
  */
-export async function run(parsed: ParsedArgs): Promise<number> {
-  const cwd = parsed.cwd ?? process.cwd();
+export async function run(_parsed: ParsedArgs): Promise<number> {
+  const cwd = process.cwd();
   const envPath = join(cwd, '.env.local');
   const outPath = join(cwd, 'lib', 'uploadkit.ts');
 

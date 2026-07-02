@@ -1,0 +1,1 @@
+<UploadDropzoneNeon endpoint="uploads" />

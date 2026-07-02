@@ -1,0 +1,1 @@
+<UploadTimeline endpoint="uploads" />

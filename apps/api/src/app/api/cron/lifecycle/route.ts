@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { connectDB, Project, File } from '@uploadkitdev/db';
-import { deleteR2Objects } from '@/lib/r2-delete';
+import { r2Client, R2_BUCKET } from '@/lib/storage';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
@@ -41,8 +43,19 @@ export async function GET(req: NextRequest) {
 
     if (stale.length === 0) continue;
 
-    const keys = stale.map((f) => f.key).filter(Boolean);
-    await deleteR2Objects(keys);
+    await Promise.allSettled(
+      stale.map(async (file) => {
+        if (!file.key) return;
+        try {
+          await r2Client.send(
+            new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: file.key }),
+          );
+        } catch (err) {
+          console.warn(`[lifecycle] DeleteObject failed for key=${file.key}:`, err);
+        }
+      }),
+    );
+
     await File.updateMany(
       { _id: { $in: stale.map((f) => f._id) } },
       { status: 'DELETED', deletedAt: new Date() },
