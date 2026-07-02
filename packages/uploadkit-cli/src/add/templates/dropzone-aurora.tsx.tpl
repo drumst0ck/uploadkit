@@ -1,0 +1,1 @@
+<UploadDropzoneAurora endpoint="uploads" />

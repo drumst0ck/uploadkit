@@ -3,6 +3,7 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: [
     'src/index.ts',
+    'src/byos-entry.ts',
     'src/ssr-plugin.tsx',
     'src/adapters/express.ts',
     'src/adapters/fastify.ts',

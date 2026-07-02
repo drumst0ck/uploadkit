@@ -2152,3 +2152,41 @@
   border-radius: 0 999px 999px 0;
   transition: width 220ms ease-out;
 }
+
+/* ----------------------------------------------------------
+   UploadCropper
+   ---------------------------------------------------------- */
+.uk-cropper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-family: var(--uk-font);
+}
+
+.uk-cropper__canvas {
+  width: 100%;
+  max-width: 400px;
+  border-radius: var(--uk-radius);
+  border: 1px solid var(--uk-border);
+  background: var(--uk-bg-secondary);
+}
+
+.uk-cropper__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.uk-cropper__slider-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  color: var(--uk-text-secondary);
+}
+
+.uk-cropper__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}

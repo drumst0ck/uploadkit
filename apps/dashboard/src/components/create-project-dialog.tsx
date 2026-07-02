@@ -14,11 +14,21 @@ import {
 import { useProjects } from '../hooks/use-projects';
 
 interface CreateProjectDialogProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  /** Controlled mode — omit children when using open/onOpenChange */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
-  const [open, setOpen] = React.useState(false);
+export function CreateProjectDialog({
+  children,
+  open: controlledOpen,
+  onOpenChange,
+}: CreateProjectDialogProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const [name, setName] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -46,10 +56,7 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
       }
 
       const project = (await res.json()) as { slug: string };
-
-      // Refresh SWR cache for ProjectSwitcher and projects page
       await mutate();
-
       setOpen(false);
       setName('');
       router.push(`/dashboard/projects/${project.slug}`);
@@ -70,7 +77,7 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
       <DialogContent className="bg-card border-border text-foreground sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-foreground">Create a new project</DialogTitle>

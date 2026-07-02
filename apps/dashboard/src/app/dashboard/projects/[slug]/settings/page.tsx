@@ -2,6 +2,12 @@ import { redirect, notFound } from 'next/navigation';
 import { auth } from '../../../../../../auth';
 import { connectDB, Project } from '@uploadkitdev/db';
 import { ProjectSettingsForm } from '../../../../../components/project-settings-form';
+import {
+  ByosSettings,
+  CustomDomainSettings,
+  LifecycleSettings,
+} from '../../../../../components/project-advanced-settings';
+import { getUserTier } from '../../../../../lib/tier';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,12 +23,10 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
 
   await connectDB();
 
-  // T-06-17: scope lookup to userId — prevents cross-user access
-  const project = await Project.findOne({ slug, userId: session.user.id })
-    .select('name slug')
-    .lean();
-
+  const project = await Project.findOne({ slug, userId: session.user.id }).lean();
   if (!project) notFound();
+
+  const tier = await getUserTier(session.user.id);
 
   return (
     <div className="flex flex-col gap-8">
@@ -33,9 +37,40 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
         </p>
       </div>
 
-      <ProjectSettingsForm
-        initialName={project.name}
+      <ProjectSettingsForm initialName={project.name} slug={project.slug} />
+
+      <ByosSettings
         slug={project.slug}
+        tier={tier}
+        initial={{
+          storageMode: project.storageMode ?? 'managed',
+          hasByosConfig: Boolean(project.byosConfig),
+          ...(project.byosConfig
+            ? {
+                provider: project.byosConfig.provider,
+                ...(project.byosConfig.endpoint ? { endpoint: project.byosConfig.endpoint } : {}),
+                region: project.byosConfig.region,
+                bucket: project.byosConfig.bucket,
+                accessKeyId: project.byosConfig.accessKeyId,
+                ...(project.byosConfig.publicUrl ? { publicUrl: project.byosConfig.publicUrl } : {}),
+              }
+            : {}),
+        }}
+      />
+
+      <CustomDomainSettings
+        slug={project.slug}
+        tier={tier}
+        {...(project.customCdnDomain ? { initialDomain: project.customCdnDomain } : {})}
+        verified={project.customCdnVerified ?? false}
+      />
+
+      <LifecycleSettings
+        slug={project.slug}
+        initial={{
+          enabled: project.lifecyclePolicy?.enabled ?? false,
+          retentionDays: project.lifecyclePolicy?.retentionDays ?? 30,
+        }}
       />
     </div>
   );

@@ -60,6 +60,7 @@ describe('dispatch', () => {
       'add',
       'init',
       'migrate-supabase',
+      'migrate-uploadthing',
       'restore',
       'rewrite-urls',
     ]);

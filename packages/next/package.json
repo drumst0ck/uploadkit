@@ -53,6 +53,11 @@
       "types": "./dist/adapters/hono.d.ts",
       "import": "./dist/adapters/hono.mjs",
       "require": "./dist/adapters/hono.js"
+    },
+    "./byos": {
+      "types": "./dist/byos-entry.d.ts",
+      "import": "./dist/byos-entry.mjs",
+      "require": "./dist/byos-entry.js"
     }
   },
   "files": [

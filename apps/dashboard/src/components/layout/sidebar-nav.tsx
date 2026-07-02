@@ -15,6 +15,9 @@ import {
   ScrollText,
   WandSparkles,
   ShieldCheck,
+  Users,
+  Webhook,
+  Cog,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkitdev/ui';
 import { cn } from '../../lib/cn';
@@ -30,6 +33,7 @@ const TOP_NAV_ITEMS: NavItem[] = [
   { label: 'Projects', href: '/dashboard/projects', icon: FolderOpen },
   { label: 'Usage', href: '/dashboard/usage', icon: BarChart3 },
   { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
+  { label: 'Team', href: '/dashboard/team', icon: Users },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
@@ -39,7 +43,9 @@ const PROJECT_NAV_ITEMS: NavItem[] = [
   { label: 'Transformations', href: 'transforms', icon: WandSparkles },
   { label: 'API Keys', href: 'keys', icon: KeyRound },
   { label: 'File Routes', href: 'routes', icon: Route },
+  { label: 'Webhooks', href: 'webhooks', icon: Webhook },
   { label: 'Logs', href: 'logs', icon: ScrollText },
+  { label: 'Settings', href: 'settings', icon: Cog },
 ];
 
 interface SidebarNavProps {

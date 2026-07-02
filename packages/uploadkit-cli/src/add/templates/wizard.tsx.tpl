@@ -1,0 +1,1 @@
+<UploadStepWizard endpoint="uploads" />

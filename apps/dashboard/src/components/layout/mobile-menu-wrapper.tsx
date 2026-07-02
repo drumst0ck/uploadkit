@@ -5,6 +5,7 @@ import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { CommandPalette } from '../command-palette';
 import { MobileBottomNav } from './mobile-bottom-nav';
+import { CreateProjectDialog } from '../create-project-dialog';
 
 interface Project {
   _id: string;
@@ -78,17 +79,10 @@ export function MobileMenuWrapper({
         onCreateProject={() => setCreateProjectOpen(true)}
       />
 
-      {/* TODO: wire createProjectOpen to the CreateProjectDialog from projects page */}
-      {/* The dialog state is hoisted here but the dialog itself lives on the projects page */}
-      {createProjectOpen && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="sr-only"
-        >
-          Navigate to projects page to create a project
-        </div>
-      )}
+      <CreateProjectDialog
+        open={createProjectOpen}
+        onOpenChange={setCreateProjectOpen}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import type { Tier } from '@uploadkitdev/shared';
 import { UsageProgressBar } from '../../../components/usage-progress-bar';
 import { UsageBarChart } from '../../../components/charts/usage-bar-chart';
 import { formatBytes, formatNumber } from '../../../lib/format';
+import { AdvancedAnalytics } from '../../../components/advanced-analytics';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,6 +113,8 @@ export default async function UsagePage() {
           <p className="text-sm text-muted-foreground">No historical data yet. Usage records will appear here once you start uploading files.</p>
         </div>
       )}
+
+      <AdvancedAnalytics userId={userId} tier={tier} />
     </div>
   );
 }
