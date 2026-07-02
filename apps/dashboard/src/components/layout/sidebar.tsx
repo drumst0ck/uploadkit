@@ -1,9 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
-import { Sheet, SheetContent } from '@uploadkitdev/ui';
 import { TooltipProvider } from '@uploadkitdev/ui';
+import { X } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { Logo } from '../logo';
 import { SidebarNav } from './sidebar-nav';
@@ -107,6 +108,37 @@ export function Sidebar({
   const pathname = usePathname();
   const routeSlug = pathname.match(/^\/dashboard\/projects\/([^/]+)/)?.[1];
   const resolvedSlug = activeProjectSlug ?? routeSlug;
+  const closeButtonRef = React.useRef<HTMLButtonElement>(null);
+  const mobileDrawerRef = React.useRef<HTMLElement>(null);
+
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+    closeButtonRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onMobileClose?.();
+      if (event.key === 'Tab') {
+        const focusable = mobileDrawerRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+        if (!focusable?.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen, onMobileClose]);
+
+  React.useEffect(() => {
+    onMobileClose?.();
+  }, [pathname, onMobileClose]);
 
   return (
     <>
@@ -127,19 +159,43 @@ export function Sidebar({
         />
       </aside>
 
-      {/* Mobile off-canvas drawer */}
-      <Sheet open={mobileOpen} onOpenChange={(open) => !open && onMobileClose?.()}>
-        <SheetContent
-          side="left"
-          className="w-60 border-r border-border bg-background p-0"
-        >
-          <SidebarContent
-            collapsed={false}
-            activeProjectSlug={resolvedSlug}
-            initialProjects={initialProjects}
-          />
-        </SheetContent>
-      </Sheet>
+      {/* Mobile navigation drawer. Portal keeps it above the app shell and bottom dock. */}
+      {mobileOpen && typeof document !== 'undefined'
+        ? createPortal(
+            <div className="fixed inset-0 z-[80] lg:hidden">
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+                onClick={onMobileClose}
+                aria-label="Close navigation menu"
+              />
+              <aside
+                ref={mobileDrawerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="mobile-navigation-title"
+                className="absolute inset-y-0 left-0 w-[min(19rem,88vw)] border-r border-border bg-background shadow-2xl"
+              >
+                <h2 id="mobile-navigation-title" className="sr-only">Navigation menu</h2>
+                <button
+                  ref={closeButtonRef}
+                  type="button"
+                  onClick={onMobileClose}
+                  className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  aria-label="Close navigation menu"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <SidebarContent
+                  collapsed={false}
+                  activeProjectSlug={resolvedSlug}
+                  initialProjects={initialProjects}
+                />
+              </aside>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
