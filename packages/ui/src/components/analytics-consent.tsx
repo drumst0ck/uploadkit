@@ -10,6 +10,7 @@ type ConsentState = ConsentChoice | 'unset' | 'loading';
 
 interface AnalyticsConsentProps {
   children: ReactNode;
+  showSettingsButton?: boolean;
 }
 
 function readConsentCookie(): ConsentChoice | null {
@@ -55,7 +56,10 @@ function updateGoogleConsent(choice: ConsentChoice): void {
   });
 }
 
-export function AnalyticsConsent({ children }: AnalyticsConsentProps) {
+export function AnalyticsConsent({
+  children,
+  showSettingsButton = true,
+}: AnalyticsConsentProps) {
   const [consent, setConsent] = useState<ConsentState>('loading');
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -128,7 +132,7 @@ export function AnalyticsConsent({ children }: AnalyticsConsentProps) {
             </div>
           </div>
         </section>
-      ) : (
+      ) : showSettingsButton ? (
         <button
           type="button"
           data-uk-cookie-consent="settings"
@@ -136,7 +140,7 @@ export function AnalyticsConsent({ children }: AnalyticsConsentProps) {
         >
           Cookie settings
         </button>
-      )}
+      ) : null}
     </>
   );
 }
