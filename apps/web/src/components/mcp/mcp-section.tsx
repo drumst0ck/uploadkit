@@ -40,39 +40,39 @@ export function McpSection() {
       aria-labelledby="mcp-headline"
     >
       <div className="mx-auto max-w-[1200px] px-6">
-        <div
-          className="relative overflow-hidden rounded-[var(--radius-lg)] border border-white/[0.06] px-6 py-16 md:px-16 md:py-20"
-          style={{
-            background:
-              'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 65%), #0A0A0B',
-          }}
-        >
-          {/* Kicker */}
-          <div className="mb-6 flex justify-center">
-            <span
-              className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em]"
-              style={{
-                background: 'rgba(99,102,241,0.08)',
-                color: '#a5b4fc',
-              }}
-            >
-              <Sparkles className="h-3 w-3" aria-hidden="true" />
-              AI-Native
-            </span>
-          </div>
-
-          {/* Headline */}
-          <h2
-            id="mcp-headline"
-            className="mx-auto max-w-[720px] text-center font-display text-4xl font-black leading-[1.05] md:text-5xl"
+          <div
+            className="relative overflow-hidden rounded-[var(--radius-lg)] border border-white/[0.06] px-6 py-16 md:px-16 md:py-20 text-center"
             style={{
-              fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.02em',
-              color: 'var(--color-text-primary)',
+              background:
+                'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 65%), #0A0A0B',
             }}
           >
-            Your AI already knows UploadKit.
-          </h2>
+            {/* Kicker */}
+            <div className="mb-6 flex justify-center">
+              <span
+                className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em]"
+                style={{
+                  background: 'rgba(99,102,241,0.08)',
+                  color: '#a5b4fc',
+                }}
+              >
+                <Sparkles className="h-3 w-3" aria-hidden="true" />
+                AI-Native
+              </span>
+            </div>
+
+            {/* Headline */}
+            <h2
+              id="mcp-headline"
+              className="mx-auto max-w-[720px] font-display text-4xl font-black leading-[1.05] md:text-5xl"
+              style={{
+                fontFamily: 'var(--font-display)',
+                letterSpacing: '-0.02em',
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              Your AI already knows UploadKit.
+            </h2>
 
           {/* Sub */}
           <p
