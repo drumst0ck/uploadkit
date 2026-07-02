@@ -32,6 +32,135 @@ export default function ChangelogPage() {
           <div className="container">
             <article className="changelog-entry">
               <div className="changelog-entry-meta">
+                <time className="changelog-date" dateTime="2026-07-02">
+                  July 2, 2026
+                </time>
+                <span className="changelog-version">v1.3.0</span>
+              </div>
+
+              <div className="changelog-entry-body">
+                <h2 className="changelog-entry-title">
+                  Cloud image transformations &amp; Supabase migration
+                </h2>
+                <p className="changelog-entry-lead">
+                  UploadKit Cloud can now resize, crop, optimize, and convert
+                  images at the edge. We also shipped a resumable migration
+                  workflow for moving existing Supabase Storage buckets without
+                  losing URL mappings.
+                </p>
+
+                <h3 className="changelog-entry-subtitle">
+                  Production image pipeline
+                </h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    Width, height, fit, quality, and AVIF, WebP, JPEG, PNG, or
+                    automatic format negotiation through Cloudflare Images
+                  </li>
+                  <li>
+                    Stable public URLs for permanent embeds and expiring signed
+                    URLs for temporary delivery
+                  </li>
+                  <li>
+                    Readable, HMAC-protected recipes such as{' '}
+                    <code>w_480,h_320,fit_cover,q_78,f_webp</code>; previously
+                    issued Base64URL recipes remain valid
+                  </li>
+                  <li>
+                    Variants are generated on demand and cached globally without
+                    duplicating the original object in R2
+                  </li>
+                  <li>
+                    Monthly unique-variant quotas for Pro, Team, and Enterprise,
+                    with safe reservation support for standalone MongoDB as well
+                    as replica sets
+                  </li>
+                </ul>
+
+                <h3 className="changelog-entry-subtitle">
+                  Dashboard, SDK &amp; MCP
+                </h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    New responsive Transformation Studio with source search,
+                    pagination, presets, custom recipes, live usage, and history
+                  </li>
+                  <li>
+                    One-click production HTML generation with editable display
+                    dimensions, alt text, lazy loading, and stable public URLs
+                  </li>
+                  <li>
+                    <code>transformImage()</code> in the Core SDK and{' '}
+                    <code>transform_image</code> in the MCP server, keeping API
+                    keys in trusted server environments
+                  </li>
+                  <li>
+                    New homepage section and complete concept, REST API, SDK,
+                    quota, caching, security, and deployment documentation
+                  </li>
+                </ul>
+
+                <h3 className="changelog-entry-subtitle">
+                  Supabase Storage migration
+                </h3>
+                <ul className="changelog-entry-list">
+                  <li>
+                    <code>uploadkit migrate-supabase</code> streams bucket
+                    objects into UploadKit with configurable concurrency, prefix
+                    filtering, dry runs, and tier-aware size checks
+                  </li>
+                  <li>
+                    Resumable progress files survive interruptions and preserve
+                    an old-to-new URL mapping for every migrated object
+                  </li>
+                  <li>
+                    <code>uploadkit rewrite-urls</code> applies the generated
+                    mapping to application files after migration
+                  </li>
+                </ul>
+              </div>
+            </article>
+
+            <article className="changelog-entry">
+              <div className="changelog-entry-meta">
+                <time className="changelog-date" dateTime="2026-06-29">
+                  June 29, 2026
+                </time>
+                <span className="changelog-version">v1.2.1</span>
+              </div>
+
+              <div className="changelog-entry-body">
+                <h2 className="changelog-entry-title">
+                  Raycast uploads, privacy controls &amp; platform polish
+                </h2>
+                <ul className="changelog-entry-list">
+                  <li>
+                    New Raycast extension for uploading files directly from the
+                    desktop
+                  </li>
+                  <li>
+                    Google Tag Manager and subscription conversion tracking,
+                    gated behind explicit analytics consent
+                  </li>
+                  <li>
+                    File and project deletion now removes the corresponding R2
+                    objects and reclaims recorded storage usage
+                  </li>
+                  <li>
+                    Redesigned landing page, resilient copy actions, corrected
+                    navigation and footer destinations, and more accurate pricing
+                    copy
+                  </li>
+                  <li>
+                    Responsive dashboard shell and mobile navigation fixes across
+                    compact screens
+                  </li>
+                </ul>
+              </div>
+            </article>
+
+            <article className="changelog-entry">
+              <div className="changelog-entry-meta">
                 <time className="changelog-date" dateTime="2026-04-16">
                   April 16, 2026
                 </time>
