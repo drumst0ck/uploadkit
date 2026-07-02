@@ -32,7 +32,7 @@ export function createImageTransformUrl(
   // This bounds access after a file is deleted or a subscription is downgraded.
   const expires = Math.floor(now.getTime() / 1000 / ONE_HOUR_SECONDS) * ONE_HOUR_SECONDS
     + 25 * ONE_HOUR_SECONDS;
-  const encodedTransform = Buffer.from(JSON.stringify(transform)).toString('base64url');
+  const encodedTransform = serializeImageTransform(transform);
   const encodedKey = key.split('/').map(encodeURIComponent).join('/');
 
   if (delivery === 'public') {
@@ -62,6 +62,16 @@ export function signingPayload(expires: number, encodedTransform: string, key: s
 
 export function publicSigningPayload(encodedTransform: string, key: string): string {
   return `public\n${encodedTransform}\n${key}`;
+}
+
+export function serializeImageTransform(transform: CanonicalImageTransform): string {
+  return [
+    transform.width === undefined ? null : `w_${transform.width}`,
+    transform.height === undefined ? null : `h_${transform.height}`,
+    `fit_${transform.fit}`,
+    `q_${transform.quality}`,
+    `f_${transform.format}`,
+  ].filter((part): part is string => part !== null).join(',');
 }
 
 export function imageTransformFingerprint(key: string, transform: CanonicalImageTransform): string {

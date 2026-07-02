@@ -46,7 +46,7 @@ At least one dimension is required. `format: 'auto'` negotiates AVIF or WebP fro
 Use `delivery: 'public'` for assets that must keep working in a website or app without backend refreshes: avatars, product images, article media, Open Graph images, CSS backgrounds, and responsive `srcset` URLs. Public transform URLs are stable and have no expiry:
 
 ```text
-https://cdn.uploadkit.dev/p/<signature>/<options>/<file-key>
+https://cdn.uploadkit.dev/p/<signature>/w_800,h_600,fit_cover,q_80,f_webp/<file-key>
 ```
 
 Use `delivery: 'signed'` for private or temporary content. Signed URLs are valid for at most 25 hours:
@@ -54,7 +54,7 @@ Use `delivery: 'signed'` for private or temporary content. Signed URLs are valid
 The cloud API verifies the plan, project ownership, upload status, MIME type, and monthly quota before issuing a URL. Every URL contains an HMAC signature and expiry; altering its file key or options invalidates it.
 
 ```text
-https://cdn.uploadkit.dev/t/<expires>/<signature>/<options>/<file-key>
+https://cdn.uploadkit.dev/t/<expires>/<signature>/w_800,h_600,fit_cover,q_80,f_webp/<file-key>
 ```
 
 <Callout type="warn">
@@ -64,6 +64,8 @@ https://cdn.uploadkit.dev/t/<expires>/<signature>/<options>/<file-key>
 Generate URLs in trusted server code with a **live** (`uk_live_`) key through the Core SDK or REST API. Test keys cannot issue transformation URLs. Never expose an UploadKit API key in browser code.
 
 Both URL types include an HMAC signature, so changing the file key or transformation options invalidates the URL. Public means the URL does not expire; it does not mean callers can create arbitrary variants without your API key.
+
+The recipe segment is intentionally readable: `w` and `h` are dimensions, `fit` is the resize mode, `q` is quality, and `f` is the output format. It is safe to inspect and log, but not to edit manually—the signature covers the exact recipe. Generate a new signed URL through the SDK, API, MCP, or dashboard when options change. URLs issued before readable recipes were introduced remain valid.
 
 Public URLs remain stable across normal deployments and rotation of the short-lived signing key. UploadKit may invalidate them only during a security incident involving the dedicated public-signing key.
 

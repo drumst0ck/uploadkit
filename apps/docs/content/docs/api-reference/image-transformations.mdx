@@ -46,7 +46,7 @@ curl -X POST "https://api.uploadkit.dev/api/v1/transforms/image" \
 
 ```json
 {
-  "url": "https://cdn.uploadkit.dev/p/...",
+  "url": "https://cdn.uploadkit.dev/p/<signature>/w_800,h_600,fit_cover,q_80,f_auto/project/imageUploader/id/photo.jpg",
   "expiresAt": null,
   "delivery": "public",
   "transform": { "width": 800, "height": 600, "fit": "cover", "quality": 80, "format": "auto" },
@@ -57,6 +57,8 @@ curl -X POST "https://api.uploadkit.dev/api/v1/transforms/image" \
 `usage.counted` is `false` when that exact variant already exists in the current period. `usage.units` is `1` for an explicit format and `3` for `auto`.
 
 Public URLs use `/p/`, never expire, and are suitable for permanent frontend use. Signed URLs use `/t/` and return an ISO timestamp in `expiresAt`. Both paths are protected against modification: changing the file key or transform options invalidates the URL.
+
+Transformation recipes are readable and canonical: `w_<width>,h_<height>,fit_<mode>,q_<quality>,f_<format>`. Width or height is omitted when it was not requested. The HMAC signature covers the exact recipe, so editing parameters directly returns `403`; request a new URL instead.
 
 ### Errors
 
