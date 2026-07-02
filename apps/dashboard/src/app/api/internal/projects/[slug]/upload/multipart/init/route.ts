@@ -7,7 +7,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { connectDB, File, Project, Subscription, UsageRecord } from '@uploadkitdev/db';
-import { TIER_LIMITS, type Tier } from '@uploadkitdev/shared';
+import { TIER_LIMITS, type Tier, buildFileCdnUrl } from '@uploadkitdev/shared';
 import { auth } from '../../../../../../../../../auth';
 import { r2Client, R2_BUCKET, CDN_URL } from '@/lib/storage';
 
@@ -120,7 +120,7 @@ export async function POST(
     name: fileName,
     size: fileSize,
     type: contentType,
-    url: `${CDN_URL}/${key}`,
+    url: buildFileCdnUrl(project, CDN_URL, key),
     status: 'UPLOADING',
     uploadId: UploadId,
     projectId: project._id,

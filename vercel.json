@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/inactive-cleanup",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/cdn-verify",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/lifecycle",
+      "schedule": "0 4 * * *"
     }
   ]
 }

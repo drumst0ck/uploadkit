@@ -9,3 +9,9 @@
 
 # Inactive-account cleanup — once a day at 03:00 UTC
 0 3 * * * curl -fsS --max-time 300 -H "Authorization: Bearer ${CRON_SECRET}" "${API_URL}/api/cron/inactive-cleanup" || echo "[cron] inactive-cleanup failed"
+
+# Custom CDN hostname verification — every 15 minutes
+*/15 * * * * curl -fsS --max-time 120 -H "Authorization: Bearer ${CRON_SECRET}" "${API_URL}/api/cron/cdn-verify" || echo "[cron] cdn-verify failed"
+
+# File lifecycle retention — once a day at 04:00 UTC
+0 4 * * * curl -fsS --max-time 600 -H "Authorization: Bearer ${CRON_SECRET}" "${API_URL}/api/cron/lifecycle" || echo "[cron] lifecycle failed"

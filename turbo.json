@@ -21,7 +21,11 @@
     "GOOGLE_CLIENT_SECRET",
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
-    "RESEND_API_KEY"
+    "CDN_URL",
+    "CLOUDFLARE_API_TOKEN",
+    "CLOUDFLARE_ZONE_ID",
+    "CLOUDFLARE_CDN_FALLBACK",
+    "CRON_SECRET",
   ],
   "tasks": {
     "build": {

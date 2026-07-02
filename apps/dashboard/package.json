@@ -15,6 +15,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1028.0",
     "@sentry/nextjs": "latest",
     "@tanstack/react-table": "^8.21.3",
+    "@uploadkitdev/cloudflare": "workspace:*",
     "@uploadkitdev/core": "workspace:*",
     "@uploadkitdev/db": "workspace:*",
     "@uploadkitdev/emails": "workspace:*",

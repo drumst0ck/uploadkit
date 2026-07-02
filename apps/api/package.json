@@ -15,6 +15,7 @@
     "@aws-sdk/s3-request-presigner": "latest",
     "@sentry/nextjs": "latest",
     "@modelcontextprotocol/sdk": "latest",
+    "@uploadkitdev/cloudflare": "workspace:*",
     "@uploadkitdev/db": "workspace:*",
     "@uploadkitdev/emails": "workspace:*",
     "@uploadkitdev/mcp-core": "workspace:*",
