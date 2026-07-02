@@ -6,7 +6,7 @@
 
 Open-source TypeScript SDK + 40+ premium React components + managed storage on Cloudflare R2 — with BYOS (Bring Your Own Storage) mode so you can use your own S3, R2, GCS, or Backblaze B2 bucket. 5 GB free forever.
 
-[Website](https://uploadkit.dev) · [Docs](https://docs.uploadkit.dev) · [Dashboard](https://app.uploadkit.dev) · [Discord](https://discord.gg/mYgfVNfA2r) · [Changelog](https://uploadkit.dev/changelog)
+[Website](https://uploadkit.dev) · [Docs](https://docs.uploadkit.dev) · [Dashboard](https://app.uploadkit.dev) · [Changelog](https://uploadkit.dev/changelog)
 
 [![npm: @uploadkitdev/react](https://img.shields.io/npm/v/@uploadkitdev/react?label=%40uploadkitdev%2Freact)](https://www.npmjs.com/package/@uploadkitdev/react) [![npm: @uploadkitdev/mcp](https://img.shields.io/npm/v/@uploadkitdev/mcp?label=%40uploadkitdev%2Fmcp)](https://www.npmjs.com/package/@uploadkitdev/mcp) [![Glama MCP score](https://glama.ai/mcp/servers/drumst0ck/uploadkit/badges/score.svg)](https://glama.ai/mcp/servers/drumst0ck/uploadkit) [![Awesome MCP Servers](https://awesome.re/mentioned-badge.svg)](https://github.com/punkpeye/awesome-mcp-servers)
 
@@ -168,7 +168,7 @@ Next.js 16 · React 19 · Tailwind CSS v4 · TypeScript 5 · MongoDB + Mongoose 
 
 ## Status
 
-Version 1.0 shipped. Actively maintained. Community welcome on [Discord](https://discord.gg/mYgfVNfA2r).
+Version 1.0 shipped. Actively maintained. Issues and contributions are welcome on [GitHub](https://github.com/drumst0ck/uploadkit).
 
 ## License
 
