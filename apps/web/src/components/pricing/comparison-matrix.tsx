@@ -83,7 +83,6 @@ function buildFeatureRows(): FeatureRow[] {
     row('Image transforms/mo', (t) => formatImageTransformLimit(t)),
     row('Projects', (t) => formatTierLimitValue(t, 'maxProjects')),
     row('API keys', (t) => formatTierLimitValue(t, 'maxApiKeys')),
-    row('BYOS support', () => 'check'),
     row('Custom CDN domain', (t) => boolCell(t, TIER_FEATURES[t].customCdnDomain)),
     row('Analytics', (t) =>
       TIER_FEATURES[t].advancedAnalytics ? 'Advanced' : 'Basic',

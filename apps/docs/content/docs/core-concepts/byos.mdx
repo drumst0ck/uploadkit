@@ -8,9 +8,18 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ## What is BYOS?
 
-BYOS (Bring Your Own Storage) lets you use the UploadKit SDK, components, and API while storing files in **your own** S3-compatible bucket. No vendor lock-in.
+BYOS (Bring Your Own Storage) lets you use the UploadKit SDK and React components while storing files in **your own** S3-compatible bucket. No vendor lock-in.
 
-In managed mode (the default), files go to UploadKit's Cloudflare R2-backed storage. In BYOS mode, they go to your bucket — but the developer experience is identical. The same `UploadButton`, `UploadDropzone`, `useUploadKit`, and REST API endpoints work in both modes. Your frontend code never changes.
+<Callout type="info">
+**UploadKit Cloud vs self-hosted BYOS**
+
+- **UploadKit Cloud** (this dashboard, `uk_live_*` / `uk_test_*` keys): files always land on UploadKit's managed R2 + CDN. There is no BYOS toggle in project settings.
+- **Self-hosted BYOS** (open-source path): you run `createUploadKitHandler` in your app with a `storage` adapter. Same components on the frontend; credentials live in your server environment only.
+
+Pick one path per deployment — they are not mixed inside a single Cloud project.
+</Callout>
+
+In managed Cloud mode, files go to UploadKit's infrastructure. In BYOS mode, they go to your bucket — but the developer experience is identical. The same `UploadButton`, `UploadDropzone`, and `useUploadKit` work in both modes. Your frontend code never changes.
 
 ## Setup
 
