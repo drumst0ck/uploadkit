@@ -40,18 +40,18 @@ export function MetricCard({
   return (
     <SpotlightCard
       spotlightColor="rgba(129, 140, 248, 0.18)"
-      className="rounded-xl border border-border bg-card p-5 shadow-lg shadow-black/20 transition-all duration-300 hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5"
+      className="rounded-2xl border border-border bg-card p-3.5 shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/10 sm:p-5"
     >
       {/* Label + icon row */}
-      <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">{label}</span>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <span className="text-xs leading-tight text-muted-foreground sm:text-sm">{label}</span>
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 sm:h-8 sm:w-8">
           {icon}
         </div>
       </div>
 
       {/* Big animated number */}
-      <p className="mb-1 text-2xl font-semibold tracking-tight text-foreground">
+      <p className="mb-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
         <CountUp
           to={value}
           duration={1.6}
@@ -60,7 +60,7 @@ export function MetricCard({
           {...(decimals !== undefined ? { decimals } : {})}
         />
         {suffix && (
-          <span className="ml-1 text-base font-medium text-muted-foreground">
+          <span className="ml-1 text-sm font-medium text-muted-foreground sm:text-base">
             {suffix}
           </span>
         )}
@@ -70,7 +70,7 @@ export function MetricCard({
       {trend !== undefined && (
         <div
           className={cn(
-            'flex items-center gap-1 text-xs',
+            'hidden items-center gap-1 text-xs sm:flex',
             isPositive ? 'text-emerald-400' : 'text-red-400'
           )}
         >

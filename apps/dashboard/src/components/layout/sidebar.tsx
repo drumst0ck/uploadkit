@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { usePathname } from 'next/navigation';
 import { Sheet, SheetContent } from '@uploadkitdev/ui';
 import { TooltipProvider } from '@uploadkitdev/ui';
 import { cn } from '../../lib/cn';
@@ -103,6 +104,9 @@ export function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const { collapsed } = useSidebar();
+  const pathname = usePathname();
+  const routeSlug = pathname.match(/^\/dashboard\/projects\/([^/]+)/)?.[1];
+  const resolvedSlug = activeProjectSlug ?? routeSlug;
 
   return (
     <>
@@ -118,7 +122,7 @@ export function Sidebar({
       >
         <SidebarContent
           collapsed={collapsed}
-          activeProjectSlug={activeProjectSlug}
+          activeProjectSlug={resolvedSlug}
           initialProjects={initialProjects}
         />
       </aside>
@@ -131,7 +135,7 @@ export function Sidebar({
         >
           <SidebarContent
             collapsed={false}
-            activeProjectSlug={activeProjectSlug}
+            activeProjectSlug={resolvedSlug}
             initialProjects={initialProjects}
           />
         </SheetContent>
