@@ -137,10 +137,11 @@ describe('createUploadKit', () => {
     expect(result.deleted).toBe(2);
   });
 
-  it('transformImage() requests a signed transform URL', async () => {
+  it('transformImage() requests a public transform URL', async () => {
     mockFetchApi.mockResolvedValue({
-      url: 'https://cdn.uploadkit.dev/t/signed',
-      expiresAt: '2026-07-03T00:00:00.000Z',
+      url: 'https://cdn.uploadkit.dev/p/stable',
+      expiresAt: null,
+      delivery: 'public',
       transform: { width: 800, fit: 'cover', quality: 80, format: 'auto' },
       usage: { period: '2026-07', used: 1, limit: 5000, counted: true },
     });
@@ -151,6 +152,7 @@ describe('createUploadKit', () => {
       fit: 'cover',
       quality: 80,
       format: 'auto',
+      delivery: 'public',
     });
 
     expect(mockFetchApi).toHaveBeenCalledWith(
@@ -165,9 +167,10 @@ describe('createUploadKit', () => {
           fit: 'cover',
           quality: 80,
           format: 'auto',
+          delivery: 'public',
         },
       }),
     );
-    expect(result.url).toContain('cdn.uploadkit.dev/t/');
+    expect(result.url).toContain('cdn.uploadkit.dev/p/');
   });
 });

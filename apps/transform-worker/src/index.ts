@@ -3,6 +3,7 @@ interface Env {
   IMAGES: ImagesBinding;
   IMAGE_TRANSFORM_SECRET: string;
   IMAGE_TRANSFORM_SECRET_PREVIOUS?: string;
+  IMAGE_TRANSFORM_PUBLIC_SECRET: string;
   CACHE_TTL_SECONDS?: string;
 }
 
@@ -37,7 +38,6 @@ interface ImageTransform extends ImageResizeOptions {
   format: 'auto' | 'avif' | 'webp' | 'jpeg' | 'png';
 }
 
-const PREFIX = '/t/';
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const edgeCache = (caches as CacheStorage & { default: Cache }).default;
@@ -48,14 +48,26 @@ export default {
 
     try {
       const parsed = parseTransformRequest(new URL(request.url));
-      if (parsed.expires <= Math.floor(Date.now() / 1000)) {
-        return jsonError('TRANSFORM_URL_EXPIRED', 403);
+      if (parsed.delivery === 'signed') {
+        if (parsed.expires === null) return jsonError('INVALID_TRANSFORM_URL', 400);
+        if (parsed.expires <= Math.floor(Date.now() / 1000)) {
+          return jsonError('TRANSFORM_URL_EXPIRED', 403);
+        }
       }
-      if (!env.IMAGE_TRANSFORM_SECRET) return jsonError('WORKER_NOT_CONFIGURED', 503);
+      if (!env.IMAGE_TRANSFORM_SECRET
+        || (parsed.delivery === 'public' && (!env.IMAGE_TRANSFORM_PUBLIC_SECRET
+          || env.IMAGE_TRANSFORM_PUBLIC_SECRET === env.IMAGE_TRANSFORM_SECRET))) {
+        return jsonError('WORKER_NOT_CONFIGURED', 503);
+      }
 
-      const payload = signingPayload(parsed.expires, parsed.encodedTransform, parsed.key);
-      const valid = await verifySignature(env.IMAGE_TRANSFORM_SECRET, parsed.signature, payload)
-        || (env.IMAGE_TRANSFORM_SECRET_PREVIOUS
+      const payload = parsed.delivery === 'public'
+        ? publicSigningPayload(parsed.encodedTransform, parsed.key)
+        : signingPayload(parsed.expires!, parsed.encodedTransform, parsed.key);
+      const activeSecret = parsed.delivery === 'public'
+        ? env.IMAGE_TRANSFORM_PUBLIC_SECRET
+        : env.IMAGE_TRANSFORM_SECRET;
+      const valid = await verifySignature(activeSecret, parsed.signature, payload)
+        || (parsed.delivery === 'signed' && env.IMAGE_TRANSFORM_SECRET_PREVIOUS
           ? await verifySignature(env.IMAGE_TRANSFORM_SECRET_PREVIOUS, parsed.signature, payload)
           : false);
       if (!valid) return jsonError('INVALID_TRANSFORM_SIGNATURE', 403);
@@ -112,11 +124,18 @@ export default {
 class TransformRequestError extends Error {}
 
 export function parseTransformRequest(url: URL) {
-  if (!url.pathname.startsWith(PREFIX)) throw new TransformRequestError('NOT_FOUND');
-  const parts = url.pathname.slice(PREFIX.length).split('/');
-  const [expiresRaw, signature, encodedTransform, ...keyParts] = parts;
-  const expires = Number(expiresRaw);
-  if (!Number.isSafeInteger(expires) || !signature || !encodedTransform || keyParts.length === 0) {
+  const delivery = url.pathname.startsWith('/t/')
+    ? 'signed'
+    : url.pathname.startsWith('/p/') ? 'public' : null;
+  if (!delivery) throw new TransformRequestError('NOT_FOUND');
+  const parts = url.pathname.slice(3).split('/');
+  const expiresRaw = delivery === 'signed' ? parts.shift() : undefined;
+  const signature = parts.shift();
+  const encodedTransform = parts.shift();
+  const keyParts = parts;
+  const expires = delivery === 'signed' ? Number(expiresRaw) : null;
+  if ((delivery === 'signed' && !Number.isSafeInteger(expires))
+    || !signature || !encodedTransform || keyParts.length === 0) {
     throw new TransformRequestError('INVALID_TRANSFORM_URL');
   }
   let key: string;
@@ -126,7 +145,7 @@ export function parseTransformRequest(url: URL) {
     throw new TransformRequestError('INVALID_FILE_KEY');
   }
   if (!key || key.includes('\0')) throw new TransformRequestError('INVALID_FILE_KEY');
-  return { expires, signature, encodedTransform, key };
+  return { delivery, expires, signature, encodedTransform, key } as const;
 }
 
 export function decodeTransform(encoded: string): ImageTransform {
@@ -202,6 +221,10 @@ function signingPayload(expires: number, encodedTransform: string, key: string):
   return `${expires}\n${encodedTransform}\n${key}`;
 }
 
+function publicSigningPayload(encodedTransform: string, key: string): string {
+  return `public\n${encodedTransform}\n${key}`;
+}
+
 function base64UrlDecode(value: string): Uint8Array {
   const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
   const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
@@ -209,9 +232,11 @@ function base64UrlDecode(value: string): Uint8Array {
   return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
 
-function parseCacheTtl(raw: string | undefined, expires: number): number {
+function parseCacheTtl(raw: string | undefined, expires: number | null): number {
   const configured = Number.parseInt(raw ?? '3600', 10);
-  const remaining = Math.max(0, expires - Math.floor(Date.now() / 1000));
+  const remaining = expires === null
+    ? Number.POSITIVE_INFINITY
+    : Math.max(0, expires - Math.floor(Date.now() / 1000));
   return Math.min(Number.isFinite(configured) ? Math.max(60, configured) : 3_600, remaining);
 }
 

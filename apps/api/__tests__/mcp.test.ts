@@ -130,6 +130,8 @@ describe('POST /api/v1/mcp', () => {
           headers: expect.objectContaining({ Authorization: 'Bearer uk_live_mcp_test_secret' }),
         }),
       );
+      const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+      expect(JSON.parse(String(init.body))).toMatchObject({ delivery: 'signed' });
     } finally {
       vi.unstubAllGlobals();
       if (previous === undefined) delete process.env.UPLOADKIT_API_KEY;

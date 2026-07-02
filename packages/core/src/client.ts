@@ -91,7 +91,8 @@ export class UploadKitClient {
   }
 
   /**
-   * Create a signed, CDN-cacheable image transformation URL.
+   * Create a CDN-cacheable image transformation URL. Signed delivery expires;
+   * public delivery is stable and intended for permanent public assets.
    * Available only for paid projects using UploadKit-managed storage.
    */
   async transformImage(key: string, options: ImageTransformOptions): Promise<ImageTransformResult> {

@@ -1,13 +1,13 @@
 ---
 title: Image Transformations API
-description: Generate signed edge transformation URLs for images stored in UploadKit Cloud.
+description: Generate stable public or expiring signed edge transformation URLs for UploadKit Cloud images.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
 ## POST /api/v1/transforms/image
 
-Creates a signed URL for an image variant using the project API key.
+Creates a CDN URL for an image variant using the project API key. Delivery can be an expiring signed URL or a stable public URL.
 
 The endpoint allows 120 requests per minute per API key. Reuse returned URLs and avoid generating them on every browser request.
 
@@ -25,7 +25,8 @@ curl -X POST "https://api.uploadkit.dev/api/v1/transforms/image" \
     "height": 600,
     "fit": "cover",
     "quality": 80,
-    "format": "auto"
+    "format": "auto",
+    "delivery": "public"
   }'
 ```
 
@@ -39,19 +40,23 @@ curl -X POST "https://api.uploadkit.dev/api/v1/transforms/image" \
 | `fit` | string | No | `scale-down`, `contain`, `cover`, `crop`, or `pad`. |
 | `quality` | integer | No | Output quality from 1–100. Default `85`. |
 | `format` | string | No | `auto`, `avif`, `webp`, `jpeg`, or `png`. |
+| `delivery` | string | No | `signed` (default, expires) or `public` (stable URL). |
 
 ### Response
 
 ```json
 {
-  "url": "https://cdn.uploadkit.dev/t/...",
-  "expiresAt": "2026-07-02T13:00:00.000Z",
+  "url": "https://cdn.uploadkit.dev/p/...",
+  "expiresAt": null,
+  "delivery": "public",
   "transform": { "width": 800, "height": 600, "fit": "cover", "quality": 80, "format": "auto" },
   "usage": { "period": "2026-07", "used": 143, "limit": 5000, "units": 3, "counted": true }
 }
 ```
 
 `usage.counted` is `false` when that exact variant already exists in the current period. `usage.units` is `1` for an explicit format and `3` for `auto`.
+
+Public URLs use `/p/`, never expire, and are suitable for permanent frontend use. Signed URLs use `/t/` and return an ISO timestamp in `expiresAt`. Both paths are protected against modification: changing the file key or transform options invalidates the URL.
 
 ### Errors
 
