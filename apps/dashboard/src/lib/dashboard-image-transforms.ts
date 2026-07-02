@@ -23,7 +23,7 @@ export function createDashboardTransformUrl(
     : requiredEnv('IMAGE_TRANSFORM_SECRET');
   const hour = 3_600;
   const expires = Math.floor(Date.now() / 1000 / hour) * hour + 25 * hour;
-  const encodedTransform = Buffer.from(JSON.stringify(transform)).toString('base64url');
+  const encodedTransform = serializeDashboardTransform(transform);
   const encodedKey = key.split('/').map(encodeURIComponent).join('/');
   if (delivery === 'public') {
     const signature = createHmac('sha256', secret)
@@ -43,6 +43,16 @@ export function createDashboardTransformUrl(
     expiresAt: new Date(expires * 1000).toISOString(),
     delivery,
   };
+}
+
+function serializeDashboardTransform(transform: DashboardImageTransform) {
+  return [
+    transform.width === undefined ? null : `w_${transform.width}`,
+    transform.height === undefined ? null : `h_${transform.height}`,
+    `fit_${transform.fit}`,
+    `q_${transform.quality}`,
+    `f_${transform.format}`,
+  ].filter((part): part is string => part !== null).join(',');
 }
 
 export async function reserveDashboardTransform(input: {

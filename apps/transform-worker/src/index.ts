@@ -151,7 +151,9 @@ export function parseTransformRequest(url: URL) {
 export function decodeTransform(encoded: string): ImageTransform {
   let value: unknown;
   try {
-    value = JSON.parse(new TextDecoder().decode(base64UrlDecode(encoded)));
+    value = /^(?:w|h)_/.test(encoded)
+      ? parseReadableTransform(encoded)
+      : JSON.parse(new TextDecoder().decode(base64UrlDecode(encoded)));
   } catch {
     throw new TransformRequestError('INVALID_TRANSFORM_OPTIONS');
   }
@@ -168,6 +170,34 @@ export function decodeTransform(encoded: string): ImageTransform {
     throw new TransformRequestError('INVALID_TRANSFORM_OPTIONS');
   }
   return v as ImageTransform;
+}
+
+function parseReadableTransform(recipe: string): Partial<ImageTransform> {
+  if (recipe.length > 256) throw new TransformRequestError('INVALID_TRANSFORM_OPTIONS');
+  const value: Partial<ImageTransform> = {};
+  const seen = new Set<string>();
+  for (const component of recipe.split(',')) {
+    const separator = component.indexOf('_');
+    if (separator <= 0) throw new TransformRequestError('INVALID_TRANSFORM_OPTIONS');
+    const name = component.slice(0, separator);
+    const raw = component.slice(separator + 1);
+    if (!raw || seen.has(name)) throw new TransformRequestError('INVALID_TRANSFORM_OPTIONS');
+    seen.add(name);
+    if (name === 'w' || name === 'h' || name === 'q') {
+      if (!/^\d+$/.test(raw)) throw new TransformRequestError('INVALID_TRANSFORM_OPTIONS');
+      const number = Number(raw);
+      if (name === 'w') value.width = number;
+      else if (name === 'h') value.height = number;
+      else value.quality = number;
+    } else if (name === 'fit') {
+      value.fit = raw as ImageTransform['fit'];
+    } else if (name === 'f') {
+      value.format = raw as ImageTransform['format'];
+    } else {
+      throw new TransformRequestError('INVALID_TRANSFORM_OPTIONS');
+    }
+  }
+  return value;
 }
 
 function validDimension(value: number | undefined): boolean {

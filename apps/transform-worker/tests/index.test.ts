@@ -30,6 +30,29 @@ describe('image transform worker validation', () => {
     expect(() => decodeTransform(encoded)).toThrow('INVALID_TRANSFORM_OPTIONS');
   });
 
+  it('decodes readable recipes and keeps legacy Base64URL recipes working', async () => {
+    const { decodeTransform } = await import('../src/index');
+    expect(decodeTransform('w_480,h_320,fit_cover,q_78,f_webp')).toEqual({
+      width: 480, height: 320, fit: 'cover', quality: 78, format: 'webp',
+    });
+    const legacy = btoa(JSON.stringify({
+      width: 480, height: 320, fit: 'cover', quality: 78, format: 'webp',
+    })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    expect(decodeTransform(legacy)).toEqual({
+      width: 480, height: 320, fit: 'cover', quality: 78, format: 'webp',
+    });
+  });
+
+  it('rejects duplicate, unknown, or incomplete readable parameters', async () => {
+    const { decodeTransform } = await import('../src/index');
+    expect(() => decodeTransform('w_480,w_320,fit_cover,q_78,f_webp'))
+      .toThrow('INVALID_TRANSFORM_OPTIONS');
+    expect(() => decodeTransform('w_480,blur_2,fit_cover,q_78,f_webp'))
+      .toThrow('INVALID_TRANSFORM_OPTIONS');
+    expect(() => decodeTransform('w_480,fit_cover,f_webp'))
+      .toThrow('INVALID_TRANSFORM_OPTIONS');
+  });
+
   it('decodes nested object keys without allowing an empty key', async () => {
     const { parseTransformRequest } = await import('../src/index');
     expect(parseTransformRequest(new URL('https://cdn.uploadkit.dev/t/9999999999/sig/options/a/b.jpg')).key)

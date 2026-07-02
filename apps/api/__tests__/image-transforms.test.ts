@@ -100,6 +100,7 @@ describe('POST /api/v1/transforms/image', () => {
     expect(response.status).toBe(200);
     expect(body.url).toMatch(/^https:\/\/cdn\.uploadkit\.dev\/t\/\d+\/[A-Za-z0-9_-]+\//);
     expect(body.url).toContain('/project-1/images/photo.jpg');
+    expect(body.url).toContain('/w_800,fit_cover,q_85,f_auto/');
     expect(body.delivery).toBe('signed');
     expect(body.expiresAt).toEqual(expect.any(String));
     expect(body.transform).toEqual({ width: 800, fit: 'cover', quality: 85, format: 'auto' });
@@ -119,6 +120,7 @@ describe('POST /api/v1/transforms/image', () => {
     const body = await response.json();
     expect(response.status).toBe(200);
     expect(body.url).toMatch(/^https:\/\/cdn\.uploadkit\.dev\/p\/[A-Za-z0-9_-]+\//);
+    expect(body.url).toContain('/w_800,fit_scale-down,q_85,f_webp/');
     expect(body.expiresAt).toBeNull();
     expect(body.delivery).toBe('public');
     expect(body.usage).toMatchObject({ units: 1, counted: true });

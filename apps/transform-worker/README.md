@@ -47,3 +47,9 @@ The overlap keeps previously issued URLs valid without extending their lifetime.
 Do not include `IMAGE_TRANSFORM_PUBLIC_SECRET` in routine secret rotation. It is the stable identity of public transform URLs. Rotate it only for incident response and treat invalidation of existing `/p/*` URLs as an intentional breaking operation.
 
 The public Worker accepts only signed URLs issued by `POST /api/v1/transforms/image`. The API issues those URLs exclusively for paid projects and files recorded in UploadKit Cloud.
+
+New URLs contain a readable canonical recipe such as
+`w_800,h_600,fit_cover,q_80,f_webp`. The HMAC covers that exact segment, so
+parameters cannot be edited without a new signature. The Worker continues to
+accept legacy Base64URL recipe segments to avoid breaking previously issued
+public and signed URLs.
