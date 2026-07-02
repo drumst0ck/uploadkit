@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
+  Code2,
   History,
   ImageIcon,
   LoaderCircle,
@@ -21,7 +22,15 @@ import { formatBytes } from '../lib/format';
 
 interface TransformResult {
   url: string;
-  expiresAt: string;
+  expiresAt: string | null;
+  delivery: 'signed' | 'public';
+  transform: {
+    width?: number;
+    height?: number;
+    fit: 'scale-down' | 'contain' | 'cover' | 'crop' | 'pad';
+    quality: number;
+    format: 'auto' | 'avif' | 'webp' | 'jpeg' | 'png';
+  };
   usage: { used: number; limit: number; units: number; counted: boolean };
 }
 
@@ -76,15 +85,22 @@ export function ImageTransformStudio({
   const [quality, setQuality] = React.useState(85);
   const [fit, setFit] = React.useState<'scale-down' | 'contain' | 'cover' | 'crop' | 'pad'>('cover');
   const [format, setFormat] = React.useState<'auto' | 'avif' | 'webp' | 'jpeg' | 'png'>('auto');
+  const [delivery, setDelivery] = React.useState<'signed' | 'public'>('public');
   const [result, setResult] = React.useState<TransformResult | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = React.useState<'url' | 'html' | null>(null);
+  const [displayWidth, setDisplayWidth] = React.useState<number | ''>(1200);
+  const [displayHeight, setDisplayHeight] = React.useState<number | ''>(630);
+  const [altText, setAltText] = React.useState(initialFile ? defaultAlt(initialFile.name) : '');
   const [usage, setUsage] = React.useState(initialUsage);
   const [history, setHistory] = React.useState(initialHistory);
 
   React.useEffect(() => {
-    if (!selected && visibleFiles[0]) setSelected(visibleFiles[0]);
+    if (!selected && visibleFiles[0]) {
+      setSelected(visibleFiles[0]);
+      setAltText(defaultAlt(visibleFiles[0].name));
+    }
   }, [selected, visibleFiles]);
 
   const generate = () => {
@@ -102,6 +118,7 @@ export function ImageTransformStudio({
             fit,
             quality,
             format,
+            delivery,
           }),
         });
         const data = await response.json() as TransformResult & { error?: string };
@@ -110,6 +127,8 @@ export function ImageTransformStudio({
           return;
         }
         setResult(data);
+        setDisplayWidth(data.transform.width ?? '');
+        setDisplayHeight(data.transform.height ?? '');
         setUsage({ used: data.usage.used, limit: data.usage.limit });
         if (data.usage.counted) {
           setHistory((current) => [{
@@ -125,16 +144,24 @@ export function ImageTransformStudio({
     });
   };
 
-  const copyUrl = async () => {
-    if (!result) return;
+  const copyText = async (value: string, kind: 'url' | 'html') => {
     try {
-      await navigator.clipboard.writeText(result.url);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
+      await navigator.clipboard.writeText(value);
+      setCopied(kind);
+      window.setTimeout(() => setCopied(null), 1500);
     } catch {
-      setError('Your browser could not copy the URL.');
+      setError('Your browser could not copy to the clipboard.');
     }
   };
+
+  const htmlSnippet = result
+    ? buildImageHtml({
+        url: result.url,
+        alt: altText,
+        width: displayWidth,
+        height: displayHeight,
+      })
+    : '';
 
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(360px,.6fr)]">
@@ -170,7 +197,7 @@ export function ImageTransformStudio({
               <button
                 type="button"
                 key={file._id}
-                onClick={() => { setSelected(file); setResult(null); setError(null); }}
+                onClick={() => { setSelected(file); setResult(null); setError(null); setAltText(defaultAlt(file.name)); }}
                 className={cn(
                   'group relative overflow-hidden rounded-xl border bg-background text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
                   selected?._id === file._id ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-border hover:border-indigo-500/40',
@@ -236,9 +263,10 @@ export function ImageTransformStudio({
             <Field label="Height"><input type="number" min={1} max={4096} value={height} placeholder="Auto" onChange={(event) => setHeight(event.target.value === '' ? '' : Number(event.target.value))} className="studio-input" /></Field>
             <Field label="Fit"><select value={fit} onChange={(event) => setFit(event.target.value as typeof fit)} className="studio-input"><option value="cover">Cover</option><option value="contain">Contain</option><option value="crop">Crop</option><option value="pad">Pad</option><option value="scale-down">Scale down</option></select></Field>
             <Field label="Format"><select value={format} onChange={(event) => setFormat(event.target.value as typeof format)} className="studio-input"><option value="auto">Auto</option><option value="avif">AVIF</option><option value="webp">WebP</option><option value="jpeg">JPEG</option><option value="png">PNG</option></select></Field>
+            <div className="col-span-2"><Field label="Delivery"><select value={delivery} onChange={(event) => setDelivery(event.target.value as typeof delivery)} className="studio-input"><option value="public">Public · stable URL</option><option value="signed">Signed · expires</option></select></Field></div>
           </div>
           <label className="mt-4 block"><span className="mb-2 flex justify-between text-xs font-medium"><span>Quality</span><span className="font-mono text-muted-foreground">{quality}</span></span><input type="range" min={1} max={100} value={quality} onChange={(event) => setQuality(Number(event.target.value))} className="w-full accent-indigo-500" /></label>
-          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">This recipe uses <strong className="text-foreground">{format === 'auto' ? 3 : 1} unit{format === 'auto' ? 's' : ''}</strong>. Auto creates AVIF, WebP and fallback variants for content negotiation.</p>
+          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">This recipe uses <strong className="text-foreground">{format === 'auto' ? 3 : 1} unit{format === 'auto' ? 's' : ''}</strong>. {delivery === 'public' ? 'Public URLs stay stable for production embeds.' : 'Signed URLs expire and must be refreshed by your backend.'}</p>
 
           {!paid ? (
             <div className="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/8 p-4"><div className="flex gap-3"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" /><div><p className="text-sm font-medium">Available on paid plans</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Upgrade to generate production transformation URLs from the dashboard.</p></div></div><Button asChild size="sm" className="mt-3 w-full"><Link href="/dashboard/billing">View plans</Link></Button></div>
@@ -251,7 +279,26 @@ export function ImageTransformStudio({
         {result ? (
           <section className="overflow-hidden rounded-2xl border border-emerald-500/20 bg-card shadow-sm">
             <img src={result.url} alt={`Transformed preview of ${selected?.name ?? 'selected image'}`} className="max-h-72 w-full bg-[linear-gradient(45deg,var(--muted)_25%,transparent_25%,transparent_75%,var(--muted)_75%),linear-gradient(45deg,var(--muted)_25%,transparent_25%,transparent_75%,var(--muted)_75%)] bg-[length:20px_20px] object-contain" />
-            <div className="p-4"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-emerald-400">URL ready</p><p className="text-xs text-muted-foreground">{result.usage.used.toLocaleString()} / {result.usage.limit.toLocaleString()} units this month</p></div><Button size="sm" variant="outline" onClick={copyUrl} className="gap-2">{copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}{copied ? 'Copied' : 'Copy URL'}</Button></div><code className="mt-3 block truncate rounded-lg bg-background p-3 text-[11px] text-muted-foreground">{result.url}</code></div>
+            <div className="space-y-4 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div><p className="text-sm font-semibold text-emerald-400">{result.delivery === 'public' ? 'Stable URL ready' : 'Signed URL ready'}</p><p className="text-xs text-muted-foreground">{result.usage.used.toLocaleString()} / {result.usage.limit.toLocaleString()} units this month</p></div>
+                <Button size="sm" variant="outline" onClick={() => void copyText(result.url, 'url')} className="gap-2">{copied === 'url' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}{copied === 'url' ? 'Copied' : 'Copy URL'}</Button>
+              </div>
+              <code className="block truncate rounded-lg bg-background p-3 text-[11px] text-muted-foreground">{result.url}</code>
+
+              <div className="border-t border-border pt-4">
+                <div className="mb-3 flex items-center gap-2"><Code2 className="h-4 w-4 text-indigo-400" /><div><h3 className="text-sm font-semibold">HTML embed</h3><p className="text-[11px] text-muted-foreground">Choose how large the image should appear in your layout.</p></div></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Display width"><input type="number" min={1} value={displayWidth} placeholder="Auto" onChange={(event) => setDisplayWidth(event.target.value === '' ? '' : Number(event.target.value))} className="studio-input" /></Field>
+                  <Field label="Display height"><input type="number" min={1} value={displayHeight} placeholder="Auto" onChange={(event) => setDisplayHeight(event.target.value === '' ? '' : Number(event.target.value))} className="studio-input" /></Field>
+                  <div className="col-span-2"><Field label="Alt text"><input type="text" value={altText} onChange={(event) => setAltText(event.target.value)} placeholder="Describe the image" className="studio-input" /></Field></div>
+                </div>
+                <pre className="mt-3 max-h-44 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-border bg-background p-3 text-[11px] leading-relaxed text-muted-foreground"><code>{htmlSnippet}</code></pre>
+                {result.delivery === 'signed' ? <p className="mt-2 text-[11px] leading-relaxed text-amber-400">Generate with Public delivery before embedding permanently. This signed URL expires.</p> : null}
+                <Button onClick={() => void copyText(htmlSnippet, 'html')} disabled={result.delivery !== 'public'} className="mt-3 w-full gap-2"><Code2 className="h-4 w-4" />{copied === 'html' ? 'HTML copied' : 'Copy HTML element'}</Button>
+                <p className="mt-2 text-center text-[10px] text-muted-foreground" aria-live="polite">{copied === 'html' ? 'Ready to paste into your project.' : 'Includes lazy loading, async decoding, alt text and responsive sizing.'}</p>
+              </div>
+            </div>
           </section>
         ) : null}
       </aside>
@@ -261,4 +308,42 @@ export function ImageTransformStudio({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="block"><span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>{children}</label>;
+}
+
+export function buildImageHtml(input: {
+  url: string;
+  alt: string;
+  width: number | '';
+  height: number | '';
+}) {
+  const dimensions = [
+    validDisplayDimension(input.width) ? `  width="${input.width}"` : null,
+    validDisplayDimension(input.height) ? `  height="${input.height}"` : null,
+  ].filter((value): value is string => value !== null);
+  return [
+    '<img',
+    `  src="${escapeHtmlAttribute(input.url)}"`,
+    `  alt="${escapeHtmlAttribute(input.alt)}"`,
+    ...dimensions,
+    '  loading="lazy"',
+    '  decoding="async"',
+    '  style="max-width: 100%; height: auto;"',
+    '/>',
+  ].join('\n');
+}
+
+function validDisplayDimension(value: number | ''): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
+
+function escapeHtmlAttribute(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function defaultAlt(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, '').replaceAll(/[-_]+/g, ' ');
 }

@@ -10,19 +10,38 @@ export interface DashboardImageTransform {
   format: 'auto' | 'avif' | 'webp' | 'jpeg' | 'png';
 }
 
-export function createDashboardTransformUrl(key: string, transform: DashboardImageTransform) {
+export type DashboardTransformDelivery = 'signed' | 'public';
+
+export function createDashboardTransformUrl(
+  key: string,
+  transform: DashboardImageTransform,
+  delivery: DashboardTransformDelivery,
+) {
   const baseUrl = requiredEnv('IMAGE_TRANSFORM_BASE_URL').replace(/\/+$/, '');
-  const secret = requiredEnv('IMAGE_TRANSFORM_SECRET');
+  const secret = delivery === 'public'
+    ? requiredPublicSecret()
+    : requiredEnv('IMAGE_TRANSFORM_SECRET');
   const hour = 3_600;
   const expires = Math.floor(Date.now() / 1000 / hour) * hour + 25 * hour;
   const encodedTransform = Buffer.from(JSON.stringify(transform)).toString('base64url');
+  const encodedKey = key.split('/').map(encodeURIComponent).join('/');
+  if (delivery === 'public') {
+    const signature = createHmac('sha256', secret)
+      .update(`public\n${encodedTransform}\n${key}`)
+      .digest('base64url');
+    return {
+      url: `${baseUrl}/p/${signature}/${encodedTransform}/${encodedKey}`,
+      expiresAt: null,
+      delivery,
+    };
+  }
   const signature = createHmac('sha256', secret)
     .update(`${expires}\n${encodedTransform}\n${key}`)
     .digest('base64url');
-  const encodedKey = key.split('/').map(encodeURIComponent).join('/');
   return {
     url: `${baseUrl}/t/${expires}/${signature}/${encodedTransform}/${encodedKey}`,
     expiresAt: new Date(expires * 1000).toISOString(),
+    delivery,
   };
 }
 
@@ -117,8 +136,18 @@ export async function reserveDashboardTransform(input: {
   }
 }
 
-function requiredEnv(name: 'IMAGE_TRANSFORM_BASE_URL' | 'IMAGE_TRANSFORM_SECRET') {
+function requiredEnv(
+  name: 'IMAGE_TRANSFORM_BASE_URL' | 'IMAGE_TRANSFORM_SECRET' | 'IMAGE_TRANSFORM_PUBLIC_SECRET',
+) {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is required for image transformations`);
   return value;
+}
+
+function requiredPublicSecret() {
+  const publicSecret = requiredEnv('IMAGE_TRANSFORM_PUBLIC_SECRET');
+  if (publicSecret === requiredEnv('IMAGE_TRANSFORM_SECRET')) {
+    throw new Error('IMAGE_TRANSFORM_PUBLIC_SECRET must differ from IMAGE_TRANSFORM_SECRET');
+  }
+  return publicSecret;
 }
