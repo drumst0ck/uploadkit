@@ -22,6 +22,7 @@ interface SidebarProps {
   /** Mobile sheet open state (controlled by header hamburger button) */
   mobileOpen?: boolean | undefined;
   onMobileClose?: (() => void) | undefined;
+  isAdmin?: boolean | undefined;
 }
 
 // Context for sharing collapsed state with Header
@@ -62,10 +63,12 @@ function SidebarContent({
   collapsed,
   activeProjectSlug,
   initialProjects,
+  isAdmin,
 }: {
   collapsed: boolean;
   activeProjectSlug?: string | undefined;
   initialProjects?: Project[] | undefined;
+  isAdmin?: boolean | undefined;
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -82,7 +85,7 @@ function SidebarContent({
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-3">
         <TooltipProvider delayDuration={0}>
-          <SidebarNav collapsed={collapsed} />
+          <SidebarNav collapsed={collapsed} isAdmin={isAdmin ?? false} />
         </TooltipProvider>
       </div>
 
@@ -103,6 +106,7 @@ export function Sidebar({
   initialProjects,
   mobileOpen = false,
   onMobileClose,
+  isAdmin,
 }: SidebarProps) {
   const { collapsed } = useSidebar();
   const pathname = usePathname();
@@ -156,6 +160,7 @@ export function Sidebar({
           collapsed={collapsed}
           activeProjectSlug={resolvedSlug}
           initialProjects={initialProjects}
+          isAdmin={isAdmin}
         />
       </aside>
 
@@ -190,6 +195,7 @@ export function Sidebar({
                   collapsed={false}
                   activeProjectSlug={resolvedSlug}
                   initialProjects={initialProjects}
+                  isAdmin={isAdmin}
                 />
               </aside>
             </div>,

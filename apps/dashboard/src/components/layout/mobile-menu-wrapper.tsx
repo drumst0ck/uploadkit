@@ -20,6 +20,7 @@ interface MobileMenuWrapperProps {
   };
   onSignOut: () => void;
   initialProjects: Project[];
+  isAdmin?: boolean;
   children: React.ReactNode;
 }
 
@@ -27,6 +28,7 @@ export function MobileMenuWrapper({
   user,
   onSignOut,
   initialProjects,
+  isAdmin,
   children,
 }: MobileMenuWrapperProps) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -53,6 +55,7 @@ export function MobileMenuWrapper({
         initialProjects={initialProjects}
         mobileOpen={mobileOpen}
         onMobileClose={closeMobileMenu}
+        isAdmin={isAdmin}
       />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header

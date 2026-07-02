@@ -3,6 +3,7 @@ import { auth, signOut } from '../../../auth';
 import { connectDB, Project } from '@uploadkitdev/db';
 import { SidebarProvider } from '../../components/layout/sidebar';
 import { MobileMenuWrapper } from '../../components/layout/mobile-menu-wrapper';
+import { isAdminSession } from '../../lib/admin';
 
 // Force dynamic rendering — this layout calls auth() and connectDB() which
 // require runtime env vars (MONGODB_URI, AUTH_SECRET) unavailable at build time.
@@ -42,12 +43,15 @@ export default async function DashboardLayout({
     slug: p.slug,
   }));
 
+  const isAdmin = isAdminSession(session);
+
   return (
     <SidebarProvider>
       <MobileMenuWrapper
         user={user}
         onSignOut={handleSignOut}
         initialProjects={projects}
+        isAdmin={isAdmin}
       >
         {children}
       </MobileMenuWrapper>
