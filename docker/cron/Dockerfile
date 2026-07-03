@@ -1,7 +1,7 @@
 # Tiny cron container — runs supercronic to hit the api service cron
 # endpoints on a schedule. Keeps scheduling concerns out of the api
 # process itself, restart-safe, logs to stdout.
-FROM alpine:3.20
+FROM alpine:3.21
 
 ARG TARGETARCH
 ENV SUPERCRONIC_VERSION=v0.2.33
