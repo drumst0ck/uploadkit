@@ -6,6 +6,21 @@ export {
   isCloudflareCdnConfigured,
   mapCustomHostnameState,
 } from './custom-hostnames';
+export {
+  dnsRecordName,
+  guessApexDomain,
+  isCloudflareNameserver,
+  isDomainOnCloudflare,
+} from './dns-detect';
+export {
+  applyCdnValidationRecords,
+  buildCloudflareAuthorizationUrl,
+  exchangeCloudflareOAuthCode,
+  findZoneForHostname,
+  getCloudflareOAuthConfig,
+  isCloudflareOAuthConfigured,
+  listCloudflareZones,
+} from './oauth-dns';
 export type {
   CdnValidationRecord,
   CloudflareApiError,
@@ -13,3 +28,9 @@ export type {
   CustomCdnStatus,
   CustomHostnameState,
 } from './custom-hostnames';
+export type {
+  ApplyDnsRecordsResult,
+  CloudflareOAuthConfig,
+  CloudflareOAuthTokens,
+  CloudflareZone,
+} from './oauth-dns';
