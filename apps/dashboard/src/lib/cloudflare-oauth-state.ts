@@ -62,11 +62,19 @@ export function parseCloudflareOAuthState(token: string): CloudflareOAuthState {
 }
 
 export function getAppOriginFromRequest(req: NextRequest): string {
-  const forwardedHost = req.headers.get('x-forwarded-host');
-  const forwardedProto = req.headers.get('x-forwarded-proto') ?? 'https';
-  if (forwardedHost) {
-    return `${forwardedProto}://${forwardedHost.split(',')[0]?.trim()}`;
+  const configuredOrigin = process.env.NEXT_PUBLIC_APP_URL ?? process.env.AUTH_URL;
+  if (configuredOrigin) {
+    const url = new URL(configuredOrigin);
+    if (url.protocol !== 'https:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+      throw new Error('The configured app URL must use HTTPS');
+    }
+    return url.origin;
   }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('NEXT_PUBLIC_APP_URL or AUTH_URL must be configured in production');
+  }
+
   return new URL(req.url).origin;
 }
 

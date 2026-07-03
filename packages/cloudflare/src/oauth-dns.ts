@@ -39,6 +39,17 @@ interface CfDnsRecord {
   type: string;
   name: string;
   content: string;
+  proxied?: boolean;
+}
+
+export class CloudflareDnsConflictError extends Error {
+  constructor(recordName: string, currentValue: string, desiredValue: string) {
+    super(
+      `DNS conflict for ${recordName}: the existing record points to ${currentValue}. `
+      + `Remove or update it manually before configuring ${desiredValue}.`,
+    );
+    this.name = 'CloudflareDnsConflictError';
+  }
 }
 
 export function getCloudflareOAuthConfig(): CloudflareOAuthConfig | null {
@@ -159,10 +170,11 @@ export function findZoneForHostname(
 async function listDnsRecords(
   accessToken: string,
   zoneId: string,
-  type: string,
   name: string,
+  type?: string,
 ): Promise<CfDnsRecord[]> {
-  const params = new URLSearchParams({ type, name });
+  const params = new URLSearchParams({ name });
+  if (type) params.set('type', type);
   return oauthRequest<CfDnsRecord[]>(
     accessToken,
     `/zones/${zoneId}/dns_records?${params.toString()}`,
@@ -179,7 +191,7 @@ async function upsertDnsRecord(
     proxied?: boolean;
   },
 ): Promise<void> {
-  const existing = await listDnsRecords(accessToken, zoneId, input.type, input.name);
+  const existing = await listDnsRecords(accessToken, zoneId, input.name);
   const payload = {
     type: input.type,
     name: input.name,
@@ -188,18 +200,33 @@ async function upsertDnsRecord(
     ...(input.type === 'CNAME' ? { proxied: input.proxied ?? true } : {}),
   };
 
-  if (existing[0]) {
-    await oauthRequest(accessToken, `/zones/${zoneId}/dns_records/${existing[0].id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(payload),
-    });
+  const sameRecord = existing.find(
+    (record) => record.type === input.type && normalizeDnsValue(record.content) === normalizeDnsValue(input.content),
+  );
+
+  if (sameRecord) {
+    if (input.type === 'CNAME' && sameRecord.proxied !== (input.proxied ?? true)) {
+      await oauthRequest(accessToken, `/zones/${zoneId}/dns_records/${sameRecord.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+    }
     return;
+  }
+
+  if (input.type === 'CNAME' && existing.length > 0) {
+    const conflict = existing[0]!;
+    throw new CloudflareDnsConflictError(input.name, conflict.content, input.content);
   }
 
   await oauthRequest(accessToken, `/zones/${zoneId}/dns_records`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+function normalizeDnsValue(value: string): string {
+  return value.trim().replace(/\.$/, '').toLowerCase();
 }
 
 export interface ApplyDnsRecordsResult {
