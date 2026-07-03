@@ -78,6 +78,12 @@ export function PricingPreview() {
                       : formatNumber(tier.limits.maxImageTransformsPerMonth)}
                   </span>
                 </li>
+                <li>
+                  <span className="pricing-limit-label">Custom CDN domain</span>
+                  <span className="pricing-limit-value">
+                    {tier.features.customCdnDomain ? 'Included' : 'Not included'}
+                  </span>
+                </li>
               </ul>
 
               <a

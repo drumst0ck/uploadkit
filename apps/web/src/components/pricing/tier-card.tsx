@@ -97,6 +97,10 @@ export function TierCard({ tier, yearly }: TierCardProps) {
               <span className="tier-limit-label">Image transforms/mo</span>
               <span className="tier-limit-value">From 100,000</span>
             </li>
+            <li className="tier-limit-item">
+              <span className="tier-limit-label">Custom CDN domain</span>
+              <span className="tier-limit-value">Included</span>
+            </li>
           </>
         ) : (
           <>
@@ -127,7 +131,15 @@ export function TierCard({ tier, yearly }: TierCardProps) {
             <li className="tier-limit-item">
               <span className="tier-limit-label">Image transforms/mo</span>
               <span className="tier-limit-value">
-                {formatNumber(tier.limits.maxImageTransformsPerMonth)}
+                {tier.limits.maxImageTransformsPerMonth === 0
+                  ? 'Not included'
+                  : formatNumber(tier.limits.maxImageTransformsPerMonth)}
+              </span>
+            </li>
+            <li className="tier-limit-item">
+              <span className="tier-limit-label">Custom CDN domain</span>
+              <span className="tier-limit-value">
+                {tier.features.customCdnDomain ? 'Included' : 'Not included'}
               </span>
             </li>
           </>

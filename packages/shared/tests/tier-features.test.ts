@@ -23,6 +23,13 @@ describe('TIER_FEATURES', () => {
     expect(TIER_FEATURES.PRO.webhooks).toBe(true);
   });
 
+  it('includes custom CDN domains in every paid plan', () => {
+    expect(TIER_FEATURES.FREE.customCdnDomain).toBe(false);
+    expect(TIER_FEATURES.PRO.customCdnDomain).toBe(true);
+    expect(TIER_FEATURES.TEAM.customCdnDomain).toBe(true);
+    expect(TIER_FEATURES.ENTERPRISE.customCdnDomain).toBe(true);
+  });
+
   it('formats image transform limits', () => {
     expect(formatImageTransformLimit('FREE')).toBe('x');
     expect(formatImageTransformLimit('PRO')).toBe('5,000');

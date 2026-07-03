@@ -1,4 +1,4 @@
-import { TIER_LIMITS } from '@uploadkitdev/shared'
+import { TIER_FEATURES, TIER_LIMITS } from '@uploadkitdev/shared'
 
 /**
  * Formats a byte count to a human-readable string.
@@ -34,6 +34,7 @@ export const TIERS_DATA = [
     slug: 'free',
     price: { monthly: 0, yearly: 0 },
     limits: TIER_LIMITS.FREE,
+    features: TIER_FEATURES.FREE,
     popular: false,
     cta: 'Get started free',
     ctaHref: 'https://app.uploadkit.dev/login',
@@ -43,6 +44,7 @@ export const TIERS_DATA = [
     slug: 'pro',
     price: { monthly: 15, yearly: 12 },
     limits: TIER_LIMITS.PRO,
+    features: TIER_FEATURES.PRO,
     popular: true,
     cta: 'Start free trial',
     ctaHref: 'https://app.uploadkit.dev/login',
@@ -52,6 +54,7 @@ export const TIERS_DATA = [
     slug: 'team',
     price: { monthly: 35, yearly: 28 },
     limits: TIER_LIMITS.TEAM,
+    features: TIER_FEATURES.TEAM,
     popular: false,
     cta: 'Start free trial',
     ctaHref: 'https://app.uploadkit.dev/login',
@@ -61,6 +64,7 @@ export const TIERS_DATA = [
     slug: 'enterprise',
     price: { monthly: null, yearly: null },
     limits: TIER_LIMITS.ENTERPRISE,
+    features: TIER_FEATURES.ENTERPRISE,
     popular: false,
     cta: 'Contact sales',
     ctaHref: 'mailto:sales@uploadkit.dev',
