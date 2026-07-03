@@ -1,8 +1,13 @@
 /**
  * One-time Cloudflare SSL for SaaS setup for UploadKit custom CDN domains.
  *
- * Uses CLOUDFLARE_API_TOKEN from .env, or falls back to local Wrangler OAuth.
- * Writes CLOUDFLARE_ZONE_ID + CLOUDFLARE_CDN_FALLBACK to .env when missing.
+ * Architecture:
+ * - saas.uploadkit.dev  → originless AAAA (100::) proxied, Worker fallback origin
+ * - cname.uploadkit.dev → proxied CNAME → saas.uploadkit.dev (customer CNAME target)
+ * - cdn.uploadkit.dev   → R2 custom domain (managed CDN default, unchanged)
+ *
+ * Deploy the transform-worker (`pnpm --filter @uploadkitdev/transform-worker run deploy`)
+ * before or after running this script — the Worker wildcard route serves custom hostnames.
  */
 import 'dotenv/config';
 import { execSync } from 'node:child_process';
@@ -13,7 +18,9 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ENV_PATH = join(ROOT, '.env');
 const ZONE_NAME = 'uploadkit.dev';
-const FALLBACK_ORIGIN = 'cdn.uploadkit.dev';
+const SAAS_FALLBACK_ORIGIN = 'saas.uploadkit.dev';
+const CNAME_TARGET = 'cname.uploadkit.dev';
+const MANAGED_CDN = 'cdn.uploadkit.dev';
 
 interface CfResponse<T> {
   success: boolean;
@@ -108,14 +115,70 @@ function upsertEnvVar(key: string, value: string): void {
   console.log(`  → Updated .env: ${key}`);
 }
 
+async function findDnsRecord(
+  token: string,
+  zoneId: string,
+  fqdn: string,
+  type?: string,
+): Promise<DnsRecord | undefined> {
+  const typeQuery = type ? `&type=${type}` : '';
+  const dns = await cf<DnsRecord[]>(
+    token,
+    `/zones/${zoneId}/dns_records?name=${fqdn}&per_page=5${typeQuery}`,
+  );
+  if (!dns.success) return undefined;
+  return dns.result.find((r) => r.name === fqdn || r.name === `${fqdn}.`);
+}
+
+async function upsertDnsRecord(
+  token: string,
+  zoneId: string,
+  record: { type: 'AAAA' | 'CNAME'; name: string; content: string; proxied: boolean },
+): Promise<void> {
+  const fqdn = `${record.name}.${ZONE_NAME}`;
+  const existing = await findDnsRecord(token, zoneId, fqdn, record.type);
+  const body = {
+    type: record.type,
+    name: record.name,
+    content: record.content,
+    proxied: record.proxied,
+    ttl: 1,
+  };
+
+  if (existing) {
+    const updated = await cf<DnsRecord>(token, `/zones/${zoneId}/dns_records/${existing.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+    if (!updated.success) {
+      fail(`Failed to update DNS ${fqdn}`, updated.errors);
+    }
+    console.log(`   Updated ${record.type} ${fqdn} → ${record.content} (proxied: ${record.proxied})`);
+    return;
+  }
+
+  const created = await cf<DnsRecord>(token, `/zones/${zoneId}/dns_records`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  if (!created.success) {
+    fail(`Failed to create DNS ${fqdn}`, created.errors);
+  }
+  console.log(`   Created ${record.type} ${fqdn} → ${record.content} (proxied: ${record.proxied})`);
+}
+
 async function main() {
   console.log('UploadKit — Cloudflare SSL for SaaS setup\n');
 
   const lookupToken = resolveApiToken();
   const apiToken = process.env.CLOUDFLARE_API_TOKEN?.trim() ?? lookupToken;
-  const fallback = process.env.CLOUDFLARE_CDN_FALLBACK?.replace(/^https?:\/\//, '').replace(/\/$/, '')
-    ?? process.env.CDN_URL?.replace(/^https?:\/\//, '').replace(/\/$/, '')
-    ?? FALLBACK_ORIGIN;
+  const saasFallback =
+    process.env.CLOUDFLARE_SAAS_FALLBACK?.replace(/^https?:\/\//, '').replace(/\/$/, '')
+    ?? SAAS_FALLBACK_ORIGIN;
+  const cnameTarget =
+    process.env.CLOUDFLARE_CNAME_TARGET?.replace(/^https?:\/\//, '').replace(/\/$/, '')
+    ?? process.env.CLOUDFLARE_CDN_FALLBACK?.replace(/^https?:\/\//, '').replace(/\/$/, '')
+    ?? CNAME_TARGET;
 
   let zoneId = process.env.CLOUDFLARE_ZONE_ID?.trim();
 
@@ -132,47 +195,55 @@ async function main() {
     console.log(`1. Using CLOUDFLARE_ZONE_ID from .env (${zoneId})`);
   }
 
-  console.log(`\n2. Checking DNS for ${fallback}...`);
-  const dns = await cf<DnsRecord[]>(
-    apiToken,
-    `/zones/${zoneId}/dns_records?name=${fallback}&per_page=5`,
-  );
-  if (!dns.success) {
-    console.warn(`   ⚠ DNS lookup skipped (${dns.errors?.map((e) => e.message).join('; ') ?? 'no permission'})`);
-    console.warn('     Ensure cdn.uploadkit.dev exists and is proxied (R2 Custom Domain or orange-cloud CNAME).');
+  console.log(`\n2. Checking managed CDN ${MANAGED_CDN} (R2 custom domain)...`);
+  const cdnRecord = await findDnsRecord(apiToken, zoneId, MANAGED_CDN);
+  if (!cdnRecord) {
+    console.warn(`   ⚠ No DNS record for ${MANAGED_CDN}.`);
+    console.warn('     Add via R2 → bucket → Settings → Custom Domains.');
   } else {
-    const cdnRecord = dns.result.find((r) => r.name === fallback || r.name === `${fallback}.`);
-    if (!cdnRecord) {
-      console.warn(`   ⚠ No DNS record for ${fallback}.`);
-      console.warn('     Add it via R2 → bucket → Settings → Custom Domains, or create a proxied record.');
-    } else {
-      console.log(`   Found ${cdnRecord.type} ${cdnRecord.name} → ${cdnRecord.content}`);
-      console.log(`   Proxied: ${cdnRecord.proxied ? 'yes ✓' : 'no — must be proxied (orange cloud)'}`);
-      if (!cdnRecord.proxied) {
-        console.warn('   ⚠ Enable proxy on this record for SSL for SaaS to work.');
-      }
-    }
+    console.log(`   Found ${cdnRecord.type} ${cdnRecord.name} → ${cdnRecord.content}`);
+    console.log(`   Proxied: ${cdnRecord.proxied ? 'yes ✓' : 'no'}`);
   }
 
   if (!process.env.CLOUDFLARE_API_TOKEN?.trim()) {
-    console.log('\n3. Fallback origin — skipped (need CLOUDFLARE_API_TOKEN in .env)');
-    console.log('   Set fallback manually: https://dash.cloudflare.com/?to=/:account/:zone/ssl-tls/custom-hostnames');
-    console.log(`   Fallback Origin → ${fallback}`);
+    console.log('\n3. SaaS DNS + fallback — skipped (need CLOUDFLARE_API_TOKEN in .env)');
+    console.log('   Manual steps:');
+    console.log(`   - AAAA ${saasFallback} → 100:: (proxied) — Worker fallback origin`);
+    console.log(`   - CNAME ${cnameTarget} → ${saasFallback} (proxied) — customer CNAME target`);
+    console.log(`   - Fallback Origin in Custom Hostnames → ${saasFallback}`);
+    console.log('   - Deploy transform-worker with route */* on uploadkit.dev');
   } else {
-    console.log(`\n3. Configuring fallback origin → ${fallback}...`);
+    console.log(`\n3. Creating SaaS Worker fallback DNS (${saasFallback})...`);
+    await upsertDnsRecord(apiToken, zoneId, {
+      type: 'AAAA',
+      name: 'saas',
+      content: '100::',
+      proxied: true,
+    });
+
+    console.log(`\n4. Creating customer CNAME target (${cnameTarget})...`);
+    const cnameLabel = cnameTarget.replace(`.${ZONE_NAME}`, '');
+    await upsertDnsRecord(apiToken, zoneId, {
+      type: 'CNAME',
+      name: cnameLabel,
+      content: saasFallback,
+      proxied: true,
+    });
+
+    console.log(`\n5. Configuring fallback origin → ${saasFallback}...`);
     const current = await cf<FallbackOrigin>(apiToken, `/zones/${zoneId}/custom_hostnames/fallback_origin`);
     if (!current.success) {
       console.warn('   Could not read current fallback origin (SaaS may not be enabled yet).');
       if (current.errors?.length) {
         for (const err of current.errors) console.warn(`   - ${err.message}`);
       }
-    } else if (current.result.origin === fallback && current.result.status === 'active') {
+    } else if (current.result.origin === saasFallback && current.result.status === 'active') {
       console.log(`   Already active: ${current.result.origin}`);
     } else {
       console.log(`   Current: ${current.result.origin || '(none)'} [${current.result.status}]`);
       const updated = await cf<FallbackOrigin>(apiToken, `/zones/${zoneId}/custom_hostnames/fallback_origin`, {
         method: 'PUT',
-        body: JSON.stringify({ origin: fallback }),
+        body: JSON.stringify({ origin: saasFallback }),
       });
       if (!updated.success) {
         fail('Failed to set fallback origin. Enable SSL for SaaS in dashboard first', updated.errors);
@@ -180,7 +251,7 @@ async function main() {
       console.log(`   Set fallback origin: ${updated.result.origin} [${updated.result.status}]`);
     }
 
-    console.log('\n4. Verifying Custom Hostnames API access...');
+    console.log('\n6. Verifying Custom Hostnames API access...');
     const hostnames = await cf<unknown[]>(apiToken, `/zones/${zoneId}/custom_hostnames?per_page=1`);
     if (!hostnames.success) {
       fail('Custom Hostnames API not accessible', hostnames.errors);
@@ -188,34 +259,28 @@ async function main() {
     console.log(`   API OK (${hostnames.result_info?.total_count ?? 0} hostname(s) registered)`);
   }
 
-  if (!process.env.CLOUDFLARE_CDN_FALLBACK) {
-    upsertEnvVar('CLOUDFLARE_CDN_FALLBACK', fallback);
+  if (!process.env.CLOUDFLARE_CNAME_TARGET) {
+    upsertEnvVar('CLOUDFLARE_CNAME_TARGET', cnameTarget);
+  }
+  if (!process.env.CLOUDFLARE_SAAS_FALLBACK) {
+    upsertEnvVar('CLOUDFLARE_SAAS_FALLBACK', saasFallback);
   }
 
   if (!process.env.CLOUDFLARE_API_TOKEN?.trim()) {
-    console.log('\n5. API token for Custom Hostnames API');
-    console.log('   Wrangler OAuth cannot call Custom Hostnames — create a dedicated token:');
-    console.log('   1. https://dash.cloudflare.com/profile/api-tokens');
-    console.log('   2. Create Token → Custom token');
-    console.log('   3. Permissions:');
-    console.log('        Zone | SSL and Certificates | Edit');
-    console.log('        Zone | Zone | Read');
-    console.log('   4. Zone Resources: uploadkit.dev only');
-    console.log('   5. Copy token → CLOUDFLARE_API_TOKEN in .env + Vercel (dashboard + api)');
-    console.log('\n   Then enable SaaS + fallback origin (one-time):');
-    console.log(`   https://dash.cloudflare.com/?to=/:account/:zone/ssl-tls/custom-hostnames`);
-    console.log('   (select zone uploadkit.dev if prompted)');
-    console.log('   → Enable SSL for SaaS (if prompted)');
-    console.log(`   → Fallback Origin: ${fallback}`);
+    console.log('\n7. API token for Custom Hostnames + DNS API');
+    console.log('   Permissions: Zone > SSL and Certificates > Edit, Zone > DNS > Edit');
+    console.log('   Zone Resources: uploadkit.dev only');
     console.log('\n   Re-run: pnpm setup-cloudflare-saas');
   } else {
-    console.log('\n5. CLOUDFLARE_API_TOKEN already set in .env ✓');
+    console.log('\n7. CLOUDFLARE_API_TOKEN already set in .env ✓');
   }
 
   console.log('\n✓ Cloudflare SSL for SaaS setup complete.');
-  console.log('\nCustomer flow:');
-  console.log(`  CNAME cdn.cliente.com → ${fallback}`);
-  console.log('  Dashboard registers hostname via API → TXT validation → active');
+  console.log('\nDeploy Worker (required for custom hostnames):');
+  console.log('  pnpm --filter @uploadkitdev/transform-worker run deploy');
+  console.log('\nCustomer DNS:');
+  console.log(`  External DNS:  CNAME cdn.cliente.com → ${cnameTarget} (DNS only / gray cloud)`);
+  console.log(`  On Cloudflare: CNAME cdn.cliente.com → ${cnameTarget} (proxied / orange — O2O)`);
   console.log('\nNote: Image transforms (/t/, /p/) always use cdn.uploadkit.dev.');
   console.log('\nVerify: pnpm verify-cloudflare-cdn');
 }

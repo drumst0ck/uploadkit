@@ -178,6 +178,10 @@ export function CustomDomainSettings({
                       </li>
                     ))}
                   </ul>
+                  <p className="mt-3 text-[11px] leading-relaxed text-amber-400/90">
+                    If your domain uses Cloudflare DNS, set the CNAME to <strong>proxied (orange cloud)</strong>.
+                    External DNS providers should use DNS only (gray).
+                  </p>
                 </div>
               )}
 

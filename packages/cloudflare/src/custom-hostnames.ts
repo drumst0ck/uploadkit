@@ -23,7 +23,11 @@ export interface CustomHostnameState {
 export interface CloudflareConfig {
   apiToken: string;
   zoneId: string;
-  /** Hostname customers CNAME to (e.g. cdn.uploadkit.dev) */
+  /** Customer-facing CNAME target (e.g. cname.uploadkit.dev) */
+  cnameTarget: string;
+  /** Worker fallback origin for SSL for SaaS (e.g. saas.uploadkit.dev) */
+  saasFallbackOrigin: string;
+  /** @deprecated Use cnameTarget — kept for API responses */
   fallbackOrigin: string;
 }
 
@@ -42,16 +46,33 @@ interface CfCustomHostname {
 
 const CF_API = 'https://api.cloudflare.com/client/v4';
 
+const DEFAULT_CNAME_TARGET = 'cname.uploadkit.dev';
+const DEFAULT_SAAS_FALLBACK = 'saas.uploadkit.dev';
+
+function normalizeHostname(value: string | undefined): string | undefined {
+  return value?.replace(/^https?:\/\//, '').replace(/\/$/, '');
+}
+
 export function getCloudflareConfig(): CloudflareConfig | null {
   const apiToken = process.env.CLOUDFLARE_API_TOKEN;
   const zoneId = process.env.CLOUDFLARE_ZONE_ID;
-  const fallbackOrigin =
-    process.env.CLOUDFLARE_CDN_FALLBACK?.replace(/^https?:\/\//, '').replace(/\/$/, '')
-    ?? process.env.CDN_URL?.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const cnameTarget =
+    normalizeHostname(process.env.CLOUDFLARE_CNAME_TARGET)
+    ?? normalizeHostname(process.env.CLOUDFLARE_CDN_FALLBACK)
+    ?? DEFAULT_CNAME_TARGET;
+  const saasFallbackOrigin =
+    normalizeHostname(process.env.CLOUDFLARE_SAAS_FALLBACK)
+    ?? DEFAULT_SAAS_FALLBACK;
 
-  if (!apiToken || !zoneId || !fallbackOrigin) return null;
+  if (!apiToken || !zoneId || !cnameTarget || !saasFallbackOrigin) return null;
 
-  return { apiToken, zoneId, fallbackOrigin };
+  return {
+    apiToken,
+    zoneId,
+    cnameTarget,
+    saasFallbackOrigin,
+    fallbackOrigin: cnameTarget,
+  };
 }
 
 export function isCloudflareCdnConfigured(): boolean {
@@ -96,7 +117,7 @@ function buildValidationRecords(
     {
       type: 'cname',
       name: hostname,
-      value: config.fallbackOrigin,
+      value: config.cnameTarget,
     },
   ];
 
@@ -154,6 +175,7 @@ export async function createCustomHostname(
       method: 'POST',
       body: JSON.stringify({
         hostname,
+        custom_origin_server: config.saasFallbackOrigin,
         ssl: {
           method: 'http',
           type: 'dv',

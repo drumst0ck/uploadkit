@@ -4,7 +4,9 @@ import { mapCustomHostnameState, type CloudflareConfig } from '../src/custom-hos
 const config: CloudflareConfig = {
   apiToken: 'token',
   zoneId: 'zone',
-  fallbackOrigin: 'cdn.uploadkit.dev',
+  cnameTarget: 'cname.uploadkit.dev',
+  saasFallbackOrigin: 'saas.uploadkit.dev',
+  fallbackOrigin: 'cname.uploadkit.dev',
 };
 
 describe('mapCustomHostnameState', () => {
@@ -19,7 +21,7 @@ describe('mapCustomHostnameState', () => {
     expect(state.validationRecords[0]).toEqual({
       type: 'cname',
       name: 'cdn.acme.com',
-      value: 'cdn.uploadkit.dev',
+      value: 'cname.uploadkit.dev',
     });
   });
 

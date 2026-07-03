@@ -40,11 +40,26 @@ interface ImageTransform extends ImageResizeOptions {
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const edgeCache = (caches as CacheStorage & { default: Cache }).default;
-    const startedAt = Date.now();
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return jsonError('METHOD_NOT_ALLOWED', 405, { Allow: 'GET, HEAD' });
     }
+
+    const pathname = new URL(request.url).pathname;
+    if (pathname.startsWith('/t/') || pathname.startsWith('/p/')) {
+      return handleImageTransform(request, env, ctx);
+    }
+
+    return serveRawObject(request, env);
+  },
+};
+
+async function handleImageTransform(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+): Promise<Response> {
+    const edgeCache = (caches as CacheStorage & { default: Cache }).default;
+    const startedAt = Date.now();
 
     try {
       const parsed = parseTransformRequest(new URL(request.url));
@@ -118,8 +133,44 @@ export default {
       }));
       return jsonError(message, status);
     }
-  },
-};
+}
+
+export function parseObjectKey(pathname: string): string | null {
+  if (!pathname || pathname === '/') return null;
+
+  let key: string;
+  try {
+    key = decodeURIComponent(pathname.replace(/^\//, ''));
+  } catch {
+    return null;
+  }
+
+  if (!key || key.includes('\0') || key.includes('..') || key.startsWith('/')) {
+    return null;
+  }
+
+  return key;
+}
+
+async function serveRawObject(request: Request, env: Env): Promise<Response> {
+  const key = parseObjectKey(new URL(request.url).pathname);
+  if (!key) return jsonError('NOT_FOUND', 404);
+
+  const object = await env.UPLOADS.get(key);
+  if (!object?.body) return jsonError('NOT_FOUND', 404);
+
+  const headers = new Headers();
+  const contentType = object.httpMetadata?.contentType;
+  if (contentType) headers.set('Content-Type', contentType);
+  headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  headers.set('Accept-Ranges', 'bytes');
+  headers.set('X-Content-Type-Options', 'nosniff');
+
+  return new Response(request.method === 'HEAD' ? null : object.body, {
+    status: 200,
+    headers,
+  });
+}
 
 class TransformRequestError extends Error {}
 

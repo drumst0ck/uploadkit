@@ -73,4 +73,12 @@ describe('image transform worker validation', () => {
       encodedTransform: 'options', key: 'project/images/photo.jpg',
     });
   });
+
+  it('parses raw object keys and rejects traversal', async () => {
+    const { parseObjectKey } = await import('../src/index');
+    expect(parseObjectKey('/project/images/photo.jpg')).toBe('project/images/photo.jpg');
+    expect(parseObjectKey('/')).toBeNull();
+    expect(parseObjectKey('/../secret')).toBeNull();
+    expect(parseObjectKey('/%E0%A4%A')).toBeNull();
+  });
 });
