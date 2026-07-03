@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   applyCdnValidationRecords,
   CloudflareDnsConflictError,
+  getCloudflareOAuthConfig,
 } from '../src/oauth-dns';
 
 function cfResponse(result: unknown): Response {
@@ -77,5 +78,19 @@ describe('applyCdnValidationRecords', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock.mock.calls[2]?.[1]).toMatchObject({ method: 'POST' });
+  });
+});
+
+describe('getCloudflareOAuthConfig', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('uses current least-privilege Cloudflare OAuth scope IDs', () => {
+    vi.stubEnv('CLOUDFLARE_OAUTH_CLIENT_ID', 'client-id');
+    vi.stubEnv('CLOUDFLARE_OAUTH_CLIENT_SECRET', 'client-secret');
+    vi.stubEnv('CLOUDFLARE_OAUTH_SCOPES', '');
+
+    expect(getCloudflareOAuthConfig()?.scopes).toBe('zone.read dns.write offline_access');
   });
 });
