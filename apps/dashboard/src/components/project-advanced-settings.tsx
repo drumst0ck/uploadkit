@@ -370,8 +370,9 @@ export function CustomDomainSettings({
                   aria-label="Auto configure DNS with Cloudflare"
                   className="inline-flex w-fit items-center gap-2 rounded-lg border border-white/90 bg-white px-4 py-2 text-sm font-semibold text-zinc-950 shadow-[0_1px_0_rgba(255,255,255,0.35),0_6px_18px_rgba(0,0,0,0.18)] transition duration-150 hover:border-zinc-200 hover:bg-zinc-100 active:translate-y-px active:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 fill-[#f48120]">
-                    <path d="M16.5 6.5c-.7 0-1.3.2-1.9.5 1.1-1.3 2.7-2.1 4.4-2.1 3.2 0 5.8 2.6 5.8 5.8 0 3.2-2.6 5.8-5.8 5.8-1.7 0-3.3-.8-4.4-2.1.6.3 1.2.5 1.9.5 2.5 0 4.5-2 4.5-4.5S19 6.5 16.5 6.5zM7.5 12c0-2.5 2-4.5 4.5-4.5.7 0 1.3.2 1.9.5-1.1-1.3-2.7-2.1-4.4-2.1C6.3 7.9 3.7 10.5 3.7 13.7c0 3.2 2.6 5.8 5.8 5.8 1.7 0 3.3-.8 4.4-2.1-.6.3-1.2.5-1.9.5-2.5 0-4.5-2-4.5-4.5z" />
+                  <svg aria-hidden viewBox="50 5 50 18" className="h-4 w-5 shrink-0">
+                    <path fill="#f48120" d="M84.2 20.4a2.86 2.86 0 0 0-.3-2.6 3.09 3.09 0 0 0-2.1-1.1l-17.4-.2c-.1 0-.2-.1-.3-.1a.19.19 0 0 1 0-.3c.1-.2.2-.3.4-.3l17.5-.2a6.29 6.29 0 0 0 5.1-3.8l1-2.6c0-.1.1-.2 0-.3a11.4 11.4 0 0 0-21.9-1.2 5.46 5.46 0 0 0-3.6-1 5.21 5.21 0 0 0-4.6 4.6 5.46 5.46 0 0 0 .1 1.8 7.3 7.3 0 0 0-7.1 7.3 4.1 4.1 0 0 0 .1 1.1.32.32 0 0 0 .3.3h32.1c.2 0 .4-.1.4-.3Z" />
+                    <path fill="#faad3f" d="M89.7 9.2h-.5c-.1 0-.2.1-.3.2l-.7 2.4a2.86 2.86 0 0 0 .3 2.6 3.09 3.09 0 0 0 2.1 1.1l3.7.2c.1 0 .2.1.3.1a.19.19 0 0 1 0 .3c-.1.2-.2.3-.4.3l-3.8.2a6.29 6.29 0 0 0-5.1 3.8l-.2.9c-.1.1 0 .3.2.3h13.2a.27.27 0 0 0 .3-.3 10.87 10.87 0 0 0 .4-2.6 9.56 9.56 0 0 0-9.5-9.5" />
                   </svg>
                   Auto configure
                 </a>
