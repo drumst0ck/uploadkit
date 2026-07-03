@@ -1,11 +1,15 @@
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import type { NextRequest } from 'next/server';
 
 const STATE_TTL_MS = 10 * 60 * 1000;
+const OAUTH_CALLBACK_PATH = '/api/internal/cloudflare/oauth/callback';
 
 export interface CloudflareOAuthState {
   userId: string;
   slug: string;
   domain: string;
+  /** App origin used for redirect_uri (must match Cloudflare OAuth client registration). */
+  origin: string;
   nonce: string;
   exp: number;
 }
@@ -47,7 +51,7 @@ export function parseCloudflareOAuthState(token: string): CloudflareOAuthState {
   }
 
   const state = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as CloudflareOAuthState;
-  if (!state.userId || !state.slug || !state.domain || !state.exp) {
+  if (!state.userId || !state.slug || !state.domain || !state.origin || !state.exp) {
     throw new Error('Invalid OAuth state payload');
   }
   if (Date.now() > state.exp) {
@@ -57,7 +61,23 @@ export function parseCloudflareOAuthState(token: string): CloudflareOAuthState {
   return state;
 }
 
-export function getCloudflareOAuthRedirectUri(): string {
-  const base = process.env.AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001';
-  return `${base.replace(/\/$/, '')}/api/internal/cloudflare/oauth/callback`;
+export function getAppOriginFromRequest(req: NextRequest): string {
+  const forwardedHost = req.headers.get('x-forwarded-host');
+  const forwardedProto = req.headers.get('x-forwarded-proto') ?? 'https';
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost.split(',')[0]?.trim()}`;
+  }
+  return new URL(req.url).origin;
+}
+
+export function getCloudflareOAuthRedirectUri(origin: string): string {
+  return `${origin.replace(/\/$/, '')}${OAUTH_CALLBACK_PATH}`;
+}
+
+export function getProjectSettingsUrl(origin: string, slug: string, query: Record<string, string> = {}): string {
+  const url = new URL(`${origin.replace(/\/$/, '')}/dashboard/projects/${slug}/settings`);
+  for (const [key, value] of Object.entries(query)) {
+    url.searchParams.set(key, value);
+  }
+  return url.toString();
 }
