@@ -8,25 +8,19 @@ import {
   getCloudflareOAuthConfig,
 } from '@uploadkitdev/cloudflare';
 import {
+  getAppOriginFromRequest,
   getCloudflareOAuthRedirectUri,
+  getProjectSettingsUrl,
   parseCloudflareOAuthState,
 } from '../../../../../../lib/cloudflare-oauth-state';
 
 export const dynamic = 'force-dynamic';
 
-function settingsUrl(slug: string, query: Record<string, string>): string {
-  const base = process.env.AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001';
-  const url = new URL(`${base.replace(/\/$/, '')}/dashboard/projects/${slug}/settings`);
-  for (const [key, value] of Object.entries(query)) {
-    url.searchParams.set(key, value);
-  }
-  return url.toString();
-}
-
 export async function GET(req: NextRequest) {
+  const origin = getAppOriginFromRequest(req);
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    return NextResponse.redirect(new URL('/login', origin));
   }
 
   const code = req.nextUrl.searchParams.get('code');
@@ -34,10 +28,17 @@ export async function GET(req: NextRequest) {
   const oauthError = req.nextUrl.searchParams.get('error');
 
   if (oauthError) {
-    const slug = req.nextUrl.searchParams.get('slug') ?? '';
+    let slug = '';
+    if (stateToken) {
+      try {
+        slug = parseCloudflareOAuthState(stateToken).slug;
+      } catch {
+        // ignore invalid state on denied flow
+      }
+    }
     const redirect = slug
-      ? settingsUrl(slug, { cf_dns: 'denied' })
-      : new URL('/dashboard', req.url).toString();
+      ? getProjectSettingsUrl(origin, slug, { cf_dns: 'denied' })
+      : new URL('/dashboard', origin).toString();
     return NextResponse.redirect(redirect);
   }
 
@@ -60,13 +61,13 @@ export async function GET(req: NextRequest) {
   const oauthConfig = getCloudflareOAuthConfig();
   const cfConfig = getCloudflareConfig();
   if (!oauthConfig || !cfConfig) {
-    return NextResponse.redirect(settingsUrl(state.slug, { cf_dns: 'misconfigured' }));
+    return NextResponse.redirect(getProjectSettingsUrl(origin, state.slug, { cf_dns: 'misconfigured' }));
   }
 
   await connectDB();
   const project = await Project.findOne({ slug: state.slug, userId: session.user.id });
   if (!project || project.customCdnDomain?.toLowerCase() !== state.domain) {
-    return NextResponse.redirect(settingsUrl(state.slug, { cf_dns: 'project_mismatch' }));
+    return NextResponse.redirect(getProjectSettingsUrl(origin, state.slug, { cf_dns: 'project_mismatch' }));
   }
 
   const records = project.customCdnValidationRecords.length > 0
@@ -74,14 +75,17 @@ export async function GET(req: NextRequest) {
     : [{ type: 'cname' as const, name: state.domain, value: cfConfig.cnameTarget }];
 
   try {
-    const redirectUri = getCloudflareOAuthRedirectUri();
+    const redirectUri = getCloudflareOAuthRedirectUri(state.origin);
     const tokens = await exchangeCloudflareOAuthCode(oauthConfig, code, redirectUri);
     await applyCdnValidationRecords(tokens.accessToken, state.domain, records);
-    return NextResponse.redirect(settingsUrl(state.slug, { cf_dns: 'success' }));
+    return NextResponse.redirect(getProjectSettingsUrl(origin, state.slug, { cf_dns: 'success' }));
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to configure DNS';
     return NextResponse.redirect(
-      settingsUrl(state.slug, { cf_dns: 'error', cf_dns_msg: message.slice(0, 180) }),
+      getProjectSettingsUrl(origin, state.slug, {
+        cf_dns: 'error',
+        cf_dns_msg: message.slice(0, 180),
+      }),
     );
   }
 }

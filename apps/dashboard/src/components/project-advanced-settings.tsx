@@ -80,6 +80,8 @@ export function CustomDomainSettings({
   const [lastError, setLastError] = React.useState(initialLastError ?? '');
   const [saving, setSaving] = React.useState(false);
   const [verifying, setVerifying] = React.useState(false);
+  const [autoVerifying, setAutoVerifying] = React.useState(false);
+  const [dnsConfigured, setDnsConfigured] = React.useState(initialVerified);
   const [error, setError] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [onCloudflare, setOnCloudflare] = React.useState<boolean | null>(null);
@@ -95,7 +97,9 @@ export function CustomDomainSettings({
     const customMsg = params.get('cf_dns_msg');
     const text = customMsg ?? CF_DNS_MESSAGES[cfDns] ?? CF_DNS_MESSAGES.error!;
     if (cfDns === 'success') {
-      setMessage(text);
+      setMessage('DNS records configured. Waiting for Cloudflare to activate the domain…');
+      setDnsConfigured(true);
+      setAutoVerifying(true);
     } else {
       setError(text);
     }
@@ -105,6 +109,60 @@ export function CustomDomainSettings({
     const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
     window.history.replaceState({}, '', next);
   }, []);
+
+  React.useEffect(() => {
+    if (!autoVerifying) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    let timer: number | undefined;
+
+    const poll = async () => {
+      attempts += 1;
+      try {
+        const res = await fetch(`/api/internal/projects/${slug}/cdn/verify`, { method: 'POST' });
+        const data = (await res.json()) as {
+          error?: string;
+          status?: string;
+          verified?: boolean;
+          validationRecords?: typeof validationRecords;
+          lastError?: string;
+        };
+        if (cancelled) return;
+        if (!res.ok) throw new Error(data.error ?? 'Verification failed.');
+
+        setStatus(data.status ?? 'pending_validation');
+        setVerified(Boolean(data.verified));
+        setValidationRecords(data.validationRecords ?? []);
+        setLastError(data.lastError ?? '');
+
+        if (data.verified) {
+          setAutoVerifying(false);
+          setMessage('Custom domain is active. New uploads now use your domain.');
+          return;
+        }
+      } catch (pollError) {
+        if (cancelled) return;
+        setError(pollError instanceof Error ? pollError.message : 'Verification failed.');
+        setAutoVerifying(false);
+        return;
+      }
+
+      if (attempts >= 20) {
+        setAutoVerifying(false);
+        setMessage('DNS is configured but still propagating. You can safely leave this page.');
+        return;
+      }
+
+      timer = window.setTimeout(() => { void poll(); }, 3_000);
+    };
+
+    void poll();
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [autoVerifying, slug]);
 
   React.useEffect(() => {
     const trimmed = domain.trim().toLowerCase();
@@ -164,6 +222,7 @@ export function CustomDomainSettings({
       setVerified(Boolean(data.verified));
       setValidationRecords(data.validationRecords ?? []);
       setLastError(data.lastError ?? '');
+      setDnsConfigured(Boolean(data.verified));
       setMessage('Domain registered. Add the DNS records below, then verify.');
     } catch {
       setError('Network error.');
@@ -194,6 +253,7 @@ export function CustomDomainSettings({
       setVerified(Boolean(data.verified));
       setValidationRecords(data.validationRecords ?? validationRecords);
       setLastError(data.lastError ?? '');
+      if (data.verified) setDnsConfigured(true);
       setMessage(data.verified ? 'Custom domain is active. New uploads use your domain.' : 'Still pending — check DNS records.');
     } catch {
       setError('Network error.');
@@ -210,6 +270,33 @@ export function CustomDomainSettings({
           Serve files from your domain via Cloudflare SSL for SaaS. Image transforms (/t/, /p/) still use{' '}
           <code className="text-indigo-400">cdn.uploadkit.dev</code>.
         </p>
+
+        <ol aria-label="Custom domain setup progress" className="mb-5 grid gap-2 sm:grid-cols-3">
+          {[
+            { label: 'Domain', complete: status !== 'none' },
+            { label: 'DNS records', complete: dnsConfigured },
+            { label: 'Verified', complete: verified },
+          ].map((step, index) => (
+            <li
+              key={step.label}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
+                step.complete
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                  : 'border-border bg-muted text-muted-foreground'
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`grid h-5 w-5 place-items-center rounded-full text-[10px] font-semibold ${
+                  step.complete ? 'bg-emerald-500 text-black' : 'bg-accent text-foreground'
+                }`}
+              >
+                {step.complete ? '✓' : index + 1}
+              </span>
+              {step.label}
+            </li>
+          ))}
+        </ol>
 
         <form onSubmit={(e) => { void save(e); }} className="flex flex-col gap-4">
           <input
@@ -265,7 +352,7 @@ export function CustomDomainSettings({
             >
               {saving ? 'Saving…' : domain ? 'Update domain' : 'Remove domain'}
             </button>
-            {domain && status !== 'active' && (
+            {domain && status !== 'active' && !autoVerifying && (
               <button
                 type="button"
                 disabled={verifying}
@@ -275,16 +362,24 @@ export function CustomDomainSettings({
                 {verifying ? 'Checking…' : 'Verify DNS'}
               </button>
             )}
-            {domain && onCloudflare && cloudflareOAuthConfigured && status !== 'active' && (
-              <a
-                href={`/api/internal/cloudflare/oauth/start?slug=${encodeURIComponent(slug)}`}
-                className="inline-flex items-center gap-2 rounded-lg border border-orange-500/40 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-300 hover:bg-orange-500/20"
-              >
-                <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                  <path d="M16.5 6.5c-.7 0-1.3.2-1.9.5 1.1-1.3 2.7-2.1 4.4-2.1 3.2 0 5.8 2.6 5.8 5.8 0 3.2-2.6 5.8-5.8 5.8-1.7 0-3.3-.8-4.4-2.1.6.3 1.2.5 1.9.5 2.5 0 4.5-2 4.5-4.5S19 6.5 16.5 6.5zM7.5 12c0-2.5 2-4.5 4.5-4.5.7 0 1.3.2 1.9.5-1.1-1.3-2.7-2.1-4.4-2.1C6.3 7.9 3.7 10.5 3.7 13.7c0 3.2 2.6 5.8 5.8 5.8 1.7 0 3.3-.8 4.4-2.1-.6.3-1.2.5-1.9.5-2.5 0-4.5-2-4.5-4.5z" />
-                </svg>
-                Configure with Cloudflare
-              </a>
+            {domain && onCloudflare && cloudflareOAuthConfigured && status !== 'active' && !autoVerifying && (
+              <div>
+                <a
+                  href={`/api/internal/cloudflare/oauth/start?slug=${encodeURIComponent(slug)}`}
+                  className="inline-flex w-fit items-center gap-2 rounded-lg border border-orange-500/40 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-300 hover:bg-orange-500/20"
+                >
+                  <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                    <path d="M16.5 6.5c-.7 0-1.3.2-1.9.5 1.1-1.3 2.7-2.1 4.4-2.1 3.2 0 5.8 2.6 5.8 5.8 0 3.2-2.6 5.8-5.8 5.8-1.7 0-3.3-.8-4.4-2.1.6.3 1.2.5 1.9.5 2.5 0 4.5-2 4.5-4.5S19 6.5 16.5 6.5zM7.5 12c0-2.5 2-4.5 4.5-4.5.7 0 1.3.2 1.9.5-1.1-1.3-2.7-2.1-4.4-2.1C6.3 7.9 3.7 10.5 3.7 13.7c0 3.2 2.6 5.8 5.8 5.8 1.7 0 3.3-.8 4.4-2.1-.6.3-1.2.5-1.9.5-2.5 0-4.5-2-4.5-4.5z" />
+                  </svg>
+                  Auto configure with Cloudflare
+                </a>
+              </div>
+            )}
+            {autoVerifying && (
+              <span role="status" className="inline-flex items-center gap-2 text-xs text-amber-400">
+                <span aria-hidden className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Verifying DNS…
+              </span>
             )}
           </div>
         </form>

@@ -20,6 +20,7 @@ export {
   getCloudflareOAuthConfig,
   isCloudflareOAuthConfigured,
   listCloudflareZones,
+  CloudflareDnsConflictError,
 } from './oauth-dns';
 export type {
   CdnValidationRecord,

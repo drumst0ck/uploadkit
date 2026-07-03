@@ -40,9 +40,19 @@ export function isCloudflareNameserver(ns: string): boolean {
 }
 
 export async function isDomainOnCloudflare(hostname: string): Promise<boolean> {
-  const apex = guessApexDomain(hostname);
-  const nameservers = await queryDns(apex, 'NS');
-  return nameservers.some(isCloudflareNameserver);
+  const labels = hostname.toLowerCase().split('.').filter(Boolean);
+
+  // Walk towards the registrable domain instead of assuming a two-label apex.
+  // This handles public suffixes such as co.uk without shipping a browser-sized PSL.
+  for (let index = 0; index < labels.length - 1; index++) {
+    const candidate = labels.slice(index).join('.');
+    const nameservers = await queryDns(candidate, 'NS');
+    if (nameservers.length > 0) {
+      return nameservers.some(isCloudflareNameserver);
+    }
+  }
+
+  return false;
 }
 
 /** DNS record name relative to a zone (e.g. cdn.todolol.com in zone todolol.com → cdn). */
