@@ -91,6 +91,6 @@ describe('getCloudflareOAuthConfig', () => {
     vi.stubEnv('CLOUDFLARE_OAUTH_CLIENT_SECRET', 'client-secret');
     vi.stubEnv('CLOUDFLARE_OAUTH_SCOPES', '');
 
-    expect(getCloudflareOAuthConfig()?.scopes).toBe('zone.read dns.write offline_access');
+    expect(getCloudflareOAuthConfig()?.scopes).toBe('zone.read dns.write');
   });
 });

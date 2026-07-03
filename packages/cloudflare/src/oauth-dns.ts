@@ -62,7 +62,7 @@ export function getCloudflareOAuthConfig(): CloudflareOAuthConfig | null {
     clientSecret,
     scopes:
       process.env.CLOUDFLARE_OAUTH_SCOPES?.trim()
-      || 'zone.read dns.write offline_access',
+      || 'zone.read dns.write',
     authDomain: process.env.CLOUDFLARE_OAUTH_DOMAIN ?? DEFAULT_AUTH_DOMAIN,
   };
 }
