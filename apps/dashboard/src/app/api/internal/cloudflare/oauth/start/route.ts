@@ -8,6 +8,7 @@ import {
 } from '@uploadkitdev/cloudflare';
 import {
   createCloudflareOAuthState,
+  getAppOriginFromRequest,
   getCloudflareOAuthRedirectUri,
 } from '../../../../../../lib/cloudflare-oauth-state';
 
@@ -47,13 +48,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Cloudflare OAuth is not configured.' }, { status: 503 });
   }
 
+  const origin = getAppOriginFromRequest(req);
+  const redirectUri = getCloudflareOAuthRedirectUri(origin);
   const state = createCloudflareOAuthState({
     userId: session.user.id,
     slug,
     domain,
+    origin,
   });
 
-  const redirectUri = getCloudflareOAuthRedirectUri();
   const authUrl = buildCloudflareAuthorizationUrl(config, redirectUri, state);
 
   return NextResponse.redirect(authUrl);
