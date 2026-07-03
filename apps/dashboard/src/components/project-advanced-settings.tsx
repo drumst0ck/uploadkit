@@ -367,12 +367,13 @@ export function CustomDomainSettings({
               <div>
                 <a
                   href={`/api/internal/cloudflare/oauth/start?slug=${encodeURIComponent(slug)}`}
-                  className="inline-flex w-fit items-center gap-2 rounded-lg border border-orange-500/40 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-300 hover:bg-orange-500/20"
+                  aria-label="Auto configure DNS with Cloudflare"
+                  className="inline-flex w-fit items-center gap-2 rounded-lg border border-white/90 bg-white px-4 py-2 text-sm font-semibold text-zinc-950 shadow-[0_1px_0_rgba(255,255,255,0.35),0_6px_18px_rgba(0,0,0,0.18)] transition duration-150 hover:border-zinc-200 hover:bg-zinc-100 active:translate-y-px active:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                  <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 fill-[#f48120]">
                     <path d="M16.5 6.5c-.7 0-1.3.2-1.9.5 1.1-1.3 2.7-2.1 4.4-2.1 3.2 0 5.8 2.6 5.8 5.8 0 3.2-2.6 5.8-5.8 5.8-1.7 0-3.3-.8-4.4-2.1.6.3 1.2.5 1.9.5 2.5 0 4.5-2 4.5-4.5S19 6.5 16.5 6.5zM7.5 12c0-2.5 2-4.5 4.5-4.5.7 0 1.3.2 1.9.5-1.1-1.3-2.7-2.1-4.4-2.1C6.3 7.9 3.7 10.5 3.7 13.7c0 3.2 2.6 5.8 5.8 5.8 1.7 0 3.3-.8 4.4-2.1-.6.3-1.2.5-1.9.5-2.5 0-4.5-2-4.5-4.5z" />
                   </svg>
-                  Auto configure with Cloudflare
+                  Auto configure
                 </a>
               </div>
             )}
