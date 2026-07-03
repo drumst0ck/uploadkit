@@ -205,6 +205,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </>
           )}
         </p>
+        <p className="mt-5 text-center text-xs leading-5 text-muted-foreground">
+          By continuing, you agree to our{' '}
+          <a href="/terms" className="underline underline-offset-2 hover:text-foreground">
+            Terms of Service
+          </a>{' '}
+          and acknowledge our{' '}
+          <a href="/privacy" className="underline underline-offset-2 hover:text-foreground">
+            Privacy Policy
+          </a>
+          .
+        </p>
       </div>
     </main>
   );
