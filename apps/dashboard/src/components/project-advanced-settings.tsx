@@ -43,7 +43,16 @@ interface CustomDomainSettingsProps {
   initialValidationRecords?: Array<{ type: 'cname' | 'txt'; name: string; value: string }>;
   initialLastError?: string;
   fallbackOrigin?: string | null;
+  cloudflareOAuthConfigured?: boolean;
 }
+
+const CF_DNS_MESSAGES: Record<string, string> = {
+  success: 'DNS records configured in Cloudflare. Click Verify DNS to finish.',
+  denied: 'Cloudflare authorization was cancelled.',
+  misconfigured: 'Cloudflare OAuth is not configured on this server.',
+  project_mismatch: 'Project domain changed during authorization. Try again.',
+  error: 'Failed to configure DNS in Cloudflare.',
+};
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   none: { label: 'Not configured', className: 'text-muted-foreground' },
@@ -62,6 +71,7 @@ export function CustomDomainSettings({
   initialValidationRecords = [],
   initialLastError,
   fallbackOrigin,
+  cloudflareOAuthConfigured = false,
 }: CustomDomainSettingsProps) {
   const [domain, setDomain] = React.useState(initialDomain ?? '');
   const [status, setStatus] = React.useState(initialStatus);
@@ -72,8 +82,60 @@ export function CustomDomainSettings({
   const [verifying, setVerifying] = React.useState(false);
   const [error, setError] = React.useState('');
   const [message, setMessage] = React.useState('');
+  const [onCloudflare, setOnCloudflare] = React.useState<boolean | null>(null);
+  const [detecting, setDetecting] = React.useState(false);
 
   const statusUi = STATUS_LABELS[status] ?? STATUS_LABELS.none!;
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cfDns = params.get('cf_dns');
+    if (!cfDns) return;
+
+    const customMsg = params.get('cf_dns_msg');
+    const text = customMsg ?? CF_DNS_MESSAGES[cfDns] ?? CF_DNS_MESSAGES.error!;
+    if (cfDns === 'success') {
+      setMessage(text);
+    } else {
+      setError(text);
+    }
+
+    params.delete('cf_dns');
+    params.delete('cf_dns_msg');
+    const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+    window.history.replaceState({}, '', next);
+  }, []);
+
+  React.useEffect(() => {
+    const trimmed = domain.trim().toLowerCase();
+    if (!trimmed || !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(trimmed)) {
+      setOnCloudflare(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      setDetecting(true);
+      void fetch(`/api/internal/projects/${slug}/cdn/detect?domain=${encodeURIComponent(trimmed)}`)
+        .then(async (res) => {
+          const data = (await res.json()) as { onCloudflare?: boolean; error?: string };
+          if (!cancelled && res.ok) {
+            setOnCloudflare(Boolean(data.onCloudflare));
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setOnCloudflare(null);
+        })
+        .finally(() => {
+          if (!cancelled) setDetecting(false);
+        });
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [domain, slug]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -178,6 +240,13 @@ export function CustomDomainSettings({
                       </li>
                     ))}
                   </ul>
+                  <p className={`mt-3 text-[11px] leading-relaxed ${onCloudflare ? 'text-orange-400/90' : 'text-muted-foreground'}`}>
+                    {detecting
+                      ? 'Checking DNS provider…'
+                      : onCloudflare
+                        ? 'This domain uses Cloudflare DNS — set the CNAME to proxied (orange cloud).'
+                        : 'External DNS: use DNS only (gray cloud) for the CNAME.'}
+                  </p>
                 </div>
               )}
 
@@ -188,7 +257,7 @@ export function CustomDomainSettings({
           {error && <p className="text-xs text-red-400">{error}</p>}
           {message && <p className="text-xs text-emerald-400">{message}</p>}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="submit"
               disabled={saving}
@@ -205,6 +274,17 @@ export function CustomDomainSettings({
               >
                 {verifying ? 'Checking…' : 'Verify DNS'}
               </button>
+            )}
+            {domain && onCloudflare && cloudflareOAuthConfigured && status !== 'active' && (
+              <a
+                href={`/api/internal/cloudflare/oauth/start?slug=${encodeURIComponent(slug)}`}
+                className="inline-flex items-center gap-2 rounded-lg border border-orange-500/40 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-300 hover:bg-orange-500/20"
+              >
+                <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                  <path d="M16.5 6.5c-.7 0-1.3.2-1.9.5 1.1-1.3 2.7-2.1 4.4-2.1 3.2 0 5.8 2.6 5.8 5.8 0 3.2-2.6 5.8-5.8 5.8-1.7 0-3.3-.8-4.4-2.1.6.3 1.2.5 1.9.5 2.5 0 4.5-2 4.5-4.5S19 6.5 16.5 6.5zM7.5 12c0-2.5 2-4.5 4.5-4.5.7 0 1.3.2 1.9.5-1.1-1.3-2.7-2.1-4.4-2.1C6.3 7.9 3.7 10.5 3.7 13.7c0 3.2 2.6 5.8 5.8 5.8 1.7 0 3.3-.8 4.4-2.1-.6.3-1.2.5-1.9.5-2.5 0-4.5-2-4.5-4.5z" />
+                </svg>
+                Configure with Cloudflare
+              </a>
             )}
           </div>
         </form>

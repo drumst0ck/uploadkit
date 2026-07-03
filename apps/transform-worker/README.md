@@ -1,6 +1,11 @@
 # UploadKit Image Transform Worker
 
-Cloudflare Worker responsible for serving stable public and expiring signed image transformations from UploadKit's managed R2 bucket. It deliberately has no access to customer BYOS buckets.
+Cloudflare Worker for UploadKit's managed R2 bucket:
+
+- **`/t/*` and `/p/*`** — signed and public image transforms (Cloudflare Images)
+- **All other paths** — raw object delivery from R2 (required for SSL for SaaS custom CDN domains)
+
+Custom hostnames (e.g. `cdn.customer.com`) route through the Worker fallback origin (`saas.uploadkit.dev`) via a zone-wide `*/*` route. R2 custom domains alone cannot serve SaaS custom hostnames.
 
 ## Bindings
 
@@ -24,16 +29,34 @@ The two active secrets must have different values; the Worker rejects public del
    pnpm dlx wrangler@latest secret put IMAGE_TRANSFORM_PUBLIC_SECRET --config apps/transform-worker/wrangler.jsonc
    ```
 
-4. Deploy the Worker Routes `cdn.uploadkit.dev/t/*` and `cdn.uploadkit.dev/p/*`.
-   The existing R2 custom domain continues to serve every other path:
+4. Deploy the Worker (includes `cdn.uploadkit.dev/t/*`, `/p/*`, and zone `*/*` for custom hostnames):
 
    ```bash
    pnpm --filter @uploadkitdev/transform-worker run deploy
    ```
 
-5. Set the API service's `IMAGE_TRANSFORM_BASE_URL=https://cdn.uploadkit.dev`
+5. Run SaaS DNS setup (creates `saas.uploadkit.dev` + `cname.uploadkit.dev`, sets fallback origin):
+
+   ```bash
+   pnpm setup-cloudflare-saas
+   ```
+
+6. Set the API service's `IMAGE_TRANSFORM_BASE_URL=https://cdn.uploadkit.dev`
    and use the exact same `IMAGE_TRANSFORM_SECRET` and
    `IMAGE_TRANSFORM_PUBLIC_SECRET` values.
+
+## Custom CDN domains (SSL for SaaS)
+
+| Hostname | Role |
+|----------|------|
+| `cdn.uploadkit.dev` | Managed CDN default (R2 custom domain) |
+| `saas.uploadkit.dev` | Worker fallback origin (originless `AAAA 100::`) |
+| `cname.uploadkit.dev` | Customer CNAME target → `saas.uploadkit.dev` |
+
+Customer DNS:
+
+- **External DNS:** `CNAME cdn.client.com → cname.uploadkit.dev` (DNS only)
+- **On Cloudflare:** same CNAME, **proxied (orange)** for O2O
 
 ## Secret rotation
 

@@ -7,7 +7,7 @@ import {
   LifecycleSettings,
   SelfHostedSdkCard,
 } from '../../../../../components/project-advanced-settings';
-import { getCloudflareConfig } from '@uploadkitdev/cloudflare';
+import { getCloudflareConfig, isCloudflareOAuthConfigured } from '@uploadkitdev/cloudflare';
 import { getUserTier } from '../../../../../lib/tier';
 
 export const dynamic = 'force-dynamic';
@@ -52,6 +52,7 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
         initialValidationRecords={project.customCdnValidationRecords ?? []}
         {...(project.customCdnLastError ? { initialLastError: project.customCdnLastError } : {})}
         fallbackOrigin={cfConfig?.fallbackOrigin ?? null}
+        cloudflareOAuthConfigured={isCloudflareOAuthConfigured()}
       />
 
       <LifecycleSettings
