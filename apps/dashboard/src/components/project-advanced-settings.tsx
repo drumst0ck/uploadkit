@@ -49,6 +49,7 @@ interface CustomDomainSettingsProps {
 const CF_DNS_MESSAGES: Record<string, string> = {
   success: 'DNS records configured in Cloudflare. Click Verify DNS to finish.',
   denied: 'Cloudflare authorization was cancelled.',
+  oauth_error: 'Cloudflare rejected the authorization request. Check the OAuth configuration.',
   misconfigured: 'Cloudflare OAuth is not configured on this server.',
   project_mismatch: 'Project domain changed during authorization. Try again.',
   error: 'Failed to configure DNS in Cloudflare.',

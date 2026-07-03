@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
   const stateToken = req.nextUrl.searchParams.get('state');
   const oauthError = req.nextUrl.searchParams.get('error');
+  const oauthErrorDescription = req.nextUrl.searchParams.get('error_description');
 
   if (oauthError) {
     let slug = '';
@@ -36,8 +37,18 @@ export async function GET(req: NextRequest) {
         // ignore invalid state on denied flow
       }
     }
+    const wasDenied = oauthError === 'access_denied';
+    const message = oauthErrorDescription?.trim() || `Cloudflare OAuth error: ${oauthError}`;
+    console.error('Cloudflare OAuth authorization failed', {
+      error: oauthError,
+      description: oauthErrorDescription,
+      slug: slug || undefined,
+    });
     const redirect = slug
-      ? getProjectSettingsUrl(origin, slug, { cf_dns: 'denied' })
+      ? getProjectSettingsUrl(origin, slug, {
+          cf_dns: wasDenied ? 'denied' : 'oauth_error',
+          ...(!wasDenied ? { cf_dns_msg: message.slice(0, 180) } : {}),
+        })
       : new URL('/dashboard', origin).toString();
     return NextResponse.redirect(redirect);
   }
