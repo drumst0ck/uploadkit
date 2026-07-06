@@ -244,6 +244,7 @@ const PRICING_TIERS: PricingTier[] = [
       '1,000 uploads / mo',
       '2 projects',
       'Community support',
+      'No custom CDN domain',
     ],
   },
   {
@@ -261,6 +262,7 @@ const PRICING_TIERS: PricingTier[] = [
       '50,000 uploads / mo',
       '10 projects',
       'Priority email support',
+      'Custom CDN domain',
     ],
   },
   {
@@ -278,6 +280,7 @@ const PRICING_TIERS: PricingTier[] = [
       '500,000 uploads / mo',
       '50 projects',
       'Dedicated support',
+      'Custom CDN domain',
     ],
   },
 ]
