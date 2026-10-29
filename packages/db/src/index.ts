@@ -12,6 +12,7 @@ export { ImageTransformation } from './models/image-transformation';
 export { ImageTransformLock } from './models/image-transform-lock';
 export { TeamMember } from './models/team-member';
 export { WebhookDelivery } from './models/webhook-delivery';
+export { UploadRejection, UPLOAD_REJECTION_TTL_SECONDS } from './models/upload-rejection';
 export { encryptSecret, decryptSecret } from './lib/crypto';
 
 export type { IUser } from './models/user';
@@ -33,3 +34,4 @@ export type { ISubscription } from './models/subscription';
 export type { IUsageRecord } from './models/usage-record';
 export type { IImageTransformation } from './models/image-transformation';
 export type { IImageTransformLock } from './models/image-transform-lock';
+export type { IUploadRejection, UploadRejectionCode } from './models/upload-rejection';

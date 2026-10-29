@@ -11,6 +11,7 @@ import { withApiKey } from '@/lib/with-api-key';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 import { MultipartInitSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET, CDN_URL } from '@/lib/storage';
+import { recordUploadRejection, fileTooLargeReason, quotaReason } from '@/lib/upload-rejections';
 
 // Minimum part size per R2/S3 spec (5 MiB) — smaller parts are rejected
 const PART_SIZE = 5 * 1024 * 1024;
@@ -29,6 +30,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     }
 
     const { fileName, fileSize, contentType, routeSlug, metadata } = parsed.data;
+    const rejection = { routerSlug: routeSlug, fileName, fileSize, fileType: contentType };
 
     // 2. Perform the same validations as single upload (FileRouter, size, type, quotas)
 
@@ -47,6 +49,11 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       TIER_LIMITS[ctx.tier].maxFileSizeBytes,
     );
     if (fileSize > effectiveMaxSize) {
+      await recordUploadRejection(ctx, {
+        ...rejection,
+        code: 'FILE_TOO_LARGE',
+        reason: fileTooLargeReason(fileRouter.maxFileSize, ctx),
+      });
       return serializeError(new TierLimitError('file size'));
     }
 
@@ -55,6 +62,11 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       fileRouter.allowedTypes.length > 0 &&
       !fileRouter.allowedTypes.includes(contentType)
     ) {
+      await recordUploadRejection(ctx, {
+        ...rejection,
+        code: 'TYPE_NOT_ALLOWED',
+        reason: 'Type not allowed by router',
+      });
       return NextResponse.json(
         {
           error: {
@@ -74,11 +86,13 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       period,
     });
     if ((record?.storageUsed ?? 0) + fileSize > TIER_LIMITS[ctx.tier].maxStorageBytes) {
+      await recordUploadRejection(ctx, { ...rejection, code: 'QUOTA_EXCEEDED', reason: quotaReason('storage', ctx) });
       return serializeError(new TierLimitError('storage'));
     }
 
     // Check upload count quota
     if ((record?.uploads ?? 0) >= TIER_LIMITS[ctx.tier].maxUploadsPerMonth) {
+      await recordUploadRejection(ctx, { ...rejection, code: 'QUOTA_EXCEEDED', reason: quotaReason('uploads', ctx) });
       return serializeError(new TierLimitError('monthly uploads'));
     }
 

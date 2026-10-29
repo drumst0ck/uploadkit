@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { connectDB, User, Account, Project, ApiKey, File, FileRouter, Subscription, UsageRecord, ImageTransformation, ImageTransformLock } from '../src/index';
+import { connectDB, User, Account, Project, ApiKey, File, FileRouter, Subscription, UsageRecord, ImageTransformation, ImageTransformLock, UploadRejection } from '../src/index';
 import { FILE_STATUSES, TIERS } from '@uploadkitdev/shared';
 
 describe('connectDB export', () => {
@@ -111,5 +111,27 @@ describe('UsageRecord model schema', () => {
         'userId' in fields && 'period' in fields && options['unique'] === true,
     );
     expect(hasCompoundUniqueIndex).toBe(true);
+  });
+});
+
+describe('UploadRejection model', () => {
+  it('is exported with projectId+createdAt index and a 30-day TTL index', async () => {
+    const { UploadRejection, UPLOAD_REJECTION_TTL_SECONDS } = await import('../src/index');
+    expect(UploadRejection.modelName).toBe('UploadRejection');
+    const idx = UploadRejection.schema.indexes();
+    expect(idx).toContainEqual([{ projectId: 1, createdAt: -1 }, expect.anything()]);
+    expect(idx).toContainEqual([
+      { createdAt: 1 },
+      expect.objectContaining({ expireAfterSeconds: UPLOAD_REJECTION_TTL_SECONDS }),
+    ]);
+    expect(UPLOAD_REJECTION_TTL_SECONDS).toBe(2592000);
+  });
+
+  it('requires code, reason, routerSlug, fileName and projectId', async () => {
+    const doc = new UploadRejection({});
+    const err = await doc.validate().then(() => undefined, (e: any) => e);
+    for (const f of ['projectId', 'routerSlug', 'fileName', 'fileSize', 'code', 'reason']) {
+      expect(err?.errors[f]).toBeDefined();
+    }
   });
 });
