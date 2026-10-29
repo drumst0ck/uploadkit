@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { RootProvider } from 'fumadocs-ui/provider/next';
-import { satoshi, inter } from '@/lib/fonts';
+import { geist, geistMono } from '@/lib/fonts'; // taste-skill-ignore: Geist Mono for code only
 import './global.css';
 
 // Search Console verification; emitted only when the env var is set.
@@ -15,15 +15,21 @@ export const metadata: Metadata = {
     : {}),
 };
 
+// taste-skill-ignore: the mono variable only feeds code, pre and kbd
+const fontVariables = `dark ${geist.variable} ${geistMono.variable}`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`dark ${satoshi.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={fontVariables} suppressHydrationWarning>
       <body className="antialiased">
-        <RootProvider>{children}</RootProvider>
+        {/* Dark only: the identity is a black field. Forced so a stored light/system choice cannot flip it. */}
+        <RootProvider theme={{ forcedTheme: 'dark', defaultTheme: 'dark', enableSystem: false }}>
+          {children}
+        </RootProvider>
       </body>
     </html>
   );
