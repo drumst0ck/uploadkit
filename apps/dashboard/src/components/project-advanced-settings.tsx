@@ -13,19 +13,19 @@ export function SelfHostedSdkCard() {
       <h2 className="mb-1 text-sm font-medium text-foreground">UploadKit Cloud storage</h2>
       <p className="mb-4 text-xs text-muted-foreground">
         This project stores files on UploadKit&apos;s managed R2 + CDN. API keys from this dashboard
-        always target <code className="text-indigo-400">api.uploadkit.dev</code> — not your own bucket.
+        always target <code className="text-foreground">api.uploadkit.dev</code> — not your own bucket.
       </p>
       <p className="mb-4 text-xs text-muted-foreground">
         Want to self-host with your S3, R2, GCS, or B2 bucket? Use the open-source SDK in your app
-        and pass <code className="text-indigo-400">storage</code> to{' '}
-        <code className="text-indigo-400">createUploadKitHandler</code>. No dashboard toggle — credentials
+        and pass <code className="text-foreground">storage</code> to{' '}
+        <code className="text-foreground">createUploadKitHandler</code>. No dashboard toggle — credentials
         stay in your server env.
       </p>
       <a
         href={DOCS_BYOS_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400 hover:text-indigo-300"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-foreground"
       >
         Self-hosted BYOS guide
         <span aria-hidden>↗</span>
@@ -269,7 +269,7 @@ export function CustomDomainSettings({
         <h2 className="mb-1 text-sm font-medium text-foreground">Custom CDN domain</h2>
         <p className="mb-5 text-xs text-muted-foreground">
           Serve files from your domain via Cloudflare SSL for SaaS. Image transforms (/t/, /p/) still use{' '}
-          <code className="text-indigo-400">cdn.uploadkit.dev</code>.
+          <code className="text-foreground">cdn.uploadkit.dev</code>.
         </p>
 
         <ol aria-label="Custom domain setup progress" className="mb-5 grid gap-2 sm:grid-cols-3">
@@ -323,7 +323,7 @@ export function CustomDomainSettings({
                       : []
                     ).map((record) => (
                       <li key={`${record.type}-${record.name}`} className="font-mono text-[11px]">
-                        <span className="uppercase text-indigo-400">{record.type}</span>{' '}
+                        <span className="uppercase text-foreground">{record.type}</span>{' '}
                         {record.name} → {record.value}
                       </li>
                     ))}

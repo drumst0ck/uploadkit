@@ -32,7 +32,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   return (
     <div className="rounded-lg border border-border bg-card/90 px-3 py-2 text-xs text-foreground shadow-xl shadow-black/40 backdrop-blur-sm">
       <p className="font-medium text-foreground mb-1">{label}</p>
-      <p className="text-indigo-300">
+      <p className="text-foreground">
         {payload[0]?.value ?? 0}{' '}
         <span className="text-muted-foreground">uploads</span>
       </p>

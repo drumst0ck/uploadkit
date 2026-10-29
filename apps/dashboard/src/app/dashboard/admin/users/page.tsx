@@ -14,8 +14,8 @@ export const dynamic = 'force-dynamic';
 
 const TIER_BADGE_CLASS: Record<string, string> = {
   FREE: 'bg-zinc-500/10 text-zinc-400 ring-zinc-500/20',
-  PRO: 'bg-indigo-500/10 text-indigo-400 ring-indigo-500/20',
-  TEAM: 'bg-violet-500/10 text-violet-400 ring-violet-500/20',
+  PRO: 'bg-indigo-500/10 text-foreground ring-indigo-500/20',
+  TEAM: 'bg-violet-500/10 text-foreground ring-violet-500/20',
   ENTERPRISE: 'bg-amber-500/10 text-amber-400 ring-amber-500/20',
 };
 

@@ -1,7 +1,13 @@
 @import "@uploadkitdev/config/tailwind/base.css";
+@import "./pd-tokens.css";
+@import "./pd-kit.css";
 
-/* ─── shadcn/ui design tokens ─── */
+/* ─── Dashboard theme: personal-design tokens on the shadcn variable names ───
+ * Everything derives from --pd-* (pd-tokens.css), so both themes follow. Primary is
+ * the single accent: white pill in dark, black in light. No chromatic colour. */
 @theme inline {
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
@@ -21,32 +27,130 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --color-surface: var(--pd-color-bg-surface);
+  --color-surface-elevated: var(--pd-color-bg-raised);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-:root {
-  --radius: 0.625rem;
+/* Legacy pages and @uploadkitdev/ui still say indigo/violet. Brand S2 is pure
+ * monochrome, so those palette steps resolve to neutral greys here (fills that
+ * carry white text stay >= 5:1 in both themes). Page code never sees a hue. */
+@theme {
+  --color-indigo-300: #a1a1a1;
+  --color-indigo-400: #6b6b6b;
+  --color-indigo-500: #525252;
+  --color-indigo-600: #525252;
+  --color-indigo-700: #404040;
+  --color-violet-300: #a1a1a1;
+  --color-violet-400: #6b6b6b;
+  --color-violet-500: #525252;
+  --color-violet-600: #525252;
+  --color-purple-400: #6b6b6b;
+  --color-purple-500: #525252;
+  /* @uploadkitdev/ui Input hardcodes zinc text for a dark ground; follow the theme instead. */
+  --color-zinc-200: var(--pd-color-text-primary);
+  --color-zinc-300: var(--pd-color-text-primary);
+  --color-zinc-400: var(--pd-color-text-secondary);
+  --color-zinc-500: var(--pd-color-text-muted);
+  --color-zinc-600: var(--pd-color-text-muted);
+}
+
+:root,
+.dark {
+  --background: var(--pd-color-bg-canvas);
+  --foreground: var(--pd-color-text-primary);
+  --card: var(--pd-color-bg-surface);
+  --card-foreground: var(--pd-color-text-primary);
+  --popover: var(--pd-color-bg-surface);
+  --popover-foreground: var(--pd-color-text-primary);
+  --primary: var(--pd-color-accent);
+  --primary-foreground: var(--pd-color-text-on-accent);
+  --secondary: var(--pd-color-bg-raised);
+  --secondary-foreground: var(--pd-color-text-primary);
+  --muted: var(--pd-color-bg-raised);
+  --muted-foreground: var(--pd-color-text-secondary);
+  --accent: var(--pd-color-bg-raised);
+  --accent-foreground: var(--pd-color-text-primary);
+  --destructive: var(--pd-color-status-danger);
+  --destructive-foreground: var(--pd-color-text-primary);
+  --border: var(--pd-color-border-subtle);
+  --input: var(--pd-color-border-control);
+  --ring: var(--pd-color-focus);
+  --radius: 0.375rem;
 }
 
 html {
+  color-scheme: dark;
   text-rendering: optimizeLegibility;
 }
 
-.dashboard-canvas {
-  background-image:
-    radial-gradient(circle at 12% -5%, color-mix(in srgb, var(--primary) 9%, transparent) 0, transparent 28rem),
-    linear-gradient(to right, color-mix(in srgb, var(--border) 35%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--border) 35%, transparent) 1px, transparent 1px);
-  background-size: auto, 32px 32px, 32px 32px;
+html:not(.dark) {
+  color-scheme: light;
 }
 
-@media (max-width: 1023px) {
-  .dashboard-canvas {
-    background-image: radial-gradient(circle at 50% -8%, color-mix(in srgb, var(--primary) 10%, transparent) 0, transparent 22rem);
-  }
+/* Focus: 2px ring at 3px offset on every interactive part, both themes. */
+:focus-visible {
+  outline: 2px solid var(--pd-color-focus);
+  outline-offset: 3px;
+}
+
+/* @uploadkitdev/ui draws borders as white/6-8% (invisible on a light ground). */
+:root:not(.dark) [class*="border-white/"] {
+  border-color: var(--pd-color-border-control);
+}
+
+/* Cookie consent (shared stylesheet is indigo, glass and shadow): restyle locally with pd tokens. */
+[data-uk-cookie-consent="banner"] {
+  color: var(--pd-color-text-primary);
+  background: var(--pd-color-bg-raised);
+  border: 1px solid var(--pd-color-border-subtle);
+  border-radius: var(--pd-radius-panel);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.uk-cookie-consent__title { color: var(--pd-color-text-primary); }
+.uk-cookie-consent__description { color: var(--pd-color-text-secondary); }
+.uk-cookie-consent__button,
+[data-uk-cookie-consent="settings"] {
+  min-height: 2.75rem;
+  color: var(--pd-color-text-primary);
+  font-weight: 500;
+  border-radius: var(--pd-radius-control);
+}
+.uk-cookie-consent__button--secondary {
+  background: transparent;
+  border: 1px solid var(--pd-color-border-control);
+}
+.uk-cookie-consent__button--secondary:hover { background: var(--pd-color-bg-surface); }
+.uk-cookie-consent__button--primary {
+  color: var(--pd-color-text-on-accent);
+  background: var(--pd-color-accent);
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+.uk-cookie-consent__button--primary:hover {
+  background: var(--pd-color-text-primary);
+  border-color: transparent;
+}
+.uk-cookie-consent__button:focus-visible,
+[data-uk-cookie-consent="settings"]:focus-visible {
+  outline-color: var(--pd-color-focus);
+  outline-offset: 3px;
+}
+[data-uk-cookie-consent="settings"] {
+  color: var(--pd-color-text-secondary);
+  background: var(--pd-color-bg-raised);
+  border: 1px solid var(--pd-color-border-subtle);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+/* Surface rows on canvas: no gradient, no grid, no glow. */
+.dashboard-canvas {
+  background: var(--pd-color-bg-canvas);
 }
 
 @layer components {
@@ -105,53 +209,6 @@ html {
   }
 
   .studio-input:focus-visible {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+    border-color: var(--pd-color-focus);
   }
-}
-
-/* Light mode */
-:root:not(.dark) {
-  --background: #ffffff;
-  --foreground: #09090b;
-  --card: #f8f8f8;
-  --card-foreground: #09090b;
-  --popover: #ffffff;
-  --popover-foreground: #09090b;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --accent: #f4f4f5;
-  --accent-foreground: #18181b;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.08);
-  --input: rgba(0, 0, 0, 0.1);
-  --ring: #6366f1;
-}
-
-/* Dark mode */
-.dark {
-  --background: #0a0a0b;
-  --foreground: #fafafa;
-  --card: #141416;
-  --card-foreground: #fafafa;
-  --popover: #141416;
-  --popover-foreground: #fafafa;
-  --primary: #6366f1;
-  --primary-foreground: #fafafa;
-  --secondary: #1e1e22;
-  --secondary-foreground: #fafafa;
-  --muted: #1e1e22;
-  --muted-foreground: #b4b4bd;
-  --accent: #1e1e22;
-  --accent-foreground: #fafafa;
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-  --border: rgba(255, 255, 255, 0.06);
-  --input: rgba(255, 255, 255, 0.1);
-  --ring: #6366f1;
 }

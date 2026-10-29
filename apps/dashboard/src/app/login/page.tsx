@@ -186,7 +186,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
             <button
               type="submit"
-              className="h-11 w-full rounded-lg bg-indigo-500 text-sm font-medium text-foreground transition-colors hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
+              className="h-11 w-full rounded-lg bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
             >
               {emailCTA}
             </button>
@@ -200,7 +200,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               Already have an account?{' '}
               <a
                 href={plan ? `/login?plan=${plan}` : '/login'}
-                className="font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+                className="font-medium text-foreground transition-colors hover:text-foreground"
               >
                 Sign in
               </a>
@@ -210,7 +210,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               Don&apos;t have an account?{' '}
               <a
                 href={plan ? `/login?mode=signup&plan=${plan}` : '/login?mode=signup'}
-                className="font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+                className="font-medium text-foreground transition-colors hover:text-foreground"
               >
                 Sign up
               </a>

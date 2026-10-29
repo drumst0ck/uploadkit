@@ -31,7 +31,7 @@ export function LegalPage({ title, description, children }: LegalPageProps) {
 
       <div className="mx-auto grid max-w-5xl gap-12 px-6 py-16 lg:grid-cols-[220px_minmax(0,1fr)] lg:py-24">
         <aside className="lg:sticky lg:top-12 lg:self-start">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground">
             Legal
           </p>
           <nav aria-label="Legal pages" className="mt-5 flex gap-5 text-sm lg:flex-col lg:gap-3">

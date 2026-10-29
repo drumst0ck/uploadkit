@@ -63,7 +63,7 @@ export default async function UsagePage() {
       {/* Tier badge */}
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Plan:</span>
-        <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-indigo-400 ring-1 ring-indigo-500/20">
+        <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-foreground ring-1 ring-indigo-500/20">
           {tier}
         </span>
       </div>

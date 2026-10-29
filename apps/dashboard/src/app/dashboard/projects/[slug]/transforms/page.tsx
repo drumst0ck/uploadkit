@@ -56,7 +56,7 @@ export default async function TransformationsPage({
     <div className="space-y-5 sm:space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-indigo-400">Image pipeline</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground">Image pipeline</p>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Transformations</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Create optimized image variants without leaving UploadKit. Every result is signed, CDN-ready and cached globally.</p>
         </div>
