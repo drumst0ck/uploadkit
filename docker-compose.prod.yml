@@ -86,6 +86,11 @@ services:
     volumes:
       - mongodb_data:/data/db
     environment:
+      # Keep glibc rseq registered so TCMalloc uses per-thread caches.
+      # MongoDB's per-CPU rseq path rejects Ubuntu's 7.0.0 kernel string
+      # even when /proc/version_signature reports fixed upstream 7.0.14.
+      # See SERVER-121912 / SERVER-136848. No data-format or version change.
+      GLIBC_TUNABLES: glibc.pthread.rseq=1
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     restart: unless-stopped
