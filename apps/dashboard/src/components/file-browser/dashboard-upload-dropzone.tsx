@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { UploadCloud, X, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const PART_SIZE = 5 * 1024 * 1024; // 5 MiB
 const MIN_MULTIPART_SIZE = 10 * 1024 * 1024; // 10 MiB
@@ -17,9 +16,20 @@ interface UploadItem {
   error?: string;
 }
 
+export interface UploadApi {
+  /** Opens the native file picker. */
+  open: () => void;
+  /** True while files are being dragged over the drop area. */
+  dragActive: boolean;
+  /** Upload queue (progress, errors, remove); null when nothing was queued. */
+  queue: React.ReactNode;
+}
+
 interface DashboardUploadDropzoneProps {
   slug: string;
   onUploadComplete: () => void;
+  /** Lets the page place the trigger button and the queue; the wrapper is the drop target. */
+  children: (api: UploadApi) => React.ReactNode;
 }
 
 function formatBytes(bytes: number): string {
@@ -165,7 +175,7 @@ async function uploadMultipart(
   }
 }
 
-export function DashboardUploadDropzone({ slug, onUploadComplete }: DashboardUploadDropzoneProps) {
+export function DashboardUploadDropzone({ slug, onUploadComplete, children }: DashboardUploadDropzoneProps) {
   const [items, setItems] = React.useState<UploadItem[]>([]);
   const [dragActive, setDragActive] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -235,13 +245,6 @@ export function DashboardUploadDropzone({ slug, onUploadComplete }: DashboardUpl
       void handleFiles(e.dataTransfer.files);
     }
   };
-  const onClick = () => inputRef.current?.click();
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      inputRef.current?.click();
-    }
-  };
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       void handleFiles(e.target.files);
@@ -253,117 +256,77 @@ export function DashboardUploadDropzone({ slug, onUploadComplete }: DashboardUpl
     setItems((prev) => prev.filter((it) => it.status !== 'success'));
   };
 
-  return (
-    <div className="space-y-3">
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Drop files here or click to browse"
-        onClick={onClick}
-        onKeyDown={onKeyDown}
-        onDragEnter={onDragEnter}
-        onDragLeave={onDragLeave}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
-        className={`group relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors cursor-pointer ${
-          dragActive
-            ? 'border-indigo-500 bg-indigo-500/5'
-            : 'border-border/60 hover:border-border hover:bg-muted/30'
-        }`}
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/50 text-muted-foreground group-hover:text-foreground transition-colors">
-          <UploadCloud className="h-6 w-6" aria-hidden="true" />
+  const queue =
+    items.length > 0 ? (
+      <section aria-label="Upload queue" className="grid gap-2">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground" role="status">
+            {items.filter((i) => i.status === 'success').length} of {items.length} uploaded
+          </span>
+          {items.some((i) => i.status === 'success') && (
+            <button type="button" onClick={clearCompleted} className="pd-button pd-button--ghost" style={{ minHeight: '2rem', padding: '0 var(--pd-space-4)' }}>
+              Clear completed
+            </button>
+          )}
         </div>
-        <p className="text-sm">
-          <strong className="font-medium text-foreground">Drop files here</strong>{' '}
-          <span className="text-muted-foreground">or click to browse</span>
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Files over 10 MiB are uploaded in parallel chunks
-        </p>
-        <input
-          ref={inputRef}
-          type="file"
-          multiple
-          hidden
-          onChange={onInputChange}
-        />
-      </div>
-
-      {items.length > 0 && (
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {items.filter((i) => i.status === 'success').length} / {items.length} uploaded
-            </span>
-            {items.some((i) => i.status === 'success') && (
-              <button
-                type="button"
-                onClick={clearCompleted}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Clear completed
-              </button>
-            )}
-          </div>
-          <ul className="space-y-1">
-            {items.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center gap-3 rounded-md border border-border/50 bg-muted/20 px-3 py-2 text-xs"
-              >
-                <div className="flex-shrink-0">
-                  {item.status === 'success' ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" aria-hidden="true" />
-                  ) : item.status === 'error' ? (
-                    <AlertCircle
-                      className="h-4 w-4 text-red-400"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <div className="h-4 w-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="truncate font-medium text-foreground">
-                      {item.file.name}
-                    </span>
-                    <span className="flex-shrink-0 text-muted-foreground">
-                      {formatBytes(item.file.size)}
-                    </span>
-                  </div>
-                  {item.status === 'uploading' && (
-                    <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full bg-indigo-500 transition-all duration-200"
-                        style={{ width: `${item.progress}%` }}
-                      />
-                    </div>
-                  )}
-                  {item.status === 'error' && item.error && (
-                    <p className="mt-0.5 text-red-400 truncate" title={item.error}>
-                      {item.error}
-                    </p>
-                  )}
-                </div>
+        <ul className="grid gap-1">
+          {items.map((item) => (
+            <li key={item.id} className="rounded-md bg-card px-4 py-2.5 text-sm">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex flex-none items-center gap-2 text-muted-foreground">
+                  <span
+                    className={`pd-dot ${item.status === 'success' ? 'pd-dot--success' : item.status === 'error' ? 'pd-dot--danger' : 'pd-dot--warning'}`}
+                    aria-hidden="true"
+                  />
+                  {item.status === 'success' ? 'Uploaded' : item.status === 'error' ? 'Failed' : `Uploading ${item.progress}%`}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-mono" title={item.file.name}>{item.file.name}</span>
+                <span className="flex-none font-mono text-muted-foreground">{formatBytes(item.file.size)}</span>
                 {item.status !== 'uploading' && (
                   <button
                     type="button"
-                    onClick={() =>
-                      setItems((prev) => prev.filter((i) => i.id !== item.id))
-                    }
-                    className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label="Remove"
+                    onClick={() => setItems((prev) => prev.filter((i) => i.id !== item.id))}
+                    className="pd-button pd-button--ghost"
+                    style={{ minHeight: '2rem', padding: '0 var(--pd-space-3)' }}
+                    aria-label={`Remove ${item.file.name} from the queue`}
                   >
-                    <X className="h-3.5 w-3.5" />
+                    Remove
                   </button>
                 )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+              </div>
+              {item.status === 'uploading' && (
+                <div
+                  className="mt-2 h-1 overflow-hidden rounded-full bg-secondary"
+                  role="progressbar"
+                  aria-label={`Uploading ${item.file.name}`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={item.progress}
+                >
+                  <i className="block h-full rounded-full bg-foreground transition-[width] duration-200" style={{ width: `${item.progress}%` }} />
+                </div>
+              )}
+              {item.status === 'error' && item.error && (
+                <p className="mt-1 text-sm" style={{ color: 'var(--pd-color-status-danger)' }}>
+                  Error: {item.error}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ) : null;
+
+  return (
+    <div
+      onDragEnter={onDragEnter}
+      onDragLeave={onDragLeave}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      className={dragActive ? 'rounded-md outline outline-2 outline-offset-8 outline-dashed outline-[var(--pd-color-border-control)]' : undefined}
+    >
+      <input ref={inputRef} type="file" multiple hidden onChange={onInputChange} tabIndex={-1} />
+      {children({ open: () => inputRef.current?.click(), dragActive, queue })}
     </div>
   );
 }

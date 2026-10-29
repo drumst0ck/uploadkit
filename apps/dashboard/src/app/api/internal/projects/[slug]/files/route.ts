@@ -38,7 +38,8 @@ export async function GET(
   // Build filter
   const filter: Record<string, unknown> = {
     projectId: project._id,
-    status: 'UPLOADED',
+    // FAILED uploads live in their own (rejected) view; DELETED rows carry deletedAt
+    status: { $in: ['UPLOADED', 'UPLOADING'] },
     deletedAt: null,
   };
 

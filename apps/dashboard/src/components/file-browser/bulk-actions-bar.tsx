@@ -10,34 +10,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-  Button,
 } from '@uploadkitdev/ui';
-import { Trash2 } from 'lucide-react';
 
 interface BulkActionsBarProps {
   selectedCount: number;
   onDelete: () => void;
 }
 
+/** Selection count and bulk delete, confirmed in a dialog. */
 export function BulkActionsBar({ selectedCount, onDelete }: BulkActionsBarProps) {
+  const noun = selectedCount === 1 ? 'file' : 'files';
   return (
-    <div className="flex items-center gap-3 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2">
-      <span className="text-sm text-muted-foreground">
-        {selectedCount} {selectedCount === 1 ? 'file' : 'files'} selected
+    <div className="flex items-center gap-2 md:ml-auto">
+      <span className="text-sm tabular-nums text-muted-foreground" role="status">
+        {selectedCount} selected
       </span>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" size="sm">
-            <Trash2 className="mr-1 h-4 w-4" />
-            Delete selected
-          </Button>
+          <button type="button" className="pd-button pd-button--secondary" style={{ minHeight: '2rem', padding: '0 var(--pd-space-4)' }}>
+            Delete
+          </button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {selectedCount} {selectedCount === 1 ? 'file' : 'files'}?</AlertDialogTitle>
+            <AlertDialogTitle>Delete {selectedCount} {noun}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {selectedCount}{' '}
-              {selectedCount === 1 ? 'file' : 'files'}. This action cannot be undone.
+              This will permanently delete {selectedCount} {noun}. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
