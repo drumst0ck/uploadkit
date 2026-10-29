@@ -11,6 +11,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   routes: 'Routers',
   transforms: 'Transformations',
   logs: 'Logs',
+  rejected: 'Rejected',
   webhooks: 'Webhooks',
   settings: 'Settings',
 };

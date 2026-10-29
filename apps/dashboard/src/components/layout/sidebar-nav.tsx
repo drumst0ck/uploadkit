@@ -23,12 +23,11 @@ const ACCOUNT_NAV: NavItem[] = [
  * Project sub-navigation, nested under "Projects" while inside a project.
  * `path` is relative to /dashboard/projects/[slug]; `absolute` targets pages that
  * are not per-project yet:
- *  - Rejected: no dedicated page yet, points at the upload logs.
  *  - Usage: no per-project usage page yet, points at the account usage page.
  */
 const PROJECT_NAV: Array<{ label: string; path?: string; absolute?: string }> = [
   { label: 'Files', path: 'files' },
-  { label: 'Rejected', path: 'logs' },
+  { label: 'Rejected', path: 'rejected' },
   { label: 'Usage', absolute: '/dashboard/usage' },
   { label: 'Routers', path: 'routes' },
   { label: 'API keys', path: 'keys' },
