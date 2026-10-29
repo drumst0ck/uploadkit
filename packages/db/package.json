@@ -30,7 +30,7 @@
     "@uploadkitdev/config": "workspace:*",
     "mongodb": "^7.7.0",
     "tsup": "^8.5.1",
-    "typescript": "latest",
-    "vitest": "latest"
+    "typescript": "6.0.2",
+    "vitest": "4.1.4"
   }
 }

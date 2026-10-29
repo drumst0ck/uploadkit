@@ -51,16 +51,16 @@
     "prepublishOnly": "node scripts/pin-template-deps.mjs"
   },
   "dependencies": {
-    "@clack/prompts": "latest",
-    "execa": "latest",
-    "mri": "latest",
-    "picocolors": "latest"
+    "@clack/prompts": "^1.2.0",
+    "execa": "^9.6.1",
+    "mri": "^1.2.0",
+    "picocolors": "^1.1.1"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "25.6.0",
     "@uploadkitdev/config": "workspace:*",
-    "tsup": "latest",
-    "typescript": "latest",
-    "vitest": "latest"
+    "tsup": "8.5.1",
+    "typescript": "6.0.2",
+    "vitest": "4.1.4"
   }
 }

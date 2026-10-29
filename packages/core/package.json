@@ -48,7 +48,7 @@
   "devDependencies": {
     "@uploadkitdev/shared": "workspace:*",
     "@uploadkitdev/config": "workspace:*",
-    "tsup": "latest",
-    "typescript": "latest"
+    "tsup": "8.5.1",
+    "typescript": "6.0.2"
   }
 }
