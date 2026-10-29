@@ -11,6 +11,7 @@ import { serializeError, serializeValidationError } from '@/lib/errors';
 import { UploadRequestSchema } from '@/lib/schemas';
 import { generatePresignedPutUrl } from '@/lib/presign';
 import { CDN_URL } from '@/lib/storage';
+import { recordUploadRejection, fileTooLargeReason, quotaReason } from '@/lib/upload-rejections';
 
 async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiContext) {
   try {
@@ -23,6 +24,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     }
 
     const { fileName, fileSize, contentType, routeSlug, metadata } = parsed.data;
+    const rejection = { routerSlug: routeSlug, fileName, fileSize, fileType: contentType };
 
     // 2. Look up FileRouter for this project and slug
     const fileRouter = await FileRouter.findOne({
@@ -40,6 +42,11 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       TIER_LIMITS[ctx.tier].maxFileSizeBytes,
     );
     if (fileSize > effectiveMaxSize) {
+      await recordUploadRejection(ctx, {
+        ...rejection,
+        code: 'FILE_TOO_LARGE',
+        reason: fileTooLargeReason(fileRouter.maxFileSize, ctx),
+      });
       return serializeError(new TierLimitError('file size'));
     }
 
@@ -53,6 +60,11 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
         return t === contentType;
       });
     if (!typeAllowed) {
+      await recordUploadRejection(ctx, {
+        ...rejection,
+        code: 'TYPE_NOT_ALLOWED',
+        reason: 'Type not allowed by router',
+      });
       return NextResponse.json(
         {
           error: {
@@ -75,6 +87,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     if ((record?.storageUsed ?? 0) + fileSize > TIER_LIMITS[ctx.tier].maxStorageBytes) {
       if (ctx.tier === 'FREE') {
         // Hard block: FREE users cannot exceed their quota
+        await recordUploadRejection(ctx, { ...rejection, code: 'QUOTA_EXCEEDED', reason: quotaReason('storage', ctx) });
         return serializeError(new TierLimitError('storage'));
       }
       // Soft limit: paid users pass through; overage is billed via Stripe Meters in /upload/complete
@@ -84,6 +97,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     // Same soft limit pattern: FREE = hard block, paid = allow through with overage billing.
     if ((record?.uploads ?? 0) >= TIER_LIMITS[ctx.tier].maxUploadsPerMonth) {
       if (ctx.tier === 'FREE') {
+        await recordUploadRejection(ctx, { ...rejection, code: 'QUOTA_EXCEEDED', reason: quotaReason('uploads', ctx) });
         return serializeError(new TierLimitError('monthly uploads'));
       }
       // Soft limit: paid users pass through
