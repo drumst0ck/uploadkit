@@ -1,6 +1,6 @@
 'use client'
 
-// Real @uploadkitdev/react components, themed only through --uk-* variables (see home.css).
+// Real @uploadkitdev/react components, themed only through --uk-* variables (see site.css).
 // Uploads never reach a backend: the provider receives a client whose upload() is simulated
 // in the browser. This is the same approach the existing landing showcase uses.
 

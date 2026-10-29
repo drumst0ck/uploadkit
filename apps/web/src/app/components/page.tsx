@@ -149,21 +149,19 @@ export default function ComponentsPage() {
           faqJsonLd(FAQ),
         )}
       />
+      <nav className="crumb" aria-label="Breadcrumb">
+        <Link href="/">Home</Link> › <span aria-current="page">Components</span>
+      </nav>
+
       <LandingHero
-        eyebrow="@uploadkitdev/react"
         title="React file upload components"
         lead={`${COMPONENT_COUNT} components for React: dropzones, upload buttons, progress indicators, galleries and croppers. They share one provider and one upload client, so you pick the look and keep the same props.`}
         primaryCta={{ label: 'Start for free', href: SIGN_UP_URL }}
         secondaryCta={{ label: 'Component docs', href: 'https://docs.uploadkit.dev/docs/sdk/react/installation' }}
       />
 
-      <nav aria-label="Breadcrumb" className="d2-container">
-        <Link href="/">Home</Link> › <span aria-current="page">Components</span>
-      </nav>
-
       <LandingSection
         id="what-you-get"
-        eyebrow="Overview"
         title="A React dropzone and file upload component library"
         lead="@uploadkitdev/react exports every component below as a named export. Each one uploads through the UploadKitProvider you mount once."
       >
@@ -192,7 +190,6 @@ export default function ComponentsPage() {
 
       <LandingSection
         id="install"
-        eyebrow="Install"
         title="Install and use a React upload component"
         lead="Install the packages, mount the provider once, then drop components anywhere in the tree."
       >
@@ -209,7 +206,6 @@ export default function ComponentsPage() {
 
       <LandingSection
         id="cli"
-        eyebrow="CLI"
         title="Add a component with npx uploadkit add"
         lead="The CLI inserts a component into an existing React or Next.js App Router file."
       >
@@ -234,7 +230,6 @@ export default function ComponentsPage() {
 
       <LandingSection
         id="theming"
-        eyebrow="Theming"
         title="Theme with CSS variables or Tailwind"
         lead="Components read --uk-* custom properties. They do not depend on Tailwind classes."
       >
@@ -259,7 +254,6 @@ export default function ComponentsPage() {
 
       <LandingSection
         id="catalog"
-        eyebrow="Catalog"
         title={`All ${COMPONENT_COUNT} components`}
         lead="Every export from @uploadkitdev/react that renders UI, with a one-line description, its CLI alias where one exists, and a link to its reference page."
       >
@@ -297,11 +291,10 @@ export default function ComponentsPage() {
 
       <LandingSection
         id="gallery"
-        eyebrow="Live demo"
         title="Try the components"
         lead="The gallery below is interactive and uses the same package."
       >
-        <ComponentShowcase />
+        <ComponentShowcase header={false} />
       </LandingSection>
 
       <FaqSection items={FAQ} emitJsonLd={false} />

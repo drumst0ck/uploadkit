@@ -157,8 +157,8 @@ export default function ByosPage() {
         )}
       />
 
-      <nav aria-label="Breadcrumb" className="d2-container">
-        <ol style={{ display: 'flex', gap: 8, listStyle: 'none', padding: '16px 0 0', margin: 0, fontSize: 13 }}>
+      <nav className="crumb" aria-label="Breadcrumb">
+        <ol>
           <li>
             <a href="/">Home</a>
           </li>
@@ -168,7 +168,6 @@ export default function ByosPage() {
       </nav>
 
       <LandingHero
-        eyebrow="Bring your own storage"
         title="An S3 upload SDK that writes to your own bucket"
         lead="Run the UploadKit handler in your app, give it your S3, Cloudflare R2 or MinIO credentials, and browsers upload straight to your bucket with presigned URLs. The React components don’t change."
         primaryCta={{ label: 'Read the BYOS docs', href: 'https://docs.uploadkit.dev/docs/core-concepts/byos' }}
@@ -177,7 +176,6 @@ export default function ByosPage() {
 
       <LandingSection
         id="how-it-works"
-        eyebrow="How it works"
         title="Presigned URLs, signed with your credentials"
         lead="BYOS is the self-hosted path. You run createUploadKitHandler yourself and pass a storage option."
       >
@@ -203,7 +201,6 @@ export default function ByosPage() {
 
       <LandingSection
         id="setup"
-        eyebrow="Setup"
         title="Config for Cloudflare R2 and AWS S3"
         lead="Both snippets come from the BYOS docs. Put the route in app/api/uploadkit/route.ts."
       >
@@ -221,7 +218,6 @@ export default function ByosPage() {
 
       <LandingSection
         id="same-components"
-        eyebrow="Frontend"
         title="The same React components in both modes"
         lead="Storage config lives in the server handler, so the UI code is identical."
       >
@@ -234,7 +230,6 @@ export default function ByosPage() {
 
       <LandingSection
         id="backends"
-        eyebrow="Backends and providers"
         title="Next.js, Express, Hono and Fastify"
         lead="The adapters wrap the same handler, so the storage option works the same way."
       >
@@ -271,7 +266,6 @@ export default function ByosPage() {
 
       <LandingSection
         id="managed-vs-byos"
-        eyebrow="Choosing"
         title="Managed storage or your own bucket"
         lead="From the BYOS docs. Pick one per deployment."
       >

@@ -29,14 +29,14 @@ import { useState, type ReactNode } from 'react';
 const FAKE_ENDPOINT = '/api/uploadkit-noop';
 const FAKE_ROUTE = 'showcase';
 
-export function ComponentShowcase() {
+export function ComponentShowcase({ header = true }: { header?: boolean } = {}) {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <UploadKitProvider endpoint={FAKE_ENDPOINT}>
-      <main className="showcase">
+      <div className="showcase sdk-stage" data-ui>
+        {header && (
         <header className="showcase-header">
-          <p className="showcase-kicker">Internal · not indexed</p>
           <h2 className="showcase-title">SDK Components</h2>
           <p className="showcase-sub">
             Visual showcase of every component in{' '}
@@ -45,6 +45,7 @@ export function ComponentShowcase() {
             <code>motion</code> (optional peerDep) with CSS fallbacks.
           </p>
         </header>
+        )}
 
         <Section
           title="Classics"
@@ -194,155 +195,7 @@ export function ComponentShowcase() {
             <UploadStepWizard route={FAKE_ROUTE} />
           </Card>
         </Section>
-      </main>
-
-      <style>{`
-        .showcase {
-          min-height: 100vh;
-          padding: 4rem 1.5rem 6rem;
-          background: radial-gradient(
-              1200px 600px at 50% -10%,
-              rgba(99, 102, 241, 0.08),
-              transparent 60%
-            ),
-            #0a0a0b;
-          color: #fafafa;
-          font-family: var(--font-inter), system-ui, sans-serif;
-        }
-        .showcase-header {
-          max-width: 1200px;
-          margin: 0 auto 4rem;
-          text-align: center;
-        }
-        .showcase-kicker {
-          display: inline-block;
-          padding: 0.25rem 0.75rem;
-          border-radius: 999px;
-          background: rgba(239, 68, 68, 0.08);
-          border: 1px solid rgba(239, 68, 68, 0.24);
-          color: #fca5a5;
-          font-size: 0.75rem;
-          font-weight: 500;
-          letter-spacing: 0.02em;
-          margin-bottom: 1.5rem;
-        }
-        .showcase-title {
-          font-family: var(--font-satoshi), system-ui, sans-serif;
-          font-size: clamp(2.5rem, 6vw, 4.5rem);
-          font-weight: 700;
-          letter-spacing: -0.03em;
-          line-height: 1;
-          margin: 0 0 1.25rem;
-          background: linear-gradient(180deg, #fafafa 0%, #a1a1aa 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        .showcase-sub {
-          max-width: 640px;
-          margin: 0 auto;
-          color: #a1a1aa;
-          font-size: 1rem;
-          line-height: 1.7;
-        }
-        .showcase-sub code {
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 0.875em;
-          background: rgba(255, 255, 255, 0.06);
-          padding: 0.125rem 0.375rem;
-          border-radius: 4px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .showcase-section {
-          max-width: 1200px;
-          margin: 0 auto 5rem;
-        }
-        .showcase-section-header {
-          margin-bottom: 2rem;
-          padding-bottom: 1.25rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .showcase-section-title {
-          font-family: var(--font-satoshi), system-ui, sans-serif;
-          font-size: 1.5rem;
-          font-weight: 600;
-          letter-spacing: -0.02em;
-          margin: 0 0 0.5rem;
-          color: #fafafa;
-        }
-        .showcase-section-desc {
-          margin: 0;
-          color: #71717a;
-          font-size: 0.9375rem;
-          line-height: 1.6;
-        }
-        .showcase-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 1.5rem;
-        }
-        .showcase-card {
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 16px;
-          background: linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.02) 0%,
-            rgba(255, 255, 255, 0) 100%
-          );
-          padding: 1.5rem;
-          display: flex;
-          flex-direction: column;
-          gap: 1.25rem;
-          min-height: 280px;
-          transition: border-color 200ms ease, transform 200ms ease;
-        }
-        .showcase-card:hover {
-          border-color: rgba(255, 255, 255, 0.12);
-          transform: translateY(-2px);
-        }
-        .showcase-card-label {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-        .showcase-card-name {
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 0.8125rem;
-          font-weight: 500;
-          color: #e4e4e7;
-          letter-spacing: -0.01em;
-        }
-        .showcase-card-inspiration {
-          font-size: 0.6875rem;
-          color: #71717a;
-          letter-spacing: 0.01em;
-          text-transform: uppercase;
-        }
-        .showcase-card-stage {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1rem;
-          border-radius: 12px;
-          background: rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-        .showcase-fake-btn {
-          padding: 0.625rem 1.25rem;
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 8px;
-          color: #fafafa;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: background 150ms ease;
-        }
-        .showcase-fake-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-      `}</style>
+      </div>
     </UploadKitProvider>
   );
 }

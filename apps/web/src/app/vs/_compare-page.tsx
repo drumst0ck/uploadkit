@@ -28,7 +28,7 @@ export function ComparePage({ c }: { c: CompareConfig }) {
           faqJsonLd(c.faq),
         )}
       />
-      <LandingHero eyebrow="Compare" title={c.heroTitle} lead={c.heroLead} />
+      <LandingHero title={c.heroTitle} lead={c.heroLead} />
       <LandingSection id="overview" title={`UploadKit and ${c.name} in short`}>
         {c.intro.map((p) => (
           <p key={p}>{p}</p>

@@ -15,7 +15,7 @@ export function RelatedLinks({
   title?: string
 }) {
   return (
-    <nav className="d2-container landing-related" aria-label={title}>
+    <nav className="col related" aria-label={title}>
       <h2>{title}</h2>
       <ul role="list">
         {links.map((l) => (
@@ -25,7 +25,7 @@ export function RelatedLinks({
             ) : (
               <Link href={l.href}>{l.label}</Link>
             )}
-            {l.description && <span> — {l.description}</span>}
+            {l.description && <span className="soft"> — {l.description}</span>}
           </li>
         ))}
       </ul>

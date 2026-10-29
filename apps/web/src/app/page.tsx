@@ -1,11 +1,9 @@
 import type { Metadata } from 'next'
-import { SkipLink } from '@/components/home/skip-link'
-import { Reveal } from '@/components/home/reveal'
+import { SiteShell } from '@/components/site/shell'
 import { Pricing } from '@/components/home/pricing'
-import { Byos, Closing, Components, Faq, Footer, Header, Hero, HowItWorks, ImageTransforms, Mcp, TryIt } from '@/components/home/sections'
+import { Byos, Closing, Components, Faq, Hero, HowItWorks, ImageTransforms, Mcp, TryIt } from '@/components/home/sections'
 import { JsonLd } from '@/components/landing/json-ld'
 import { ORGANIZATION, faqJsonLd, graph, type FaqEntry } from '@/lib/json-ld'
-import '@/components/home/home.css'
 
 export const metadata: Metadata = {
   title: 'UploadKit — Open source file uploads for React & Next.js',
@@ -121,24 +119,18 @@ function HomeJsonLd() {
 
 export default function WebPage() {
   return (
-    <div className="hm">
+    <SiteShell>
       <HomeJsonLd />
-      <SkipLink />
-      <Header />
-      <main id="main">
-        <Hero />
-        <TryIt />
-        <HowItWorks />
-        <Components />
-        <Byos />
-        <ImageTransforms />
-        <Mcp />
-        <Pricing />
-        <Faq items={HOME_FAQ} />
-        <Closing />
-      </main>
-      <Footer />
-      <Reveal />
-    </div>
+      <Hero />
+      <TryIt />
+      <HowItWorks />
+      <Components />
+      <Byos />
+      <ImageTransforms />
+      <Mcp />
+      <Pricing />
+      <Faq items={HOME_FAQ} />
+      <Closing />
+    </SiteShell>
   )
 }

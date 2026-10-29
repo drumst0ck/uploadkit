@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
-import { PricingPage } from '@/components/pricing/pricing-page'
-import Navbar from '@/components/nav/navbar'
-import { Footer } from '@/components/footer/footer'
+import { Pricing } from '@/components/home/pricing'
+import { Faq } from '@/components/home/sections'
+import { SiteShell } from '@/components/site/shell'
+import type { FaqEntry } from '@/lib/json-ld'
 
 export const metadata: Metadata = {
   title: 'Pricing — UploadKit',
@@ -53,15 +54,31 @@ function PricingJsonLd() {
   )
 }
 
+const FAQ_ITEMS: FaqEntry[] = [
+  {
+    question: 'Can I change plans anytime?',
+    answer: 'Yes, upgrade or downgrade instantly from your dashboard. Changes take effect immediately and are prorated.',
+  },
+  {
+    question: 'What happens when I exceed my limits?',
+    answer: "We'll notify you at 80% usage. Overages are billed at the transparent rates shown above at the end of your billing cycle.",
+  },
+  {
+    question: 'Is there a free trial for paid plans?',
+    answer: 'Yes, Pro and Team plans include a 14-day free trial. No credit card required to start.',
+  },
+  {
+    question: 'What payment methods do you accept?',
+    answer: 'All major credit cards (Visa, Mastercard, Amex) via Stripe. Bank transfers available on Enterprise.',
+  },
+]
+
 export default function PricingRoute() {
   return (
-    <>
+    <SiteShell>
       <PricingJsonLd />
-      <Navbar />
-      <main>
-        <PricingPage />
-      </main>
-      <Footer />
-    </>
+      <Pricing standalone />
+      <Faq items={FAQ_ITEMS} title="Frequently asked" />
+    </SiteShell>
   )
 }

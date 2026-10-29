@@ -1,14 +1,7 @@
 import type { ReactNode } from 'react'
-import Navbar from '@/components/nav/navbar'
-import { Footer } from '@/components/footer/footer'
+import { SiteShell } from '@/components/site/shell'
 
-/** Navbar + design-v2 <main> + Footer. Children are the page sections. */
+/** Shared site frame (header, <main>, footer). Children are the page sections. */
 export function LandingShell({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <Navbar />
-      <main data-surface="design-v2">{children}</main>
-      <Footer />
-    </>
-  )
+  return <SiteShell>{children}</SiteShell>
 }

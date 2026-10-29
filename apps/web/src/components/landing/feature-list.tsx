@@ -5,12 +5,12 @@ export interface FeatureItem {
   description: ReactNode
 }
 
-/** Grid of title + description cards (reuses .install-card look). */
+/** Plain list of title + description pairs: one column, space only, no cards. */
 export function FeatureList({ items }: { items: FeatureItem[] }) {
   return (
-    <ul className="landing-features" role="list">
+    <ul className="feat" role="list">
       {items.map((f) => (
-        <li key={f.title} className="install-card">
+        <li key={f.title}>
           <h3>{f.title}</h3>
           <p>{f.description}</p>
         </li>

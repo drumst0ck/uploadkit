@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SiteShell } from '@/components/site/shell';
 
 export const metadata: Metadata = {
   title: 'Status — UploadKit',
@@ -15,53 +16,36 @@ const SERVICES = [
 
 export default function StatusPage() {
   return (
-    <main className="status-page">
-      <div className="container" style={{ paddingTop: '4rem', paddingBottom: '4rem', maxWidth: 720 }}>
-        <header style={{ marginBottom: '2rem' }}>
-          <p className="section-label">System status</p>
-          <h1 className="section-title">All systems operational</h1>
-          <p className="section-subtitle">
+    <SiteShell>
+      <section className="page-head" aria-labelledby="status-title">
+        <h1 className="page-title enter" id="status-title">All systems operational</h1>
+        <div className="col">
+          <p className="lead enter" style={{ '--i': 1 } as React.CSSProperties}>
             Real-time status for UploadKit services. Enterprise SLA: 99.99% on Team+ plans.
           </p>
-        </header>
+        </div>
+      </section>
 
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {SERVICES.map((service) => (
-            <li
-              key={service.name}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '1rem 1.25rem',
-                borderRadius: 12,
-                border: '1px solid var(--border, #eaeaea)',
-                background: 'var(--card, #fff)',
-              }}
-            >
-              <span>{service.name}</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span style={{ color: '#666', fontSize: '0.875rem' }}>{service.uptime} 30d</span>
-                <span
-                  style={{
-                    color: '#059669',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  {service.status}
+      <section aria-label="Services">
+        <div className="wide" style={{ maxWidth: 760 }}>
+          <ul className="rows">
+            {SERVICES.map((service) => (
+              <li key={service.name}>
+                <span>{service.name}</span>
+                <span className="soft small">
+                  {service.uptime} 30d · <span className="ok">{service.status}</span>
                 </span>
-              </span>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
-        <p style={{ marginTop: '2rem', fontSize: '0.875rem', color: '#666' }}>
-          Subscribe to updates:{' '}
-          <a href="mailto:status@uploadkit.dev">status@uploadkit.dev</a>
+      <div className="col" style={{ marginTop: 64 }}>
+        <p className="soft small">
+          Subscribe to updates: <a href="mailto:status@uploadkit.dev">status@uploadkit.dev</a>
         </p>
       </div>
-    </main>
+    </SiteShell>
   );
 }
