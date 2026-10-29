@@ -77,7 +77,7 @@ For an upload library the intents are:
 
 - **"What can I install?"** → `list_components`, `get_component(name)`.
 - **"How do I install it?"** → `get_install_command(package, packageManager)`.
-- **"Wire it up in my framework."** → `scaffold_route_handler(framework)`, `scaffold_byos_config(provider)`.
+- **"Wire it up in my framework."** → `scaffold_route_handler(framework)`, `scaffold_byos_config(provider)`. For UploadKit, the Next.js output matches the [Next.js file upload](/nextjs) setup, and `list_components` mirrors the [React upload components](/components) catalog.
 - **"What version am I on?"** → `get_sdk_version()`.
 - **"What are the limits?"** → `get_plan_limits()` (remote mode only).
 
@@ -164,7 +164,7 @@ export async function authenticate(req: Request) {
 }
 ```
 
-Anonymous requests get the public catalog and nothing else. Authenticated requests get project-scoped tools (endpoints, BYOS config, usage). The anonymous path has a 60-req/min rate limit per IP, authenticated gets 600/min per key. Same [API keys](/docs) you use in the SDK.
+Anonymous requests get the public catalog and nothing else. Authenticated requests get project-scoped tools (endpoints, BYOS config, usage). The anonymous path has a 60-req/min rate limit per IP, authenticated gets 600/min per key. Same [API keys](https://docs.uploadkit.dev/docs/dashboard/api-keys) you use in the SDK.
 
 ## Publishing to the MCP registry
 

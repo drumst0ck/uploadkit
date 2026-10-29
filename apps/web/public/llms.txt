@@ -37,8 +37,21 @@ UploadKit gives developers everything they need to add production-grade file upl
 
 - [`@uploadkitdev/react`](https://www.npmjs.com/package/@uploadkitdev/react): premium React components
 - [`@uploadkitdev/core`](https://www.npmjs.com/package/@uploadkitdev/core): framework-agnostic upload client (browser, Node, Edge)
-- [`@uploadkitdev/next`](https://www.npmjs.com/package/@uploadkitdev/next): Next.js handler + adapters (Express, Hono)
+- [`@uploadkitdev/next`](https://www.npmjs.com/package/@uploadkitdev/next): Next.js handler + adapters (Express, Fastify, Hono)
 - [`@uploadkitdev/mcp`](https://www.npmjs.com/package/@uploadkitdev/mcp): MCP server for AI coding assistants (Claude Code, Cursor, Windsurf)
+
+## Compare and frameworks
+
+- [UploadKit vs UploadThing](https://uploadkit.dev/vs/uploadthing): side-by-side comparison, including BYOS and pricing
+- [UploadKit vs Uploadcare](https://uploadkit.dev/vs/uploadcare): side-by-side comparison with Uploadcare
+- [UploadKit vs Filestack](https://uploadkit.dev/vs/filestack): side-by-side comparison with Filestack
+- [UploadKit vs Bytescale](https://uploadkit.dev/vs/bytescale): side-by-side comparison with Bytescale
+- [Next.js file uploads](https://uploadkit.dev/nextjs): App Router route handler and React components via `@uploadkitdev/next`
+- [Remix file uploads](https://uploadkit.dev/remix): Remix setup using the `@uploadkitdev/core` client and the CLI init
+- [SvelteKit file uploads](https://uploadkit.dev/sveltekit): `+server.ts` route with the framework-agnostic `@uploadkitdev/core` client
+- [Vite file uploads](https://uploadkit.dev/vite): React file uploads in Vite apps with `@uploadkitdev/react`
+- [BYOS S3 upload SDK](https://uploadkit.dev/byos): presigned uploads to your own S3, R2, GCS, or B2 bucket with credentials kept server-side
+- [React upload components](https://uploadkit.dev/components): catalog of 40+ React components, including dropzone, button, and image cropper
 
 ## For AI assistants
 
