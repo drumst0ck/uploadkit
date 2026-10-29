@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { SIGN_UP_URL } from '@/lib/links'
 
 interface LandingHeroProps {
-  eyebrow: string
   /** h1 content (the only h1 on the page). */
   title: ReactNode
   lead: ReactNode
@@ -11,23 +10,21 @@ interface LandingHeroProps {
 }
 
 export function LandingHero({
-  eyebrow,
   title,
   lead,
   primaryCta = { label: 'Start for free', href: SIGN_UP_URL },
   secondaryCta = { label: 'Read the docs', href: 'https://docs.uploadkit.dev' },
 }: LandingHeroProps) {
   return (
-    <section className="landing-hero" aria-labelledby="landing-hero-title">
-      <div className="d2-container">
-        <span className="eyebrow">{eyebrow}</span>
-        <h1 id="landing-hero-title">{title}</h1>
-        <p className="lead">{lead}</p>
-        <div className="landing-cta-row">
-          <a href={primaryCta.href} className="btn btn-primary btn-lg" rel="noopener noreferrer">
+    <section className="page-head" aria-labelledby="landing-hero-title">
+      <h1 className="page-title enter" id="landing-hero-title">{title}</h1>
+      <div className="col">
+        <p className="enter" style={{ '--i': 1 } as React.CSSProperties}>{lead}</p>
+        <div className="actions enter" style={{ '--i': 2, marginTop: 32 } as React.CSSProperties}>
+          <a href={primaryCta.href} className="pd-button pd-button--primary" rel="noopener noreferrer">
             {primaryCta.label}
           </a>
-          <a href={secondaryCta.href} className="btn btn-ghost btn-lg" rel="noopener noreferrer">
+          <a href={secondaryCta.href} className="go" rel="noopener noreferrer">
             {secondaryCta.label}
           </a>
         </div>

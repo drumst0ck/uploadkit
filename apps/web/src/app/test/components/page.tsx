@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SiteShell } from '@/components/site/shell';
 import { ComponentShowcase } from './component-showcase';
 
 export const metadata: Metadata = {
@@ -13,5 +14,11 @@ export const metadata: Metadata = {
 };
 
 export default function TestComponentsPage() {
-  return <ComponentShowcase />;
+  return (
+    <SiteShell>
+      <div className="sec" style={{ marginTop: 64 }}>
+        <ComponentShowcase />
+      </div>
+    </SiteShell>
+  );
 }

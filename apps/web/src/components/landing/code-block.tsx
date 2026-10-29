@@ -20,7 +20,7 @@ export async function CodeBlock({ code, lang = 'tsx', title }: CodeBlockProps) {
     }
   }
   return (
-    <figure className="landing-code">
+    <figure className="code">
       {title && <figcaption>{title}</figcaption>}
       {html ? (
         <div dangerouslySetInnerHTML={{ __html: html }} />

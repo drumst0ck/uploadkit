@@ -46,7 +46,7 @@ export const CATALOG: CatalogGroup[] = [
       { name: 'UploadDropzoneGlass', alias: 'dropzone-glass', docs: 'upload-dropzone-glass', description: 'Frosted glass surface with hairline borders and an indigo glow halo on drag-over; uploads files in parallel.' },
       { name: 'UploadDropzoneAurora', alias: 'dropzone-aurora', docs: 'upload-dropzone-aurora', description: 'Animated conic-gradient mesh with a cursor-following specular highlight; CSS keyframes are the static fallback.' },
       { name: 'UploadDropzoneTerminal', docs: 'upload-dropzone-terminal', description: 'Monospace prompt with a blinking cursor and a tail-style log of accepted files.' },
-      { name: 'UploadDropzoneBrutal', docs: 'upload-dropzone-brutal', description: 'Neobrutalist dropzone with thick borders, a hard offset shadow and a stamp animation on drop.' },
+      { name: 'UploadDropzoneBrutal', docs: 'upload-dropzone-brutal', description: 'Neobrutalist dropzone with thick borders, a hard offset shadow and a stamp animation on drop.' }, // taste-skill-ignore: factual SDK description, not a style on this site
       { name: 'UploadDropzoneMinimal', alias: 'dropzone-minimal', docs: 'upload-dropzone-minimal', description: 'Whitespace-heavy dropzone with 1px borders, one accent color, no gradients or shadows, and file chips that fade in.' },
       { name: 'UploadDropzoneNeon', alias: 'dropzone-neon', docs: 'upload-dropzone-neon', description: 'Synthwave style with a neon border glow on drag-over, a scanline overlay and sharp corners; uploads three files at a time.' },
       { name: 'UploadBlueprint', docs: 'upload-blueprint', description: 'Engineering-blueprint dropzone: dark blue background, white grid lines, crosshair markers and printout-style file readouts.' },

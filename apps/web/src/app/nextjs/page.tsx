@@ -183,12 +183,11 @@ export default function NextjsLandingPage() {
           faqJsonLd(FAQ),
         )}
       />
-      <nav className="d2-container" aria-label="Breadcrumb" style={{ paddingTop: 24, fontSize: 14 }}>
+      <nav className="crumb" aria-label="Breadcrumb">
         <Link href="/">Home</Link> <span aria-hidden="true">›</span> <span aria-current="page">Next.js</span>
       </nav>
 
       <LandingHero
-        eyebrow="Next.js"
         title="File uploads for Next.js"
         lead="UploadKit is an upload SDK for the Next.js App Router. You define typed file routes in a Route Handler, drop in React upload components, and the browser sends files directly to storage with presigned URLs. Use UploadKit's managed storage or your own S3-compatible bucket."
         secondaryCta={{ label: 'Next.js docs', href: 'https://docs.uploadkit.dev/docs/getting-started/nextjs' }}
@@ -196,7 +195,6 @@ export default function NextjsLandingPage() {
 
       <LandingSection
         id="quickstart"
-        eyebrow="Quickstart"
         title="Set up uploads in a Next.js App Router project"
         lead="This follows the Next.js getting-started guide. It needs Next.js 14 or later and React 18 or later. To start from a ready project, run npx create-uploadkit-app my-app --template next. To add UploadKit to an existing project, run npx uploadkit init."
       >
@@ -219,7 +217,6 @@ export default function NextjsLandingPage() {
 
       <LandingSection
         id="features"
-        eyebrow="What you get"
         title="What the Next.js SDK includes"
         lead="@uploadkitdev/next is the server half and @uploadkitdev/react is the UI half."
       >
@@ -267,7 +264,6 @@ export default function NextjsLandingPage() {
 
       <LandingSection
         id="limits"
-        eyebrow="Limits"
         title="Limits per plan"
         lead={
           <>

@@ -23,8 +23,8 @@ export function ComparisonTable({
 }: ComparisonTableProps) {
   const hasNotes = rows.some((r) => r.note)
   return (
-    <div className="landing-table-wrap">
-      <table className="landing-table">
+    <div className="pd-table-wrap cmp-wrap" data-ui tabIndex={0} role="group" aria-label={caption}>
+      <table className="pd-table">
         <caption>{caption}</caption>
         <thead>
           <tr>

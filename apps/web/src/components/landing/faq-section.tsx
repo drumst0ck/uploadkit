@@ -4,7 +4,6 @@ import { faqJsonLd, graph, type FaqEntry } from '@/lib/json-ld'
 interface FaqSectionProps {
   items: FaqEntry[]
   id?: string
-  eyebrow?: string
   title?: string
   /**
    * Emit a standalone FAQPage JSON-LD script (default). Set false when the page
@@ -17,36 +16,30 @@ interface FaqSectionProps {
 export function FaqSection({
   items,
   id = 'faq',
-  eyebrow = 'FAQ',
   title = 'Frequently asked questions',
   emitJsonLd = true,
 }: FaqSectionProps) {
   return (
-    <section id={id} aria-labelledby={`${id}-heading`}>
+    <section id={id} aria-labelledby={`${id}-heading`} className="faq">
       {emitJsonLd && <JsonLd data={graph(faqJsonLd(items))} />}
-      <div className="d2-container">
-        <div className="section-head">
-          <span className="eyebrow">{eyebrow}</span>
-          <h2 id={`${id}-heading`} style={{ marginTop: 16 }}>
-            {title}
-          </h2>
-        </div>
-        <div className="landing-faq">
-          {items.map((item) => (
-            <details key={item.question}>
-              <summary>{item.question}</summary>
-              <p>
-                {item.answer}
-                {item.link && (
-                  <>
-                    {' '}
-                    <a href={item.link.href}>{item.link.label}</a>
-                  </>
-                )}
-              </p>
-            </details>
-          ))}
-        </div>
+      <div className="col">
+        <h2 id={`${id}-heading`}>{title}</h2>
+      </div>
+      <div className="col" style={{ marginTop: 40 }}>
+        {items.map((item) => (
+          <details key={item.question}>
+            <summary>{item.question}</summary>
+            <p>
+              {item.answer}
+              {item.link && (
+                <>
+                  {' '}
+                  <a href={item.link.href}>{item.link.label}</a>
+                </>
+              )}
+            </p>
+          </details>
+        ))}
       </div>
     </section>
   )

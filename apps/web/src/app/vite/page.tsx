@@ -158,12 +158,11 @@ export default function ViteLandingPage() {
           faqJsonLd(FAQ),
         )}
       />
-      <nav className="d2-container" aria-label="Breadcrumb" style={{ paddingTop: 24, fontSize: 14 }}>
+      <nav className="crumb" aria-label="Breadcrumb">
         <Link href="/">Home</Link> <span aria-hidden="true">›</span> <span aria-current="page">Vite</span>
       </nav>
 
       <LandingHero
-        eyebrow="Vite and React"
         title="A React file upload library for Vite"
         lead="Drop UploadKit components into a Vite + React app and point them at a small backend that signs uploads. The React package gives you the dropzone, button and headless hook. Your server holds the API key, because a Vite SPA cannot keep a secret."
         secondaryCta={{ label: 'React setup docs', href: 'https://docs.uploadkit.dev/docs/getting-started/react' }}
@@ -171,7 +170,6 @@ export default function ViteLandingPage() {
 
       <LandingSection
         id="quickstart"
-        eyebrow="Quickstart"
         title="Set up uploads in a Vite + React app"
         lead="This follows the React / Vite guide in the docs. You need two pieces: the provider in the SPA and an endpoint on a server."
       >
@@ -203,7 +201,6 @@ export default function ViteLandingPage() {
 
       <LandingSection
         id="features"
-        eyebrow="What you get"
         title="What UploadKit gives a Vite app"
         lead="The browser side is React. The signing side is your server."
       >
@@ -248,7 +245,6 @@ export default function ViteLandingPage() {
 
       <LandingSection
         id="limits"
-        eyebrow="Limits"
         title="Limits per plan"
         lead={
           <>

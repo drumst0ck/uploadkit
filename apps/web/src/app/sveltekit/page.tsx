@@ -167,12 +167,11 @@ export default function SvelteKitLandingPage() {
           faqJsonLd(FAQ),
         )}
       />
-      <nav className="d2-container" aria-label="Breadcrumb" style={{ paddingTop: 24, fontSize: 14 }}>
+      <nav className="crumb" aria-label="Breadcrumb">
         <Link href="/">Home</Link> <span aria-hidden="true">›</span> <span aria-current="page">SvelteKit</span>
       </nav>
 
       <LandingHero
-        eyebrow="SvelteKit"
         title="File uploads for SvelteKit"
         lead="Upload files from SvelteKit directly to your storage bucket. A +server.ts endpoint signs a presigned PUT URL and the browser sends the file to R2 or S3. UploadKit has no Svelte components yet, so this page shows the server-side flow that works today."
         secondaryCta={{ label: 'Read the SvelteKit tutorial', href: '/blog/file-uploads-sveltekit' }}
@@ -180,7 +179,6 @@ export default function SvelteKitLandingPage() {
 
       <LandingSection
         id="support"
-        eyebrow="Support today"
         title="What is supported for SvelteKit"
         lead="UploadKit does not ship Svelte components. The UI components in @uploadkitdev/react are React components."
       >
@@ -195,7 +193,6 @@ export default function SvelteKitLandingPage() {
 
       <LandingSection
         id="quickstart"
-        eyebrow="Quickstart"
         title="Presigned uploads in a SvelteKit app"
         lead="These files come from the create-uploadkit-app SvelteKit template."
       >
@@ -219,7 +216,6 @@ export default function SvelteKitLandingPage() {
 
       <LandingSection
         id="features"
-        eyebrow="What you get"
         title="What this setup gives you"
         lead="Same primitives as the rest of the SDK, without a UI layer on the Svelte side."
       >
@@ -257,7 +253,6 @@ export default function SvelteKitLandingPage() {
 
       <LandingSection
         id="limits"
-        eyebrow="Limits"
         title="Limits per plan"
         lead={
           <>

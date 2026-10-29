@@ -161,12 +161,11 @@ export default function RemixLandingPage() {
           faqJsonLd(FAQ),
         )}
       />
-      <nav className="d2-container" aria-label="Breadcrumb" style={{ paddingTop: 24, fontSize: 14 }}>
+      <nav className="crumb" aria-label="Breadcrumb">
         <Link href="/">Home</Link> <span aria-hidden="true">›</span> <span aria-current="page">Remix</span>
       </nav>
 
       <LandingHero
-        eyebrow="Remix and React Router"
         title="File uploads for Remix and React Router v7"
         lead="Use the UploadKit React components in a Remix or React Router v7 app and sign uploads in a route action. The action returns a presigned PUT URL, and the browser sends the file directly to Cloudflare R2 or any S3-compatible bucket."
         secondaryCta={{ label: 'Read the Remix tutorial', href: '/blog/file-uploads-remix-react-router' }}
@@ -174,7 +173,6 @@ export default function RemixLandingPage() {
 
       <LandingSection
         id="quickstart"
-        eyebrow="Quickstart"
         title="Start a Remix or React Router upload project"
         lead="The fastest path is the starter template. It is a React Router v7 app in framework mode with an UploadDropzone and a signing action."
       >
@@ -205,7 +203,6 @@ export default function RemixLandingPage() {
 
       <LandingSection
         id="features"
-        eyebrow="What you get"
         title="What UploadKit gives a Remix app"
         lead="Remix and React Router use the React half of the SDK. The typed file-router handler is part of the Next.js package and is not used here."
       >
@@ -244,7 +241,6 @@ export default function RemixLandingPage() {
 
       <LandingSection
         id="limits"
-        eyebrow="Limits"
         title="Limits per plan"
         lead={
           <>
