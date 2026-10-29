@@ -10,6 +10,7 @@ import {
   User,
 } from '@uploadkitdev/db';
 import { nanoid } from 'nanoid';
+import { markSignUpPending, recordSignUpMethod } from './src/lib/sign-up-tracking';
 import { sendWelcomeEmail } from '@uploadkitdev/emails';
 
 declare module 'next-auth' {
@@ -37,6 +38,13 @@ const result: NextAuthResult = NextAuth(async () => {
         // D-07: auto-create default project on first signup
         if (!user.id) return;
         await connectDB();
+        // Flag for the one-shot `sign_up` dataLayer event (consumed in the
+        // dashboard layout). Best-effort: tracking must never break signup.
+        try {
+          await markSignUpPending(user.id as string);
+        } catch (err) {
+          console.warn('[auth.createUser] failed to flag sign-up tracking:', err);
+        }
         // Idempotency guard — skip if a project already exists (Pitfall 4 from RESEARCH.md)
         const existing = await Project.findOne({ userId: user.id as string });
         if (!existing) {
@@ -61,6 +69,16 @@ const result: NextAuthResult = NextAuth(async () => {
             userName: user.name ?? 'there',
             loginUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.uploadkit.dev'}/dashboard`,
           });
+        }
+      },
+      // Runs right after createUser for new accounts: record the provider.
+      async linkAccount({ user, account }) {
+        if (!user?.id) return;
+        try {
+          await connectDB();
+          await recordSignUpMethod(user.id as string, account.provider);
+        } catch (err) {
+          console.warn('[auth.linkAccount] failed to record sign-up method:', err);
         }
       },
       // Track activity for the inactive-cleanup cron. Also resets the

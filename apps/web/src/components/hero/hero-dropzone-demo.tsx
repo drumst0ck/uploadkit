@@ -251,7 +251,7 @@ export function HeroDropzoneDemo() {
           <div className="dz-title">
             Drop files here or <span>browse</span>
           </div>
-          <div className="dz-sub">PNG · JPG · MP4 · PDF up to 32 MB</div>
+          <div className="dz-sub">PNG · JPG · MP4 · PDF · 4 MB on Free, up to 5 GB on Team</div>
           <div className="dz-rules">
             <span className="dz-rule">route=media</span>
             <span className="dz-rule">max 4 files</span>

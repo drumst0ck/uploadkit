@@ -1,4 +1,5 @@
 import { TIER_FEATURES, TIER_LIMITS } from '@uploadkitdev/shared'
+import { planSignUpUrl } from './links'
 
 /**
  * Formats a byte count to a human-readable string.
@@ -37,7 +38,7 @@ export const TIERS_DATA = [
     features: TIER_FEATURES.FREE,
     popular: false,
     cta: 'Get started free',
-    ctaHref: 'https://app.uploadkit.dev/login',
+    ctaHref: planSignUpUrl('free'),
   },
   {
     name: 'Pro',
@@ -46,8 +47,8 @@ export const TIERS_DATA = [
     limits: TIER_LIMITS.PRO,
     features: TIER_FEATURES.PRO,
     popular: true,
-    cta: 'Start free trial',
-    ctaHref: 'https://app.uploadkit.dev/login',
+    cta: 'Get started with Pro',
+    ctaHref: planSignUpUrl('pro'),
   },
   {
     name: 'Team',
@@ -56,8 +57,8 @@ export const TIERS_DATA = [
     limits: TIER_LIMITS.TEAM,
     features: TIER_FEATURES.TEAM,
     popular: false,
-    cta: 'Start free trial',
-    ctaHref: 'https://app.uploadkit.dev/login',
+    cta: 'Get started with Team',
+    ctaHref: planSignUpUrl('team'),
   },
   {
     name: 'Enterprise',

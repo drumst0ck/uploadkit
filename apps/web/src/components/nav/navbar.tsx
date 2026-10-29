@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { DesignIcon } from '@/components/ui/design-icon'
+import { SIGN_IN_URL, SIGN_UP_URL } from '@/lib/links'
 import { usePreferences } from '@/components/tweaks/use-preferences'
 
 const NAV_LINKS = [
@@ -92,7 +93,7 @@ export default function Navbar() {
               <DesignIcon name="gh" size={15} />
             </a>
             <Link
-              href="https://app.uploadkit.dev/login"
+              href={SIGN_IN_URL}
               className="btn btn-ghost nav-desktop-only"
               target="_blank"
               rel="noopener noreferrer"
@@ -100,7 +101,7 @@ export default function Navbar() {
               Sign in
             </Link>
             <Link
-              href="https://app.uploadkit.dev/login"
+              href={SIGN_UP_URL}
               className="btn btn-primary nav-desktop-only"
               target="_blank"
               rel="noopener noreferrer"
@@ -173,7 +174,7 @@ export default function Navbar() {
 
             <div className="mt-4 flex flex-col gap-3">
               <Link
-                href="https://app.uploadkit.dev/login"
+                href={SIGN_IN_URL}
                 onClick={close}
                 className="btn btn-ghost"
                 style={{ justifyContent: 'center' }}
@@ -183,7 +184,7 @@ export default function Navbar() {
                 Sign in
               </Link>
               <Link
-                href="https://app.uploadkit.dev/login"
+                href={SIGN_UP_URL}
                 onClick={close}
                 className="btn btn-primary"
                 style={{ justifyContent: 'center' }}

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth, signIn } from '../../../auth';
 import { DarkVeil } from '../../components/react-bits/dark-veil';
+import { parsePlanIntent, postLoginRedirect } from '../../lib/plan-intent';
 
 // Force dynamic rendering — auth() reads the session cookie at runtime;
 // static prerendering would always see an unauthenticated state.
@@ -8,20 +9,26 @@ export const dynamic = 'force-dynamic';
 
 // ─── Server Actions ───────────────────────────────────────────────────────────
 
-async function signInWithGitHub() {
-  'use server';
-  await signIn('github', { redirectTo: '/dashboard' });
+// The `plan` form field is client-controlled: it is re-validated here and only
+// mapped to a fixed internal path (see lib/plan-intent.ts).
+function redirectFromForm(formData: FormData): string {
+  return postLoginRedirect(parsePlanIntent(formData.get('plan')));
 }
 
-async function signInWithGoogle() {
+async function signInWithGitHub(formData: FormData) {
   'use server';
-  await signIn('google', { redirectTo: '/dashboard' });
+  await signIn('github', { redirectTo: redirectFromForm(formData) });
+}
+
+async function signInWithGoogle(formData: FormData) {
+  'use server';
+  await signIn('google', { redirectTo: redirectFromForm(formData) });
 }
 
 async function signInWithEmail(formData: FormData) {
   'use server';
   const email = formData.get('email') as string;
-  await signIn('resend', { email, redirectTo: '/dashboard' });
+  await signIn('resend', { email, redirectTo: redirectFromForm(formData) });
 }
 
 // ─── Error messages map ───────────────────────────────────────────────────────
@@ -44,15 +51,17 @@ function getErrorMessage(error: string | undefined): string | null {
 // ─── Page component ───────────────────────────────────────────────────────────
 
 interface LoginPageProps {
-  searchParams: Promise<{ mode?: string; error?: string }>;
+  searchParams: Promise<{ mode?: string; error?: string; plan?: string }>;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   // Redirect already-authenticated users to dashboard
-  const session = await auth();
-  if (session?.user) redirect('/dashboard');
-
   const params = await searchParams;
+  const plan = parsePlanIntent(params.plan);
+
+  const session = await auth();
+  if (session?.user) redirect(postLoginRedirect(plan));
+
   const isSignUp = params.mode === 'signup';
   const errorMessage = getErrorMessage(params.error);
 
@@ -95,6 +104,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <div className="flex flex-col gap-3">
             {/* GitHub */}
             <form action={signInWithGitHub}>
+              {plan && <input type="hidden" name="plan" value={plan} />}
               <button
                 type="submit"
                 className="flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-border bg-[#1c1c1e] text-sm font-medium text-foreground transition-colors hover:bg-[#252528] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
@@ -115,6 +125,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
             {/* Google */}
             <form action={signInWithGoogle}>
+              {plan && <input type="hidden" name="plan" value={plan} />}
               <button
                 type="submit"
                 className="flex h-11 w-full items-center justify-center gap-3 rounded-lg border border-border bg-[#1c1c1e] text-sm font-medium text-foreground transition-colors hover:bg-[#252528] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141416]"
@@ -157,6 +168,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           {/* Email magic link form */}
           <form action={signInWithEmail} className="flex flex-col gap-3">
+            {plan && <input type="hidden" name="plan" value={plan} />}
             <div>
               {/* Visually hidden label for accessibility */}
               <label htmlFor="email" className="sr-only">
@@ -187,7 +199,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <>
               Already have an account?{' '}
               <a
-                href="/login"
+                href={plan ? `/login?plan=${plan}` : '/login'}
                 className="font-medium text-indigo-400 transition-colors hover:text-indigo-300"
               >
                 Sign in
@@ -197,7 +209,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <>
               Don&apos;t have an account?{' '}
               <a
-                href="/login?mode=signup"
+                href={plan ? `/login?mode=signup&plan=${plan}` : '/login?mode=signup'}
                 className="font-medium text-indigo-400 transition-colors hover:text-indigo-300"
               >
                 Sign up

@@ -7,6 +7,7 @@ import { Button } from '@uploadkitdev/ui';
 import { ManageBillingButton } from '../../../components/manage-billing-button';
 import { SubscriptionPurchaseTracker } from '../../../components/subscription-purchase-tracker';
 import type { Tier } from '@uploadkitdev/shared';
+import { parsePlanIntent } from '../../../lib/plan-intent';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,7 @@ function formatDate(timestamp: number): string {
 }
 
 interface BillingPageProps {
-  searchParams: Promise<{ success?: string; session_id?: string }>;
+  searchParams: Promise<{ success?: string; session_id?: string; plan?: string }>;
 }
 
 interface VerifiedPurchase {
@@ -167,6 +168,18 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
   const proPriceId = process.env.STRIPE_PRO_PRICE_ID ?? '';
   const teamPriceId = process.env.STRIPE_TEAM_PRICE_ID ?? '';
 
+  // Plan chosen on the marketing pricing page (`/login?mode=signup&plan=pro`).
+  // Offer that checkout first, but only when it is still an upgrade for this user.
+  const planIntent = parsePlanIntent(params.plan);
+  const intendedCheckout =
+    showSuccess || !planIntent
+      ? null
+      : planIntent === 'pro' && tier === 'FREE' && proPriceId
+        ? { label: 'Pro', priceId: proPriceId }
+        : planIntent === 'team' && (tier === 'FREE' || tier === 'PRO') && teamPriceId
+          ? { label: 'Team', priceId: teamPriceId }
+          : null;
+
   return (
     <div className="flex flex-col gap-8">
       {purchase && <SubscriptionPurchaseTracker {...purchase} />}
@@ -184,6 +197,23 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           <p className="text-sm font-medium text-emerald-400">
             Subscription activated successfully. Welcome to UploadKit Pro!
           </p>
+        </div>
+      )}
+
+      {/* Plan selected on the pricing page */}
+      {intendedCheckout && (
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-6">
+          <div>
+            <h2 className="text-sm font-medium text-foreground">
+              Finish upgrading to {intendedCheckout.label}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              You picked the {intendedCheckout.label} plan. Continue to secure checkout to activate it.
+            </p>
+          </div>
+          <form action={createCheckoutSession.bind(null, intendedCheckout.priceId)}>
+            <Button type="submit">Continue to checkout</Button>
+          </form>
         </div>
       )}
 

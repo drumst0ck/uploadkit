@@ -1,24 +1,27 @@
-// Server Component — decorative "used by" strip with stylized pseudo-brand marks.
-// Intentionally not real logos — it's a visual rhythm element between hero and features.
+// Server Component — "open source" strip between hero and features.
+// Only verifiable facts: every item links to the public repo or a published npm package.
+// No customer logos and no usage numbers until there are real ones to show.
 
-const LOGOS = [
-  '◆ Linear-ish',
-  '⎈ helmet.io',
-  '∿ driftwood',
-  '◉ orbit.dev',
-  '▲ vercel-ish',
-  '⬡ honeycomb',
-  '✺ novastack',
+const LINKS = [
+  { label: 'github.com/drumst0ck/uploadkit', href: 'https://github.com/drumst0ck/uploadkit' },
+  { label: '@uploadkitdev/react', href: 'https://www.npmjs.com/package/@uploadkitdev/react' },
+  { label: '@uploadkitdev/next', href: 'https://www.npmjs.com/package/@uploadkitdev/next' },
+  { label: '@uploadkitdev/core', href: 'https://www.npmjs.com/package/@uploadkitdev/core' },
+  { label: '@uploadkitdev/mcp', href: 'https://www.npmjs.com/package/@uploadkitdev/mcp' },
 ] as const
 
 export function LogosStrip() {
   return (
-    <div className="logos" aria-label="Used by solo developers">
+    <div className="logos" aria-label="Open source packages">
       <div className="d2-container">
-        <div className="logos-label">Used by solo devs shipping fast</div>
+        <div className="logos-label">MIT licensed · open source on GitHub and npm</div>
         <div className="logos-row">
-          {LOGOS.map((label) => (
-            <div key={label}>{label}</div>
+          {LINKS.map((link) => (
+            <div key={link.href}>
+              <a href={link.href} target="_blank" rel="noopener noreferrer">
+                {link.label}
+              </a>
+            </div>
           ))}
         </div>
       </div>

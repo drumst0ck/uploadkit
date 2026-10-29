@@ -22,7 +22,7 @@ const FEATURES: FeatureItem[] = [
     icon: 'layers',
     title: 'Multipart + resumable',
     desc: 'Ship 5 GB video uploads with chunked transfer and pause/resume out of the box.',
-    tag: 'up to 5 TB per file',
+    tag: 'up to 5 GB per file on Team',
   },
   {
     icon: 'shield',
