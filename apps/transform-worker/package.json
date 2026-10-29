@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm dlx wrangler@latest dev",
-    "deploy": "pnpm dlx wrangler@latest deploy",
+    "deploy": "pnpm dlx wrangler@latest deploy --env production",
+    "deploy:dev": "pnpm dlx wrangler@latest deploy",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build": "tsc --noEmit"

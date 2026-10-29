@@ -12,6 +12,7 @@ interface R2Bucket {
     body: ReadableStream;
     httpMetadata?: { contentType?: string };
   } | null>;
+  head(key: string): Promise<unknown | null>;
 }
 
 interface ExecutionContext {
@@ -44,7 +45,10 @@ export default {
       return jsonError('METHOD_NOT_ALLOWED', 405, { Allow: 'GET, HEAD' });
     }
 
-    const pathname = new URL(request.url).pathname;
+    const { hostname, pathname } = new URL(request.url);
+    // The zone-wide route also catches first-party hosts (app/api/www/docs):
+    // hand those straight back to their real origin.
+    if (shouldPassThrough(hostname)) return fetch(request);
     if (pathname.startsWith('/t/') || pathname.startsWith('/p/')) {
       return handleImageTransform(request, env, ctx);
     }
@@ -152,19 +156,96 @@ export function parseObjectKey(pathname: string): string | null {
   return key;
 }
 
+const PASSTHROUGH_EXCEPTIONS = new Set(['cdn.uploadkit.dev', 'saas.uploadkit.dev', 'cname.uploadkit.dev']);
+
+/** First-party hostnames in the zone that must never be served by this worker. */
+export function shouldPassThrough(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  if (PASSTHROUGH_EXCEPTIONS.has(host)) return false;
+  return host === 'uploadkit.dev' || host.endsWith('.uploadkit.dev');
+}
+
+const PROJECT_PREFIX = /^[0-9a-f]{24}\//;
+/** Marker object `_acl/{projectId}` written by the API when a project is SIGNED. */
+const ACL_PREFIX = '_acl/';
+
+// Images (SVG included, so <img src> keeps working) and PDF are served inline;
+// the sandbox CSP below neutralises script when the file is opened directly.
+const INLINE_SAFE_TYPES = new Set([
+  'application/pdf',
+  'video/mp4', 'video/webm', 'audio/mpeg', 'audio/ogg', 'audio/wav',
+]);
+
+/** Pure header policy: never inline anything that can execute in the CDN origin. */
+export function rawObjectHeaders(storedType: string | undefined, key: string): Headers {
+  const headers = new Headers();
+  const type = (storedType ?? '').split(';')[0]!.trim().toLowerCase();
+  const inline = type.startsWith('image/') || INLINE_SAFE_TYPES.has(type);
+  headers.set('Content-Type', inline ? type : 'application/octet-stream');
+  if (!inline) {
+    const name = (key.split('/').pop() ?? 'download').replace(/[^\w.\-]+/g, '_') || 'download';
+    headers.set('Content-Disposition', `attachment; filename="${name}"`);
+  }
+  headers.set('X-Content-Type-Options', 'nosniff');
+  // Browser PDF viewers refuse to render under a sandbox CSP, and PDF script
+  // runs inside the viewer, not in the CDN origin, so PDF gets no CSP.
+  if (type !== 'application/pdf') {
+    headers.set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+  }
+  headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  headers.set('Accept-Ranges', 'bytes');
+  return headers;
+}
+
+const ACL_CACHE_TTL_MS = 60_000;
+const aclCache = new Map<string, { signed: boolean; expiresAt: number }>();
+
+export function resetAclCache(): void {
+  aclCache.clear();
+}
+
+/** Per-isolate 60 s cache of the `_acl/{projectId}` marker lookup. */
+async function isProjectSigned(env: Env, projectId: string): Promise<boolean> {
+  const now = Date.now();
+  const hit = aclCache.get(projectId);
+  if (hit && hit.expiresAt > now) return hit.signed;
+  const signed = (await env.UPLOADS.head(`${ACL_PREFIX}${projectId}`)) !== null;
+  if (aclCache.size > 1_000) aclCache.clear();
+  aclCache.set(projectId, { signed, expiresAt: now + ACL_CACHE_TTL_MS });
+  return signed;
+}
+
 async function serveRawObject(request: Request, env: Env): Promise<Response> {
-  const key = parseObjectKey(new URL(request.url).pathname);
-  if (!key) return jsonError('NOT_FOUND', 404);
+  const url = new URL(request.url);
+  const key = parseObjectKey(url.pathname);
+  // Only objects under a project-id prefix are addressable; this also keeps
+  // the `_acl/` marker namespace and any foreign bucket content unreachable.
+  if (!key || !PROJECT_PREFIX.test(key)) return jsonError('NOT_FOUND', 404);
+
+  const projectId = key.slice(0, 24);
+  const signed = await isProjectSigned(env, projectId);
+  let ttl = 3_600;
+  if (signed) {
+    const exp = Number(url.searchParams.get('exp'));
+    const sig = url.searchParams.get('sig') ?? '';
+    const now = Math.floor(Date.now() / 1000);
+    if (!env.IMAGE_TRANSFORM_SECRET || !Number.isSafeInteger(exp) || exp <= now || !sig) {
+      return jsonError('SIGNATURE_REQUIRED', 403);
+    }
+    const payload = `cdn\n${exp}\n${key}`;
+    const valid = await verifySignature(env.IMAGE_TRANSFORM_SECRET, sig, payload)
+      || (env.IMAGE_TRANSFORM_SECRET_PREVIOUS
+        ? await verifySignature(env.IMAGE_TRANSFORM_SECRET_PREVIOUS, sig, payload)
+        : false);
+    if (!valid) return jsonError('INVALID_SIGNATURE', 403);
+    ttl = Math.min(ttl, exp - now);
+  }
 
   const object = await env.UPLOADS.get(key);
   if (!object?.body) return jsonError('NOT_FOUND', 404);
 
-  const headers = new Headers();
-  const contentType = object.httpMetadata?.contentType;
-  if (contentType) headers.set('Content-Type', contentType);
-  headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-  headers.set('Accept-Ranges', 'bytes');
-  headers.set('X-Content-Type-Options', 'nosniff');
+  const headers = rawObjectHeaders(object.httpMetadata?.contentType, key);
+  headers.set('Cache-Control', `${signed ? 'private' : 'public'}, max-age=${ttl}`);
 
   return new Response(request.method === 'HEAD' ? null : object.body, {
     status: 200,

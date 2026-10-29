@@ -3,7 +3,8 @@
 Cloudflare Worker for UploadKit's managed R2 bucket:
 
 - **`/t/*` and `/p/*`** — signed and public image transforms (Cloudflare Images)
-- **All other paths** — raw object delivery from R2 (required for SSL for SaaS custom CDN domains)
+- **All other paths** — raw object delivery from R2 (required for SSL for SaaS custom CDN domains). Only keys under a `{projectId}/` prefix are served. Projects are PUBLIC by default; a project set to SIGNED has a marker object `_acl/{projectId}` (written by the API) and then requires `?exp=<unix>&sig=<base64url HMAC-SHA256 of "cdn\n{exp}\n{key}" with IMAGE_TRANSFORM_SECRET>`. Images (including SVG), PDF, mp4/webm and mp3/ogg/wav are served inline; everything else (HTML, XHTML, XML, JS, unknown) is `application/octet-stream` + `Content-Disposition: attachment`. All responses carry `nosniff` and `CSP: default-src 'none'; style-src 'unsafe-inline'; sandbox`. The `_acl` lookup is cached 60 s per isolate.
+- Requests for other `*.uploadkit.dev` hostnames (app, api, www, docs) are passed through to their origin.
 
 Custom hostnames (e.g. `cdn.customer.com`) route through the Worker fallback origin (`saas.uploadkit.dev`) via a zone-wide `*/*` route. R2 custom domains alone cannot serve SaaS custom hostnames.
 
@@ -21,7 +22,7 @@ The two active secrets must have different values; the Worker rejects public del
 ## Deployment
 
 1. Enable Cloudflare Images transformations for the account.
-2. Update the production and preview bucket names in `wrangler.jsonc` if needed.
+2. Production config lives in `env.production` (bucket `uploadkit-dev`, which is the real production bucket despite its name); the top level is dev-only. Secrets must be set per env (`--env production`).
 3. Configure the signing secret:
 
    ```bash
