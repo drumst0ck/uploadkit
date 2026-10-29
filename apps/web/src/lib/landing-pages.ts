@@ -13,15 +13,15 @@ export interface LandingPage {
 }
 
 export const LANDING_PAGES: LandingPage[] = [
-  { path: '/vs/uploadthing', title: 'vs UploadThing', group: 'compare', live: false },
-  { path: '/vs/uploadcare', title: 'vs Uploadcare', group: 'compare', live: false },
-  { path: '/vs/filestack', title: 'vs Filestack', group: 'compare', live: false },
-  { path: '/vs/bytescale', title: 'vs Bytescale', group: 'compare', live: false },
-  { path: '/nextjs', title: 'Next.js', group: 'frameworks', live: false },
-  { path: '/remix', title: 'Remix', group: 'frameworks', live: false },
-  { path: '/sveltekit', title: 'SvelteKit', group: 'frameworks', live: false },
-  { path: '/vite', title: 'Vite', group: 'frameworks', live: false },
-  { path: '/byos', title: 'Bring your own storage', group: 'product', live: false },
+  { path: '/vs/uploadthing', title: 'vs UploadThing', group: 'compare', live: true },
+  { path: '/vs/uploadcare', title: 'vs Uploadcare', group: 'compare', live: true },
+  { path: '/vs/filestack', title: 'vs Filestack', group: 'compare', live: true },
+  { path: '/vs/bytescale', title: 'vs Bytescale', group: 'compare', live: true },
+  { path: '/nextjs', title: 'Next.js', group: 'frameworks', live: true },
+  { path: '/remix', title: 'Remix', group: 'frameworks', live: true },
+  { path: '/sveltekit', title: 'SvelteKit', group: 'frameworks', live: true },
+  { path: '/vite', title: 'Vite', group: 'frameworks', live: true },
+  { path: '/byos', title: 'Bring your own storage', group: 'product', live: true },
   { path: '/components', title: 'React components', group: 'product', live: true },
 ]
 

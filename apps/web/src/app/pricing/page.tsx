@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   twitter: { card: 'summary_large_image', images: ['/og/pricing.png'] },
+  alternates: { canonical: 'https://uploadkit.dev/pricing' },
 }
 
 function PricingJsonLd() {
