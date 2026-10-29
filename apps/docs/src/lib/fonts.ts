@@ -1,19 +1,16 @@
 import localFont from 'next/font/local'
-import { Inter } from 'next/font/google'
 
-export const satoshi = localFont({
-  src: [
-    { path: '../fonts/Satoshi-Regular.woff2', weight: '400', style: 'normal' },
-    { path: '../fonts/Satoshi-Medium.woff2',  weight: '500', style: 'normal' },
-    { path: '../fonts/Satoshi-Bold.woff2',    weight: '700', style: 'normal' },
-    { path: '../fonts/Satoshi-Black.woff2',   weight: '900', style: 'normal' },
-  ],
-  variable: '--font-satoshi',
+// Geist Sans and Geist Mono (Vercel, SIL OFL 1.1), bundled variable files. // taste-skill-ignore: code only
+export const geist = localFont({
+  src: '../fonts/Geist-Variable.woff2',
+  weight: '100 900',
+  variable: '--font-geist',
   display: 'swap',
 })
 
-export const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
+export const geistMono = localFont({ // taste-skill-ignore: code only
+  src: '../fonts/GeistMono-Variable.woff2', // taste-skill-ignore: code only
+  weight: '100 900',
+  variable: '--font-geist-mono', // taste-skill-ignore: code only
   display: 'swap',
 })

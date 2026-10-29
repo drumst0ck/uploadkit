@@ -2,22 +2,15 @@ import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 
 function UploadKitLogo() {
   return (
-    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      {/* Upload arrow-in-box mark — matches favicon.svg shape */}
-      <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="uk-nav-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#6366f1"/>
-            <stop offset="100%" stopColor="#8b5cf6"/>
-          </linearGradient>
-        </defs>
-        <rect width="32" height="32" rx="7" fill="url(#uk-nav-grad)"/>
-        <path d="M16 22V12M16 12L12 16M16 12L20 16" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M10 22h12" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+    <span className="uk-logo">
+      {/* Monochrome mark, same shape as favicon.svg */}
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <rect width="32" height="32" rx="8" fill="#fff" />
+        <polygon points="16,7 23,17 9,17" fill="#000" />
+        <rect x="9" y="19" width="14" height="4" rx="1.5" fill="#000" fillOpacity=".55" />
       </svg>
-      <span style={{ fontWeight: 600, fontSize: '15px', letterSpacing: '-0.01em' }}>
-        UploadKit
-      </span>
+      <span>UploadKit</span>
+      <span className="uk-logo__soft">Docs</span>
     </span>
   );
 }
@@ -26,12 +19,8 @@ export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: <UploadKitLogo />,
-      url: 'https://uploadkit.dev',
+      url: '/docs',
     },
-    githubUrl: 'https://github.com/drumst0ck/uploadkit',
-    links: [
-      { text: 'Docs', url: '/docs', active: 'nested-url' },
-      { text: 'uploadkit.dev', url: 'https://uploadkit.dev' },
-    ],
+    themeSwitch: { enabled: false },
   };
 }
