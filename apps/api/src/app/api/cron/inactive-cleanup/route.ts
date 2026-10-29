@@ -63,7 +63,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const period = now.toISOString().slice(0, 7); // "YYYY-MM"
 
   // Exempt set — userIds with a paying subscription
-  const paying = await Subscription.find({ status: { $in: EXEMPT_STATUSES as unknown as string[] } })
+  const paying = await Subscription.find({ status: { $in: [...EXEMPT_STATUSES] } })
     .select('userId')
     .lean();
   const exemptIds = new Set(paying.map((s) => String(s.userId)));

@@ -23,12 +23,12 @@
   },
   "dependencies": {
     "@uploadkitdev/shared": "workspace:*",
-    "mongoose": "^9.4.1"
+    "mongoose": "^9.11.4"
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
     "@uploadkitdev/config": "workspace:*",
-    "mongodb": "^7.1.1",
+    "mongodb": "^7.7.0",
     "tsup": "^8.5.1",
     "typescript": "latest",
     "vitest": "latest"
