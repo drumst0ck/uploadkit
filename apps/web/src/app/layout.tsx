@@ -6,12 +6,18 @@ import './globals.css';
 
 const GOOGLE_TAG_MANAGER_ID = 'GTM-NDNZS4KX';
 
+// Search Console verification; emitted only when the env var is set.
+const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
+
 export const metadata: Metadata = {
   title: 'UploadKit — File Uploads for Developers',
   description:
     'Add beautiful, type-safe file uploads to your app in minutes. Free tier included.',
   metadataBase: new URL('https://uploadkit.dev'),
   robots: { index: true, follow: true },
+  ...(googleSiteVerification
+    ? { verification: { google: googleSiteVerification } }
+    : {}),
   icons: { icon: '/favicon.svg' },
 };
 
