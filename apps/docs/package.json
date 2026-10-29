@@ -10,21 +10,22 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "fumadocs-ui": "latest",
-    "fumadocs-mdx": "latest",
-    "fumadocs-core": "latest",
+    "next": "16.4.3",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "fumadocs-ui": "^16.7.16",
+    "fumadocs-mdx": "^14.2.14",
+    "fumadocs-core": "^16.7.16",
     "@uploadkitdev/react": "workspace:*"
   },
   "devDependencies": {
-    "@types/mdx": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@tailwindcss/postcss": "4.2.2",
+    "@types/mdx": "2.0.13",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
     "@uploadkitdev/config": "workspace:*",
-    "tailwindcss": "latest",
-    "@tailwindcss/postcss": "latest",
-    "typescript": "latest"
+    "tailwindcss": "4.2.2",
+    "typescript": "6.0.2",
+    "vite": "8.3.5"
   }
 }

@@ -22,10 +22,10 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "26.1.0",
     "@uploadkitdev/config": "workspace:*",
-    "tsup": "latest",
-    "typescript": "latest",
-    "vitest": "latest"
+    "tsup": "8.5.1",
+    "typescript": "6.0.3",
+    "vitest": "4.1.9"
   }
 }

@@ -68,13 +68,13 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
     "@uploadkitdev/config": "workspace:*",
     "@uploadkitdev/next": "workspace:*",
     "jsdom": "^29.0.2",
-    "tsup": "latest",
-    "typescript": "latest",
+    "tsup": "8.5.1",
+    "typescript": "6.0.2",
     "vitest": "^4.1.3"
   }
 }

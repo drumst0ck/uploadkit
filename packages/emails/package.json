@@ -20,17 +20,17 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
-    "@react-email/components": "latest",
-    "@react-email/render": "latest",
-    "resend": "latest"
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.6",
+    "resend": "^6.11.0"
   },
   "peerDependencies": {
     "react": "^19.0.0"
   },
   "devDependencies": {
     "@uploadkitdev/config": "workspace:*",
-    "@types/react": "latest",
+    "@types/react": "19.2.14",
     "tsup": "^8.5.1",
-    "typescript": "latest"
+    "typescript": "6.0.2"
   }
 }

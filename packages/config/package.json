@@ -11,7 +11,7 @@
     "./tailwind/base.css": "./tailwind/base.css"
   },
   "dependencies": {
-    "tailwindcss": "latest"
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "globals": "^17.5.0"

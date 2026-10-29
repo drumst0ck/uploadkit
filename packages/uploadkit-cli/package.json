@@ -49,20 +49,20 @@
     "smoke": "tsx scripts/smoke-matrix.ts"
   },
   "dependencies": {
-    "@clack/prompts": "latest",
+    "@clack/prompts": "^1.2.0",
     "@uploadkitdev/shared": "workspace:*",
-    "execa": "latest",
+    "execa": "^9.6.1",
     "fast-glob": "^3.3.3",
-    "magicast": "latest",
-    "mri": "latest",
-    "picocolors": "latest"
+    "magicast": "^0.5.2",
+    "mri": "^1.2.0",
+    "picocolors": "^1.1.1"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "25.6.0",
     "@uploadkitdev/config": "workspace:*",
-    "tsup": "latest",
-    "tsx": "latest",
-    "typescript": "latest",
-    "vitest": "latest"
+    "tsup": "8.5.1",
+    "tsx": "4.21.0",
+    "typescript": "6.0.2",
+    "vitest": "4.1.4"
   }
 }

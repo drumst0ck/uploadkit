@@ -41,15 +41,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "latest",
-    "zod": "latest"
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "25.6.0",
     "@uploadkitdev/config": "workspace:*",
     "@uploadkitdev/mcp-core": "workspace:*",
-    "tsup": "latest",
-    "typescript": "latest"
+    "tsup": "8.5.1",
+    "typescript": "6.0.2"
   },
   "engines": {
     "node": ">=18"
