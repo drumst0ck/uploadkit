@@ -29,10 +29,10 @@ export type ComponentPreviewProps = {
 // call shows something other than "0 B".
 function makeFakeFile(i: number): File {
   const size = 120_000 + Math.floor(Math.random() * 80_000);
-  // Gradient-ish color seeded by index — picsum is blocked in CSP sometimes,
-  // so we use a colored SVG as the file content.
-  const hue = (i * 57) % 360;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><defs><linearGradient id="g"><stop offset="0%" stop-color="hsl(${hue},70%,55%)"/><stop offset="100%" stop-color="hsl(${(hue + 60) % 360},70%,45%)"/></linearGradient></defs><rect width="200" height="200" fill="url(#g)"/></svg>`;
+  // Flat grey square seeded by index — picsum is blocked in CSP sometimes,
+  // so we use an SVG as the file content.
+  const grey = 60 + ((i * 37) % 120);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="rgb(${grey},${grey},${grey})"/></svg>`;
   // Pad with whitespace to reach the target size
   const padded = svg + ' '.repeat(Math.max(0, size - svg.length));
   return new File([padded], `sample-${i + 1}.svg`, { type: 'image/svg+xml' });
@@ -66,35 +66,9 @@ export function ComponentPreview({
   const mockClient = useMemo(() => createMockClient(), []);
 
   return (
-    <div
-      className="uk-docs-preview"
-      style={{
-        position: 'relative',
-        marginTop: '1.25rem',
-        marginBottom: '1.25rem',
-        padding: '28px',
-        borderRadius: 16,
-        border: '1px solid rgba(255,255,255,0.08)',
-        background:
-          'radial-gradient(circle at 50% 0%, rgba(99,102,241,0.12), transparent 60%), #0a0a0b',
-        minHeight: height,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-      }}
-      data-theme="dark"
-    >
+    <div className="uk-docs-preview" style={{ minHeight: height }} data-theme="dark">
       <UploadKitProvider client={mockClient}>
-        <div
-          ref={stageRef}
-          style={{
-            width: '100%',
-            maxWidth: 560,
-            display: 'flex',
-            justifyContent: 'center',
-          }}
-        >
+        <div ref={stageRef} className="uk-docs-preview__stage">
           {children}
         </div>
       </UploadKitProvider>
@@ -102,72 +76,17 @@ export function ComponentPreview({
       {simulate ? (
         <button
           type="button"
+          className="uk-docs-preview__simulate"
           onClick={() => {
             if (stageRef.current) triggerFakeUpload(stageRef.current, simulateFiles);
           }}
-          style={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
-            borderRadius: 999,
-            border: '1px solid rgba(99,102,241,0.35)',
-            background: 'rgba(99,102,241,0.12)',
-            color: '#c7d2fe',
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: '0.02em',
-            textTransform: 'uppercase',
-            cursor: 'pointer',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            transition: 'border-color 150ms ease, background 150ms ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)';
-            e.currentTarget.style.background = 'rgba(99,102,241,0.2)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(99,102,241,0.35)';
-            e.currentTarget.style.background = 'rgba(99,102,241,0.12)';
-          }}
           aria-label="Simulate upload with fake files"
         >
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: 999,
-              background: '#818cf8',
-              boxShadow: '0 0 8px #818cf8',
-            }}
-            aria-hidden="true"
-          />
           Simulate upload
         </button>
       ) : null}
 
-      {caption ? (
-        <p
-          style={{
-            position: 'absolute',
-            bottom: 10,
-            right: 16,
-            margin: 0,
-            fontSize: 11,
-            color: 'rgba(255,255,255,0.45)',
-            fontFamily: 'var(--uk-font, system-ui)',
-            letterSpacing: '0.02em',
-            textTransform: 'uppercase',
-            pointerEvents: 'none',
-          }}
-        >
-          {caption}
-        </p>
-      ) : null}
+      {caption ? <p className="uk-docs-preview__caption">{caption}</p> : null}
     </div>
   );
 }
