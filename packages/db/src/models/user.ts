@@ -19,6 +19,14 @@ export interface IUser extends Document {
    * again. Compared against `lastLoginAt` to avoid duplicate sends.
    */
   inactiveWarningSentAt?: Date | null;
+  /**
+   * One-shot sign-up conversion flag. Set in the auth `createUser` event and
+   * atomically cleared by the first dashboard render that emits `sign_up`.
+   * Absent for users created before this field existed.
+   */
+  signUpTrackingPending?: boolean;
+  /** Provider used at sign-up: github | google | email (set by `linkAccount`). */
+  signUpMethod?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +43,8 @@ const userSchema = new Schema<IUser>(
     },
     lastLoginAt: { type: Date },
     inactiveWarningSentAt: { type: Date, default: null },
+    signUpTrackingPending: { type: Boolean },
+    signUpMethod: { type: String },
   },
   { timestamps: true },
 );

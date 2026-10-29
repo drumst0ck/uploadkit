@@ -4,6 +4,8 @@ import { connectDB, Project } from '@uploadkitdev/db';
 import { SidebarProvider } from '../../components/layout/sidebar';
 import { MobileMenuWrapper } from '../../components/layout/mobile-menu-wrapper';
 import { isAdminSession } from '../../lib/admin';
+import { consumeSignUpTracking } from '../../lib/sign-up-tracking';
+import { SignUpTracker } from '../../components/sign-up-tracker';
 
 // Force dynamic rendering — this layout calls auth() and connectDB() which
 // require runtime env vars (MONGODB_URI, AUTH_SECRET) unavailable at build time.
@@ -45,6 +47,9 @@ export default async function DashboardLayout({
 
   const isAdmin = isAdminSession(session);
 
+  // One-shot: non-null only the first time a newly created user gets here.
+  const signUp = await consumeSignUpTracking(user.id);
+
   return (
     <SidebarProvider>
       <MobileMenuWrapper
@@ -55,6 +60,7 @@ export default async function DashboardLayout({
       >
         {children}
       </MobileMenuWrapper>
+      {signUp ? <SignUpTracker method={signUp.method} /> : null}
     </SidebarProvider>
   );
 }
