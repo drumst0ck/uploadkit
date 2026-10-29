@@ -8,8 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Button,
-  Input,
 } from '@uploadkitdev/ui';
 import { useProjects } from '../hooks/use-projects';
 
@@ -78,51 +76,49 @@ export function CreateProjectDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
-      <DialogContent className="bg-card border-border text-foreground sm:max-w-md">
+      <DialogContent data-ui className="bg-popover border-border text-foreground shadow-none sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-foreground">Create a new project</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="space-y-1.5">
-            <label
-              htmlFor="project-name"
-              className="text-sm font-medium text-foreground"
-            >
+            <label htmlFor="project-name" className="pd-label">
               Project name
             </label>
-            <Input
+            <input
               id="project-name"
+              className="pd-input"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="My Awesome Project"
               maxLength={50}
-              className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-indigo-500"
               autoFocus
               disabled={isSubmitting}
+              aria-invalid={error ? true : undefined}
             />
             {error && (
-              <p className="text-xs text-red-400" role="alert">
+              <p className="pd-error" role="alert">
                 {error}
               </p>
             )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button
+            <button
               type="button"
-              variant="ghost"
+              className="pd-button pd-button--ghost"
               onClick={() => handleOpenChange(false)}
               disabled={isSubmitting}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent"
             >
               Cancel
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
+              className="pd-button pd-button--primary"
               disabled={!name.trim() || isSubmitting}
-              className="bg-indigo-600 hover:bg-indigo-500 text-foreground disabled:opacity-50"
+              aria-busy={isSubmitting || undefined}
             >
               {isSubmitting ? 'Creating…' : 'Create project'}
-            </Button>
+            </button>
           </div>
         </form>
       </DialogContent>
