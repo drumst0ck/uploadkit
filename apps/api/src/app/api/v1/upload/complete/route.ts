@@ -8,6 +8,7 @@ import { withApiKey } from '@/lib/with-api-key';
 import { serializeError, serializeValidationError } from '@/lib/errors';
 import { UploadCompleteSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
+import { withSignedUrl } from '@/lib/cdn-access';
 import { enqueueWebhook } from '@/lib/qstash';
 import { sendMeterEvent, METER_STORAGE, METER_UPLOADS } from '@/lib/stripe-meters';
 import { sendUsageAlertEmail } from '@uploadkitdev/emails';
@@ -216,7 +217,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
           name: file.name,
           size: file.size,
           type: file.type,
-          url: file.url,
+          url: withSignedUrl(ctx.project, file).url,
           metadata: updatedFile.metadata,
         },
         projectId: ctx.project._id.toString(),
@@ -231,7 +232,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
         name: updatedFile.name,
         size: updatedFile.size,
         type: updatedFile.type,
-        url: updatedFile.url,
+        url: withSignedUrl(ctx.project, updatedFile).url,
         status: updatedFile.status,
         metadata: updatedFile.metadata,
         createdAt: updatedFile.createdAt,

@@ -8,6 +8,7 @@ import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { UpdateFileMetadataSchema } from '@/lib/schemas';
 import { serializeValidationError, serializeError } from '@/lib/errors';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
+import { withSignedUrl } from '@/lib/cdn-access';
 
 // GET /api/v1/files/:key — retrieve single file by key
 async function handleGet(
@@ -28,7 +29,7 @@ async function handleGet(
     throw new NotFoundError('File', decodedKey);
   }
 
-  return NextResponse.json({ file });
+  return NextResponse.json({ file: withSignedUrl(ctx.project, file) });
 }
 
 // PATCH /api/v1/files/:key — update file metadata
@@ -57,7 +58,7 @@ async function handlePatch(
     throw new NotFoundError('File', decodedKey);
   }
 
-  return NextResponse.json({ file });
+  return NextResponse.json({ file: withSignedUrl(ctx.project, file) });
 }
 
 // DELETE /api/v1/files/:key — remove from R2 + soft-delete in DB + decrement usage
