@@ -15,6 +15,7 @@ import { McpSection } from '@/components/mcp/mcp-section'
 import { TweaksPanel } from '@/components/tweaks/tweaks-panel'
 import { DesignIcon } from '@/components/ui/design-icon'
 import { ImageTransformsSection } from '@/components/image-transforms/image-transforms-section'
+import { SIGN_UP_URL, planSignUpUrl } from '@/lib/links'
 
 export const metadata: Metadata = {
   title: 'UploadKit — The developer platform for file uploads',
@@ -93,7 +94,7 @@ function HeroSection() {
             </p>
             <div className="hero-cta">
               <a
-                href="https://app.uploadkit.dev/login"
+                href={SIGN_UP_URL}
                 className="btn btn-primary btn-lg"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -235,7 +236,7 @@ const PRICING_TIERS: PricingTier[] = [
     period: 'forever',
     description: 'Perfect for side projects and early-stage apps.',
     cta: 'Get Started Free',
-    ctaHref: 'https://app.uploadkit.dev/login',
+    ctaHref: planSignUpUrl('free'),
     featured: false,
     features: [
       '5 GB storage',
@@ -253,7 +254,7 @@ const PRICING_TIERS: PricingTier[] = [
     period: 'per month',
     description: 'For production apps that need reliable infrastructure.',
     cta: 'Get Started with Pro',
-    ctaHref: 'https://app.uploadkit.dev/login',
+    ctaHref: planSignUpUrl('pro'),
     featured: true,
     features: [
       '100 GB storage',
@@ -271,7 +272,7 @@ const PRICING_TIERS: PricingTier[] = [
     period: 'per month',
     description: 'For growing teams with higher volume and more projects.',
     cta: 'Get Started with Team',
-    ctaHref: 'https://app.uploadkit.dev/login',
+    ctaHref: planSignUpUrl('team'),
     featured: false,
     features: [
       '1 TB storage',
