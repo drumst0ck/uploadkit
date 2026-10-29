@@ -2,12 +2,14 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { connectDB, Subscription, User } from '@uploadkitdev/db';
 import { stripe } from '../../../../../lib/stripe';
+import { requireInternalSecret } from '../../../../../lib/secure-compare';
+import { getAppUrl } from '../../../../../lib/app-url';
 import { serializeError, serializeValidationError } from '../../../../../lib/errors';
 
 export const runtime = 'nodejs';
 
 const bodySchema = z.object({
-  userId: z.string().min(1),
+  userId: z.string().regex(/^[a-f0-9]{24}$/i, 'Invalid userId'),
   priceId: z.string().min(1),
   twclid: z.string().regex(/^[A-Za-z0-9._-]{1,256}$/).optional(),
 });
@@ -24,17 +26,9 @@ const bodySchema = z.object({
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    // Internal route protection: require X-Internal-Secret header
-    const internalSecret = process.env.INTERNAL_API_SECRET;
-    if (internalSecret) {
-      const providedSecret = req.headers.get('x-internal-secret');
-      if (providedSecret !== internalSecret) {
-        return NextResponse.json(
-          { error: { type: 'authentication_error', code: 'UNAUTHORIZED', message: 'Unauthorized' } },
-          { status: 401 },
-        );
-      }
-    }
+    // Internal route protection: fails closed (503) if INTERNAL_API_SECRET is unset.
+    const denied = requireInternalSecret(req);
+    if (denied) return denied;
 
     const body: unknown = await req.json();
     const parsed = bodySchema.safeParse(body);
@@ -58,34 +52,58 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     await connectDB();
 
-    // Lazy Stripe Customer provisioning: create customer if none exists
-    const subscription = await Subscription.findOne({ userId });
-    let stripeCustomerId = subscription?.stripeCustomerId;
+    const existing = await Subscription.findOne({ userId });
 
-    if (!stripeCustomerId) {
-      // Look up user email for customer creation
-      const user = await User.findById(userId).lean();
-      const customer = await stripe.customers.create({
-        ...(user?.email ? { email: user.email } : {}),
-        metadata: { userId },
-      });
-      stripeCustomerId = customer.id;
-
-      if (subscription) {
-        subscription.stripeCustomerId = stripeCustomerId;
-        await subscription.save();
-      } else {
-        await Subscription.create({
-          userId,
-          stripeCustomerId,
-          tier: 'FREE',
-          status: 'ACTIVE',
-          cancelAtPeriodEnd: false,
-        });
-      }
+    // Never create a second subscription for a user that already has a live one:
+    // the dashboard sends them to the Billing Portal to change plans instead.
+    if (
+      existing?.stripeSubscriptionId &&
+      (existing.status === 'ACTIVE' || existing.status === 'TRIALING') &&
+      existing.tier !== 'FREE'
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            type: 'invalid_request',
+            code: 'ALREADY_SUBSCRIBED',
+            message: 'An active subscription already exists. Manage it from the billing portal.',
+          },
+        },
+        { status: 409 },
+      );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001';
+    // Lazy Stripe Customer provisioning, race-safe:
+    //  1. the unique userId index makes the row upsert atomic,
+    //  2. the Stripe idempotency key makes concurrent customers.create calls return the
+    //     same customer,
+    //  3. the conditional update only lets one writer set stripeCustomerId.
+    let stripeCustomerId = existing?.stripeCustomerId;
+    if (!stripeCustomerId) {
+      await Subscription.findOneAndUpdate(
+        { userId },
+        { $setOnInsert: { userId, tier: 'FREE', status: 'ACTIVE', cancelAtPeriodEnd: false } },
+        { upsert: true, new: true },
+      );
+      const user = await User.findById(userId).lean();
+      const customer = await stripe.customers.create(
+        {
+          ...(user?.email ? { email: user.email } : {}),
+          metadata: { userId },
+        },
+        { idempotencyKey: `customer-create-${userId}` },
+      );
+      const claimed = await Subscription.findOneAndUpdate(
+        { userId, stripeCustomerId: { $exists: false } },
+        { $set: { stripeCustomerId: customer.id } },
+        { new: true },
+      );
+      stripeCustomerId = claimed
+        ? customer.id
+        : (await Subscription.findOne({ userId }))?.stripeCustomerId ?? customer.id;
+    }
+
+    const appUrl = getAppUrl();
     const tier = priceId === process.env.STRIPE_PRO_PRICE_ID ? 'PRO' : 'TEAM';
     const attributionMetadata = twclid ? { xTwclid: twclid } : {};
 

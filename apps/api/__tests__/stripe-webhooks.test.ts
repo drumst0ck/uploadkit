@@ -5,6 +5,12 @@ vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   Subscription: {
     findOneAndUpdate: vi.fn(),
+    findOne: vi.fn(() => ({ lean: () => Promise.resolve(null) })),
+  },
+  StripeEvent: {
+    create: vi.fn().mockResolvedValue({}),
+    updateOne: vi.fn().mockResolvedValue({}),
+    deleteOne: vi.fn().mockResolvedValue({}),
   },
 }));
 
@@ -46,8 +52,9 @@ function makeWebhookRequest(body: string, signature: string = 'test-sig'): NextR
   });
 }
 
+let evtSeq = 0;
 function makeStripeEvent(type: string, data: object) {
-  return { type, data: { object: data } };
+  return { id: `evt_${++evtSeq}`, type, data: { object: data } };
 }
 
 describe('POST /api/v1/webhooks/stripe', () => {

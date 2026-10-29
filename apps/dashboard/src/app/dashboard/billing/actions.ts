@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { auth } from '../../../../auth';
 import { connectDB, Subscription, User } from '@uploadkitdev/db';
 import { stripe } from '../../../lib/stripe';
+import { getAppUrl } from '../../../lib/app-url';
 
 const X_CLICK_ID_PATTERN = /^[A-Za-z0-9._-]{1,256}$/;
 
@@ -39,33 +40,52 @@ export async function createCheckoutSession(priceId: string): Promise<never> {
 
   await connectDB();
 
-  // Lazy Stripe Customer provisioning
-  const subscription = await Subscription.findOne({ userId });
-  let stripeCustomerId = subscription?.stripeCustomerId;
+  const appUrl = getAppUrl();
+  const existing = await Subscription.findOne({ userId });
 
-  if (!stripeCustomerId) {
-    const user = await User.findById(userId).lean();
-    const customer = await stripe.customers.create({
-      ...(user?.email ? { email: user.email } : {}),
-      metadata: { userId },
+  // Already subscribed (ACTIVE/TRIALING): never create a second subscription —
+  // send the user to the Billing Portal to change plan or payment method.
+  if (
+    existing?.stripeCustomerId &&
+    existing.stripeSubscriptionId &&
+    (existing.status === 'ACTIVE' || existing.status === 'TRIALING') &&
+    existing.tier !== 'FREE'
+  ) {
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: existing.stripeCustomerId,
+      return_url: `${appUrl}/dashboard/billing`,
     });
-    stripeCustomerId = customer.id;
-
-    if (subscription) {
-      subscription.stripeCustomerId = stripeCustomerId;
-      await subscription.save();
-    } else {
-      await Subscription.create({
-        userId,
-        stripeCustomerId,
-        tier: 'FREE',
-        status: 'ACTIVE',
-        cancelAtPeriodEnd: false,
-      });
-    }
+    redirect(portal.url);
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001';
+  // Lazy Stripe Customer provisioning, race-safe (double click / two tabs):
+  // atomic row upsert (unique userId), Stripe idempotency key, conditional claim.
+  let stripeCustomerId = existing?.stripeCustomerId;
+
+  if (!stripeCustomerId) {
+    await Subscription.findOneAndUpdate(
+      { userId },
+      { $setOnInsert: { userId, tier: 'FREE', status: 'ACTIVE', cancelAtPeriodEnd: false } },
+      { upsert: true, new: true },
+    );
+    const user = await User.findById(userId).lean();
+    const customer = await stripe.customers.create(
+      {
+        ...(user?.email ? { email: user.email } : {}),
+        metadata: { userId },
+      },
+      { idempotencyKey: `customer-create-${userId}` },
+    );
+    const claimed = await Subscription.findOneAndUpdate(
+      { userId, stripeCustomerId: { $exists: false } },
+      { $set: { stripeCustomerId: customer.id } },
+      { new: true },
+    );
+    stripeCustomerId = claimed
+      ? customer.id
+      : (await Subscription.findOne({ userId }))?.stripeCustomerId ?? customer.id;
+  }
+
   const tier = priceId === process.env.STRIPE_PRO_PRICE_ID ? 'PRO' : 'TEAM';
   const attributionMetadata = twclid ? { xTwclid: twclid } : {};
 
@@ -107,7 +127,7 @@ export async function createPortalSession(): Promise<{ url: string }> {
     throw new Error('No billing account found. Please upgrade to a paid plan first.');
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001';
+  const appUrl = getAppUrl();
 
   const portalSession = await stripe.billingPortal.sessions.create({
     customer: subscription.stripeCustomerId,

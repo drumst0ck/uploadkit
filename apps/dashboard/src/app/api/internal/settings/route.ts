@@ -8,7 +8,15 @@ import {
   Project,
   File,
   ApiKey,
+  FileRouter,
+  Subscription,
+  UsageRecord,
+  TeamMember,
+  UploadRejection,
+  WebhookDelivery,
+  ImageTransformation,
 } from '@uploadkitdev/db';
+import { stripe } from '../../../../lib/stripe';
 import { deleteR2Objects } from '../../../../lib/r2-delete';
 
 export const dynamic = 'force-dynamic';
@@ -140,7 +148,27 @@ export async function DELETE() {
     timestamp: new Date().toISOString(),
   });
 
-  // Cascade delete: files → API keys → projects → user
+  // 1. Cancel the Stripe subscription FIRST: if this fails nothing has been deleted,
+  //    so the user keeps access to manage billing and can retry. Idempotent: a
+  //    subscription that is already gone counts as canceled.
+  const subscription = await Subscription.findOne({ userId }).lean();
+  if (subscription?.stripeSubscriptionId) {
+    try {
+      await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      if (code !== 'resource_missing') {
+        console.error('[account-deletion] Stripe cancel failed:', err);
+        return NextResponse.json(
+          { error: 'Failed to cancel subscription. Your account was not deleted.' },
+          { status: 502 },
+        );
+      }
+    }
+  }
+
+  // 2. Cascade delete (each step is idempotent so a failed attempt can be retried):
+  //    files (R2 first) → project-scoped data → projects → user-scoped billing data → user
   if (projectIds.length > 0) {
     const files = await File.find({ projectId: { $in: projectIds } }).select('key').lean();
     const { failures } = await deleteR2Objects(
@@ -166,8 +194,24 @@ export async function DELETE() {
 
     await File.deleteMany({ projectId: { $in: projectIds } });
     await ApiKey.deleteMany({ projectId: { $in: projectIds } });
+    await FileRouter.deleteMany({ projectId: { $in: projectIds } });
+    await WebhookDelivery.deleteMany({ projectId: { $in: projectIds } });
+    await UploadRejection.deleteMany({ projectId: { $in: projectIds } });
+    await ImageTransformation.deleteMany({ projectId: { $in: projectIds } });
     await Project.deleteMany({ userId });
   }
+
+  // User-scoped billing/team data (personal data must not be orphaned).
+  const userObjectIdForDb = new Types.ObjectId(userId);
+  await Promise.all([
+    Subscription.deleteMany({ userId }),
+    UsageRecord.deleteMany({ userId }),
+    ImageTransformation.deleteMany({ userId }),
+    UploadRejection.deleteMany({ userId }),
+    TeamMember.deleteMany({
+      $or: [{ ownerUserId: userObjectIdForDb }, { memberUserId: userObjectIdForDb }],
+    }),
+  ]);
 
   // Clean up Auth.js adapter collections (accounts + sessions).
   // These live outside Mongoose — deleting the user alone leaves orphaned
