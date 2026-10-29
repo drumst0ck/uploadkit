@@ -6,6 +6,7 @@ import { connectDB, Project, ApiKey } from '@uploadkitdev/db';
 import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { UpdateProjectSchema } from '@/lib/schemas';
+import { syncCdnAccessMarker } from '@/lib/cdn-access';
 import { serializeValidationError, serializeError } from '@/lib/errors';
 
 // PATCH /api/v1/projects/:id — update project name
@@ -29,11 +30,40 @@ async function handlePatch(
 
   await connectDB();
 
-  const project = await Project.findOneAndUpdate(
-    { _id: id, userId: ctx.project.userId },
-    { $set: parsed.data },
-    { new: true },
-  ).lean();
+  const filter = { _id: id, userId: ctx.project.userId };
+  const target = parsed.data.cdnAccess;
+  let project;
+
+  if (target === undefined) {
+    project = await Project.findOneAndUpdate(filter, { $set: parsed.data }, { new: true }).lean();
+  } else {
+    // Ordering guarantees the worker never enforces signing while the API
+    // still hands out unsigned URLs (extra ?exp/sig on a public worker is harmless):
+    //  - public -> signed: DB first (API starts signing), then marker (worker starts enforcing);
+    //    revert the DB if the marker write fails.
+    //  - signed -> public: marker removed first (worker stops enforcing), then DB.
+    const existing = await Project.findOne(filter).lean();
+    if (!existing) throw new NotFoundError('Project', id);
+    const previous = existing.cdnAccess ?? 'public';
+
+    if (target === 'signed') {
+      project = await Project.findOneAndUpdate(filter, { $set: parsed.data }, { new: true }).lean();
+      try {
+        await syncCdnAccessMarker(id, 'signed');
+      } catch (err) {
+        await Project.findOneAndUpdate(filter, { $set: { cdnAccess: previous } }).lean();
+        throw err;
+      }
+    } else {
+      await syncCdnAccessMarker(id, 'public');
+      try {
+        project = await Project.findOneAndUpdate(filter, { $set: parsed.data }, { new: true }).lean();
+      } catch (err) {
+        if (previous === 'signed') await syncCdnAccessMarker(id, 'signed').catch(() => undefined);
+        throw err;
+      }
+    }
+  }
 
   if (!project) {
     throw new NotFoundError('Project', id);

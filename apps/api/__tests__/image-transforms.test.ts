@@ -126,6 +126,26 @@ describe('POST /api/v1/transforms/image', () => {
     expect(body.usage).toMatchObject({ units: 1, counted: true });
   });
 
+  it('rejects public delivery for signed projects and keeps expiring delivery working', async () => {
+    setTier('PRO');
+    const signedProject = { ...project, cdnAccess: 'signed' };
+    vi.mocked(ApiKey.findOne).mockReturnValue({
+      populate: vi.fn().mockResolvedValue({ ...apiKey, projectId: signedProject }),
+    } as never);
+    const rejected = await POST(request({
+      key: 'project-1/images/photo.jpg', width: 800, delivery: 'public',
+    }), { params: Promise.resolve({}) });
+    expect(rejected.status).toBe(400);
+    expect((await rejected.json()).error.message).toMatch(/signed/i);
+    expect(File.findOne).not.toHaveBeenCalled();
+
+    const ok = await POST(request({ key: 'project-1/images/photo.jpg', width: 800 }), {
+      params: Promise.resolve({}),
+    });
+    expect(ok.status).toBe(200);
+    expect((await ok.json()).delivery).toBe('signed');
+  });
+
   it('does not consume quota twice for the same transform', async () => {
     setTier('PRO');
     vi.mocked(ImageTransformation.findOne).mockReturnValue(queryResult({

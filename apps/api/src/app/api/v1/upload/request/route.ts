@@ -11,6 +11,7 @@ import { serializeError, serializeValidationError } from '@/lib/errors';
 import { UploadRequestSchema } from '@/lib/schemas';
 import { generatePresignedPutUrl } from '@/lib/presign';
 import { CDN_URL } from '@/lib/storage';
+import { withSignedUrl } from '@/lib/cdn-access';
 import { recordUploadRejection, fileTooLargeReason, quotaReason } from '@/lib/upload-rejections';
 
 async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiContext) {
@@ -133,7 +134,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       fileId: file._id.toString(),
       uploadUrl,
       key,
-      cdnUrl: file.url,
+      cdnUrl: withSignedUrl(ctx.project, file).url,
     });
   } catch (err) {
     return serializeError(err);

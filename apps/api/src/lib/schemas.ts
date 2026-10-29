@@ -52,6 +52,8 @@ export const CreateProjectSchema = z.object({
 
 export const UpdateProjectSchema = z.object({
   name: z.string().min(1).max(100).optional(),
+  /** CDN delivery: 'public' (default) or 'signed' (URLs need exp+sig). */
+  cdnAccess: z.enum(['public', 'signed']).optional(),
 });
 
 // ─── API Keys ─────────────────────────────────────────────────────────────────

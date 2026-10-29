@@ -1,6 +1,7 @@
 import mongoose, { Schema, type Document, type Types } from 'mongoose';
 
 export type StorageMode = 'managed' | 'byos';
+export type CdnAccess = 'public' | 'signed';
 export type CustomCdnStatus = 'none' | 'pending' | 'pending_validation' | 'active' | 'failed';
 
 export interface ICdnValidationRecord {
@@ -40,6 +41,8 @@ export interface IProject extends Document {
   customCdnLastError?: string;
   customCdnVerifiedAt?: Date;
   lifecyclePolicy: ILifecyclePolicy;
+  /** CDN delivery mode; existing projects default to 'public'. */
+  cdnAccess: CdnAccess;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -92,6 +95,7 @@ const projectSchema = new Schema<IProject>(
     customCdnValidationRecords: { type: [cdnValidationRecordSchema], default: [] },
     customCdnLastError: { type: String },
     customCdnVerifiedAt: { type: Date },
+    cdnAccess: { type: String, enum: ['public', 'signed'], default: 'public' },
     lifecyclePolicy: {
       type: lifecyclePolicySchema,
       default: () => ({ enabled: false, retentionDays: 0 }),

@@ -8,6 +8,7 @@ import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { DeleteFilesSchema, PaginationSchema } from '@/lib/schemas';
 import { serializeValidationError, serializeError } from '@/lib/errors';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
+import { withSignedUrl } from '@/lib/cdn-access';
 
 type BulkDeleteFile = {
   _id: Types.ObjectId;
@@ -45,7 +46,7 @@ async function handleGet(req: NextRequest, ctx: ApiContext): Promise<NextRespons
   const nextCursor = hasMore ? files[limit - 1]!._id.toString() : null;
 
   return NextResponse.json({
-    files: files.slice(0, limit),
+    files: files.slice(0, limit).map((f) => withSignedUrl(ctx.project, f)),
     nextCursor,
     hasMore,
   });

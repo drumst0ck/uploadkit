@@ -1,22 +1,10 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "uploadkit-image-transforms",
+  "name": "uploadkit-image-transforms-dev",
   "main": "src/index.ts",
   "compatibility_date": "2026-06-30",
-  "routes": [
-    {
-      "pattern": "cdn.uploadkit.dev/t/*",
-      "zone_name": "uploadkit.dev"
-    },
-    {
-      "pattern": "cdn.uploadkit.dev/p/*",
-      "zone_name": "uploadkit.dev"
-    },
-    {
-      "pattern": "*/*",
-      "zone_name": "uploadkit.dev"
-    }
-  ],
+  // Top level = development only: no routes, dev bucket. Production lives in
+  // env.production (bindings, vars and routes are NOT inherited by wrangler envs).
   "images": { "binding": "IMAGES" },
   "r2_buckets": [
     {
@@ -31,5 +19,38 @@
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
+  },
+  "env": {
+    "production": {
+      // Keeps the existing production worker name (no env suffix) so the
+      // deployed worker, its secrets and its routes are updated in place.
+      "name": "uploadkit-image-transforms",
+      "routes": [
+        { "pattern": "cdn.uploadkit.dev/*", "zone_name": "uploadkit.dev" },
+        // Verified in production: app/api/docs/root are DNS-only (never reach
+        // the worker); the proxied hosts are cdn, cname, saas and the
+        // Cloudflare-for-SaaS custom hostnames (e.g. cdn.todolol.com). Custom
+        // hostnames are only reachable through a zone route, so `*/*` stays.
+        // The worker also passes any other *.uploadkit.dev host to its origin.
+        { "pattern": "*/*", "zone_name": "uploadkit.dev" }
+      ],
+      "images": { "binding": "IMAGES" },
+      "r2_buckets": [
+        {
+          "binding": "UPLOADS",
+          // This IS the production bucket despite its name (R2 custom domain
+          // cdn.uploadkit.dev, API R2_BUCKET_NAME=uploadkit-dev). Renaming it
+          // needs a data migration, so the name stays.
+          "bucket_name": "uploadkit-dev"
+        }
+      ],
+      "vars": {
+        "CACHE_TTL_SECONDS": "3600"
+      },
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1
+      }
+    }
   }
 }
