@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl'
 
 const VERT = `#version 300 es
@@ -129,17 +129,31 @@ export function Aurora(props: AuroraProps) {
   propsRef.current = props
 
   const ctnDom = useRef<HTMLDivElement>(null)
+  const [webglFailed, setWebglFailed] = useState(false)
 
   useEffect(() => {
+    if (webglFailed) return
     const ctn = ctnDom.current
     if (!ctn) return
 
-    const renderer = new Renderer({
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: true,
-    })
+    // The shader is GLSL ES 3.00, so it needs a WebGL2 context. Without one,
+    // render the static gradient instead of letting the page crash.
+    let renderer: Renderer
+    try {
+      if (!document.createElement('canvas').getContext('webgl2')) throw new Error('WebGL2 unavailable')
+      renderer = new Renderer({
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: true,
+      })
+      if (!renderer.gl || !renderer.isWebgl2) throw new Error('WebGL2 unavailable')
+    } catch {
+      setWebglFailed(true)
+      return
+    }
     const gl = renderer.gl
+    const onContextLost = () => setWebglFailed(true)
+    gl.canvas.addEventListener('webglcontextlost', onContextLost)
     gl.clearColor(0, 0, 0, 0)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
@@ -209,13 +223,30 @@ export function Aurora(props: AuroraProps) {
     return () => {
       cancelAnimationFrame(animateId)
       window.removeEventListener('resize', resize)
+      gl.canvas.removeEventListener('webglcontextlost', onContextLost)
       if (ctn && gl.canvas.parentNode === ctn) {
         ctn.removeChild(gl.canvas)
       }
       gl.getExtension('WEBGL_lose_context')?.loseContext()
     }
-  }, [amplitude])
+  }, [amplitude, webglFailed])
 
+  if (webglFailed) {
+    return (
+      <div
+        data-webgl-fallback="aurora"
+        aria-hidden="true"
+        className={`h-full w-full ${className}`}
+        style={{
+          backgroundImage: `linear-gradient(90deg, ${colorStops.join(', ')})`,
+          maskImage: 'linear-gradient(to bottom, black 0%, transparent 65%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 65%)',
+          opacity: 0.55,
+          filter: 'blur(24px)',
+        }}
+      />
+    )
+  }
   return <div ref={ctnDom} className={`h-full w-full ${className}`} />
 }
 
