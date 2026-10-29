@@ -37,7 +37,7 @@ export function ComponentShowcase() {
       <main className="showcase">
         <header className="showcase-header">
           <p className="showcase-kicker">Internal · not indexed</p>
-          <h1 className="showcase-title">SDK Components</h1>
+          <h2 className="showcase-title">SDK Components</h2>
           <p className="showcase-sub">
             Visual showcase of every component in{' '}
             <code>@uploadkitdev/react</code>. Endpoint is a no-op —
