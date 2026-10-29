@@ -17,7 +17,7 @@ tags:
 
 SvelteKit has two tools that look like they should handle file uploads: [form actions](https://svelte.dev/docs/kit/form-actions) and [`+server.ts`](https://svelte.dev/docs/kit/routing#server) route handlers. For small multipart form posts (profile pictures under a few MB), form actions are fine. For anything larger, you need presigned URLs and direct-to-storage uploads. Otherwise every byte passes through your SvelteKit server, your Vercel/Cloudflare function hits its body size limit, and your bill goes up for no reason.
 
-This post is the working pattern for production SvelteKit apps. If you're coming from Next.js, the shape matches the one in [Upload files to Cloudflare R2 in Next.js](/blog/upload-files-cloudflare-r2-nextjs) — the only things that change are the route syntax and the component idioms.
+This post is the working pattern for production SvelteKit apps. If you're coming from Next.js, the shape matches the one in [Upload files to Cloudflare R2 in Next.js](/blog/upload-files-cloudflare-r2-nextjs) — the only things that change are the route syntax and the component idioms. UploadKit's [SvelteKit file upload](/sveltekit) page covers what the SDK supports there.
 
 ## What we're building
 

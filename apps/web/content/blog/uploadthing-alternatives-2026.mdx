@@ -23,17 +23,17 @@ Primary keyword note: this is the post we wished existed when we started [Upload
 
 | Feature                       | UploadThing  | UploadKit       | Uploadcare      | Filestack       | Bytescale       | Roll your own |
 | ----------------------------- | ------------ | --------------- | --------------- | --------------- | --------------- | ------------- |
-| Free tier (storage)           | 2 GB         | 5 GB            | 3 GB            | 1 GB            | 3 GB            | Pay AWS/CF    |
-| Free tier (bandwidth)         | 2 GB         | 2 GB / mo       | 30 GB           | 1 GB            | 5 GB            | Pay AWS/CF    |
-| BYOS (Bring Your Own Storage) | No           | Yes (S3/R2)     | No              | Limited         | No              | N/A           |
+| Free tier (storage)           | 2 GB         | 5 GB            | Personal use only | 1 GB          | No free plan (from $7/mo, 10 GB) | Pay AWS/CF    |
+| Free tier (bandwidth)         | No bandwidth charges | 2 GB / mo | 1,000 operations / mo | 1 GB      | No free plan    | Pay AWS/CF    |
+| BYOS (Bring Your Own Storage) | No (managed storage) | Yes (S3/R2) | Enterprise only (S3) | Yes (S3/GCS/Azure) | Yes (S3/R2/GCS/Spaces) | N/A |
 | Open-source SDK               | Yes (MIT)    | Yes (MIT)       | Partial         | No              | No              | You write it  |
 | Premium components            | Basic        | Yes             | Yes (paid)      | Yes (paid)      | Basic           | None          |
 | Native dark mode              | No           | Yes             | Partial         | No              | No              | DIY           |
 | TypeScript-first              | Yes          | Yes (strict)    | Yes             | Partial         | Yes             | Up to you     |
 | Pricing model                 | Tiered       | Metered + tiers | Metered         | Tiered          | Metered         | Storage costs |
-| Vendor lock-in risk           | High         | Low (BYOS)      | High            | High            | Medium          | None          |
+| Vendor lock-in risk           | High         | Low (BYOS)      | High            | Medium          | Medium          | None          |
 
-The free tiers shift over time — check the pricing pages before you commit. The other axes are more structural and won't change with a press release.
+The free tiers shift over time — check the pricing pages before you commit (competitor figures checked October 2026: [UploadThing](https://uploadthing.com/pricing), [Uploadcare](https://uploadcare.com/pricing/), [Filestack](https://www.filestack.com/pricing/), [Bytescale](https://www.bytescale.com/pricing)). The other axes are more structural and won't change with a press release.
 
 ## UploadThing
 
@@ -43,9 +43,11 @@ The reference. Excellent Next.js DX, very tight `createUploadthing` API, and a `
 
 **Where it falls short:**
 
-- **No BYOS.** Your files live in UploadThing's S3 and you pay for storage forever. If you ever want to leave, you're moving terabytes.
+- **No BYOS.** Your files live on UploadThing's managed infrastructure and you pay for storage forever. If you ever want to leave, you're moving terabytes.
 - The default components look like every other 2022 dashboard — gray, square, no real design opinion.
-- The free tier is generous for hobby projects but caps quickly for anything with real traffic.
+- The free tier (2 GB of storage, with unlimited uploads and downloads and no bandwidth charges) is generous for hobby projects but caps quickly for anything with real traffic.
+
+See the direct [UploadKit vs UploadThing](/vs/uploadthing) comparison for more.
 
 Pick UploadThing if: you're shipping a side project this weekend, you don't care where files live, and you don't want to think about storage costs until you're profitable.
 
@@ -70,7 +72,9 @@ The grandparent of File Uploads as a Service. They've been doing this since 2011
 
 **Where it wins:** Image processing pipeline (face detection, smart cropping, format conversion) is unmatched. If your product is image-heavy and you want every transform available as a URL parameter, Uploadcare is hard to beat.
 
-**Where it falls short:** Pricing scales aggressively. The SDK feels like it was designed in 2015 (because it was). No BYOS. The "modern" `@uploadcare/blocks` rewrite is good, but configuration is verbose.
+**Where it falls short:** Pricing scales aggressively. The SDK feels like it was designed in 2015 (because it was). Connecting your own S3 storage is an Enterprise-plan feature. The "modern" `@uploadcare/blocks` rewrite is good, but configuration is verbose.
+
+See [UploadKit vs Uploadcare](/vs/uploadcare) for a direct comparison.
 
 Pick Uploadcare if: image transformations are your core product and you'll happily pay for the CDN and pipeline.
 
@@ -82,6 +86,8 @@ Enterprise-y. The dashboard feels like it's been designed for a CIO. They suppor
 
 **Where it falls short:** Expensive. Closed-source SDK. The components have not aged well.
 
+See [UploadKit vs Filestack](/vs/filestack) for a direct comparison.
+
 Pick Filestack if: you're selling to F500 and need every compliance certificate in the alphabet.
 
 ## Bytescale
@@ -91,6 +97,8 @@ The dark horse. Lean SaaS, simple pricing, decent SDK. Originally Upload.io.
 **Where it wins:** Pricing is transparent. The image transformation engine is solid and cheap. API is clean.
 
 **Where it falls short:** Component library is bare. No real design system. Documentation is thin in places.
+
+See [UploadKit vs Bytescale](/vs/bytescale) for a direct comparison.
 
 Pick Bytescale if: you want a transformation pipeline at a lower price than Uploadcare and you'll build your own UI.
 
@@ -108,7 +116,7 @@ Pick "roll your own" if: you have one specific upload flow with weird requiremen
 
 Three questions, in order:
 
-1. **Do you need BYOS?** If yes, your shortlist is UploadKit or roll your own. UploadThing/Uploadcare/Bytescale all hold your files.
+1. **Do you need BYOS?** If yes, your shortlist is UploadKit, Filestack, Bytescale, or roll your own. UploadThing holds your files on its managed infrastructure, and Uploadcare only connects your S3 bucket on Enterprise. Filestack and Bytescale also support your own buckets, so they belong on the shortlist too.
 2. **Are uploads image-transformation-heavy?** If yes, Uploadcare or Bytescale lead. UploadKit handles common transforms (resize, format, crop) but isn't trying to compete with Uploadcare's pipeline.
 3. **How much UI do you want to write?** If "as little as possible," UploadKit or UploadThing. If "I have a designer and a year," roll your own.
 
@@ -116,7 +124,7 @@ For most product teams in 2026, the answer is UploadKit — not because we built
 
 ## Takeaways
 
-- UploadThing is still the easiest first choice, but the no-BYOS lock-in is real.
+- UploadThing is still the easiest first choice, but the managed-storage lock-in is real.
 - [UploadKit](/) wins if you want to keep your storage portable and ship components you don't have to redesign.
 - Uploadcare and Filestack are vertical specialists — pick them when their vertical is your product.
 - Bytescale is a sleeper if you're price-sensitive and willing to build your own UI.

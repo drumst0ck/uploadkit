@@ -270,4 +270,4 @@ Use the native `<progress>` element. Screen readers handle it for free, and ther
 - Aggregate by bytes, not by averaged percentages.
 - Retries live inside the state machine; track attempt counts and preserve the file reference.
 
-If you don't want to maintain this, the UploadKit [`useUpload` hook](/docs) returns exactly this state machine — `queued`, `uploading`, `processing`, `complete`, `error` — for every file you throw at it. Pair with [`<UploadDropzone />`](/components) and you get the UI for free.
+If you don't want to maintain this, the UploadKit [`useUploadKit` hook](https://docs.uploadkit.dev/docs/getting-started/react) tracks progress, upload status and errors for you. Pair with [`<UploadDropzone />`](/components) and you get the UI for free. The same setup works in a [Vite React app](/vite).

@@ -15,7 +15,7 @@ tags:
 
 **TL;DR — Migrating from UploadThing to UploadKit takes about 30 minutes for a small Next.js app. The APIs are deliberately close — both expose a `createUploader` builder, both ship React components, both use Next.js route handlers. The mechanical changes are: swap the package, rename `createUploadthing` to `createUploader`, point the route handler at UploadKit's helper, and either keep your existing bucket via BYOS or let UploadKit's managed mode hold the new files. Old files keep working because storage URLs don't change.**
 
-We get this question every week: "I'm on UploadThing, it works, why would I migrate?" Three real reasons we hear: (1) BYOS — keeping files in your own R2/S3 bucket, (2) cheaper egress because UploadThing prices include a markup on storage transfer, and (3) the component library — UploadKit's components ship more variants out of the box. If none of those move you, stay where you are. If any do, this guide is the migration recipe we use with customers.
+We get this question every week: "I'm on UploadThing, it works, why would I migrate?" Three real reasons we hear: (1) BYOS — keeping files in your own R2/S3 bucket, (2) cheaper egress because UploadThing prices include a markup on storage transfer, and (3) the component library — UploadKit's components ship more variants out of the box. If none of those move you, stay where you are. If any do, this guide is the migration recipe we use with customers. The [UploadKit vs UploadThing](/vs/uploadthing) page lays the differences out side by side, and [BYOS S3 uploads](/byos) covers the storage option.
 
 ## Before you start
 
@@ -236,7 +236,7 @@ Run it from a beefy box (not your laptop on hotel wifi). Throttle to your bucket
 
 1. **Webhook payload shape differs.** UploadThing's `onUploadComplete` receives `{ metadata, file: { url, key, name, size, type } }`. UploadKit's `onComplete` receives `{ metadata, file: { url, key, name, size, contentType, etag } }`. The `type` → `contentType` rename catches everyone. The new `etag` is useful for dedup.
 
-2. **Callback URL format.** If you set a custom `callbackUrl` in UploadThing for cross-origin uploads, the equivalent in UploadKit is the `webhookUrl` config option on the route handler. The shape of the signed payload is different — check the [webhook docs](/docs).
+2. **Callback URL format.** If you set a custom `callbackUrl` in UploadThing for cross-origin uploads, the equivalent in UploadKit is the `webhookUrl` config option on the route handler. The shape of the signed payload is different — check the [webhook docs](https://docs.uploadkit.dev/docs/api-reference/webhooks).
 
 3. **Auth header on the SDK.** The browser SDK no longer sends the project key in a header (that was a UploadThing thing). UploadKit derives the project from the route handler's API key, server-side only. If you were extracting the project key from `req.headers`, stop — use the session.
 
@@ -262,4 +262,4 @@ That's it for the code path. Historical file migration, if you do it, runs separ
 - Old files keep working as long as the UploadThing account stays up — migrate in the background, no rush.
 - Plan 30 minutes for a small app, half a day for a complex one with custom middleware.
 
-If you hit something this guide didn't cover, the [UploadKit docs](/docs) have a longer migration appendix, and the team replies to migration questions in the dashboard chat. Most issues are one of the five gotchas above.
+If you hit something this guide didn't cover, the [UploadKit docs](https://docs.uploadkit.dev) have a longer migration appendix, and the team replies to migration questions in the dashboard chat. Most issues are one of the five gotchas above.

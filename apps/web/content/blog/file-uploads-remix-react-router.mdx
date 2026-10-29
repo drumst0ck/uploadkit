@@ -17,7 +17,7 @@ tags:
 
 Remix and [React Router v7](https://reactrouter.com) share an action model: every route can export an `action` that runs on the server and a `loader` that feeds the UI. It's elegant for form posts and mutations. It's also a trap for file uploads, because the obvious API — `request.formData()` with the [`unstable_parseMultipartFormData`](https://remix.run/docs/en/main/utils/parse-multipart-form-data) helper — pushes every byte through your server. On Vercel that's a 4.5 MB hard limit. On Cloudflare Workers it's 100 MB and you're paying for every millisecond. On your own node, it's fine until it isn't.
 
-The better pattern takes ten more lines and scales to any file size: **use the action to sign a presigned URL, upload from the client, then revalidate**. Everything below is identical on Remix v2 and React Router v7 — the `Route` types change names, but the shape doesn't.
+The better pattern takes ten more lines and scales to any file size: **use the action to sign a presigned URL, upload from the client, then revalidate**. Everything below is identical on Remix v2 and React Router v7 — the `Route` types change names, but the shape doesn't. If you'd rather skip the plumbing, UploadKit has a [Remix file upload](/remix) setup.
 
 ## What we're building
 

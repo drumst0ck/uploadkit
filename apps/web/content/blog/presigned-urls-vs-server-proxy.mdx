@@ -154,11 +154,11 @@ If all three are no — and for most products they are — use presigned URLs. T
 
 ## What this means for you
 
-Default to presigned URLs. They scale, they're cheap, they work on every serverless platform, and they give the user a faster upload. The patterns we wrote about in [How to upload files to Cloudflare R2 in Next.js](/blog/upload-files-cloudflare-r2-nextjs) implement the presigned URL pattern end-to-end if you want a working reference.
+Default to presigned URLs. They scale, they're cheap, they work on every serverless platform, and they give the user a faster upload. The patterns we wrote about in [How to upload files to Cloudflare R2 in Next.js](/blog/upload-files-cloudflare-r2-nextjs) implement the presigned URL pattern end-to-end if you want a working reference. If you'd rather not own the signing code, [BYOS S3 uploads](/byos) with UploadKit presign against your own bucket, and the [Next.js file upload](/nextjs) page shows the route handler.
 
 If you do need a proxy for compliance reasons, accept the cost. Don't try to make presigned URLs "synchronous-scan-equivalent" — you'll end up with a broken hybrid that has the worst of both worlds.
 
-UploadKit defaults to presigned URLs and supports webhook-based scanning. If you have a hard proxy requirement, our self-hosted SDK supports a server proxy mode — check the [docs](/docs) for the configuration.
+UploadKit defaults to presigned URLs and supports webhook-based scanning. If you have a hard proxy requirement, our self-hosted SDK supports a server proxy mode — check the [docs](https://docs.uploadkit.dev) for the configuration.
 
 Related reading:
 

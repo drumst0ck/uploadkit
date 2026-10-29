@@ -42,7 +42,7 @@ The key insight: **every `UploadPart` call can be a presigned PUT**. The server 
 
 ## The server: signing part URLs
 
-Here's a Next.js Route Handler that returns presigned URLs for every part. The client tells it how many parts it needs; it signs each one.
+Here's a [Next.js file upload](/nextjs) Route Handler that returns presigned URLs for every part. The client tells it how many parts it needs; it signs each one.
 
 ```ts
 // app/api/uploads/multipart/route.ts
@@ -241,4 +241,4 @@ tus shines when you need interoperability (clients in iOS, Android, desktop) and
 - Set a lifecycle rule to abort incomplete multiparts after 7 days.
 - Expose the `ETag` response header in your CORS policy.
 
-UploadKit does all of this behind a single `useUpload()` hook — multipart, retries, resume, and [BYOS](/blog/byos-bring-your-own-storage) against your own R2 or S3 bucket. If you'd rather not own the state machine, [check the components](/components). If you'd rather own it, the code above is a solid starting point.
+UploadKit does all of this behind a single `useUpload()` hook — multipart, retries, resume, and [BYOS](/blog/byos-bring-your-own-storage) against your own [R2 or S3 bucket](/byos). If you'd rather not own the state machine, [check the components](/components). If you'd rather own it, the code above is a solid starting point.
