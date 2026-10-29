@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { isCronAuthorized } from '@/lib/secure-compare';
 import { DeleteObjectCommand, AbortMultipartUploadCommand } from '@aws-sdk/client-s3';
 import { connectDB, File } from '@uploadkitdev/db';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
@@ -16,12 +17,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest): Promise<NextResponse> {
   // T-03-18: Validate CRON_SECRET header to prevent unauthorized cleanup.
   // Accept both x-cron-secret (manual calls) and Authorization: Bearer (Vercel Cron format).
-  const cronSecret = process.env.CRON_SECRET;
-  const xCronSecret = req.headers.get('x-cron-secret');
-  const authHeader = req.headers.get('authorization');
-  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-  if (!cronSecret || (xCronSecret !== cronSecret && bearerToken !== cronSecret)) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

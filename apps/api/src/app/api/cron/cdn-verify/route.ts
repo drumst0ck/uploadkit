@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isCronAuthorized } from '@/lib/secure-compare';
 import { connectDB, Project } from '@uploadkitdev/db';
 import {
   getCloudflareConfig,
@@ -32,11 +33,7 @@ function applyStateToProject(
  * Polls Cloudflare for pending custom hostnames. Protected by CRON_SECRET.
  */
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  const xCronSecret = req.headers.get('x-cron-secret');
-  const bearerToken = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-
-  if (!cronSecret || (xCronSecret !== cronSecret && bearerToken !== cronSecret)) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

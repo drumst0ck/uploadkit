@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isCronAuthorized } from '@/lib/secure-compare';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { connectDB, Project, File } from '@uploadkitdev/db';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
@@ -11,11 +12,7 @@ export const dynamic = 'force-dynamic';
  * Deletes files past project retention policy. Protected by CRON_SECRET.
  */
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  const xCronSecret = req.headers.get('x-cron-secret');
-  const bearerToken = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-
-  if (!cronSecret || (xCronSecret !== cronSecret && bearerToken !== cronSecret)) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

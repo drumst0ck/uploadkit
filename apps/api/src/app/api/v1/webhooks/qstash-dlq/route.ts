@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { Types } from 'mongoose';
 import { Receiver } from '@upstash/qstash';
 import { connectDB, File } from '@uploadkitdev/db';
 
@@ -32,6 +33,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
+  } else if (process.env.NODE_ENV === 'production') {
+    // Fail closed: without keys anyone could mark arbitrary files as webhook-failed.
+    console.error('[qstash-dlq] QSTASH signing keys not configured — refusing request');
+    return NextResponse.json({ error: 'Service not configured' }, { status: 503 });
   } else {
     console.warn(
       '[qstash-dlq] QSTASH signing keys not configured — skipping signature verification (dev mode)',
@@ -48,6 +53,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // T-03-23: fileId validated before DB update — only sets a timestamp, no destructive action
   const fileId = payload?.file?.id;
+
+  if (fileId !== undefined && !(typeof fileId === 'string' && Types.ObjectId.isValid(fileId) && /^[a-f0-9]{24}$/i.test(fileId))) {
+    return NextResponse.json({ error: 'Invalid file id' }, { status: 400 });
+  }
 
   if (fileId) {
     await connectDB();

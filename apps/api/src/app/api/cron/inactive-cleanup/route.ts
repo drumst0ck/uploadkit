@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { isCronAuthorized } from '@/lib/secure-compare';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { connectDB, User, Subscription, Project, File, UsageRecord } from '@uploadkitdev/db';
 import { sendInactiveWarningEmail } from '@uploadkitdev/emails';
@@ -45,12 +46,7 @@ function formatBytes(bytes: number): string {
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   // Auth — same dual-header pattern as the existing cleanup cron
-  const cronSecret = process.env.CRON_SECRET;
-  const xCronSecret = req.headers.get('x-cron-secret');
-  const authHeader = req.headers.get('authorization');
-  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-  if (!cronSecret || (xCronSecret !== cronSecret && bearerToken !== cronSecret)) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
