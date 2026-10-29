@@ -41,14 +41,13 @@ interface ImageTransform extends ImageResizeOptions {
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const { hostname, pathname } = new URL(request.url);
+    // The zone-wide route also catches first-party hosts (app/api/www/docs):
+    // hand those straight back to their real origin, whatever the method.
+    if (shouldPassThrough(hostname)) return fetch(request);
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return jsonError('METHOD_NOT_ALLOWED', 405, { Allow: 'GET, HEAD' });
     }
-
-    const { hostname, pathname } = new URL(request.url);
-    // The zone-wide route also catches first-party hosts (app/api/www/docs):
-    // hand those straight back to their real origin.
-    if (shouldPassThrough(hostname)) return fetch(request);
     if (pathname.startsWith('/t/') || pathname.startsWith('/p/')) {
       return handleImageTransform(request, env, ctx);
     }
@@ -90,6 +89,13 @@ async function handleImageTransform(
           ? await verifySignature(env.IMAGE_TRANSFORM_SECRET_PREVIOUS, parsed.signature, payload)
           : false);
       if (!valid) return jsonError('INVALID_TRANSFORM_SIGNATURE', 403);
+
+      // Same addressing rules as raw serving: only project-prefixed keys, and
+      // non-expiring public URLs are refused once a project is SIGNED.
+      if (!PROJECT_PREFIX.test(parsed.key)) return jsonError('NOT_FOUND', 404);
+      if (parsed.delivery === 'public' && await isProjectSigned(env, parsed.key.slice(0, 24))) {
+        return jsonError('PUBLIC_DELIVERY_DISABLED', 403);
+      }
 
       const transform = decodeTransform(parsed.encodedTransform);
       const outputFormat = negotiateFormat(transform.format, request.headers.get('accept'));

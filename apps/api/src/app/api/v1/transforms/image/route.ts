@@ -34,6 +34,14 @@ async function handlePost(req: NextRequest, ctx: ApiContext): Promise<NextRespon
   const parsed = ImageTransformSchema.safeParse(await req.json() as unknown);
   if (!parsed.success) return serializeValidationError(parsed.error);
 
+  if (parsed.data.delivery === 'public' && ctx.project.cdnAccess === 'signed') {
+    throw new UploadKitError(
+      'PUBLIC_DELIVERY_DISABLED',
+      'This project uses signed CDN access; omit delivery or use "signed" for expiring transform URLs',
+      400,
+    );
+  }
+
   await connectDB();
   const file = await File.findOne({
     key: parsed.data.key,
