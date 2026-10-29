@@ -4,6 +4,7 @@
 
 import Link from 'next/link'
 import { DesignIcon } from '@/components/ui/design-icon'
+import { livePagesByGroup } from '@/lib/landing-pages'
 
 interface FooterLink {
   label: string
@@ -73,8 +74,25 @@ const COLUMNS: FooterColumn[] = [
   },
 ]
 
+function groupLinks(group: 'compare' | 'frameworks' | 'product'): FooterLink[] {
+  return livePagesByGroup(group).map((p) => ({ label: p.title, href: p.path }))
+}
+
 export function Footer() {
   const year = new Date().getFullYear()
+  // Registry-driven columns; empty groups (no live pages yet) are omitted.
+  const columns: FooterColumn[] = [
+    COLUMNS[0]!,
+    ...(
+      [
+        { heading: 'Compare', links: groupLinks('compare') },
+        { heading: 'Frameworks', links: groupLinks('frameworks') },
+      ] satisfies FooterColumn[]
+    ).filter((c) => c.links.length > 0),
+    ...COLUMNS.slice(1),
+  ]
+  // 'product' pages (e.g. /components) join the Product column.
+  columns[0] = { ...COLUMNS[0]!, links: [...COLUMNS[0]!.links, ...groupLinks('product')] }
   return (
     <footer data-surface-footer="design-v2" aria-label="Site footer">
       <div className="footer-grid">
@@ -91,7 +109,7 @@ export function Footer() {
           </p>
         </div>
 
-        {COLUMNS.map((col) => (
+        {columns.map((col) => (
           <div className="footer-col" key={col.heading}>
             <h4>{col.heading}</h4>
             <ul>
