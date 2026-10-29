@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { Renderer, Program, Mesh, Triangle, Vec2 } from 'ogl'
 
 const vertex = `
@@ -75,6 +75,15 @@ void main(){
 }
 `
 
+// Static stand-in for browsers without WebGL (or when context creation fails),
+// so the page keeps a similar backdrop instead of crashing.
+const FALLBACK_BACKGROUND = [
+  'radial-gradient(ellipse 60% 50% at 30% 35%, rgba(147, 51, 234, 0.55), transparent 70%)',
+  'radial-gradient(ellipse 55% 45% at 70% 55%, rgba(99, 102, 241, 0.45), transparent 70%)',
+  'radial-gradient(ellipse 80% 60% at 50% 100%, rgba(30, 27, 75, 0.9), transparent 75%)',
+  'linear-gradient(180deg, #05050f 0%, #0b0a1f 100%)',
+].join(', ')
+
 type Props = {
   hueShift?: number
   noiseIntensity?: number
@@ -95,33 +104,51 @@ export function DarkVeil({
   resolutionScale = 1,
 }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
+  const [webglFailed, setWebglFailed] = useState(false)
   useEffect(() => {
-    const canvas = ref.current as HTMLCanvasElement
+    if (webglFailed) return
+    const canvas = ref.current
+    if (!canvas) return
     const parent = canvas.parentElement as HTMLElement
 
-    const renderer = new Renderer({
-      dpr: Math.min(window.devicePixelRatio, 2),
-      canvas,
-    })
+    let renderer: Renderer
+    let program: Program
+    let mesh: Mesh
+    try {
+      // Probe on a scratch canvas first so unsupported browsers skip ogl's
+      // console error and go straight to the fallback.
+      const probe = document.createElement('canvas')
+      if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) throw new Error('WebGL unavailable')
+      renderer = new Renderer({
+        dpr: Math.min(window.devicePixelRatio, 2),
+        canvas,
+      })
+      const gl = renderer.gl
+      if (!gl) throw new Error('WebGL unavailable')
+      const geometry = new Triangle(gl)
 
-    const gl = renderer.gl
-    const geometry = new Triangle(gl)
+      program = new Program(gl, {
+        vertex,
+        fragment,
+        uniforms: {
+          uTime: { value: 0 },
+          uResolution: { value: new Vec2() },
+          uHueShift: { value: hueShift },
+          uNoise: { value: noiseIntensity },
+          uScan: { value: scanlineIntensity },
+          uScanFreq: { value: scanlineFrequency },
+          uWarp: { value: warpAmount },
+        },
+      })
 
-    const program = new Program(gl, {
-      vertex,
-      fragment,
-      uniforms: {
-        uTime: { value: 0 },
-        uResolution: { value: new Vec2() },
-        uHueShift: { value: hueShift },
-        uNoise: { value: noiseIntensity },
-        uScan: { value: scanlineIntensity },
-        uScanFreq: { value: scanlineFrequency },
-        uWarp: { value: warpAmount },
-      },
-    })
+      mesh = new Mesh(gl, { geometry, program })
+    } catch {
+      setWebglFailed(true)
+      return
+    }
 
-    const mesh = new Mesh(gl, { geometry, program })
+    const onContextLost = () => setWebglFailed(true)
+    canvas.addEventListener('webglcontextlost', onContextLost)
 
     const resize = () => {
       const w = parent.clientWidth,
@@ -166,8 +193,20 @@ export function DarkVeil({
       cancelAnimationFrame(frame)
       observer.disconnect()
       window.removeEventListener('resize', resize)
+      canvas.removeEventListener('webglcontextlost', onContextLost)
     }
-  }, [hueShift, noiseIntensity, scanlineIntensity, speed, scanlineFrequency, warpAmount, resolutionScale])
+  }, [webglFailed, hueShift, noiseIntensity, scanlineIntensity, speed, scanlineFrequency, warpAmount, resolutionScale])
+
+  if (webglFailed) {
+    return (
+      <div
+        data-webgl-fallback="dark-veil"
+        aria-hidden="true"
+        className="block h-full w-full"
+        style={{ background: FALLBACK_BACKGROUND, filter: hueShift ? `hue-rotate(${hueShift}deg)` : undefined }}
+      />
+    )
+  }
   return <canvas ref={ref} className="block h-full w-full" />
 }
 
