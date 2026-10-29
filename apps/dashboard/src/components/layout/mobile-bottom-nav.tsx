@@ -21,7 +21,7 @@ export function MobileBottomNav({ onMenuOpen }: { onMenuOpen: () => void }) {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-3 bottom-3 z-40 grid h-16 grid-cols-4 rounded-2xl border border-border/80 bg-background/92 px-1 shadow-2xl shadow-black/20 backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-4 bg-card px-1 lg:hidden"
     >
       {items.map((item) => {
         const Icon = item.icon;
@@ -35,12 +35,13 @@ export function MobileBottomNav({ onMenuOpen }: { onMenuOpen: () => void }) {
           <Link
             key={item.label}
             href={item.href}
+            aria-current={active ? 'page' : undefined}
             className={cn(
-              'relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium transition-colors',
-              active ? 'text-indigo-400' : 'text-muted-foreground active:bg-accent',
+              'relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-md text-[11px] transition-colors duration-[120ms]',
+              active ? 'text-foreground' : 'text-muted-foreground active:bg-secondary',
             )}
           >
-            {active ? <span className="absolute top-0 h-0.5 w-5 rounded-full bg-indigo-400" /> : null}
+            {active ? <span className="absolute top-0 h-0.5 w-6 rounded-full bg-foreground" aria-hidden="true" /> : null}
             <Icon className="h-5 w-5" aria-hidden="true" />
             <span className="truncate">{item.label}</span>
           </Link>
@@ -49,7 +50,7 @@ export function MobileBottomNav({ onMenuOpen }: { onMenuOpen: () => void }) {
       <button
         type="button"
         onClick={onMenuOpen}
-        className="flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium text-muted-foreground transition-colors active:bg-accent active:text-foreground"
+        className="flex flex-col items-center justify-center gap-1 rounded-md text-[11px] text-muted-foreground transition-colors duration-[120ms] active:bg-secondary active:text-foreground"
         aria-label="Open full menu"
         aria-haspopup="dialog"
       >

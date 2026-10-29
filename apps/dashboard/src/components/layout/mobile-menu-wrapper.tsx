@@ -5,6 +5,7 @@ import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { CommandPalette } from '../command-palette';
 import { MobileBottomNav } from './mobile-bottom-nav';
+import { Breadcrumbs } from './breadcrumbs';
 import { CreateProjectDialog } from '../create-project-dialog';
 
 interface Project {
@@ -51,22 +52,34 @@ export function MobileMenuWrapper({
   }, []);
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background">
+    <div data-ui className="min-h-dvh bg-background lg:flex">
+      <a
+        href="#main"
+        className="absolute left-3 top-[-80px] z-[90] rounded-full bg-primary px-4 py-2.5 text-sm text-primary-foreground focus:top-3"
+      >
+        Skip to content
+      </a>
       <Sidebar
         initialProjects={initialProjects}
+        user={user}
+        onSignOut={onSignOut}
         mobileOpen={mobileOpen}
         onMobileClose={closeMobileMenu}
         isAdmin={isAdmin}
       />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="min-w-0 flex-1">
         <Header
-          user={user}
-          onSignOut={onSignOut}
           onMobileMenuOpen={openMobileMenu}
           onSearchOpen={() => setCmdkOpen(true)}
         />
-        <main className="dashboard-canvas flex-1 overflow-y-auto px-4 pb-24 pt-5 sm:px-6 sm:pt-6 lg:px-8 lg:pb-8 xl:px-10">
-          <div className="mx-auto w-full max-w-[1500px]">{children}</div>
+        <main
+          id="main"
+          className="dashboard-canvas min-w-0 overflow-x-auto px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8"
+        >
+          <div className="w-full max-w-[1500px]">
+            <Breadcrumbs />
+            {children}
+          </div>
         </main>
       </div>
 

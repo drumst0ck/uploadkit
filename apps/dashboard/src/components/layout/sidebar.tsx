@@ -1,12 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
-import { TooltipProvider } from '@uploadkitdev/ui';
 import { X } from 'lucide-react';
-import { cn } from '../../lib/cn';
 import { Logo } from '../logo';
+import { ThemeToggle } from '../theme-toggle';
 import { SidebarNav } from './sidebar-nav';
 import { ProjectSwitcher } from './project-switcher';
 
@@ -19,83 +19,60 @@ interface Project {
 interface SidebarProps {
   activeProjectSlug?: string | undefined;
   initialProjects?: Project[] | undefined;
-  /** Mobile sheet open state (controlled by header hamburger button) */
+  user?: { name?: string | null; email?: string | null } | undefined;
+  onSignOut?: (() => void) | undefined;
+  /** Mobile sheet open state (controlled by the top bar menu button) */
   mobileOpen?: boolean | undefined;
   onMobileClose?: (() => void) | undefined;
   isAdmin?: boolean | undefined;
 }
 
-// Context for sharing collapsed state with Header
-const SidebarContext = React.createContext<{
-  collapsed: boolean;
-  toggle: () => void;
-}>({ collapsed: false, toggle: () => {} });
-
-export function useSidebar() {
-  return React.useContext(SidebarContext);
-}
-
-export function SidebarProvider({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = React.useState(false);
-
-  // Persist sidebar state across page navigations (Pitfall 2 from research)
-  React.useEffect(() => {
-    const stored = localStorage.getItem('sidebar-collapsed');
-    if (stored === 'true') setCollapsed(true);
-  }, []);
-
-  const toggle = React.useCallback(() => {
-    setCollapsed((prev) => {
-      const next = !prev;
-      localStorage.setItem('sidebar-collapsed', String(next));
-      return next;
-    });
-  }, []);
-
-  return (
-    <SidebarContext.Provider value={{ collapsed, toggle }}>
-      {children}
-    </SidebarContext.Provider>
-  );
-}
+const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? 'https://docs.uploadkit.dev';
 
 function SidebarContent({
-  collapsed,
   activeProjectSlug,
   initialProjects,
+  user,
+  onSignOut,
   isAdmin,
-}: {
-  collapsed: boolean;
-  activeProjectSlug?: string | undefined;
-  initialProjects?: Project[] | undefined;
-  isAdmin?: boolean | undefined;
-}) {
+}: Pick<SidebarProps, 'activeProjectSlug' | 'initialProjects' | 'user' | 'onSignOut' | 'isAdmin'>) {
   return (
-    <div className="flex h-full flex-col">
-      {/* Logo / Brand */}
-      <div
-        className={cn(
-          'flex h-14 flex-shrink-0 items-center border-b border-border px-3',
-          collapsed ? 'justify-center' : 'gap-2'
-        )}
+    <div className="flex h-full flex-col gap-5 overflow-y-auto px-3 py-4">
+      <Link
+        href="/dashboard"
+        aria-label="UploadKit, overview"
+        className="flex min-h-11 items-center rounded-md px-2"
       >
-        <Logo size={28} showWordmark={!collapsed} />
-      </div>
+        <Logo size={28} />
+      </Link>
 
-      {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-3">
-        <TooltipProvider delayDuration={0}>
-          <SidebarNav collapsed={collapsed} isAdmin={isAdmin ?? false} />
-        </TooltipProvider>
-      </div>
+      <ProjectSwitcher activeSlug={activeProjectSlug} initialProjects={initialProjects} />
 
-      {/* Project Switcher at bottom */}
-      <div className="flex-shrink-0 border-t border-border p-2">
-        <ProjectSwitcher
-          activeSlug={activeProjectSlug}
-          initialProjects={initialProjects}
-          collapsed={collapsed}
-        />
+      <SidebarNav isAdmin={isAdmin ?? false} />
+
+      <div className="mt-auto grid gap-1">
+        <a
+          href={DOCS_URL}
+          className="flex h-10 items-center rounded-md px-3 text-sm text-muted-foreground transition-colors duration-[120ms] hover:text-foreground hover:underline"
+        >
+          Docs &rarr;
+        </a>
+        <ThemeToggle />
+        {user?.email || user?.name ? (
+          <p className="truncate px-3 pt-2 text-sm text-muted-foreground" title={user.email ?? user.name ?? ''}>
+            {user.email ?? user.name}
+          </p>
+        ) : null}
+        {onSignOut ? (
+          <button
+            type="button"
+            onClick={onSignOut}
+            className="pd-button pd-button--ghost justify-start"
+            style={{ minHeight: '2.5rem', justifyContent: 'flex-start', padding: '0 0.75rem' }}
+          >
+            Sign out
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -104,11 +81,12 @@ function SidebarContent({
 export function Sidebar({
   activeProjectSlug,
   initialProjects,
+  user,
+  onSignOut,
   mobileOpen = false,
   onMobileClose,
   isAdmin,
 }: SidebarProps) {
-  const { collapsed } = useSidebar();
   const pathname = usePathname();
   const routeSlug = pathname.match(/^\/dashboard\/projects\/([^/]+)/)?.[1];
   const resolvedSlug = activeProjectSlug ?? routeSlug;
@@ -122,7 +100,7 @@ export function Sidebar({
       if (event.key === 'Escape') onMobileClose?.();
       if (event.key === 'Tab') {
         const focusable = mobileDrawerRef.current?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          'a[href], button:not([disabled]), select, [tabindex]:not([tabindex="-1"])',
         );
         if (!focusable?.length) return;
         const first = focusable[0];
@@ -146,20 +124,16 @@ export function Sidebar({
 
   return (
     <>
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar: surface on canvas, separated by a tone step, no border */}
       <aside
-        data-collapsed={collapsed}
-        className={cn(
-          'hidden lg:flex flex-col flex-shrink-0',
-          'bg-background border-r border-border',
-          'transition-[width] duration-200 ease-in-out',
-          collapsed ? 'w-14' : 'w-60'
-        )}
+        aria-label="Sidebar"
+        className="sticky top-0 hidden h-dvh w-[232px] flex-shrink-0 bg-card lg:block"
       >
         <SidebarContent
-          collapsed={collapsed}
           activeProjectSlug={resolvedSlug}
           initialProjects={initialProjects}
+          user={user}
+          onSignOut={onSignOut}
           isAdmin={isAdmin}
         />
       </aside>
@@ -167,10 +141,10 @@ export function Sidebar({
       {/* Mobile navigation drawer. Portal keeps it above the app shell and bottom dock. */}
       {mobileOpen && typeof document !== 'undefined'
         ? createPortal(
-            <div className="fixed inset-0 z-[80] lg:hidden">
+            <div data-ui className="fixed inset-0 z-[80] lg:hidden">
               <button
                 type="button"
-                className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/80"
                 onClick={onMobileClose}
                 aria-label="Close navigation menu"
               />
@@ -179,22 +153,23 @@ export function Sidebar({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="mobile-navigation-title"
-                className="absolute inset-y-0 left-0 w-[min(19rem,88vw)] border-r border-border bg-background shadow-2xl"
+                className="absolute inset-y-0 left-0 w-[min(19rem,88vw)] bg-card"
               >
                 <h2 id="mobile-navigation-title" className="sr-only">Navigation menu</h2>
                 <button
                   ref={closeButtonRef}
                   type="button"
                   onClick={onMobileClose}
-                  className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                   aria-label="Close navigation menu"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
                 <SidebarContent
-                  collapsed={false}
                   activeProjectSlug={resolvedSlug}
                   initialProjects={initialProjects}
+                  user={user}
+                  onSignOut={onSignOut}
                   isAdmin={isAdmin}
                 />
               </aside>
