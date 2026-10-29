@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '../../../auth';
-import { connectDB, UsageRecord, File, Project, Subscription } from '@uploadkitdev/db';
+import { connectDB, UsageRecord, UploadRejection, File, Project, Subscription } from '@uploadkitdev/db';
 import { TIER_LIMITS } from '@uploadkitdev/shared';
 import type { Tier } from '@uploadkitdev/shared';
 import { NewProjectButton } from '../../components/overview/new-project-button';
@@ -58,13 +58,12 @@ export default async function DashboardPage() {
         { $match: { ...liveFiles, createdAt: { $gte: startOfMonth } } },
         { $group: { _id: '$projectId', uploads: { $sum: 1 } } },
       ]),
-      // Uploads that ended in FAILED this month, per project
-      File.aggregate<{ _id: unknown; failed: number }>([
+      // Uploads the API refused this month (not yet dismissed), per project
+      UploadRejection.aggregate<{ _id: unknown; failed: number }>([
         {
           $match: {
             projectId: { $in: projectIds },
-            status: 'FAILED',
-            deletedAt: null,
+            dismissedAt: null,
             createdAt: { $gte: startOfMonth },
           },
         },
@@ -90,11 +89,11 @@ export default async function DashboardPage() {
     .filter((r) => r.project && r.count > 0);
   const failedTotal = failed.reduce((n, r) => n + r.count, 0);
   const failedProject = failed.length === 1 ? failed[0]?.project : undefined;
-  const failedHref = failedProject
-    ? `/dashboard/projects/${failedProject.slug}/logs`
-    : projects[0]
-      ? `/dashboard/projects/${projects[0].slug}/logs`
-      : '/dashboard/projects';
+  // With several affected projects the link goes to the one with the most rejections
+  const failedTop = [...failed].sort((x, y) => y.count - x.count)[0]?.project;
+  const failedHref = failedTop
+    ? `/dashboard/projects/${failedTop.slug}/rejected`
+    : '/dashboard/projects';
 
   const hasProjects = projects.length > 0;
 
@@ -125,18 +124,18 @@ export default async function DashboardPage() {
           <div className="grid min-w-0 grid-cols-1 gap-8">
             {failedTotal > 0 ? (
               <section
-                aria-label="Failed uploads"
+                aria-label="Rejected uploads"
                 className="pd-state-error flex flex-wrap items-center justify-between gap-x-6 gap-y-3"
                 style={{ display: 'flex', padding: '16px 20px' }}
               >
                 <div>
                   <h2 className="text-[1.0625rem] font-medium">
-                    {formatNumber(failedTotal)} {failedTotal === 1 ? 'upload' : 'uploads'} failed this month
-                    {failedProject ? ` in ${failedProject.name}` : ''}
+                    {formatNumber(failedTotal)} {failedTotal === 1 ? 'upload was' : 'uploads were'} rejected
+                    {failedProject ? ` in ${failedProject.name}` : ' this month'}
                   </h2>
                   <p className="text-sm text-muted-foreground">
                     {failed.length === 1
-                      ? 'See the upload logs for the file names and status.'
+                      ? 'This month. See the file names and reasons.'
                       : failed.map((r) => `${r.project?.name} (${r.count})`).join(', ')}
                   </p>
                 </div>
@@ -145,7 +144,7 @@ export default async function DashboardPage() {
                   className="pd-button pd-button--secondary"
                   style={{ minHeight: '2rem' }}
                 >
-                  View logs
+                  View rejected
                 </Link>
               </section>
             ) : null}
