@@ -71,16 +71,26 @@ const ROWS: { label: string; cell: (t: (typeof PLAN_TIERS)[number]) => string }[
 
 const R = OVERAGE_PRICING
 
-export function Pricing() {
+const INTRO =
+  'The SDK and all 40+ components are free and MIT-licensed. You pay only for managed storage, bandwidth and image transforms, and your own bucket is always an option.'
+
+/** `standalone` is the /pricing route: the heading becomes the page h1 and the self-link is dropped. */
+export function Pricing({ standalone = false }: { standalone?: boolean }) {
   return (
-    <section aria-labelledby="h-price" id="pricing">
-      <div className="col">
-        <h2 id="h-price" className="rise">Start free, pay when you grow.</h2>
-        <p className="rise">
-          The SDK and all 40+ components are free and MIT-licensed. You pay only for managed storage, bandwidth and image
-          transforms, and your own bucket is always an option.
-        </p>
-      </div>
+    <section aria-labelledby="h-price" id="pricing" style={standalone ? { marginTop: 0 } : undefined}>
+      {standalone ? (
+        <div className="page-head">
+          <h1 id="h-price" className="page-title enter">Simple, transparent pricing</h1>
+          <div className="col">
+            <p className="enter">{INTRO}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="col">
+          <h2 id="h-price" className="rise">Start free, pay when you grow.</h2>
+          <p className="rise">{INTRO}</p>
+        </div>
+      )}
 
       <PricingPlans
         plans={plans}
@@ -131,7 +141,7 @@ export function Pricing() {
           Need more than Team, SSO or a 99.99% SLA? <a className="go" href={ENTERPRISE.ctaHref}>Talk to us about Enterprise</a>
         </p>
         <p className="soft">
-          The full breakdown lives on the <Link href="/pricing">pricing page</Link>. Weighing options? Compare UploadKit with{' '}
+          {!standalone && (<>The full breakdown lives on the <Link href="/pricing">pricing page</Link>. </>)}Weighing options? Compare UploadKit with{' '}
           <Link href="/vs/uploadthing">UploadThing</Link>, <Link href="/vs/uploadcare">Uploadcare</Link>,{' '}
           <Link href="/vs/filestack">Filestack</Link> and <Link href="/vs/bytescale">Bytescale</Link>, or follow the{' '}
           <a href="https://docs.uploadkit.dev/docs/guides/migration-from-uploadthing">UploadThing migration guide</a>.

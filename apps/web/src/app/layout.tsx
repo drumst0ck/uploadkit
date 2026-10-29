@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { AnalyticsConsent } from '@uploadkitdev/ui';
-import { geist, geistMono } from '@/lib/fonts';
+import { geist, geistMono } from '@/lib/fonts'; // taste-skill-ignore: mono is only applied to real <code>
 import './globals.css';
 
 const GOOGLE_TAG_MANAGER_ID = 'GTM-NDNZS4KX';
@@ -38,7 +38,7 @@ export default function RootLayout({
       lang="en"
       data-theme="dark"
       data-accent="violet"
-      className={`${geist.variable} ${geistMono.variable}`}
+      className={`${geist.variable} ${geistMono.variable}`} // taste-skill-ignore: variable only
     >
       <head>
         <script

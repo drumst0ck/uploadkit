@@ -2,53 +2,24 @@
 // the copy buttons, the dropzone demo, the live SDK components and the pricing plans.
 
 import Link from 'next/link'
-import { SIGN_IN_URL, SIGN_UP_URL } from '@/lib/links'
+import { DOCS } from '@/components/site/header'
+import { SIGN_UP_URL } from '@/lib/links'
 import type { FaqEntry } from '@/lib/json-ld'
 import { BoxObject } from './box-object'
 import { CopyCommand } from './copy-command'
 import { DropzoneDemo } from './dropzone-demo'
 import { LiveComponents } from './live-components'
 
-const DOCS = 'https://docs.uploadkit.dev'
 const GITHUB = 'https://github.com/drumst0ck/uploadkit'
 const NPM = 'https://www.npmjs.com/package'
-
-/** UploadKit mark in white: no gradient (brand decision S2). */
-function Mark() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="var(--pd-color-accent)" />
-      <polygon points="16,7 23,17 9,17" fill="var(--pd-color-text-on-accent)" />
-      <rect x="9" y="19" width="14" height="4" rx="1.5" fill="var(--pd-color-text-on-accent)" fillOpacity="0.55" />
-    </svg>
-  )
-}
-
-export function Header() {
-  return (
-    <header className="top" id="top">
-      <Link className="brand" href="/" aria-label="UploadKit home">
-        <Mark />
-        <span>UploadKit</span>
-      </Link>
-      <nav className="links" aria-label="Primary">
-        <a href={DOCS}>Docs</a>
-        <a href="#components">Components</a>
-        <a href="#pricing">Pricing</a>
-        <a href={SIGN_IN_URL}>Sign in</a>
-        <a className="act go" href={SIGN_UP_URL}>Start free</a>
-      </nav>
-    </header>
-  )
-}
 
 export function Hero() {
   return (
     <section className="hero" aria-labelledby="h-hero">
-      <h1 className="display enter" id="h-hero">Uploads without<br />the plumbing.</h1>
+      <h1 className="display enter" id="h-hero">Open source file uploads <br />for React &amp; Next.js</h1>
       <div className="col">
         <p className="lead enter" style={{ '--i': 1 } as React.CSSProperties}>
-          Open-source file uploads for Next.js, Remix, SvelteKit and Vite.
+          Works with Next.js, Remix, SvelteKit and Vite.
         </p>
         <p className="enter" style={{ '--i': 2 } as React.CSSProperties}>
           A TypeScript SDK, 40+ React components, and storage on Cloudflare R2 or your own bucket.
@@ -290,10 +261,10 @@ export function Mcp() {
   )
 }
 
-export function Faq({ items }: { items: FaqEntry[] }) {
+export function Faq({ items, title = 'Questions, answered.' }: { items: FaqEntry[]; title?: string }) {
   return (
     <section className="col faq" aria-labelledby="h-faq" id="faq">
-      <h2 id="h-faq" className="rise">Questions, answered.</h2>
+      <h2 id="h-faq" className="rise">{title}</h2>
       <div style={{ marginTop: 40 }}>
         {items.map((item) => (
           <details open className="rise" key={item.question}>
@@ -324,26 +295,5 @@ export function Closing() {
         <a className="go" href={`${DOCS}/docs/getting-started/quickstart`}>Read the docs</a>
       </div>
     </section>
-  )
-}
-
-const FOOT = [
-  { label: 'Docs', href: DOCS },
-  { label: 'GitHub', href: GITHUB },
-  { label: 'Status', href: '/status' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Changelog', href: '/changelog' },
-  { label: 'Dashboard', href: 'https://app.uploadkit.dev' },
-  { label: 'Privacy', href: 'https://app.uploadkit.dev/privacy' },
-  { label: 'Terms', href: 'https://app.uploadkit.dev/terms' },
-  { label: 'Contact', href: 'mailto:support@uploadkit.dev' },
-]
-
-export function Footer() {
-  return (
-    <footer className="foot">
-      <span>UploadKit is open source under the MIT license.</span>
-      {FOOT.map((l) => (l.href.startsWith('/') ? <Link key={l.label} href={l.href}>{l.label}</Link> : <a key={l.label} href={l.href}>{l.label}</a>))}
-    </footer>
   )
 }
