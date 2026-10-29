@@ -23,7 +23,7 @@
     "@upstash/qstash": "latest",
     "bcryptjs": "latest",
     "ioredis": "^5.10.1",
-    "mongoose": "^9.4.1",
+    "mongoose": "^9.11.4",
     "nanoid": "latest",
     "next": "latest",
     "rate-limiter-flexible": "^11.0.0",
