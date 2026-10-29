@@ -3,26 +3,39 @@
 export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { connectDB, Subscription } from '@uploadkitdev/db';
+import { connectDB, Subscription, StripeEvent } from '@uploadkitdev/db';
 import { stripe } from '@/lib/stripe';
 import { sendInvoiceEmail } from '@uploadkitdev/emails';
 import { sendXPurchaseConversion } from '@/lib/x-conversions';
 
-// Map Stripe subscription status strings to our SubscriptionStatus enum
-function mapStripeStatus(
-  stripeStatus: string,
-): 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'TRIALING' {
+type MappedStatus = 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'TRIALING';
+
+// Map Stripe subscription status strings to our SubscriptionStatus enum and
+// decide whether the paid tier may stay granted. Fail safe: unknown statuses
+// never grant paid access.
+//  - active / trialing: paid access
+//  - past_due: Stripe is still retrying the charge; keep access during dunning
+//  - unpaid / incomplete / paused: no access until Stripe reports active again
+//  - canceled / incomplete_expired: terminal, no access
+function resolveStripeStatus(stripeStatus: string): {
+  status: MappedStatus;
+  paidAccess: boolean;
+} {
   switch (stripeStatus) {
     case 'active':
-      return 'ACTIVE';
-    case 'past_due':
-      return 'PAST_DUE';
-    case 'canceled':
-      return 'CANCELED';
+      return { status: 'ACTIVE', paidAccess: true };
     case 'trialing':
-      return 'TRIALING';
+      return { status: 'TRIALING', paidAccess: true };
+    case 'past_due':
+      return { status: 'PAST_DUE', paidAccess: true };
+    case 'canceled':
+    case 'incomplete_expired':
+      return { status: 'CANCELED', paidAccess: false };
+    case 'unpaid':
+    case 'incomplete':
+    case 'paused':
     default:
-      return 'ACTIVE';
+      return { status: 'PAST_DUE', paidAccess: false };
   }
 }
 
@@ -42,7 +55,8 @@ function mapPriceToTier(priceId: string): 'PRO' | 'TEAM' | 'ENTERPRISE' {
 // NOT protected by withApiKey — authenticated via Stripe HMAC signature verification (T-07-05).
 // Per D-02: lives at /api/v1/webhooks/stripe, consistent with QStash DLQ pattern.
 //
-// Returns 200 for ALL events (including unrecognized ones) to prevent Stripe retry storms (T-07-08).
+// Returns 200 for unrecognized events and for duplicates of already-processed events.
+// Handler failures return 500 (and release the idempotency claim) so Stripe retries.
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // T-07-06: Read raw body as text to preserve bytes for HMAC verification.
   // DO NOT use req.json() here — it would reserialize the body, breaking the signature.
@@ -65,6 +79,30 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   await connectDB();
+
+  // Idempotency: atomically claim event.id. Stripe redelivers events (and retries
+  // after failures); a processed event must not re-send emails/conversions.
+  const STALE_LOCK_MS = 5 * 60 * 1000;
+  try {
+    await StripeEvent.create({ eventId: event.id, type: event.type, status: 'processing' });
+  } catch (err) {
+    if ((err as { code?: number }).code !== 11000) {
+      console.error('[stripe-webhook] Idempotency claim failed:', err);
+      return NextResponse.json({ error: 'Temporary failure' }, { status: 500 });
+    }
+    const existing = await StripeEvent.findOne({ eventId: event.id }).lean();
+    if (existing?.status === 'done') {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+    // Still processing: only take over if the previous attempt's lock is stale (crash).
+    const reclaimed = await StripeEvent.findOneAndUpdate(
+      { eventId: event.id, status: 'processing', lockedAt: { $lt: new Date(Date.now() - STALE_LOCK_MS) } },
+      { $set: { lockedAt: new Date() } },
+    );
+    if (!reclaimed) {
+      return NextResponse.json({ error: 'Event is being processed' }, { status: 409 });
+    }
+  }
 
   try {
     switch (event.type) {
@@ -93,6 +131,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           ? new Date(firstItem.current_period_end * 1000)
           : undefined;
 
+        // A second checkout for a user who already has a live, different subscription
+        // (double click / two tabs) must not overwrite stripeSubscriptionId — that would
+        // leave the first subscription billing with no reference. Cancel the duplicate.
+        const current = await Subscription.findOne({ userId }).lean();
+        if (
+          current?.stripeSubscriptionId &&
+          current.stripeSubscriptionId !== sub.id &&
+          (current.status === 'ACTIVE' || current.status === 'TRIALING') &&
+          current.tier !== 'FREE'
+        ) {
+          console.error(
+            `[stripe-webhook] duplicate subscription ${sub.id} for userId=${userId} (live: ${current.stripeSubscriptionId}) — canceling duplicate`,
+          );
+          await stripe.subscriptions.cancel(sub.id);
+          break;
+        }
+
         // Upsert Subscription record — idempotent via upsert (Pitfall 3: webhook retries safe)
         await Subscription.findOneAndUpdate(
           { userId },
@@ -119,8 +174,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const sub = event.data.object as import('stripe').Stripe.Subscription;
         const firstItem = sub.items.data[0];
         const priceId = firstItem?.price.id ?? '';
-        const tier = mapPriceToTier(priceId);
-        const status = mapStripeStatus(sub.status);
+        const { status, paidAccess } = resolveStripeStatus(sub.status);
+        const tier = paidAccess ? mapPriceToTier(priceId) : 'FREE';
 
         // In Stripe dahlia API, current_period_start/end are per-item, not on the subscription.
         const periodStart = firstItem?.current_period_start
@@ -265,10 +320,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         break;
     }
   } catch (err) {
-    // Log handler errors but still return 200 to prevent Stripe retry storms (T-07-08).
-    // Failed events should be investigated via Stripe dashboard, not via retries.
+    // Transient/unknown failure: release the claim and return 500 so Stripe retries
+    // (with backoff, up to ~3 days) instead of silently losing the event.
     console.error('[stripe-webhook] Handler error:', err);
+    await StripeEvent.deleteOne({ eventId: event.id }).catch(() => undefined);
+    return NextResponse.json({ error: 'Handler failed' }, { status: 500 });
   }
+
+  await StripeEvent.updateOne({ eventId: event.id }, { $set: { status: 'done' } }).catch((err) =>
+    console.error('[stripe-webhook] Failed to mark event done:', err),
+  );
 
   return NextResponse.json({ received: true });
 }
