@@ -41,13 +41,15 @@ function resolveStripeStatus(stripeStatus: string): {
 
 // Map a Stripe price ID to our internal tier name.
 // T-07-09: Tier is derived from priceId→env var mapping — never from client-supplied data.
-// Unknown price IDs throw — prevents silent wrong-tier assignment.
-function mapPriceToTier(priceId: string): 'PRO' | 'TEAM' | 'ENTERPRISE' {
+// Unknown price IDs return null: the caller logs and acknowledges the event
+// without assigning a tier. Throwing would turn a configuration gap into a
+// 500 that Stripe retries for days.
+function mapPriceToTier(priceId: string): 'PRO' | 'TEAM' | 'ENTERPRISE' | null {
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'PRO';
   if (priceId === process.env.STRIPE_TEAM_PRICE_ID) return 'TEAM';
   if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) return 'ENTERPRISE';
-  console.error('[stripe-webhook] Unknown priceId:', priceId);
-  throw new Error(`Unknown Stripe price ID: ${priceId}`);
+  console.error('[stripe-webhook] Unknown priceId, event acknowledged without tier change:', priceId);
+  return null;
 }
 
 // POST /api/v1/webhooks/stripe — Stripe webhook handler
@@ -120,6 +122,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const sub = await stripe.subscriptions.retrieve(session.subscription as string);
         const priceId = sub.items.data[0]?.price.id ?? '';
         const tier = mapPriceToTier(priceId);
+        if (!tier) break;
 
         // In Stripe dahlia API (2026-03-25), current_period_start/end moved to SubscriptionItem.
         // Extract from the first item, fall back to undefined if not present.
@@ -176,6 +179,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const priceId = firstItem?.price.id ?? '';
         const { status, paidAccess } = resolveStripeStatus(sub.status);
         const tier = paidAccess ? mapPriceToTier(priceId) : 'FREE';
+        if (!tier) break;
 
         // In Stripe dahlia API, current_period_start/end are per-item, not on the subscription.
         const periodStart = firstItem?.current_period_start

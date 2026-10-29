@@ -83,6 +83,29 @@ describe('stripe webhook hardening', () => {
     }
   });
 
+  describe('unknown price ids', () => {
+    it('acknowledges with 200 and leaves the subscription untouched instead of failing every retry', async () => {
+      subUpdated('active', 'price_not_configured');
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(db.Subscription.findOneAndUpdate).not.toHaveBeenCalled();
+      expect(db.StripeEvent.updateOne).toHaveBeenCalledWith(
+        { eventId: 'evt_1' },
+        { $set: { status: 'done' } },
+      );
+    });
+
+    it('still downgrades a canceled subscription whose price is unknown', async () => {
+      subUpdated('canceled', 'price_not_configured');
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(db.Subscription.findOneAndUpdate).toHaveBeenCalledWith(
+        { stripeSubscriptionId: 'sub_1' },
+        expect.objectContaining({ $set: expect.objectContaining({ status: 'CANCELED', tier: 'FREE' }) }),
+      );
+    });
+  });
+
   describe('idempotency', () => {
     it('skips a duplicate already-processed event without re-running side effects', async () => {
       subUpdated('active');
