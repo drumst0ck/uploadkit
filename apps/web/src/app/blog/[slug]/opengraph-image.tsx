@@ -16,6 +16,7 @@ export default async function Image({
   const title = post?.title ?? 'UploadKit blog'
   const category = post?.category ?? 'Blog'
 
+  // Monochrome identity: black field, white type, white mark. No gradient, glow or accent colour.
   return new ImageResponse(
     (
       <div
@@ -26,38 +27,20 @@ export default async function Image({
           flexDirection: 'column',
           justifyContent: 'space-between',
           padding: '80px',
-          background:
-            'radial-gradient(1200px 600px at 20% 10%, rgba(99,102,241,0.35), transparent 60%), radial-gradient(900px 500px at 90% 90%, rgba(129,140,248,0.22), transparent 55%), #0a0a0b',
+          background: '#000000',
           fontFamily: 'sans-serif',
-          color: '#fafafa',
+          color: '#ededed',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '10px 22px',
-              borderRadius: '999px',
-              background: 'rgba(99,102,241,0.16)',
-              color: '#c7d2fe',
-              border: '1px solid rgba(129,140,248,0.35)',
-              fontSize: '26px',
-              fontWeight: 600,
-              letterSpacing: '-0.01em',
-            }}
-          >
-            {category}
-          </div>
-        </div>
+        <div style={{ display: 'flex', fontSize: '28px', color: '#a1a1a1' }}>{category}</div>
 
         <div
           style={{
             display: 'flex',
-            fontSize: '76px',
-            lineHeight: 1.1,
-            fontWeight: 800,
-            letterSpacing: '-0.035em',
+            fontSize: '72px',
+            lineHeight: 1.08,
+            fontWeight: 500,
+            letterSpacing: '-0.04em',
             maxWidth: '1000px',
           }}
         >
@@ -70,7 +53,7 @@ export default async function Image({
             alignItems: 'center',
             justifyContent: 'space-between',
             fontSize: '28px',
-            color: '#a1a1aa',
+            color: '#a1a1a1',
           }}
         >
           <div
@@ -78,21 +61,16 @@ export default async function Image({
               display: 'flex',
               alignItems: 'center',
               gap: '14px',
-              color: '#fafafa',
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
+              color: '#ededed',
+              fontWeight: 500,
+              letterSpacing: '-0.01em',
             }}
           >
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '12px',
-                background:
-                  'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
-                boxShadow: '0 0 60px -10px #6366f1',
-              }}
-            />
+            <svg width="44" height="44" viewBox="0 0 32 32">
+              <rect width="32" height="32" rx="8" fill="#ffffff" />
+              <polygon points="16,7 23,17 9,17" fill="#000000" />
+              <rect x="9" y="19" width="14" height="4" rx="1.5" fill="#000000" fillOpacity="0.55" />
+            </svg>
             UploadKit
           </div>
           <div style={{ display: 'flex' }}>uploadkit.dev/blog</div>

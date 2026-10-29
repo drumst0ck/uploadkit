@@ -4,8 +4,7 @@ import { notFound } from 'next/navigation'
 import { compileMDX } from 'next-mdx-remote/rsc'
 import rehypePrettyCode, { type Options as RehypePrettyCodeOptions } from 'rehype-pretty-code'
 import remarkGfm from 'remark-gfm'
-import Navbar from '@/components/nav/navbar'
-import { Footer } from '@/components/footer/footer'
+import { SiteShell } from '@/components/site/shell'
 import { formatPostDate, getAllPosts, getPostBySlug } from '@/lib/blog'
 
 const BASE_URL = 'https://uploadkit.dev'
@@ -58,7 +57,7 @@ export async function generateMetadata({
 
 const mdxComponents = {
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a {...props} className={`blog-link ${props.className ?? ''}`.trim()} />
+    <a {...props} />
   ),
 }
 
@@ -104,38 +103,27 @@ export default async function BlogPostPage({ params }: { params: Params }) {
   }
 
   return (
-    <>
-      <Navbar />
-      <main>
-        <article className="blog-post">
-          <div className="container blog-post-container">
-            <nav className="blog-breadcrumb" aria-label="Breadcrumb">
-              <Link href="/blog">← All posts</Link>
-            </nav>
+    <SiteShell>
+      <article className="post">
+        <nav className="crumb" aria-label="Breadcrumb">
+          <Link href="/blog">← All posts</Link>
+        </nav>
 
-            <header className="blog-post-header">
-              <span className="blog-card-category">{post.category}</span>
-              <h1 className="blog-post-title">{post.title}</h1>
-              <p className="blog-post-description">{post.description}</p>
-              <div className="blog-post-meta">
-                <time dateTime={post.publishedAt}>
-                  {formatPostDate(post.publishedAt)}
-                </time>
-                <span aria-hidden="true">·</span>
-                <span>{post.author}</span>
-              </div>
-            </header>
+        <header className="post-head">
+          <h1 className="page-title">{post.title}</h1>
+          <p className="desc">{post.description}</p>
+          <p className="soft small">
+            {post.category} · <time dateTime={post.publishedAt}>{formatPostDate(post.publishedAt)}</time> · {post.author}
+          </p>
+        </header>
 
-            <div className="blog-post-body">{content}</div>
-          </div>
-        </article>
-      </main>
-      <Footer />
+        <div className="prose">{content}</div>
+      </article>
       <script
         type="application/ld+json"
         // JSON.stringify is safe here — content comes from trusted MDX frontmatter
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-    </>
+    </SiteShell>
   )
 }

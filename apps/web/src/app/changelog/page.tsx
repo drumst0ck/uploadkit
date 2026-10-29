@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
-import Navbar from '@/components/nav/navbar'
-import { Footer } from '@/components/footer/footer'
+import { SiteShell } from '@/components/site/shell'
 
 export const metadata: Metadata = {
   title: 'Changelog — UploadKit',
@@ -16,20 +15,17 @@ export const metadata: Metadata = {
 
 export default function ChangelogPage() {
   return (
-    <>
-      <Navbar />
-      <main>
-        {/* Hero */}
-        <section className="changelog-hero">
-          <div className="container">
-            <h1 className="changelog-title">Changelog</h1>
-            <p className="changelog-subtitle">What&rsquo;s new in UploadKit</p>
-          </div>
-        </section>
+    <SiteShell>
+      <section className="page-head" aria-labelledby="changelog-title">
+        <h1 className="page-title enter" id="changelog-title">Changelog</h1>
+        <div className="col">
+          <p className="lead enter" style={{ '--i': 1 } as React.CSSProperties}>What&rsquo;s new in UploadKit</p>
+        </div>
+      </section>
 
         {/* Entries */}
         <section className="changelog-entries">
-          <div className="container">
+          <div>
             <article className="changelog-entry">
               <div className="changelog-entry-meta">
                 <time className="changelog-date" dateTime="2026-07-02">
@@ -693,8 +689,6 @@ export default function ChangelogPage() {
             </article>
           </div>
         </section>
-      </main>
-      <Footer />
-    </>
+    </SiteShell>
   )
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Navbar from '@/components/nav/navbar'
-import { Footer } from '@/components/footer/footer'
+import { SiteShell } from '@/components/site/shell'
 import {
   BLOG_CATEGORIES,
   formatPostDate,
@@ -50,73 +49,50 @@ export default async function BlogIndexPage({
     : posts
 
   return (
-    <>
-      <Navbar />
-      <main>
-        <section className="blog-hero">
-          <div className="container">
-            <h1 className="blog-title">The UploadKit blog</h1>
-            <p className="blog-subtitle">
-              Tutorials, comparisons and engineering notes from the team
-              building file uploads for developers.
-            </p>
-          </div>
-        </section>
+    <SiteShell>
+      <section className="page-head" aria-labelledby="blog-title">
+        <h1 className="page-title enter" id="blog-title">The UploadKit blog</h1>
+        <div className="col">
+          <p className="lead enter" style={{ '--i': 1 } as React.CSSProperties}>
+            Tutorials, comparisons and engineering notes from the team building file uploads for developers.
+          </p>
+        </div>
+      </section>
 
-        <section className="blog-filters">
-          <div className="container">
-            <nav className="blog-filter-row" aria-label="Filter posts by category">
-              <Link
-                href="/blog"
-                className={`blog-filter-pill${activeCategory === null ? ' is-active' : ''}`}
-                aria-current={activeCategory === null ? 'page' : undefined}
-              >
-                All
-              </Link>
-              {BLOG_CATEGORIES.map((cat) => (
-                <Link
-                  key={cat}
-                  href={`/blog?category=${encodeURIComponent(cat)}`}
-                  className={`blog-filter-pill${activeCategory === cat ? ' is-active' : ''}`}
-                  aria-current={activeCategory === cat ? 'page' : undefined}
-                >
-                  {cat}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        </section>
+      <nav className="col filters" aria-label="Filter posts by category" style={{ marginTop: 64 }}>
+        <Link href="/blog" aria-current={activeCategory === null ? 'page' : undefined}>
+          All
+        </Link>
+        {BLOG_CATEGORIES.map((cat) => (
+          <Link
+            key={cat}
+            href={`/blog?category=${encodeURIComponent(cat)}`}
+            aria-current={activeCategory === cat ? 'page' : undefined}
+          >
+            {cat}
+          </Link>
+        ))}
+      </nav>
 
-        <section className="blog-list">
-          <div className="container">
-            {visible.length === 0 ? (
-              <p className="blog-empty">
-                No posts yet in this category. Check back soon.
-              </p>
-            ) : (
-              <ul className="blog-grid">
-                {visible.map((post) => (
-                  <li key={post.slug} className="blog-card">
-                    <Link href={`/blog/${post.slug}`} className="blog-card-link">
-                      <span className="blog-card-category">{post.category}</span>
-                      <h2 className="blog-card-title">{post.title}</h2>
-                      <p className="blog-card-description">{post.description}</p>
-                      <div className="blog-card-meta">
-                        <time dateTime={post.publishedAt}>
-                          {formatPostDate(post.publishedAt)}
-                        </time>
-                        <span aria-hidden="true">·</span>
-                        <span>{post.author}</span>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
-      </main>
-      <Footer />
-    </>
+      <section aria-label="Posts" style={{ marginTop: 48 }}>
+        {visible.length === 0 ? (
+          <p className="col soft">No posts yet in this category. Check back soon.</p>
+        ) : (
+          <ul className="col posts">
+            {visible.map((post) => (
+              <li key={post.slug}>
+                <h2>
+                  <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+                </h2>
+                <p className="soft">{post.description}</p>
+                <p className="soft small">
+                  {post.category} · <time dateTime={post.publishedAt}>{formatPostDate(post.publishedAt)}</time> · {post.author}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </SiteShell>
   )
 }
