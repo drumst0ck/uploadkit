@@ -1,23 +1,29 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { HardDrive, ArrowUpDown, Upload, FileText } from 'lucide-react';
 import { auth } from '../../../auth';
-import { connectDB, UsageRecord, File, Project } from '@uploadkitdev/db';
-import { MetricCard } from '../../components/metric-card';
-import { UploadsAreaChart } from '../../components/charts/uploads-area-chart';
-import { BlurText } from '../../components/react-bits/blur-text';
-import { formatBytes, formatDate, splitBytes } from '../../lib/format';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@uploadkitdev/ui';
+import { connectDB, UsageRecord, File, Project, Subscription } from '@uploadkitdev/db';
+import { TIER_LIMITS } from '@uploadkitdev/shared';
+import type { Tier } from '@uploadkitdev/shared';
+import { NewProjectButton } from '../../components/overview/new-project-button';
+import { CopyUrlButton } from '../../components/overview/copy-url-button';
+import { MeterRow, MiniLine } from '../../components/overview/meter';
+import { formatBytes, formatNumber, formatRelative } from '../../lib/format';
 
 // Force dynamic rendering — auth() and connectDB() require runtime env vars
 export const dynamic = 'force-dynamic';
+
+const TIER_LABEL: Record<Tier, string> = {
+  FREE: 'Free',
+  PRO: 'Pro',
+  TEAM: 'Team',
+  ENTERPRISE: 'Enterprise',
+};
+
+const STATUS_WORD: Record<string, { word: string; dot: string }> = {
+  UPLOADED: { word: 'Uploaded', dot: 'pd-dot--success' },
+  UPLOADING: { word: 'Uploading', dot: 'pd-dot--warning' },
+  FAILED: { word: 'Failed', dot: 'pd-dot--danger' },
+};
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -27,242 +33,301 @@ export default async function DashboardPage() {
   await connectDB();
 
   const now = new Date();
-  const currentPeriod = now.toISOString().slice(0, 7); // "YYYY-MM"
+  const currentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const periodLabel = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
+  // IFile links files via projectId, not userId directly
+  const projects = await Project.find({ userId }).select('name slug').sort({ createdAt: 1 }).lean();
+  const projectIds = projects.map((p) => p._id);
+  const projectById = new Map(projects.map((p) => [String(p._id), p]));
 
-  const thirtyDaysAgo = new Date(now);
-  thirtyDaysAgo.setDate(now.getDate() - 30);
+  const liveFiles = { projectId: { $in: projectIds }, status: 'UPLOADED', deletedAt: null };
 
-  // Get user's project IDs to scope file queries
-  // IFile model links files via projectId, not userId directly
-  const userProjects = await Project.find({ userId }).select('_id slug').lean();
-  const projectIds = userProjects.map((p) => p._id);
-  const projectSlugMap = new Map(
-    userProjects.map((p) => [String(p._id), p.slug])
-  );
-
-  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const prevPeriod = prevDate.toISOString().slice(0, 7);
-
-  const [usage, prevUsage, totalFiles, todayUploads, recentFiles, rawChartData] =
+  const [subscription, usage, storageByProject, uploadsByProject, failedByProject, recentFiles] =
     await Promise.all([
+      Subscription.findOne({ userId }).lean(),
       UsageRecord.findOne({ userId, period: currentPeriod }).lean(),
-      UsageRecord.findOne({ userId, period: prevPeriod }).lean(),
-      File.countDocuments({
-        projectId: { $in: projectIds },
-        status: 'UPLOADED',
-        deletedAt: null,
-      }),
-      File.countDocuments({
-        projectId: { $in: projectIds },
-        status: 'UPLOADED',
-        createdAt: { $gte: startOfToday },
-      }),
+      // Storage per project: live uploaded files
+      File.aggregate<{ _id: unknown; bytes: number; files: number }>([
+        { $match: liveFiles },
+        { $group: { _id: '$projectId', bytes: { $sum: '$size' }, files: { $sum: 1 } } },
+      ]),
+      // Uploads per project this month
+      File.aggregate<{ _id: unknown; uploads: number }>([
+        { $match: { ...liveFiles, createdAt: { $gte: startOfMonth } } },
+        { $group: { _id: '$projectId', uploads: { $sum: 1 } } },
+      ]),
+      // Uploads that ended in FAILED this month, per project
+      File.aggregate<{ _id: unknown; failed: number }>([
+        {
+          $match: {
+            projectId: { $in: projectIds },
+            status: 'FAILED',
+            deletedAt: null,
+            createdAt: { $gte: startOfMonth },
+          },
+        },
+        { $group: { _id: '$projectId', failed: { $sum: 1 } } },
+      ]),
       File.find({
         projectId: { $in: projectIds },
-        status: 'UPLOADED',
+        status: { $in: ['UPLOADED', 'UPLOADING', 'FAILED'] },
         deletedAt: null,
       })
         .sort({ _id: -1 })
         .limit(5)
         .lean(),
-      File.aggregate<{ _id: string; uploads: number }>([
-        {
-          $match: {
-            projectId: { $in: projectIds },
-            status: 'UPLOADED',
-            createdAt: { $gte: thirtyDaysAgo },
-          },
-        },
-        {
-          $group: {
-            _id: {
-              $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
-            },
-            uploads: { $sum: 1 },
-          },
-        },
-        { $sort: { _id: 1 } },
-      ]),
     ]);
 
-  const chartData = rawChartData.map((d) => ({
-    date: d._id,
-    uploads: d.uploads,
-  }));
+  const tier: Tier = subscription?.tier ?? 'FREE';
+  const limits = TIER_LIMITS[tier];
 
-  function computeTrend(
-    current: number,
-    previous: number
-  ): { value: number; label: string } | undefined {
-    if (previous === 0)
-      return current > 0 ? { value: 100, label: 'from last month' } : undefined;
-    const pct = Math.round(((current - previous) / previous) * 100);
-    return { value: pct, label: 'from last month' };
-  }
+  const storageMap = new Map(storageByProject.map((r) => [String(r._id), r]));
+  const uploadsMap = new Map(uploadsByProject.map((r) => [String(r._id), r.uploads]));
+  const failed = failedByProject
+    .map((r) => ({ project: projectById.get(String(r._id)), count: r.failed }))
+    .filter((r) => r.project && r.count > 0);
+  const failedTotal = failed.reduce((n, r) => n + r.count, 0);
+  const failedProject = failed.length === 1 ? failed[0]?.project : undefined;
+  const failedHref = failedProject
+    ? `/dashboard/projects/${failedProject.slug}/logs`
+    : projects[0]
+      ? `/dashboard/projects/${projects[0].slug}/logs`
+      : '/dashboard/projects';
 
-  const storage = splitBytes(usage?.storageUsed ?? 0);
-  const bandwidth = splitBytes(usage?.bandwidth ?? 0);
+  const hasProjects = projects.length > 0;
 
   return (
-    <div className="space-y-5 sm:space-y-8">
-      {/* Page header — BlurText reveal */}
-      <div>
-        <BlurText
-          as="h1"
-          text="Overview"
-          delay={60}
-          animateBy="letters"
-          direction="top"
-          className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
-        />
-      </div>
-
-      {/* 4 Metric cards */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <MetricCard
-          label="Storage Used"
-          value={storage.value}
-          suffix={storage.unit}
-          decimals={1}
-          delay={0}
-          icon={<HardDrive className="h-4 w-4" aria-hidden="true" />}
-          trend={computeTrend(usage?.storageUsed ?? 0, prevUsage?.storageUsed ?? 0)}
-        />
-        <MetricCard
-          label="Bandwidth"
-          value={bandwidth.value}
-          suffix={bandwidth.unit}
-          decimals={1}
-          delay={0.1}
-          icon={<ArrowUpDown className="h-4 w-4" aria-hidden="true" />}
-          trend={computeTrend(usage?.bandwidth ?? 0, prevUsage?.bandwidth ?? 0)}
-        />
-        <MetricCard
-          label="Uploads Today"
-          value={todayUploads}
-          decimals={0}
-          delay={0.2}
-          icon={<Upload className="h-4 w-4" aria-hidden="true" />}
-        />
-        <MetricCard
-          label="Total Files"
-          value={totalFiles}
-          decimals={0}
-          delay={0.3}
-          icon={<FileText className="h-4 w-4" aria-hidden="true" />}
-        />
-      </div>
-
-      {/* Upload area chart */}
-      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-sm font-medium text-foreground">Uploads — Last 30 Days</h2>
-          <Link href="/dashboard/projects" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-            All Projects
-          </Link>
+    <div>
+      <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+        <div>
+          <h1 className="text-[2rem] font-medium leading-[1.1] tracking-[-0.02em]">Overview</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            All projects &middot; {TIER_LABEL[tier]} plan
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground mb-6">
-          Daily upload activity across all your projects.
-        </p>
-        {chartData.length === 0 ? (
-          <div className="flex h-[300px] items-center justify-center">
-            <p className="text-sm text-muted-foreground">No uploads in the last 30 days.</p>
-          </div>
-        ) : (
-          <UploadsAreaChart data={chartData} />
-        )}
-      </div>
+        <NewProjectButton />
+      </header>
 
-      {/* Recent files table */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-medium text-foreground">Recent Files</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Your 5 most recently uploaded files.
+      {!hasProjects ? (
+        <section className="mt-8" aria-labelledby="empty-h">
+          <div className="pd-empty">
+            <h2 id="empty-h" className="text-[1.0625rem] font-medium">No projects yet</h2>
+            <p className="text-sm text-muted-foreground">
+              A project holds your files, API keys and routers. Create one with New project above and
+              its usage and uploads will appear here.
             </p>
           </div>
-          {userProjects[0] != null && (
-            <Link
-              href={`/dashboard/projects/${userProjects[0].slug}/files`}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              View All →
-            </Link>
-          )}
-        </div>
-        {recentFiles.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <p className="text-sm text-muted-foreground">No files uploaded yet.</p>
-          </div>
-        ) : (
-          <div className="hidden sm:block"><Table>
-            <TableHeader>
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="text-muted-foreground">Name</TableHead>
-                <TableHead className="text-muted-foreground">Size</TableHead>
-                <TableHead className="text-muted-foreground">Type</TableHead>
-                <TableHead className="text-muted-foreground">Status</TableHead>
-                <TableHead className="text-muted-foreground">Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentFiles.map((file) => {
-                const slug = projectSlugMap.get(String(file.projectId));
-                const fileLink = slug
-                  ? `/dashboard/projects/${slug}/files`
-                  : '/dashboard/projects';
-                return (
-                  <TableRow
-                    key={String(file._id)}
-                    className="border-border hover:bg-accent"
-                  >
-                    <TableCell className="font-medium text-foreground">
-                      <Link
-                        href={fileLink}
-                        className="hover:text-foreground hover:underline underline-offset-4 transition-colors"
-                      >
-                        {file.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatBytes(file.size)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">
-                      {file.type}
-                    </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        {file.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(file.createdAt)}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table></div>
-        )}
-        {recentFiles.length > 0 ? (
-          <div className="divide-y divide-border sm:hidden">
-            {recentFiles.map((file) => {
-              const slug = projectSlugMap.get(String(file.projectId));
-              return (
-                <Link key={String(file._id)} href={slug ? `/dashboard/projects/${slug}/files` : '/dashboard/projects'} className="flex items-center gap-3 p-4 active:bg-accent">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-500/10 text-indigo-400"><FileText className="h-4 w-4" /></span>
-                  <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{file.name}</span><span className="mt-0.5 block text-xs text-muted-foreground">{formatBytes(file.size)} · {formatDate(file.createdAt)}</span></span>
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" aria-label={file.status} />
+        </section>
+      ) : (
+        <div className="mt-8 grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="grid min-w-0 grid-cols-1 gap-8">
+            {failedTotal > 0 ? (
+              <section
+                aria-label="Failed uploads"
+                className="pd-state-error flex flex-wrap items-center justify-between gap-x-6 gap-y-3"
+                style={{ display: 'flex', padding: '16px 20px' }}
+              >
+                <div>
+                  <h2 className="text-[1.0625rem] font-medium">
+                    {formatNumber(failedTotal)} {failedTotal === 1 ? 'upload' : 'uploads'} failed this month
+                    {failedProject ? ` in ${failedProject.name}` : ''}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {failed.length === 1
+                      ? 'See the upload logs for the file names and status.'
+                      : failed.map((r) => `${r.project?.name} (${r.count})`).join(', ')}
+                  </p>
+                </div>
+                <Link
+                  href={failedHref}
+                  className="pd-button pd-button--secondary"
+                  style={{ minHeight: '2rem' }}
+                >
+                  View logs
                 </Link>
-              );
-            })}
+              </section>
+            ) : null}
+
+            <section aria-labelledby="usage-h">
+              <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
+                <h2 id="usage-h" className="text-[1.0625rem] font-medium">
+                  Usage this month, all projects
+                </h2>
+                <span className="text-sm text-muted-foreground">
+                  {TIER_LABEL[tier]} plan &middot; {periodLabel}
+                </span>
+              </div>
+              <ul className="grid gap-1">
+                <MeterRow
+                  label="Storage"
+                  scope="all projects"
+                  used={usage?.storageUsed ?? 0}
+                  limit={limits.maxStorageBytes}
+                  kind="bytes"
+                />
+                <MeterRow
+                  label="Bandwidth"
+                  scope="all projects"
+                  used={usage?.bandwidth ?? 0}
+                  limit={limits.maxBandwidthBytes}
+                  kind="bytes"
+                />
+                <MeterRow
+                  label="Uploads"
+                  scope="all projects"
+                  used={usage?.uploads ?? 0}
+                  limit={limits.maxUploadsPerMonth}
+                  kind="count"
+                />
+              </ul>
+            </section>
+
+            <section aria-labelledby="recent-h">
+              <div className="mb-3 flex items-baseline justify-between gap-4">
+                <h2 id="recent-h" className="text-[1.0625rem] font-medium">Recent uploads</h2>
+                {projects[0] ? (
+                  <Link
+                    href={`/dashboard/projects/${projects[0].slug}/files`}
+                    className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    All files &rarr;
+                  </Link>
+                ) : null}
+              </div>
+              {recentFiles.length === 0 ? (
+                <div className="pd-empty">
+                  <h3>No uploads yet</h3>
+                  <p className="text-sm">
+                    Files uploaded to any project show up here with the project they belong to.
+                  </p>
+                </div>
+              ) : (
+                <div
+                  className="pd-table-wrap"
+                  style={{ maxHeight: 'none' }}
+                  role="region"
+                  aria-labelledby="recent-h"
+                  tabIndex={0}
+                >
+                  <table className="pd-table">
+                    <caption className="sr-only">Recent uploads across all projects</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Project</th>
+                        <th scope="col">Size</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Uploaded</th>
+                        <th scope="col"><span className="sr-only">Actions</span></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentFiles.map((file) => {
+                        const project = projectById.get(String(file.projectId));
+                        const status = STATUS_WORD[file.status] ?? { word: file.status, dot: '' };
+                        return (
+                          <tr key={String(file._id)} style={{ height: '3rem' }}>
+                            <td className="max-w-[190px] font-mono">
+                              <span className="block truncate" title={file.name}>{file.name}</span>
+                            </td>
+                            <td className="font-mono text-muted-foreground">{project?.name ?? '—'}</td>
+                            <td className="font-mono">{formatBytes(file.size)}</td>
+                            <td>
+                              <span className="inline-flex items-center gap-2">
+                                <span className={`pd-dot ${status.dot}`} aria-hidden="true" />
+                                {status.word}
+                              </span>
+                            </td>
+                            <td className="text-muted-foreground">{formatRelative(file.createdAt, now)}</td>
+                            <td>
+                              {file.status === 'UPLOADED' ? (
+                                <CopyUrlButton url={file.url} name={file.name} />
+                              ) : null}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
           </div>
-        ) : null}
-      </div>
+
+          <div className="grid min-w-0 grid-cols-1 gap-8">
+            <section aria-labelledby="bp-h">
+              <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
+                <h2 id="bp-h" className="text-[1.0625rem] font-medium">Usage by project</h2>
+                <span className="text-sm text-muted-foreground">bars: share of plan limit</span>
+              </div>
+              <ul className="grid gap-1">
+                {projects.map((project) => {
+                  const key = String(project._id);
+                  return (
+                    <li key={key} className="grid gap-2.5 rounded-md bg-card px-4 py-3.5">
+                      <Link
+                        href={`/dashboard/projects/${project.slug}/files`}
+                        className="text-sm hover:underline"
+                      >
+                        {project.name} &rarr;
+                      </Link>
+                      <MiniLine
+                        project={project.name}
+                        label="Storage"
+                        used={storageMap.get(key)?.bytes ?? 0}
+                        limit={limits.maxStorageBytes}
+                        kind="bytes"
+                      />
+                      <MiniLine
+                        project={project.name}
+                        label="Uploads"
+                        used={uploadsMap.get(key) ?? 0}
+                        limit={limits.maxUploadsPerMonth}
+                        kind="count"
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Bandwidth is measured for the whole account, not per project.
+              </p>
+            </section>
+
+            <section aria-labelledby="plan-h">
+              <div className="mb-3">
+                <h2 id="plan-h" className="text-[1.0625rem] font-medium">Plan</h2>
+              </div>
+              <div className="grid gap-0.5 rounded-md bg-card px-4 py-3.5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm">{TIER_LABEL[tier]}</span>
+                  <span className="text-sm tabular-nums text-muted-foreground">
+                    {Number.isFinite(limits.maxProjects)
+                      ? `${projects.length} of ${limits.maxProjects} projects`
+                      : `${projects.length} projects`}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {formatBytes(limits.maxFileSizeBytes, 0)} max file size.
+                  {Number.isFinite(limits.maxStorageBytes)
+                    ? ` ${formatBytes(limits.maxStorageBytes, 0)} storage, ${formatNumber(limits.maxUploadsPerMonth)} uploads a month.`
+                    : ' No storage or upload cap.'}
+                </p>
+                <p className="mt-2">
+                  <Link
+                    href="/dashboard/billing"
+                    className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    {tier === 'FREE' ? 'Compare plans' : 'Manage billing'} &rarr;
+                  </Link>
+                </p>
+              </div>
+            </section>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

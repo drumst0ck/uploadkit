@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth, signOut } from '../../../auth';
 import { connectDB, Project } from '@uploadkitdev/db';
-import { SidebarProvider } from '../../components/layout/sidebar';
 import { MobileMenuWrapper } from '../../components/layout/mobile-menu-wrapper';
 import { isAdminSession } from '../../lib/admin';
 import { consumeSignUpTracking } from '../../lib/sign-up-tracking';
@@ -51,7 +50,7 @@ export default async function DashboardLayout({
   const signUp = await consumeSignUpTracking(user.id);
 
   return (
-    <SidebarProvider>
+    <>
       <MobileMenuWrapper
         user={user}
         onSignOut={handleSignOut}
@@ -61,6 +60,6 @@ export default async function DashboardLayout({
         {children}
       </MobileMenuWrapper>
       {signUp ? <SignUpTracker method={signUp.method} /> : null}
-    </SidebarProvider>
+    </>
   );
 }

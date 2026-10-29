@@ -45,7 +45,7 @@ export function MetricCard({
       {/* Label + icon row */}
       <div className="mb-3 flex items-start justify-between gap-2">
         <span className="text-xs leading-tight text-muted-foreground sm:text-sm">{label}</span>
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 sm:h-8 sm:w-8">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-foreground sm:h-8 sm:w-8">
           {icon}
         </div>
       </div>

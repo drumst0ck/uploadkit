@@ -1,10 +1,25 @@
 import '@/lib/env';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
+import localFont from 'next/font/local';
 import './globals.css';
 import { SWRProvider } from '../providers/swr-provider';
 import { ThemeProvider } from '../providers/theme-provider';
 import { AnalyticsConsent, TooltipProvider } from '@uploadkitdev/ui';
+
+// Geist Sans + Geist Mono (SIL OFL 1.1), loaded once for the whole dashboard.
+const geistSans = localFont({
+  src: './fonts/Geist-Variable.woff2',
+  variable: '--font-geist-sans',
+  weight: '100 900',
+  display: 'swap',
+});
+const geistMono = localFont({
+  src: './fonts/GeistMono-Variable.woff2',
+  variable: '--font-geist-mono',
+  weight: '100 900',
+  display: 'swap',
+});
 
 const GOOGLE_TAG_MANAGER_ID = 'GTM-NDNZS4KX';
 const GOOGLE_CONSENT_DEFAULT_SCRIPT = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',functionality_storage:'granted',security_storage:'granted',wait_for_update:500});`;
@@ -27,14 +42,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           id="google-consent-default"
           dangerouslySetInnerHTML={{ __html: GOOGLE_CONSENT_DEFAULT_SCRIPT }}
         />
       </head>
-      <body className="bg-background text-foreground antialiased">
+      <body className="bg-background font-sans text-foreground antialiased">
         <ThemeProvider>
           <TooltipProvider>
             <SWRProvider>{children}</SWRProvider>

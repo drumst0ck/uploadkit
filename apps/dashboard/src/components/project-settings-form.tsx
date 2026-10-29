@@ -159,7 +159,7 @@ export function ProjectSettingsForm({ initialName, slug }: ProjectSettingsFormPr
             <button
               type="submit"
               disabled={isSaving || name.trim().length === 0 || name.trim().length > 50}
-              className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
             >
               {isSaving ? 'Saving...' : 'Save changes'}
             </button>

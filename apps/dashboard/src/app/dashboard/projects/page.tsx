@@ -43,7 +43,7 @@ export default async function ProjectsPage() {
           </p>
         </div>
         <CreateProjectDialog>
-          <Button className="h-10 shrink-0 gap-2 bg-indigo-600 px-3 text-foreground hover:bg-indigo-500 sm:px-4">
+          <Button className="h-10 shrink-0 gap-2 rounded-full bg-primary px-3 text-primary-foreground shadow-none hover:bg-primary/85 sm:px-4">
             <Plus className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">New project</span><span className="sm:hidden">New</span>
           </Button>
@@ -80,11 +80,11 @@ export default async function ProjectsPage() {
               className="group block rounded-2xl border border-border bg-card p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-500/30 hover:bg-accent hover:shadow-lg hover:shadow-indigo-500/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 sm:p-6"
             >
               {/* Project avatar */}
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-lg font-semibold text-indigo-300 transition-transform duration-300 group-hover:scale-110">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-lg font-semibold text-foreground transition-transform duration-300 group-hover:scale-110">
                 {project.name[0]?.toUpperCase() ?? 'P'}
               </div>
 
-              <h2 className="mb-1 truncate text-base font-medium text-foreground transition-colors group-hover:text-indigo-300">
+              <h2 className="mb-1 truncate text-base font-medium text-foreground transition-colors group-hover:text-foreground">
                 {project.name}
               </h2>
               <p className="mb-3 truncate font-mono text-xs text-muted-foreground">

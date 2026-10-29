@@ -3,16 +3,6 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { ChevronDown, FolderOpen, Plus } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@uploadkitdev/ui';
-import { cn } from '../../lib/cn';
 
 interface Project {
   _id: string;
@@ -25,77 +15,42 @@ interface ProjectSwitcherProps {
   activeSlug?: string | undefined;
   /** Initial project data from server-side fetch (avoids loading flash) */
   initialProjects?: Project[] | undefined;
-  /** Whether sidebar is collapsed (icon-only mode) */
-  collapsed?: boolean | undefined;
 }
 
-export function ProjectSwitcher({
-  activeSlug,
-  initialProjects = [],
-  collapsed = false,
-}: ProjectSwitcherProps) {
+/** Native select (pd kit): "All projects" goes to the account overview. */
+export function ProjectSwitcher({ activeSlug, initialProjects = [] }: ProjectSwitcherProps) {
   const router = useRouter();
+  const id = React.useId();
 
-  const { data: projects = initialProjects } = useSWR<Project[]>(
-    '/api/internal/projects',
-    { fallbackData: initialProjects }
-  );
+  const { data: projects = initialProjects } = useSWR<Project[]>('/api/internal/projects', {
+    fallbackData: initialProjects,
+  });
 
-  const active = projects.find((p) => p.slug === activeSlug) ?? projects[0];
+  const value = activeSlug && projects.some((p) => p.slug === activeSlug) ? activeSlug : '';
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        className={cn(
-          'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm',
-          'text-foreground transition-colors hover:bg-accent hover:text-foreground',
-          'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500',
-          collapsed && 'justify-center px-0'
-        )}
-      >
-        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-indigo-500/20 text-xs font-semibold text-indigo-300">
-          {active ? active.name[0]?.toUpperCase() ?? 'P' : 'P'}
-        </div>
-        {!collapsed && (
-          <>
-            <span className="flex-1 truncate text-left font-medium">
-              {active?.name ?? 'Select project'}
-            </span>
-            <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 opacity-60" />
-          </>
-        )}
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent
-        align="start"
-        side="top"
-        className="w-56 border-border bg-card"
-      >
-        <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Projects
-        </DropdownMenuLabel>
-        {projects.map((project) => (
-          <DropdownMenuItem
-            key={project._id}
-            onClick={() => router.push(`/dashboard/projects/${project.slug}`)}
-            className={cn(
-              'gap-2 text-foreground focus:bg-accent focus:text-foreground',
-              project.slug === activeSlug && 'text-foreground'
-            )}
-          >
-            <FolderOpen className="h-4 w-4 opacity-60" />
-            <span className="truncate">{project.name}</span>
-          </DropdownMenuItem>
-        ))}
-        {projects.length > 0 && <DropdownMenuSeparator className="bg-accent" />}
-        <DropdownMenuItem
-          onClick={() => router.push('/dashboard/projects/new')}
-          className="gap-2 text-muted-foreground focus:bg-accent focus:text-foreground"
+    <div className="pd-field">
+      <label className="pd-label" htmlFor={id}>
+        Project
+      </label>
+      <div className="pd-select-wrap">
+        <select
+          id={id}
+          className="pd-select"
+          value={value}
+          onChange={(e) => {
+            const slug = e.target.value;
+            router.push(slug ? `/dashboard/projects/${slug}` : '/dashboard');
+          }}
         >
-          <Plus className="h-4 w-4" />
-          <span>New project</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <option value="">All projects</option>
+          {projects.map((project) => (
+            <option key={project._id} value={project.slug}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 }

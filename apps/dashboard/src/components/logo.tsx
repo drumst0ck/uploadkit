@@ -1,6 +1,6 @@
-// Logo mark + wordmark — shared with apps/web
-// Mark: rounded square with indigo→purple gradient, white upload arrow, white tray
-// Wordmark: "Upload" foreground + "Kit" indigo
+// Logo mark + wordmark. Brand S2: pure monochrome. The mark follows the text
+// colour (white in dark, black in light) and the glyph is cut out in the surface
+// colour. No gradient, no accent.
 
 interface LogoProps {
   size?: number
@@ -9,7 +9,6 @@ interface LogoProps {
 }
 
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
-  const id = 'logo-gradient'
   return (
     <svg
       width={size}
@@ -20,27 +19,20 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
       aria-hidden="true"
       className={className}
     >
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#6366f1" />
-          <stop offset="100%" stopColor="#a855f7" />
-        </linearGradient>
-      </defs>
-      <rect width="32" height="32" rx="8" fill={`url(#${id})`} />
-      <polygon points="16,7 23,17 9,17" fill="white" />
-      <rect x="9" y="19" width="14" height="4" rx="1.5" fill="white" fillOpacity="0.55" />
+      <rect width="32" height="32" rx="8" fill="currentColor" />
+      <polygon points="16,7 23,17 9,17" fill="var(--pd-color-bg-surface)" />
+      <rect x="9" y="19" width="14" height="4" rx="1.5" fill="var(--pd-color-bg-surface)" fillOpacity="0.55" />
     </svg>
   )
 }
 
 export function Logo({ size = 32, showWordmark = true, className }: LogoProps) {
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className ?? ''}`}>
+    <span className={`inline-flex items-center gap-2.5 text-foreground ${className ?? ''}`}>
       <LogoMark size={size} />
       {showWordmark && (
-        <span className="text-sm font-bold leading-none tracking-tight">
-          <span className="text-foreground">Upload</span>
-          <span className="text-indigo-400">Kit</span>
+        <span className="text-[1.0625rem] font-medium leading-none tracking-[-0.01em]">
+          UploadKit
         </span>
       )}
     </span>

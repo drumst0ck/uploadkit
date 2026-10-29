@@ -170,7 +170,7 @@ export function ImageTransformStudio({
           <div className="border-b border-border px-4 py-4 sm:px-6">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-400">Source library</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground">Source library</p>
                 <h2 className="mt-1 text-base font-semibold">Choose an image</h2>
               </div>
               <span className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground">
@@ -222,7 +222,7 @@ export function ImageTransformStudio({
         </section>
 
         <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm sm:p-5">
-          <div className="mb-4 flex items-center gap-2"><History className="h-4 w-4 text-indigo-400" /><h2 className="text-sm font-semibold">Recent transformations</h2></div>
+          <div className="mb-4 flex items-center gap-2"><History className="h-4 w-4 text-foreground" /><h2 className="text-sm font-semibold">Recent transformations</h2></div>
           {history.length === 0 ? (
             <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Your generated variants will appear here.</p>
           ) : (
@@ -230,7 +230,7 @@ export function ImageTransformStudio({
               {history.map((item) => (
                 <div key={item.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                   <div className="min-w-0"><p className="truncate text-sm font-medium">{item.fileName}</p><time dateTime={item.createdAt} suppressHydrationWarning className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString()}</time></div>
-                  <span className="shrink-0 rounded-full bg-indigo-500/10 px-2.5 py-1 text-[11px] font-medium text-indigo-400">{item.units} unit{item.units === 1 ? '' : 's'}</span>
+                  <span className="shrink-0 rounded-full bg-indigo-500/10 px-2.5 py-1 text-[11px] font-medium text-foreground">{item.units} unit{item.units === 1 ? '' : 's'}</span>
                 </div>
               ))}
             </div>
@@ -241,7 +241,7 @@ export function ImageTransformStudio({
       <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">
         <section className="rounded-2xl border border-border bg-card/95 p-4 shadow-sm sm:p-5">
           <div className="mb-5 flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500/12 text-indigo-400"><WandSparkles className="h-5 w-5" /></span>
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500/12 text-foreground"><WandSparkles className="h-5 w-5" /></span>
             <div><h2 className="font-semibold">Transformation recipe</h2><p className="text-xs text-muted-foreground">Generate a signed, cacheable URL.</p></div>
           </div>
 
@@ -287,7 +287,7 @@ export function ImageTransformStudio({
               <code className="block truncate rounded-lg bg-background p-3 text-[11px] text-muted-foreground">{result.url}</code>
 
               <div className="border-t border-border pt-4">
-                <div className="mb-3 flex items-center gap-2"><Code2 className="h-4 w-4 text-indigo-400" /><div><h3 className="text-sm font-semibold">HTML embed</h3><p className="text-[11px] text-muted-foreground">Choose how large the image should appear in your layout.</p></div></div>
+                <div className="mb-3 flex items-center gap-2"><Code2 className="h-4 w-4 text-foreground" /><div><h3 className="text-sm font-semibold">HTML embed</h3><p className="text-[11px] text-muted-foreground">Choose how large the image should appear in your layout.</p></div></div>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Display width"><input type="number" min={1} value={displayWidth} placeholder="Auto" onChange={(event) => setDisplayWidth(event.target.value === '' ? '' : Number(event.target.value))} className="studio-input" /></Field>
                   <Field label="Display height"><input type="number" min={1} value={displayHeight} placeholder="Auto" onChange={(event) => setDisplayHeight(event.target.value === '' ? '' : Number(event.target.value))} className="studio-input" /></Field>

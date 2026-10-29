@@ -29,3 +29,19 @@ export function splitBytes(bytes: number, decimals = 1): { value: number; unit: 
   const value = parseFloat((bytes / Math.pow(k, i)).toFixed(decimals));
   return { value, unit: sizes[i] ?? 'B' };
 }
+
+/** "2 min ago", "3 hr ago", "4 days ago"; falls back to a short date after 30 days. */
+export function formatRelative(date: string | Date | null | undefined, now: Date = new Date()): string {
+  if (!date) return '—';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '—';
+  const seconds = Math.max(0, Math.round((now.getTime() - d.getTime()) / 1000));
+  if (seconds < 60) return 'just now';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  const days = Math.round(hours / 24);
+  if (days <= 30) return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
+}

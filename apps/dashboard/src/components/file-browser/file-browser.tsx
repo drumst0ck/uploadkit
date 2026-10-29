@@ -236,7 +236,7 @@ export function FileBrowser({ slug }: FileBrowserProps) {
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           {row.original.type.startsWith('image/') ? (
-            <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-indigo-400">
+            <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
               <Link href={`/dashboard/projects/${slug}/transforms?file=${row.original._id}`} aria-label={`Transform ${row.original.name}`} title="Transform image">
                 <WandSparkles className="h-4 w-4" />
               </Link>
@@ -312,7 +312,7 @@ export function FileBrowser({ slug }: FileBrowserProps) {
               </div>
               <div className="flex flex-col gap-1">
                 {file.type.startsWith('image/') ? (
-                  <Button asChild variant="ghost" size="icon" className="h-9 w-9 text-indigo-400">
+                  <Button asChild variant="ghost" size="icon" className="h-9 w-9 text-foreground">
                     <Link href={`/dashboard/projects/${slug}/transforms?file=${file._id}`} aria-label={`Transform ${file.name}`}><WandSparkles className="h-4 w-4" /></Link>
                   </Button>
                 ) : null}

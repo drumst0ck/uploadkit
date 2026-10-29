@@ -32,8 +32,8 @@ const TIER_DESCRIPTIONS: Record<Tier, { label: string; description: string }> = 
 
 const TIER_BADGE_CLASS: Record<Tier, string> = {
   FREE: 'bg-zinc-500/10 text-muted-foreground ring-1 ring-zinc-500/20',
-  PRO: 'bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/20',
-  TEAM: 'bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/20',
+  PRO: 'bg-indigo-500/10 text-foreground ring-1 ring-indigo-500/20',
+  TEAM: 'bg-violet-500/10 text-foreground ring-1 ring-violet-500/20',
   ENTERPRISE: 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
 };
 
@@ -300,7 +300,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                           href={invoice.hostedUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                          className="text-xs text-foreground hover:text-foreground transition-colors"
                         >
                           View PDF
                         </a>

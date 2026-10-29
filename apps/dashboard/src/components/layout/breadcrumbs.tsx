@@ -3,74 +3,46 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
-import { cn } from '../../lib/cn';
 
-// Human-readable labels for known URL segments (D-03)
+// Human-readable labels for the page segment under /dashboard/projects/[slug]/
 const SEGMENT_LABELS: Record<string, string> = {
-  dashboard: 'Dashboard',
-  projects: 'Projects',
   files: 'Files',
-  keys: 'API Keys',
-  routes: 'File Routes',
+  keys: 'API keys',
+  routes: 'Routers',
   transforms: 'Transformations',
   logs: 'Logs',
-  usage: 'Usage',
-  billing: 'Billing',
+  webhooks: 'Webhooks',
   settings: 'Settings',
 };
 
-function getLabel(segment: string): string {
-  return SEGMENT_LABELS[segment] ?? segment;
-}
-
+/** pd breadcrumb, shown only inside a project: Projects / slug / Page. */
 export function Breadcrumbs() {
   const pathname = usePathname();
+  const match = pathname.match(/^\/dashboard\/projects\/([^/]+)(?:\/([^/]+))?/);
+  if (!match || match[1] === 'new') return null;
 
-  // Build breadcrumb segments from the URL path
-  const segments = pathname.split('/').filter(Boolean);
-
-  if (segments.length === 0) return null;
-
-  // Build cumulative href per segment
-  const crumbs = segments.map((segment, index) => {
-    const href = '/' + segments.slice(0, index + 1).join('/');
-    return { label: getLabel(segment), href };
-  });
+  const slug = match[1] as string;
+  const page = match[2];
 
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm">
-      {crumbs.map((crumb, index) => {
-        const isLast = index === crumbs.length - 1;
-        return (
-          <React.Fragment key={crumb.href}>
-            {index > 0 && (
-              <ChevronRight
-                className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground"
-                aria-hidden="true"
-              />
-            )}
-            {isLast ? (
-              <span
-                className={cn(
-                  'font-medium text-foreground',
-                  'max-w-[200px] truncate'
-                )}
-                aria-current="page"
-              >
-                {crumb.label}
-              </span>
-            ) : (
-              <Link
-                href={crumb.href}
-                className="text-muted-foreground transition-colors hover:text-foreground max-w-[200px] truncate"
-              >
-                {crumb.label}
-              </Link>
-            )}
-          </React.Fragment>
-        );
-      })}
+    <nav className="pd-breadcrumb mb-1" aria-label="Breadcrumb">
+      <ol>
+        <li>
+          <Link href="/dashboard/projects" style={{ minHeight: '2rem' }}>Projects</Link>
+        </li>
+        <li>
+          {page ? (
+            <Link href={`/dashboard/projects/${slug}`} style={{ minHeight: '2rem' }}>{slug}</Link>
+          ) : (
+            <span aria-current="page">{slug}</span>
+          )}
+        </li>
+        {page ? (
+          <li>
+            <span aria-current="page">{SEGMENT_LABELS[page] ?? page}</span>
+          </li>
+        ) : null}
+      </ol>
     </nav>
   );
 }

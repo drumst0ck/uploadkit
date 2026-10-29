@@ -3,151 +3,102 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard,
-  FolderOpen,
-  BarChart3,
-  CreditCard,
-  Settings,
-  Files,
-  KeyRound,
-  Route,
-  ScrollText,
-  WandSparkles,
-  ShieldCheck,
-  Users,
-  Webhook,
-  Cog,
-} from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@uploadkitdev/ui';
 import { cn } from '../../lib/cn';
 
 interface NavItem {
   label: string;
   href: string;
-  icon: React.ElementType;
 }
 
-const TOP_NAV_ITEMS: NavItem[] = [
-  { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Projects', href: '/dashboard/projects', icon: FolderOpen },
-  { label: 'Usage', href: '/dashboard/usage', icon: BarChart3 },
-  { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
-  { label: 'Team', href: '/dashboard/team', icon: Users },
-  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
+const ACCOUNT_NAV: NavItem[] = [
+  { label: 'Overview', href: '/dashboard' },
+  { label: 'Projects', href: '/dashboard/projects' },
+  { label: 'Usage', href: '/dashboard/usage' },
+  { label: 'Billing', href: '/dashboard/billing' },
+  { label: 'Team', href: '/dashboard/team' },
+  { label: 'Settings', href: '/dashboard/settings' },
 ];
 
-// Project-scoped nav items that appear when on a /dashboard/projects/[slug]/* route
-const PROJECT_NAV_ITEMS: NavItem[] = [
-  { label: 'Files', href: 'files', icon: Files },
-  { label: 'Transformations', href: 'transforms', icon: WandSparkles },
-  { label: 'API Keys', href: 'keys', icon: KeyRound },
-  { label: 'File Routes', href: 'routes', icon: Route },
-  { label: 'Webhooks', href: 'webhooks', icon: Webhook },
-  { label: 'Logs', href: 'logs', icon: ScrollText },
-  { label: 'Settings', href: 'settings', icon: Cog },
+/**
+ * Project sub-navigation, nested under "Projects" while inside a project.
+ * `path` is relative to /dashboard/projects/[slug]; `absolute` targets pages that
+ * are not per-project yet:
+ *  - Rejected: no dedicated page yet, points at the upload logs.
+ *  - Usage: no per-project usage page yet, points at the account usage page.
+ */
+const PROJECT_NAV: Array<{ label: string; path?: string; absolute?: string }> = [
+  { label: 'Files', path: 'files' },
+  { label: 'Rejected', path: 'logs' },
+  { label: 'Usage', absolute: '/dashboard/usage' },
+  { label: 'Routers', path: 'routes' },
+  { label: 'API keys', path: 'keys' },
+  { label: 'Transformations', path: 'transforms' },
+  { label: 'Webhooks', path: 'webhooks' },
+  { label: 'Settings', path: 'settings' },
 ];
+
+const rowClass =
+  'flex h-10 items-center rounded-md px-3 text-sm text-muted-foreground transition-colors duration-[120ms] hover:bg-secondary hover:text-foreground aria-[current=page]:bg-secondary aria-[current=page]:text-foreground';
 
 interface SidebarNavProps {
-  collapsed: boolean;
   isAdmin?: boolean;
 }
 
-function NavItemLink({
-  item,
-  isActive,
-  collapsed,
-}: {
-  item: NavItem;
-  isActive: boolean;
-  collapsed: boolean;
-}) {
-  const Icon = item.icon;
-  const linkContent = (
-    <Link
-      href={item.href}
-      className={cn(
-        'flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-all duration-150',
-        isActive
-          ? 'bg-indigo-500/10 text-foreground border-l-2 border-indigo-500 -ml-[1px]'
-          : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-        collapsed && 'justify-center px-2'
-      )}
-    >
-      <Icon className="h-4 w-4 flex-shrink-0" />
-      {!collapsed && <span>{item.label}</span>}
-    </Link>
-  );
-
-  if (collapsed) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-        <TooltipContent side="right">{item.label}</TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return linkContent;
-}
-
-export function SidebarNav({ collapsed, isAdmin = false }: SidebarNavProps) {
+export function SidebarNav({ isAdmin = false }: SidebarNavProps) {
   const pathname = usePathname();
-
-  // Detect if we are on a project-specific route: /dashboard/projects/[slug]/*
-  const projectRouteMatch = pathname.match(
-    /^\/dashboard\/projects\/([^/]+)(\/.*)?$/
-  );
-  const activeProjectSlug = projectRouteMatch?.[1];
-  const projectBasePath = activeProjectSlug
-    ? `/dashboard/projects/${activeProjectSlug}`
-    : null;
+  const slug = pathname.match(/^\/dashboard\/projects\/([^/]+)/)?.[1];
+  const projectBase = slug ? `/dashboard/projects/${slug}` : null;
 
   function isActive(href: string): boolean {
     if (href === '/dashboard') return pathname === '/dashboard';
-    return pathname.startsWith(href);
+    // /dashboard/projects is the parent of the project sub-nav; it is current only on the list itself
+    if (href === '/dashboard/projects') return pathname === href;
+    return pathname === href || pathname.startsWith(`${href}/`);
   }
 
+  const items: NavItem[] = isAdmin
+    ? [...ACCOUNT_NAV, { label: 'Admin', href: '/dashboard/admin' }]
+    : ACCOUNT_NAV;
+
   return (
-    <nav className="flex flex-col gap-1 px-2" aria-label="Main navigation">
-      {TOP_NAV_ITEMS.map((item) => (
-        <NavItemLink
-          key={item.href}
-          item={item}
-          isActive={isActive(item.href)}
-          collapsed={collapsed}
-        />
-      ))}
-
-      {isAdmin && (
-        <NavItemLink
-          item={{ label: 'Admin', href: '/dashboard/admin', icon: ShieldCheck }}
-          isActive={isActive('/dashboard/admin')}
-          collapsed={collapsed}
-        />
-      )}
-
-      {/* Project-scoped sub-nav — visible when inside a project route */}
-      {projectBasePath && (
-        <div className={cn('mt-2', !collapsed && 'ml-2 border-l border-border pl-2')}>
-          {!collapsed && (
-            <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Project
-            </p>
-          )}
-          {PROJECT_NAV_ITEMS.map((item) => {
-            const fullHref = `${projectBasePath}/${item.href}`;
-            return (
-              <NavItemLink
-                key={item.href}
-                item={{ ...item, href: fullHref }}
-                isActive={pathname.startsWith(fullHref)}
-                collapsed={collapsed}
-              />
-            );
-          })}
-        </div>
-      )}
+    <nav aria-label="Dashboard">
+      <ul className="grid gap-0.5">
+        {items.map((item) => {
+          const isProjects = item.href === '/dashboard/projects';
+          const showSub = isProjects && projectBase !== null;
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                className={cn(rowClass, showSub && 'text-foreground')}
+              >
+                {item.label}
+              </Link>
+              {showSub && projectBase ? (
+                <ul className="mb-1.5 mt-0.5 grid gap-0.5" aria-label={`${slug} project`}>
+                  {PROJECT_NAV.map((sub) => {
+                    const href = sub.absolute ?? `${projectBase}/${sub.path}`;
+                    // Usage points at the account page, so it is never the "current" project row
+                    const current = sub.absolute ? false : isActive(href);
+                    return (
+                      <li key={sub.label}>
+                        <Link
+                          href={href}
+                          aria-current={current ? 'page' : undefined}
+                          className={cn(rowClass, 'h-9 pl-7')}
+                        >
+                          {sub.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }
