@@ -72,15 +72,15 @@ function xhrPut(url: string, file: File, opts: XhrPutOptions = {}): Promise<void
   return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
+    const onAbort = () => xhr.abort();
+    const cleanup = () => signal?.removeEventListener('abort', onAbort);
     // Wire AbortSignal to XHR abort
     if (signal) {
       if (signal.aborted) {
         reject(new UploadKitError('UPLOAD_ABORTED', 'Upload was aborted', 0));
         return;
       }
-      signal.addEventListener('abort', () => {
-        xhr.abort();
-      });
+      signal.addEventListener('abort', onAbort, { once: true });
     }
 
     xhr.upload.onprogress = (event) => {
@@ -90,6 +90,7 @@ function xhrPut(url: string, file: File, opts: XhrPutOptions = {}): Promise<void
     };
 
     xhr.onload = () => {
+      cleanup();
       if (xhr.status >= 200 && xhr.status < 300) {
         // Fire 100% progress on completion
         if (onProgress) onProgress(100);
@@ -106,16 +107,23 @@ function xhrPut(url: string, file: File, opts: XhrPutOptions = {}): Promise<void
     };
 
     xhr.onerror = () => {
+      cleanup();
       reject(new UploadKitError('NETWORK_ERROR', 'Network error during file upload', 0));
     };
 
     xhr.onabort = () => {
+      cleanup();
       reject(new UploadKitError('UPLOAD_ABORTED', 'Upload was aborted', 0));
     };
 
-    xhr.open('PUT', url);
-    // Pitfall 1: Content-Type MUST match what was used to generate the presigned URL
-    xhr.setRequestHeader('Content-Type', file.type);
-    xhr.send(file);
+    try {
+      xhr.open('PUT', url);
+      // Pitfall 1: Content-Type MUST match what was used to generate the presigned URL
+      xhr.setRequestHeader('Content-Type', file.type);
+      xhr.send(file);
+    } catch (err) {
+      cleanup();
+      reject(err);
+    }
   });
 }

@@ -63,9 +63,14 @@ export class ProxyUploadKitClient {
       );
     }
 
-    const { uploadUrl, key, fileId } = await requestRes.json() as {
-      uploadUrl: string; key: string; fileId: string;
+    const { uploadUrl, key, fileId, uploadToken } = await requestRes.json() as {
+      uploadUrl: string; key: string; fileId: string; uploadToken?: string;
     };
+
+    if (!fileId && !uploadToken) {
+      throw new UploadKitError('UPLOAD_GRANT_REQUIRED',
+        'BYOS uploads require a coordinated server/client SDK upgrade', 400);
+    }
 
     // 2. Upload directly to presigned URL using XHR (for progress events)
     await this.#xhrPut(uploadUrl, file, {
@@ -78,7 +83,9 @@ export class ProxyUploadKitClient {
     const completeRes = await fetch(`${this.#endpoint}/${route}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'upload-complete', key, fileId }),
+      body: JSON.stringify({ action: 'upload-complete', key, fileId,
+        ...(uploadToken !== undefined ? { uploadToken } : {}),
+      }),
       ...(signal ? { signal } : {}),
     });
 
@@ -125,12 +132,14 @@ export class ProxyUploadKitClient {
     return new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
+      const onAbort = () => xhr.abort();
+      const cleanup = () => signal?.removeEventListener('abort', onAbort);
       if (signal) {
         if (signal.aborted) {
           reject(new UploadKitError('UPLOAD_ABORTED', 'Upload was aborted', 0));
           return;
         }
-        signal.addEventListener('abort', () => { xhr.abort(); });
+        signal.addEventListener('abort', onAbort, { once: true });
       }
 
       // Track last reported percent for granularity throttling
@@ -155,6 +164,7 @@ export class ProxyUploadKitClient {
       };
 
       xhr.onload = () => {
+        cleanup();
         if (xhr.status >= 200 && xhr.status < 300) {
           if (onProgress) onProgress(100);
           resolve();
@@ -168,16 +178,23 @@ export class ProxyUploadKitClient {
       };
 
       xhr.onerror = () => {
+        cleanup();
         reject(new UploadKitError('NETWORK_ERROR', 'Network error during file upload', 0));
       };
 
       xhr.onabort = () => {
+        cleanup();
         reject(new UploadKitError('UPLOAD_ABORTED', 'Upload was aborted', 0));
       };
 
-      xhr.open('PUT', url);
-      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-      xhr.send(file);
+      try {
+        xhr.open('PUT', url);
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+        xhr.send(file);
+      } catch (err) {
+        cleanup();
+        reject(err);
+      }
     });
   }
 }

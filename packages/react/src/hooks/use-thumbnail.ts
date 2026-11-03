@@ -55,9 +55,11 @@ export function useThumbnail(
         video.playsInline = true;
 
         const videoUrl = URL.createObjectURL(file);
+        activeUrlRef.current = videoUrl;
         video.src = videoUrl;
 
         video.addEventListener('loadedmetadata', () => {
+          if (cancelled) return;
           video.currentTime = 0;
         });
 
@@ -92,7 +94,9 @@ export function useThumbnail(
 
         // Handle load errors gracefully
         video.addEventListener('error', () => {
+          if (cancelled) return;
           URL.revokeObjectURL(videoUrl);
+          if (activeUrlRef.current === videoUrl) activeUrlRef.current = null;
           setIsGenerating(false);
           setThumbnailUrl(null);
         });
