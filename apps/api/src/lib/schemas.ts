@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import { validateWebhookUrl } from '@uploadkitdev/shared';
+
+// Same rules as the dashboard: https, no credentials, public DNS host.
+const webhookUrlSchema = z.string().superRefine((value, ctx) => {
+  const error = validateWebhookUrl(value);
+  if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+});
 
 // ─── Upload flow ──────────────────────────────────────────────────────────────
 
@@ -70,14 +77,14 @@ export const CreateFileRouterSchema = z.object({
   maxFileSize: z.number().int().positive().optional(),
   maxFileCount: z.number().int().positive().optional(),
   allowedTypes: z.array(z.string().min(1)).optional(),
-  webhookUrl: z.string().url().optional(),
+  webhookUrl: webhookUrlSchema.optional(),
 });
 
 export const UpdateFileRouterSchema = z.object({
   maxFileSize: z.number().int().positive().optional(),
   maxFileCount: z.number().int().positive().optional(),
   allowedTypes: z.array(z.string().min(1)).optional(),
-  webhookUrl: z.string().url().nullable().optional(),
+  webhookUrl: webhookUrlSchema.nullable().optional(),
 });
 
 // ─── Files ────────────────────────────────────────────────────────────────────
