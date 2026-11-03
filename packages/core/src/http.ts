@@ -22,8 +22,9 @@ export async function fetchApi<T>(
 ): Promise<T> {
   // T-04-02: Reject non-HTTPS base URLs to prevent credential leakage
   // Exception: localhost/127.0.0.1 are safe for development
-  const isLocalhost = baseUrl.startsWith('http://localhost') || baseUrl.startsWith('http://127.0.0.1');
-  if (baseUrl.startsWith('http://') && !isLocalhost) {
+  const parsed = new URL(baseUrl);
+  const isLocalhost = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+  if (parsed.protocol !== 'https:' && !(parsed.protocol === 'http:' && isLocalhost)) {
     throw new UploadKitError(
       'INSECURE_URL',
       'baseUrl must use HTTPS to protect your API key',

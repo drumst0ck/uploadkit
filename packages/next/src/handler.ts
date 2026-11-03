@@ -39,9 +39,9 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
         allowedTypes: route.allowedTypes,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Internal error';
+      console.error('[UploadKit] GET handler failed', err);
       return Response.json(
-        { error: { code: 'HANDLER_ERROR', message } },
+        { error: { code: 'HANDLER_ERROR', message: 'Internal server error' } },
         { status: 500 }
       );
     }
@@ -70,6 +70,8 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
       const body = await req.json() as {
         action?: string;
         file?: UploadedFile;
+        key?: string;
+        uploadToken?: string;
         fileId?: string;
         fileName?: string;
         contentType?: string;
@@ -81,6 +83,15 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
       if (action === 'request-upload') {
         // Run middleware for auth/metadata (both modes)
         const metadata = await route.middleware?.({ req }) ?? {};
+
+        // Require numeric/string attributes before applying route limits.
+        if (!Number.isSafeInteger(body.contentLength) || (body.contentLength ?? -1) < 0 ||
+            typeof body.contentType !== 'string' || !body.contentType.trim()) {
+          return Response.json(
+            { error: { code: 'INVALID_UPLOAD', message: 'contentLength and contentType are required' } },
+            { status: 400 }
+          );
+        }
 
         // Validate file against route config (T-04-09 / T-QK-03)
         if (route.maxFileSize !== undefined && body.contentLength !== undefined) {
@@ -117,11 +128,17 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
           const uploadUrl = await generateByosPresignedUrl(client, {
             bucket: config.storage.bucket,
             key,
-            contentType: body.contentType ?? 'application/octet-stream',
-            contentLength: body.contentLength ?? 0,
+            contentType: body.contentType,
+            contentLength: body.contentLength!,
           });
 
-          return Response.json({ uploadUrl, key, metadata });
+          const { signUploadGrant, UPLOAD_GRANT_TTL } = await import('./upload-grant');
+          const uploadToken = signUploadGrant(config.storage, {
+            version: 1, slug, key, name: safeName,
+            contentType: body.contentType, contentLength: body.contentLength!,
+            expiresAt: Math.floor(Date.now() / 1000) + UPLOAD_GRANT_TTL,
+          });
+          return Response.json({ uploadUrl, key, uploadToken, metadata });
         }
 
         // Managed mode: proxy to UploadKit API with server-side API key (T-QK-02)
@@ -160,15 +177,40 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
 
       // Upload-complete flow
       if (action === 'upload-complete' || !action) {
-        // BYOS mode: file metadata provided by client in body
+        // BYOS requires proof of initiation. There is intentionally no legacy
+        // body.file fallback: old clients must upgrade with the server.
         if (config.storage) {
           const metadata = await route.middleware?.({ req }) ?? {};
-          const result = await route.onUploadComplete?.({ file: body.file as UploadedFile, metadata });
-          return Response.json({ ok: true, metadata: result });
+          const { verifyUploadGrant } = await import('./upload-grant');
+          const grant = verifyUploadGrant(config.storage, body.uploadToken, slug, body.key);
+          if (!grant) {
+            return Response.json(
+              { error: { code: 'INVALID_UPLOAD_GRANT', message: 'A valid, unexpired upload grant is required' } },
+              { status: 400 }
+            );
+          }
+          if ((route.maxFileSize !== undefined && grant.contentLength > parseFileSize(route.maxFileSize)) ||
+              (route.allowedTypes && !route.allowedTypes.includes(grant.contentType))) {
+            return Response.json(
+              { error: { code: 'INVALID_UPLOAD', message: 'Upload no longer satisfies route limits' } },
+              { status: 400 }
+            );
+          }
+          const { createByosClient, verifyByosObject } = await import('./byos');
+          const file = await verifyByosObject(createByosClient(config.storage), config.storage.bucket, grant);
+          if (!file) {
+            return Response.json(
+              { error: { code: 'UPLOAD_VERIFICATION_FAILED', message: 'Uploaded object is missing or does not match the upload grant' } },
+              { status: 400 }
+            );
+          }
+          const result = await route.onUploadComplete?.({ file, metadata });
+          return Response.json({ ok: true, file, url: file.url, metadata: result });
         }
 
         // Managed mode: confirm upload with UploadKit API server-side (T-QK-02)
         if (config.apiKey) {
+          const metadata = await route.middleware?.({ req }) ?? {};
           const apiUrl = config.apiUrl ?? 'https://api.uploadkit.dev';
           const completeRes = await fetch(`${apiUrl}/api/v1/upload/complete`, {
             method: 'POST',
@@ -185,7 +227,6 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
           }
 
           const completeData = await completeRes.json() as { file: UploadedFile };
-          const metadata = await route.middleware?.({ req }) ?? {};
           const userResult = await route.onUploadComplete?.({
             file: completeData.file,
             metadata,
@@ -205,9 +246,9 @@ export function createUploadKitHandler<TRouter extends FileRouter>(
         { status: 400 }
       );
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Internal error';
+      console.error('[UploadKit] POST handler failed', err);
       return Response.json(
-        { error: { code: 'HANDLER_ERROR', message } },
+        { error: { code: 'HANDLER_ERROR', message: 'Internal server error' } },
         { status: 500 }
       );
     }

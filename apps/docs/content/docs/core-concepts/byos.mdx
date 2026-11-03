@@ -165,8 +165,16 @@ BYOS credentials **never touch the browser**. Here's why that's safe:
 
 1. Your storage credentials (`accessKeyId`, `secretAccessKey`) live in server-side environment variables
 2. When a client requests an upload, your server uses those credentials to generate a presigned PUT URL
-3. The presigned URL is time-limited (1 hour), scoped to a single object key, and signed by your credentials
+3. The presigned URL is time-limited (15 minutes), scoped to a single object key, and bound to the declared `Content-Type` and `Content-Length`
 4. The client uses the presigned URL to upload — it never sees your credentials
+5. With the presigned URL, your server returns an `uploadToken`: a signed, expiring grant (15 minutes) that names the object key, file name, type, and size
+6. On completion the client sends back `key` and `uploadToken`. Your server verifies the grant, checks the object exists in the bucket with the granted size and type, and only then calls `onUploadComplete` with server-built file metadata (the `url` is a signed GET URL)
+
+The server never trusts file metadata sent by the browser. A completion without a valid grant fails with `400 INVALID_UPLOAD_GRANT`; a missing or mismatched object fails with `400 UPLOAD_VERIFICATION_FAILED`. A grant is a bearer proof, not a single-use receipt, so keep `onUploadComplete` idempotent by `file.key`.
+
+<Callout type="warn">
+  Upgrade `@uploadkitdev/next`, `@uploadkitdev/core` and `@uploadkitdev/react` together. A BYOS server on this version rejects completions from older clients, and an older server sends no `uploadToken`, which newer clients refuse with `UPLOAD_GRANT_REQUIRED`.
+</Callout>
 
 ```
 Browser                     Your server                     Your S3 bucket
@@ -174,12 +182,13 @@ Browser                     Your server                     Your S3 bucket
   │  "Upload imageUploader" ────►│                                │
   │                              │ Uses your credentials         │
   │                              │ to generate presigned URL ───►│
-  │  ◄── presigned URL ──────────│                                │
+  │  ◄── presigned URL + grant ──│                                │
   │                              │                                │
   │  PUT file ───────────────────┼───────────────────────────────►│
   │  (using presigned URL)       │                                │
   │                              │                                │
-  │  "Done" ─────────────────────►│                               │
+  │  "Done" + key + uploadToken ►│ verify grant, HEAD object ───►│
+  │  ◄── server-built file ──────│                                │
 ```
 
 <Callout type="warn">

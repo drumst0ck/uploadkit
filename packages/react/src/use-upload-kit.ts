@@ -1,4 +1,4 @@
-import { useReducer, useCallback } from 'react';
+import { useReducer, useCallback, useRef, useEffect } from 'react';
 import type { UploadResult, ProgressGranularity } from '@uploadkitdev/core';
 import { useUploadKitContext } from './context';
 
@@ -88,13 +88,21 @@ function uploadReducer(state: UploadState, action: UploadAction): UploadState {
 export function useUploadKit(route: string) {
   const { client } = useUploadKitContext();
   const [state, dispatch] = useReducer(uploadReducer, initialState);
+  const activeController = useRef<AbortController | null>(null);
+
+  useEffect(() => () => {
+    const controller = activeController.current;
+    activeController.current = null;
+    controller?.abort();
+  }, []);
 
   const upload = useCallback(
     async (file: File, metadata?: Record<string, unknown>, extraOpts?: UploadExtraOptions) => {
       // Abort any in-progress upload before starting a new one
-      state.abortController?.abort();
+      activeController.current?.abort();
 
       const controller = new AbortController();
+      activeController.current = controller;
       dispatch({ type: 'START', controller });
 
       try {
@@ -104,32 +112,37 @@ export function useUploadKit(route: string) {
           // exactOptionalPropertyTypes: metadata must be omitted (not undefined) when absent
           ...(metadata !== undefined ? { metadata } : {}),
           ...(extraOpts?.progressGranularity !== undefined ? { progressGranularity: extraOpts.progressGranularity } : {}),
-          onProgress: (percent) => dispatch({ type: 'PROGRESS', percent }),
+          onProgress: (percent) => {
+            if (activeController.current === controller) dispatch({ type: 'PROGRESS', percent });
+          },
           signal: controller.signal,
         });
+        if (activeController.current !== controller) return;
         dispatch({ type: 'SUCCESS', result });
       } catch (err) {
-        // AbortError means the user cancelled — reset cleanly instead of showing error
-        if (err instanceof Error && err.name === 'AbortError') {
+        if (activeController.current !== controller) return;
+        // Core reports cancellation as UPLOAD_ABORTED, while fetch uses AbortError.
+        if (err instanceof Error && (err.name === 'AbortError' ||
+            ('code' in err && err.code === 'UPLOAD_ABORTED'))) {
           dispatch({ type: 'RESET' });
           return;
         }
         dispatch({ type: 'ERROR', error: err instanceof Error ? err : new Error(String(err)) });
+      } finally {
+        if (activeController.current === controller) activeController.current = null;
       }
     },
-    // route is intentionally included — if route changes, upload fn should update
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [client, route],
   );
 
   const abort = useCallback(() => {
-    state.abortController?.abort();
-    dispatch({ type: 'RESET' });
-  }, [state.abortController]);
-
-  const reset = useCallback(() => {
+    const controller = activeController.current;
+    activeController.current = null;
+    controller?.abort();
     dispatch({ type: 'RESET' });
   }, []);
+
+  const reset = abort;
 
   return {
     upload,

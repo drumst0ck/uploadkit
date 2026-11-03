@@ -186,6 +186,42 @@ describe('useUploadKit', () => {
     expect(result.current.isUploading).toBe(false);
   });
 
+  it('treats core UPLOAD_ABORTED as cancellation, not error', async () => {
+    mockClient.upload.mockRejectedValue(Object.assign(new Error('cancelled'), { code: 'UPLOAD_ABORTED' }));
+    const { result } = renderHook(() => useUploadKit('photos'), { wrapper: makeWrapper() });
+    await act(async () => { await result.current.upload(makeFile()); });
+    expect(result.current.status).toBe('idle');
+    expect(result.current.error).toBeNull();
+  });
+
+  it('replaces uploads using a fresh controller and ignores stale completion/progress', async () => {
+    const calls: Array<{ signal: AbortSignal; onProgress: (p: number) => void; resolve: (r: typeof mockUploadResult) => void }> = [];
+    mockClient.upload.mockImplementation(({ signal, onProgress }) => new Promise(resolve => {
+      calls.push({ signal, onProgress, resolve });
+    }));
+    const { result } = renderHook(() => useUploadKit('photos'), { wrapper: makeWrapper() });
+    const upload = result.current.upload;
+    let first!: Promise<void>; let second!: Promise<void>;
+    act(() => { first = upload(makeFile()); second = upload(makeFile()); });
+    expect(calls[0]!.signal.aborted).toBe(true);
+    expect(calls[1]!.signal.aborted).toBe(false);
+    await act(async () => { calls[1]!.resolve(mockUploadResult); await second; });
+    await act(async () => { calls[0]!.onProgress(5); calls[0]!.resolve({ ...mockUploadResult, id: 'stale' }); await first; });
+    expect(result.current.result?.id).toBe('file-1');
+    expect(result.current.progress).toBe(100);
+  });
+
+  it('does not surface a late failure after abort or reset', async () => {
+    let reject!: (err: Error) => void;
+    mockClient.upload.mockImplementation(() => new Promise((_, r) => { reject = r; }));
+    const { result } = renderHook(() => useUploadKit('photos'), { wrapper: makeWrapper() });
+    let pending!: Promise<void>;
+    act(() => { pending = result.current.upload(makeFile()); });
+    act(() => result.current.abort());
+    await act(async () => { reject(Object.assign(new Error('cancelled'), { code: 'UPLOAD_ABORTED' })); await pending; });
+    expect(result.current.status).toBe('idle');
+  });
+
   it('throws when used outside UploadKitProvider', () => {
     // renderHook without wrapper — no provider context available
     expect(() => {
