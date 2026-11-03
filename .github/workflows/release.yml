@@ -44,12 +44,7 @@ jobs:
       - name: Build uploadkit CLI
         run: pnpm --filter uploadkit build
       - name: Smoke - ${{ matrix.framework }}
-        # NOTE: soft gate until the SDK packages (`@uploadkitdev/next`,
-        # `@uploadkitdev/react`) are published to npm. The smoke scaffolders
-        # install those SDKs inside the tmp project and today fail with
-        # `Cannot find module '@uploadkitdev/*'` / `Failed to resolve import`.
-        # Tracked in .planning/phases/12.5-.../deferred-items.md.
-        continue-on-error: true
+        # Hard gate: release needs this job, so a failing smoke blocks publish.
         run: pnpm --filter uploadkit smoke ${{ matrix.framework }}
 
   release:
@@ -100,12 +95,14 @@ jobs:
 
       # npm ≥ 11.5.1 is required for OIDC trusted publishing to the npm registry.
       # Node 22 bundles npm 10.x which returns 404 because no auth token is attached.
-      # `npm install -g npm@latest` can self-corrupt on cached setups — wipe the
-      # bundled npm first so the upgrade reinstalls cleanly.
+      # A global npm upgrade can self-corrupt on cached setups — wipe the
+      # bundled npm first so the upgrade reinstalls cleanly. Version is pinned
+      # (not @latest) and no sudo is used: this job holds id-token/contents write,
+      # and the setup-node toolcache is writable by the runner user.
       - name: Upgrade npm (required for OIDC trusted publishing)
         run: |
-          sudo rm -rf "$(npm root -g)/npm"
-          sudo npm install -g npm@latest
+          rm -rf "$(npm root -g)/npm"
+          npm install -g npm@11.21.1
           npm --version
 
       - run: pnpm install --frozen-lockfile

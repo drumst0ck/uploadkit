@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
-import { cp, readFile, rm } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { chmod, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { mkdir } from 'node:fs/promises';
 import * as p from '@clack/prompts';
 import type { BackupManifest } from '../backup/types.js';
+import { assertRealContainment, containedPath } from './paths.js';
 
 export interface ApplyRestoreOptions {
   /** Non-interactive mode: skip drift-confirmation prompts. */
@@ -43,7 +43,8 @@ async function readFileSafe(path: string): Promise<Buffer | null> {
  * single `init` / `add` run.
  *
  * Algorithm:
- *   - Iterate entries in REVERSE insertion order.
+ *   - Preflight every path and read every required backup before mutations.
+ *   - Iterate entries in REVERSE insertion order using retained backup bytes.
  *   - action="create" → delete the target file (ignore ENOENT).
  *   - action="modify" → compare current file sha256 to backup sha256. If they
  *     differ AND the backup differs from current, the user has modified the
@@ -63,8 +64,46 @@ export async function applyRestore(
 ): Promise<RestoreResult> {
   const { yes = false } = opts;
   const root = resolve(manifest.root);
-  const sessionDir =
-    opts.sessionDir ?? join(root, '.uploadkit-backup', manifest.timestamp);
+  const backupRoot = join(root, '.uploadkit-backup');
+  const sessionDir = opts.sessionDir ?? containedPath(backupRoot, manifest.timestamp);
+  if (!opts.sessionDir) await assertRealContainment(root, sessionDir);
+
+  // Validate the entire plan and retain backup contents before performing even
+  // the first mutation. A later missing/unreadable backup must not leave earlier
+  // reverse-plan entries deleted or overwritten.
+  const backups = new Map<number, { bytes: Buffer; mode: number }>();
+  for (const [index, entry] of manifest.entries.entries()) {
+    if (entry.action !== 'create' && entry.action !== 'modify') {
+      throw new Error('Unsafe restore action');
+    }
+    const target = containedPath(root, entry.relativePath);
+    await assertRealContainment(root, target);
+    if (entry.backupPath !== undefined) {
+      const backup = containedPath(sessionDir, entry.backupPath);
+      await assertRealContainment(sessionDir, backup);
+    }
+    if (entry.action === 'modify') {
+      if (!entry.backupPath) {
+        throw new Error(`Missing backup path for modified file: ${entry.relativePath}`);
+      }
+      const backup = containedPath(sessionDir, entry.backupPath);
+      try {
+        const info = await stat(backup);
+        if (!info.isFile()) throw new Error('Backup is not a regular file');
+        backups.set(index, { bytes: await readFile(backup), mode: info.mode });
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          throw new Error(
+            `Backup file is missing: ${backup}. The .uploadkit-backup/${manifest.timestamp}/ directory may have been deleted.`,
+            { cause: error },
+          );
+        }
+        throw new Error(`Backup file is unreadable: ${backup}. Restore aborted before changing files.`, {
+          cause: error,
+        });
+      }
+    }
+  }
 
   const restored: string[] = [];
   const deleted: string[] = [];
@@ -73,7 +112,8 @@ export async function applyRestore(
   // Reverse insertion order: undo creations first, then modifications.
   for (let i = manifest.entries.length - 1; i >= 0; i--) {
     const entry = manifest.entries[i]!;
-    const targetAbs = join(root, entry.relativePath);
+    const targetAbs = containedPath(root, entry.relativePath);
+    await assertRealContainment(root, targetAbs);
 
     if (entry.action === 'create') {
       // Remove the file the CLI created. If it's already gone, that's fine —
@@ -83,19 +123,9 @@ export async function applyRestore(
       continue;
     }
 
-    // action === 'modify'
-    if (!entry.backupPath) {
-      skipped.push(targetAbs);
-      continue;
-    }
-    const backupAbs = join(sessionDir, entry.backupPath);
-    if (!existsSync(backupAbs)) {
-      throw new Error(
-        `Backup file is missing: ${backupAbs}. The .uploadkit-backup/${manifest.timestamp}/ directory may have been deleted.`,
-      );
-    }
-
-    const backupBytes = await readFile(backupAbs);
+    // action === 'modify': use only the bytes read during preflight.
+    const backup = backups.get(i)!;
+    const backupBytes = backup.bytes;
     const currentBytes = await readFileSafe(targetAbs);
 
     // If the current file already matches the backup, nothing to do — keeps
@@ -118,8 +148,11 @@ export async function applyRestore(
       }
     }
 
+    await assertRealContainment(root, targetAbs);
     await mkdir(dirname(targetAbs), { recursive: true });
-    await cp(backupAbs, targetAbs);
+    await writeFile(targetAbs, backupBytes);
+    // Match cp's source-mode preservation without reopening the backup.
+    await chmod(targetAbs, backup.mode);
     restored.push(targetAbs);
   }
 

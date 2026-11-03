@@ -59,6 +59,32 @@ afterEach(() => {
   else process.env.npm_config_user_agent = ORIGINAL_UA;
 });
 
+describe('runPrompts — name safety', () => {
+  it.each(['.', '..', '---', 'UPPER', '../outside', '', 'bad name'])(
+    'rejects invalid positional name %j even with --force', async (positional) => {
+      await expect(runPrompts(baseFlags({ yes: true, force: true, positional })))
+        .rejects.toThrow(/name|lowercase|character|start/i);
+    },
+  );
+
+  it('rejects a nonempty destination for positional and default names', async () => {
+    for (const positional of ['demo', undefined]) {
+      const name = positional ?? 'my-uploadkit-app';
+      fs.mkdirSync(path.join(tmpDir, name));
+      fs.writeFileSync(path.join(tmpDir, name, 'keep.txt'), 'keep');
+      await expect(runPrompts(baseFlags({ yes: true, positional })))
+        .rejects.toThrow(/already exists/);
+    }
+  });
+
+  it('allows an existing destination only with explicit --force', async () => {
+    fs.mkdirSync(path.join(tmpDir, 'demo'));
+    fs.writeFileSync(path.join(tmpDir, 'demo', 'keep.txt'), 'keep');
+    const result = await runPrompts(baseFlags({ yes: true, positional: 'demo', force: true }));
+    expect(result.name).toBe('demo');
+  });
+});
+
 describe('runPrompts — --yes fast path', () => {
   it('skips all prompts when --yes is passed with a positional name', async () => {
     const opts = await runPrompts(baseFlags({ yes: true, positional: 'my-app' }));

@@ -20,8 +20,11 @@ export function createHonoHandler<TRouter extends FileRouter>(
 
   return async (c: Context) => {
     // Hono uses Web Request/Response natively — minimal bridging needed
-    const segments = (c.req.param('path') ?? c.req.path.split('/').slice(-1)[0] ?? '')
-      .split('/').filter(Boolean);
+    const wildcard = c.req.routePath.indexOf('*');
+    const remainder = wildcard >= 0
+      ? c.req.path.slice(c.req.routePath.slice(0, wildcard).length)
+      : c.req.path.split('/').slice(-1)[0] ?? '';
+    const segments = (c.req.param('path') ?? remainder).split('/').filter(Boolean);
     const routeParams = { params: Promise.resolve({ uploadkit: segments }) };
 
     return c.req.method === 'GET'

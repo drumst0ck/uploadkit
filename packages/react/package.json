@@ -34,6 +34,11 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./helpers": {
+      "types": "./dist/helpers.d.ts",
+      "import": "./dist/helpers.mjs",
+      "require": "./dist/helpers.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tailwind": {
       "types": "./dist/tailwind.d.ts",
@@ -71,7 +76,6 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@uploadkitdev/config": "workspace:*",
-    "@uploadkitdev/next": "workspace:*",
     "jsdom": "^29.0.2",
     "tsup": "8.5.1",
     "typescript": "6.0.2",
