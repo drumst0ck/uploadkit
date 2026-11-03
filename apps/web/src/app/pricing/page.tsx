@@ -64,8 +64,9 @@ const FAQ_ITEMS: FaqEntry[] = [
     answer: "We'll notify you at 80% usage. Overages are billed at the transparent rates shown above at the end of your billing cycle.",
   },
   {
-    question: 'Is there a free trial for paid plans?',
-    answer: 'Yes, Pro and Team plans include a 14-day free trial. No credit card required to start.',
+    question: 'Is there a free trial?',
+    answer:
+      'Pro (monthly or yearly) includes a 14-day free trial. A card is required to start, but you are not charged until the trial ends, and you can cancel anytime before then at no cost. Each account gets one trial. Team has no trial. The Free plan needs no card.',
   },
   {
     question: 'What payment methods do you accept?',
