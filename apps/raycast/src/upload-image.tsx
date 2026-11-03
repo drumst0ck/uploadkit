@@ -14,6 +14,8 @@ import {
 import { useState } from 'react';
 import { UploadKitApiError, type UploadedImage, uploadImage } from './lib/uploadkit';
 
+import { resultMarkdown } from './lib/result-markdown';
+
 interface ExtensionPreferences {
   apiKey: string;
 }
@@ -22,21 +24,8 @@ interface FormValues {
   image: string[];
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB'];
-  const unitIndex = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  return `${(bytes / 1024 ** unitIndex).toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
-}
-
 function Result({ image, onUploadAnother }: { image: UploadedImage; onUploadAnother: () => void }) {
-  const markdown = `# Upload complete
-
-![${image.name}](${image.url})
-
-\`${image.url}\`
-
-**${image.name}** · ${formatBytes(image.size)} · ${image.type}`;
+  const markdown = resultMarkdown(image);
 
   return (
     <Detail

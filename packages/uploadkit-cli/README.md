@@ -81,23 +81,47 @@ You'll be prompted to pick a backup timestamp, then the CLI replays the
 manifest in reverse: restores modified files, deletes files the CLI created,
 rewinds `.env.local` entries it added.
 
+Before changing any file, restore validates the target and backup paths and
+reads every required modified-file backup into memory. Missing, unreadable or
+non-file backups abort the operation with exit code 1; no restore changes or
+archive move occur. Backup bytes read during preflight are used for the restore.
+
+To restore the newest session without a picker or drift-confirmation prompts:
+
+```sh
+npx uploadkit restore --latest --yes
+```
+
+`--latest` also archives the applied session under
+`.uploadkit-backup/.applied/<timestamp>/`. Its source and destination are checked
+before restoring. Paths that escape the project or backup directory, including
+symlink escapes and dangling symlink ancestors, are rejected with exit code 1
+rather than a successful restore message or a post-restore archive warning.
+An existing archive destination is also rejected before changes. `--yes` skips
+drift prompts, not these safety checks.
+
+Preflight is not a filesystem transaction: later I/O failures can still leave a
+partial restore, and these checks do not provide atomic protection against a
+concurrent process swapping filesystem paths. Restore does not make a new backup
+of the current files, so keep your own changes in version control.
+
 ## Command reference
 
 ```
 uploadkit init [--yes] [--skip-install]
 uploadkit add <component> [--target <path>] [--yes]
-uploadkit restore [--timestamp <iso>] [--latest]
+uploadkit restore [--timestamp <iso>] [--latest] [--yes]
 uploadkit --version
 uploadkit --help
 ```
 
 | Flag | Applies to | Description |
 |------|-----------|-------------|
-| `--yes` / `-y` | `init`, `add` | Accept all defaults, non-interactive. Useful in CI. |
+| `--yes` / `-y` | `init`, `add`, `restore` | Accept defaults; for restore, skip drift confirmation and select the newest session when no timestamp is given. Safety preflight still runs. |
 | `--skip-install` | `init` | Don't run the package manager after wiring — you'll install yourself. |
 | `--target <path>` | `add` | Explicit page/route to insert the component into. |
 | `--timestamp <iso>` | `restore` | Jump straight to a specific backup (skips the picker). |
-| `--latest` | `restore` | Restore the most recent backup without prompting. |
+| `--latest` | `restore` | Select the most recent backup without a picker and archive it after success. Add `--yes` to skip drift prompts. |
 
 ## Requirements
 

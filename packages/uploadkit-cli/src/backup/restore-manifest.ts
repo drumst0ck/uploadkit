@@ -30,6 +30,10 @@ export async function readManifests(root: string): Promise<BackupManifest[]> {
       const raw = await readFile(manifestPath, 'utf8');
       const parsed = JSON.parse(raw) as BackupManifest;
       if (typeof parsed.timestamp !== 'string' || !Array.isArray(parsed.entries)) continue;
+      // The selected directory and project, not JSON supplied by the manifest,
+      // define where restore may read, write, and archive files.
+      if (parsed.timestamp !== d.name || typeof parsed.root !== 'string' ||
+          resolve(parsed.root) !== resolve(root)) continue;
       manifests.push(parsed);
     } catch {
       // Skip unreadable / malformed manifests — better than failing restore.
