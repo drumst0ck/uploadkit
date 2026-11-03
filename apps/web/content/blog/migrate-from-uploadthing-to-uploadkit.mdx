@@ -217,7 +217,7 @@ for (const file of files) {
   const body = Buffer.from(await res.arrayBuffer());
 
   await s3.send(new PutObjectCommand({
-    Bucket: process.env.R2_BUCKET!,
+    Bucket: process.env.R2_BUCKET_NAME!,
     Key: `migrated/${file.key}`,
     Body: body,
     ContentType: file.type,

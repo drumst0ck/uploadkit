@@ -77,7 +77,7 @@ export async function POST(req: Request) {
 
   const { UploadId } = await r2.send(
     new CreateMultipartUploadCommand({
-      Bucket: process.env.R2_BUCKET!,
+      Bucket: process.env.R2_BUCKET_NAME!,
       Key: key,
       ContentType: contentType,
     }),
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       getSignedUrl(
         r2,
         new UploadPartCommand({
-          Bucket: process.env.R2_BUCKET!,
+          Bucket: process.env.R2_BUCKET_NAME!,
           Key: key,
           UploadId,
           PartNumber: i + 1,
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
   const { key, uploadId, parts } = await req.json();
   await r2.send(
     new CompleteMultipartUploadCommand({
-      Bucket: process.env.R2_BUCKET!,
+      Bucket: process.env.R2_BUCKET_NAME!,
       Key: key,
       UploadId: uploadId,
       MultipartUpload: { Parts: parts }, // [{ ETag, PartNumber }]
