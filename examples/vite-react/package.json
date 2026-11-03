@@ -1,7 +1,7 @@
 {
   "name": "@uploadkitdev/example-vite",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "scripts": {
     "dev": "concurrently \"vite\" \"tsx watch server.ts\"",
     "dev:client": "vite",
