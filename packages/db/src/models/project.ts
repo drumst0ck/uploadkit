@@ -84,7 +84,10 @@ const projectSchema = new Schema<IProject>(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     storageMode: { type: String, enum: ['managed', 'byos'], default: 'managed' },
     byosConfig: { type: byosConfigSchema, default: undefined },
-    customCdnDomain: { type: String },
+    customCdnDomain: {
+      type: String,
+      set: (value: string | null | undefined) => value?.trim().toLowerCase().replace(/\.$/, '') || undefined,
+    },
     customCdnVerified: { type: Boolean, default: false },
     customCdnHostnameId: { type: String },
     customCdnStatus: {
@@ -105,6 +108,11 @@ const projectSchema = new Schema<IProject>(
 );
 
 projectSchema.index({ customCdnStatus: 1 });
+// Deployment must resolve existing duplicate hostnames before building this index.
+projectSchema.index(
+  { customCdnDomain: 1 },
+  { unique: true, partialFilterExpression: { customCdnDomain: { $type: 'string' } } },
+);
 
 export const Project =
   (mongoose.models['Project'] as mongoose.Model<IProject>) ??

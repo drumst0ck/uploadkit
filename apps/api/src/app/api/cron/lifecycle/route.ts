@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCronAuthorized } from '@/lib/secure-compare';
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { deleteStoredFile } from '@/lib/delete-stored-file';
 import { connectDB, Project, File } from '@uploadkitdev/db';
-import { r2Client, R2_BUCKET } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,7 +34,7 @@ export async function GET(req: NextRequest) {
       status: 'UPLOADED',
       createdAt: { $lt: cutoff },
     })
-      .select('key')
+      .select('key size status uploadId')
       .lean();
 
     if (stale.length === 0) continue;
@@ -44,20 +43,14 @@ export async function GET(req: NextRequest) {
       stale.map(async (file) => {
         if (!file.key) return;
         try {
-          await r2Client.send(
-            new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: file.key }),
-          );
+          // Recheck status when claiming: a concurrent run may already have deleted it.
+          if (await deleteStoredFile(file, project.userId, 'UPLOADED')) deleted++;
         } catch (err) {
           console.warn(`[lifecycle] DeleteObject failed for key=${file.key}:`, err);
         }
       }),
     );
 
-    await File.updateMany(
-      { _id: { $in: stale.map((f) => f._id) } },
-      { status: 'DELETED', deletedAt: new Date() },
-    );
-    deleted += stale.length;
   }
 
   return NextResponse.json({ ok: true, deleted });

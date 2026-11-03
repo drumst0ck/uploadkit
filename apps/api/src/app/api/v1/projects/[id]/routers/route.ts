@@ -5,8 +5,9 @@ import { Types } from 'mongoose';
 import { connectDB, FileRouter, Project } from '@uploadkitdev/db';
 import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
+import { assertProjectScope } from '@/lib/project-scope';
 import { CreateFileRouterSchema } from '@/lib/schemas';
-import { serializeValidationError, serializeError } from '@/lib/errors';
+import { readJson, serializeValidationError, serializeError } from '@/lib/errors';
 
 // GET /api/v1/projects/:id/routers — list file routers for a project
 async function handleGet(
@@ -44,7 +45,7 @@ async function handlePost(
     throw new NotFoundError('Project', id);
   }
 
-  const body = await req.json() as unknown;
+  const body = await readJson(req) as unknown;
   const parsed = CreateFileRouterSchema.safeParse(body);
   if (!parsed.success) {
     return serializeValidationError(parsed.error);
@@ -95,6 +96,7 @@ async function handlePost(
 
 export const GET = withApiKey(async (req, ctx, params) => {
   try {
+    assertProjectScope(ctx, params?.['id']);
     return await handleGet(req, ctx, params ?? {});
   } catch (err) {
     return serializeError(err);
@@ -103,6 +105,7 @@ export const GET = withApiKey(async (req, ctx, params) => {
 
 export const POST = withApiKey(async (req, ctx, params) => {
   try {
+    assertProjectScope(ctx, params?.['id']);
     return await handlePost(req, ctx, params ?? {});
   } catch (err) {
     return serializeError(err);

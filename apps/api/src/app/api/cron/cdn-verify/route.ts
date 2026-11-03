@@ -61,7 +61,8 @@ export async function GET(req: NextRequest) {
       synced++;
       if (state.status === 'active') activated++;
     } catch (err) {
-      project.customCdnStatus = 'failed';
+      // Transport/API failures are retryable; only Cloudflare's returned state
+      // may transition the hostname to a terminal failure.
       project.customCdnLastError = err instanceof Error ? err.message : 'Sync failed';
       await project.save();
     }

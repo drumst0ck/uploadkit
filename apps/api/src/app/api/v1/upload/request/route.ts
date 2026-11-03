@@ -1,5 +1,7 @@
 export const runtime = 'nodejs';
 
+import { withUserQuotaLock, reservedUploadUsage } from '@/lib/user-quota';
+import { isTypeAllowed } from '@/lib/upload-types';
 import { nanoid } from 'nanoid';
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
@@ -7,7 +9,7 @@ import { NotFoundError, TierLimitError } from '@uploadkitdev/shared';
 import { TIER_LIMITS } from '@uploadkitdev/shared';
 import { buildFileCdnUrl } from '@uploadkitdev/shared';
 import { withApiKey } from '@/lib/with-api-key';
-import { serializeError, serializeValidationError } from '@/lib/errors';
+import { readJson, serializeError, serializeValidationError } from '@/lib/errors';
 import { UploadRequestSchema } from '@/lib/schemas';
 import { generatePresignedPutUrl } from '@/lib/presign';
 import { CDN_URL } from '@/lib/storage';
@@ -19,7 +21,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     await connectDB();
 
     // 1. Parse and validate request body
-    const parsed = UploadRequestSchema.safeParse(await req.json());
+    const parsed = UploadRequestSchema.safeParse(await readJson(req));
     if (!parsed.success) {
       return serializeValidationError(parsed.error);
     }
@@ -53,13 +55,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
 
     // 4. Validate content type against FileRouter config
     // Empty allowedTypes array or "*/*" wildcard means all types are allowed
-    const typeAllowed =
-      fileRouter.allowedTypes.length === 0 ||
-      fileRouter.allowedTypes.some((t: string) => {
-        if (t === '*/*') return true;
-        if (t.endsWith('/*')) return contentType.startsWith(t.slice(0, -1));
-        return t === contentType;
-      });
+    const typeAllowed = isTypeAllowed(fileRouter.allowedTypes, contentType);
     if (!typeAllowed) {
       await recordUploadRejection(ctx, {
         ...rejection,
@@ -85,7 +81,8 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       userId: ctx.project.userId,
       period,
     });
-    if ((record?.storageUsed ?? 0) + fileSize > TIER_LIMITS[ctx.tier].maxStorageBytes) {
+    const reserved = ctx.tier === 'FREE' ? await reservedUploadUsage(ctx.project.userId) : { storageUsed: 0, uploads: 0 };
+    if ((record?.storageUsed ?? 0) + reserved.storageUsed + fileSize > TIER_LIMITS[ctx.tier].maxStorageBytes) {
       if (ctx.tier === 'FREE') {
         // Hard block: FREE users cannot exceed their quota
         await recordUploadRejection(ctx, { ...rejection, code: 'QUOTA_EXCEEDED', reason: quotaReason('storage', ctx) });
@@ -96,7 +93,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
 
     // 6. Check upload count quota
     // Same soft limit pattern: FREE = hard block, paid = allow through with overage billing.
-    if ((record?.uploads ?? 0) >= TIER_LIMITS[ctx.tier].maxUploadsPerMonth) {
+    if ((record?.uploads ?? 0) + reserved.uploads >= TIER_LIMITS[ctx.tier].maxUploadsPerMonth) {
       if (ctx.tier === 'FREE') {
         await recordUploadRejection(ctx, { ...rejection, code: 'QUOTA_EXCEEDED', reason: quotaReason('uploads', ctx) });
         return serializeError(new TierLimitError('monthly uploads'));
@@ -141,4 +138,4 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
   }
 }
 
-export const POST = withApiKey(handler, true);
+export const POST = withApiKey((req, ctx) => withUserQuotaLock(ctx.project.userId, () => handler(req, ctx)), true);

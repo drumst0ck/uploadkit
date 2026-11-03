@@ -9,8 +9,8 @@ export const runtime = 'nodejs';
 async function handler(req: NextRequest, ctx: ApiContext): Promise<NextResponse> {
   const url = new URL(req.url);
   const parsed = LogsQuerySchema.safeParse({
-    since: url.searchParams.get('since'),
-    limit: url.searchParams.get('limit'),
+    since: url.searchParams.get('since') ?? undefined,
+    limit: url.searchParams.get('limit') ?? undefined,
   });
 
   if (!parsed.success) {

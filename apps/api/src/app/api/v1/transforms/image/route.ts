@@ -11,7 +11,7 @@ import {
   imageTransformUnits,
   reserveUniqueImageTransform,
 } from '@/lib/image-transforms';
-import { serializeError, serializeValidationError } from '@/lib/errors';
+import { readJson, serializeError, serializeValidationError } from '@/lib/errors';
 
 async function handlePost(req: NextRequest, ctx: ApiContext): Promise<NextResponse> {
   if (ctx.tier === 'FREE') {
@@ -31,7 +31,7 @@ async function handlePost(req: NextRequest, ctx: ApiContext): Promise<NextRespon
     );
   }
 
-  const parsed = ImageTransformSchema.safeParse(await req.json() as unknown);
+  const parsed = ImageTransformSchema.safeParse(await readJson(req) as unknown);
   if (!parsed.success) return serializeValidationError(parsed.error);
 
   if (parsed.data.delivery === 'public' && ctx.project.cdnAccess === 'signed') {

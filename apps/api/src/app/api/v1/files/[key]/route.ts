@@ -1,13 +1,12 @@
 export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { connectDB, File, UsageRecord } from '@uploadkitdev/db';
+import { connectDB, File } from '@uploadkitdev/db';
 import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { UpdateFileMetadataSchema } from '@/lib/schemas';
-import { serializeValidationError, serializeError } from '@/lib/errors';
-import { r2Client, R2_BUCKET } from '@/lib/storage';
+import { readJson, serializeValidationError, serializeError } from '@/lib/errors';
+import { deleteStoredFile } from '@/lib/delete-stored-file';
 import { withSignedUrl } from '@/lib/cdn-access';
 
 // GET /api/v1/files/:key — retrieve single file by key
@@ -40,7 +39,7 @@ async function handlePatch(
 ): Promise<NextResponse> {
   const decodedKey = decodeURIComponent(params['key'] as string);
 
-  const body = await req.json() as unknown;
+  const body = await readJson(req) as unknown;
   const parsed = UpdateFileMetadataSchema.safeParse(body);
   if (!parsed.success) {
     return serializeValidationError(parsed.error);
@@ -81,23 +80,13 @@ async function handleDelete(
     throw new NotFoundError('File', decodedKey);
   }
 
-  // 2. Delete from R2 (T-03-16: do this before soft-delete to avoid orphaned DB records)
-  await r2Client.send(
-    new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: file.key }),
-  );
-
-  // 3. Soft delete in DB (T-03-16: prevents double-decrement if request retried)
-  await File.findByIdAndUpdate(file._id, {
-    $set: { deletedAt: new Date(), status: 'DELETED' },
-  });
-
-  // 4. Decrement storage usage (atomic negative $inc)
-  const period = new Date().toISOString().slice(0, 7);
-  await UsageRecord.findOneAndUpdate(
-    { userId: ctx.project.userId, period },
-    { $inc: { storageUsed: -file.size } },
-    { upsert: true },
-  );
+  // 2. Delete from R2, then atomically claim the DELETED transition. Only the
+  // request that wins the claim decrements usage (and only for counted UPLOADED files),
+  // so concurrent or retried deletes cannot double-decrement.
+  const claimed = await deleteStoredFile(file, ctx.project.userId);
+  if (!claimed) {
+    throw new NotFoundError('File', decodedKey);
+  }
 
   return NextResponse.json({ ok: true });
 }

@@ -1,15 +1,17 @@
 export const runtime = 'nodejs';
 
+import { withUserQuotaLock } from '@/lib/user-quota';
 import { HeadObjectCommand, S3ServiceException } from '@aws-sdk/client-s3';
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, File, FileRouter, UsageRecord, Subscription, User } from '@uploadkitdev/db';
 import { NotFoundError, TIER_LIMITS } from '@uploadkitdev/shared';
 import { withApiKey } from '@/lib/with-api-key';
-import { serializeError, serializeValidationError } from '@/lib/errors';
+import { readJson, serializeError, serializeValidationError } from '@/lib/errors';
 import { UploadCompleteSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 import { withSignedUrl } from '@/lib/cdn-access';
 import { enqueueWebhook } from '@/lib/qstash';
+import { inspectStoredObject, rejectStoredObject, type StoredObjectHead } from '@/lib/stored-object';
 import { sendMeterEvent, METER_STORAGE, METER_UPLOADS } from '@/lib/stripe-meters';
 import { sendUsageAlertEmail } from '@uploadkitdev/emails';
 
@@ -20,12 +22,16 @@ function formatBytes(bytes: number): string {
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
 }
 
-async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiContext) {
+async function handler(
+  req: NextRequest,
+  ctx: import('@/lib/with-api-key').ApiContext,
+  deferred: Array<() => Promise<void>>,
+) {
   try {
     await connectDB();
 
     // 1. Parse and validate request body
-    const parsed = UploadCompleteSchema.safeParse(await req.json());
+    const parsed = UploadCompleteSchema.safeParse(await readJson(req));
     if (!parsed.success) {
       return serializeValidationError(parsed.error);
     }
@@ -45,8 +51,9 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     // 3. Verify file exists in R2 via HEAD (D-05 step 1, T-03-08)
     // Catch both 403 and 404 — Pitfall 4: R2 may return 403 for missing objects
     // when the bucket has restricted GetObject policies
+    let head: StoredObjectHead | undefined;
     try {
-      await r2Client.send(
+      head = await r2Client.send(
         new HeadObjectCommand({
           Bucket: R2_BUCKET,
           Key: file.key,
@@ -71,12 +78,24 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       throw err;
     }
 
-    // 4. Update file status to UPLOADED (D-05 step 2)
+    // 3b. The stored object is authoritative: compare it with the declaration and
+    // reject (deleting the object, counting nothing) when it breaks route/tier limits.
+    const routeSlugPart = file.key.split('/')[1];
+    const fileRouter = routeSlugPart
+      ? await FileRouter.findOne({ projectId: ctx.project._id, slug: routeSlugPart })
+      : null;
+    const verdict = inspectStoredObject(file, head, fileRouter, ctx.tier);
+    if (!verdict.ok) return rejectStoredObject(file, verdict);
+    const realSize = verdict.size;
+
+    // 4. Update file status to UPLOADED with the real size/type (D-05 step 2)
     const updatedFile = await File.findByIdAndUpdate(
       file._id,
       {
         $set: {
           status: 'UPLOADED',
+          size: realSize,
+          type: verdict.type,
           ...(metadata ? { metadata } : {}),
         },
       },
@@ -91,7 +110,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     const period = new Date().toISOString().slice(0, 7); // YYYY-MM
     const newRecord = await UsageRecord.findOneAndUpdate(
       { userId: ctx.project.userId, period },
-      { $inc: { storageUsed: file.size, uploads: 1 } },
+      { $inc: { storageUsed: realSize, uploads: 1 } },
       { upsert: true, new: true },
     );
 
@@ -103,7 +122,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       const upgradeUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.uploadkit.dev'}/dashboard/billing`;
 
       // Storage threshold check
-      const prevStorageUsed = newRecord.storageUsed - file.size;
+      const prevStorageUsed = newRecord.storageUsed - realSize;
       const storageLimit = tierLimits.maxStorageBytes;
       if (storageLimit !== Infinity) {
         const prevStoragePercent = prevStorageUsed / storageLimit;
@@ -186,7 +205,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       if (subscription?.stripeCustomerId && subscription.status === 'ACTIVE') {
         void sendMeterEvent(
           METER_STORAGE,
-          file.size,
+          realSize,
           subscription.stripeCustomerId,
           `storage_${file._id.toString()}`,
         );
@@ -199,29 +218,24 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       }
     }
 
-    // 7. Enqueue webhook (D-05 step 3, D-09) — fire-and-forget
-    // Extract routeSlug from the key pattern: {projectId}/{routeSlug}/{nanoid}/{fileName}
-    const routeSlugPart = file.key.split('/')[1];
-    const fileRouter = routeSlugPart
-      ? await FileRouter.findOne({
-          projectId: ctx.project._id,
-          slug: routeSlugPart,
-        })
-      : null;
+    // 7. Persist and enqueue webhook (not delivery confirmation) AFTER the quota
+    // lock is released; the awaited admission still happens before the response.
     if (fileRouter?.webhookUrl) {
-      // Fire-and-forget — do not await delivery confirmation
-      void enqueueWebhook(fileRouter.webhookUrl, {
+      const webhookUrl = fileRouter.webhookUrl;
+      deferred.push(() => enqueueWebhook(webhookUrl, {
         file: {
           id: file._id,
           key: file.key,
           name: file.name,
-          size: file.size,
-          type: file.type,
-          url: withSignedUrl(ctx.project, file).url,
+          size: updatedFile.size,
+          type: updatedFile.type,
+          url: withSignedUrl(ctx.project, updatedFile).url,
           metadata: updatedFile.metadata,
         },
         projectId: ctx.project._id.toString(),
-      });
+      }, {
+        projectId: ctx.project._id.toString(), fileId: file._id.toString(), routeSlug: routeSlugPart!,
+      }));
     }
 
     // 8. Return complete file metadata
@@ -243,4 +257,11 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
   }
 }
 
-export const POST = withApiKey(handler, true);
+export const POST = withApiKey(async (req, ctx) => {
+  const deferred: Array<() => Promise<void>> = [];
+  const response = await withUserQuotaLock(ctx.project.userId, () => handler(req, ctx, deferred));
+  for (const task of deferred) {
+    await task().catch((error: unknown) => console.error('[webhook] Unexpected publication failure', error));
+  }
+  return response;
+}, true);

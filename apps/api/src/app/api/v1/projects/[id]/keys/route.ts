@@ -8,8 +8,9 @@ import { connectDB, ApiKey, Project } from '@uploadkitdev/db';
 import { NotFoundError, TierLimitError } from '@uploadkitdev/shared';
 import { TIER_LIMITS, API_KEY_PREFIX } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
+import { assertProjectScope } from '@/lib/project-scope';
 import { CreateApiKeySchema } from '@/lib/schemas';
-import { serializeValidationError, serializeError } from '@/lib/errors';
+import { readJson, serializeValidationError, serializeError } from '@/lib/errors';
 
 // GET /api/v1/projects/:id/keys — list active API keys for a project
 async function handleGet(
@@ -49,7 +50,7 @@ async function handlePost(
     throw new NotFoundError('Project', id);
   }
 
-  const body = await req.json() as unknown;
+  const body = await readJson(req) as unknown;
   const parsed = CreateApiKeySchema.safeParse(body);
   if (!parsed.success) {
     return serializeValidationError(parsed.error);
@@ -103,6 +104,7 @@ async function handlePost(
 
 export const GET = withApiKey(async (req, ctx, params) => {
   try {
+    assertProjectScope(ctx, params?.['id']);
     return await handleGet(req, ctx, params ?? {});
   } catch (err) {
     return serializeError(err);
@@ -111,6 +113,7 @@ export const GET = withApiKey(async (req, ctx, params) => {
 
 export const POST = withApiKey(async (req, ctx, params) => {
   try {
+    assertProjectScope(ctx, params?.['id']);
     return await handlePost(req, ctx, params ?? {});
   } catch (err) {
     return serializeError(err);
