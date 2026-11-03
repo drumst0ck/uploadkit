@@ -53,3 +53,8 @@ export function breadcrumbJsonLd(crumbs: Crumb[]) {
 export function graph(...nodes: object[]) {
   return { '@context': 'https://schema.org', '@graph': nodes }
 }
+
+/** JSON for a <script type="application/ld+json"> body: '<' escaped so content cannot end the tag. */
+export function serializeJsonLd(data: object): string {
+  return JSON.stringify(data).replace(/</g, '\\u003c')
+}

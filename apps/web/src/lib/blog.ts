@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
 import { cache } from 'react'
+import { parseIsoDate } from './blog-date'
 
 export type BlogCategory =
   | 'Tutorials'
@@ -23,6 +24,7 @@ export type Post = {
   description: string
   category: BlogCategory
   publishedAt: string // ISO date (YYYY-MM-DD)
+  updatedAt?: string // ISO date; optional, defaults to publishedAt where a modified date is needed
   author: string
   tags: string[]
   content: string // raw MDX
@@ -48,10 +50,9 @@ async function readPostFile(filename: string): Promise<Post | null> {
     }
   }
 
-  const publishedAt =
-    data.publishedAt instanceof Date
-      ? data.publishedAt.toISOString().slice(0, 10)
-      : String(data.publishedAt)
+  const publishedAt = parseIsoDate(data.publishedAt, 'publishedAt', slug)
+  const updatedAt =
+    data.updatedAt === undefined ? undefined : parseIsoDate(data.updatedAt, 'updatedAt', slug)
 
   return {
     slug,
@@ -59,6 +60,7 @@ async function readPostFile(filename: string): Promise<Post | null> {
     description: String(data.description),
     category: data.category as BlogCategory,
     publishedAt,
+    ...(updatedAt ? { updatedAt } : {}),
     author: String(data.author),
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
     content,

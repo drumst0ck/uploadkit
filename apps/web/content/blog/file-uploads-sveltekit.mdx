@@ -95,7 +95,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import { r2 } from "$lib/server/r2";
-import { R2_BUCKET } from "$env/static/private";
+import { R2_BUCKET_NAME } from "$env/static/private";
 import type { RequestHandler } from "./$types";
 
 const Body = z.object({
@@ -116,7 +116,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   const url = await getSignedUrl(
     r2,
     new PutObjectCommand({
-      Bucket: R2_BUCKET,
+      Bucket: R2_BUCKET_NAME,
       Key: key,
       ContentType: contentType,
       ContentLength: size,

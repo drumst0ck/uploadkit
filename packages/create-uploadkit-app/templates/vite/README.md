@@ -62,7 +62,7 @@ app.post('/api/sign', async (c) => {
   const url = await getSignedUrl(
     s3,
     new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET,
+      Bucket: process.env.R2_BUCKET_NAME,
       Key: key,
       ContentType: contentType,
     }),

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { compileMDX } from 'next-mdx-remote/rsc'
 import rehypePrettyCode, { type Options as RehypePrettyCodeOptions } from 'rehype-pretty-code'
 import remarkGfm from 'remark-gfm'
+import { JsonLd } from '@/components/landing/json-ld'
 import { SiteShell } from '@/components/site/shell'
 import { formatPostDate, getAllPosts, getPostBySlug } from '@/lib/blog'
 
@@ -85,7 +86,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
     headline: post.title,
     description: post.description,
     datePublished: new Date(post.publishedAt).toISOString(),
-    dateModified: new Date(post.publishedAt).toISOString(),
+    dateModified: new Date(post.updatedAt ?? post.publishedAt).toISOString(),
     author: { '@type': 'Organization', name: post.author },
     publisher: {
       '@type': 'Organization',
@@ -119,11 +120,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
 
         <div className="prose">{content}</div>
       </article>
-      <script
-        type="application/ld+json"
-        // JSON.stringify is safe here — content comes from trusted MDX frontmatter
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
     </SiteShell>
   )
 }
