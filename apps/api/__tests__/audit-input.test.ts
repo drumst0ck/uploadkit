@@ -3,12 +3,12 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/user-quota', () => ({ withUserQuotaLock: async (_id: unknown, work: () => Promise<unknown>) => work() }));
 vi.mock('@/lib/with-api-key', () => ({ withApiKey: (handler: any) => (req: NextRequest) => handler(req, { project: { _id: '507f1f77bcf86cd799439011', userId: 'user' }, tier: 'FREE' }) }));
 vi.mock('@uploadkitdev/db', () => ({ connectDB: vi.fn() }));
-import { POST } from '@/app/api/v1/projects/route';
+import { DELETE as bulkDelete } from '@/app/api/v1/files/route';
 import { serializeError } from '@/lib/errors';
 
 describe('audit input and conflict responses', () => {
   it('returns INVALID_JSON 400 for malformed request JSON', async () => {
-    const res = await POST(new NextRequest('http://localhost/api/v1/projects', { method: 'POST', body: '{"name":' }), { params: Promise.resolve({}) });
+    const res = await bulkDelete(new NextRequest('http://localhost/api/v1/files', { method: 'DELETE', body: '{"keys":' }), { params: Promise.resolve({}) });
     expect(res.status).toBe(400);
     expect((await res.json()).error.code).toBe('INVALID_JSON');
   });

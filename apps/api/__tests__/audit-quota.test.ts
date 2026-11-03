@@ -29,7 +29,6 @@ vi.mock('@uploadkitdev/db', () => ({
 vi.mock('@/lib/presign', () => ({ generatePresignedPutUrl: vi.fn(async () => 'https://storage.test/upload') }));
 vi.mock('@/lib/storage', () => ({ CDN_URL: 'https://cdn.uploadkit.dev' }));
 import { POST as upload } from '@/app/api/v1/upload/request/route';
-import { POST as createProject } from '@/app/api/v1/projects/route';
 import { File, Project } from '@uploadkitdev/db';
 const segment = { params: Promise.resolve({}) };
 function request(path: string, body: unknown) { return new NextRequest(`http://localhost${path}`, { method: 'POST', body: JSON.stringify(body) }); }
@@ -50,10 +49,5 @@ describe('atomic API quota reservations', () => {
     state.pending = []; // aborted/cleaned UPLOADING record no longer reserves bytes
     expect((await upload(uploadRequest(), segment)).status).toBe(200);
     expect(Project.find).toHaveBeenCalledWith({ userId: 'user' });
-  });
-  it('cannot exceed project count with parallel creates', async () => {
-    const responses = await Promise.all([createProject(request('/api/v1/projects', { name: 'one' }), segment), createProject(request('/api/v1/projects', { name: 'two' }), segment)]);
-    expect(responses.map((res) => res.status).sort()).toEqual([201, 403]);
-    expect(state.projects).toBe(2);
   });
 });

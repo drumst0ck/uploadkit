@@ -67,7 +67,7 @@ describe('T6 route regressions', () => {
 
   it('never returns BYOS credentials in project list or update responses', async () => {
     const project = { ...ctx.project, byosConfig };
-    vi.mocked(Project.find).mockReturnValue({ lean: async () => [project] } as any);
+    vi.mocked(Project.findOne).mockReturnValue({ lean: async () => project } as any);
     vi.mocked(Project.findOneAndUpdate).mockReturnValue({ lean: async () => project } as any);
     for (const res of [await projects(request('/api/v1/projects'), segment), await patchProject(request('/api/v1/projects/id', { name: 'new name' }), segment)]) {
       expect(res.status).toBe(200);

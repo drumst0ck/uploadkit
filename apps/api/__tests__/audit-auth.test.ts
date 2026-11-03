@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 vi.mock('@uploadkitdev/db', () => ({
-  connectDB: vi.fn(), ApiKey: { findOne: vi.fn().mockReturnValue({ populate: async () => null }) }, Subscription: {},
+  connectDB: vi.fn(), ApiKey: { findOne: vi.fn().mockReturnValue({ populate: async () => null }) }, Subscription: { findOne: vi.fn().mockResolvedValue(null) },
 }));
 vi.mock('@/lib/rate-limit', () => ({ ratelimit: { limit: vi.fn().mockResolvedValue({ success: true }) } }));
 import { ApiKey } from '@uploadkitdev/db';
@@ -11,18 +11,30 @@ beforeEach(() => vi.clearAllMocks());
 afterEach(() => vi.unstubAllEnvs());
 
 describe('pre-authentication rate limits', () => {
-  it('bounds lookups for rotating invalid tokens even with spoofed forwarding headers', async () => {
+  it('does not share one global bucket when no trusted client IP is configured', async () => {
     vi.stubEnv('API_TRUSTED_IP_HEADER', '');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const handler = vi.fn().mockResolvedValue(NextResponse.json({ ok: true }));
     const wrapped = withApiKey(handler);
     const statuses: number[] = [];
     for (let i = 0; i < 40; i++) {
       const req = new NextRequest('http://localhost/api/v1/projects', { headers: { authorization: `Bearer random-${i}`, 'x-forwarded-for': `192.0.2.${i}`, 'x-real-ip': `192.0.2.${i}` } });
-      statuses.push((await wrapped(req, { params: Promise.resolve({}) })).status);
+      const res = await wrapped(req, { params: Promise.resolve({}) });
+      statuses.push(res.status);
+      if (i === 0) expect((await res.json()).error.code).toBe('UNAUTHORIZED');
     }
-    expect(statuses).toContain(429);
-    expect(ApiKey.findOne).toHaveBeenCalledTimes(30);
-    expect(handler).not.toHaveBeenCalled();
+    // 40 failures from unknown clients must neither lock anyone out nor 429.
+    expect(statuses.every((status) => status === 401)).toBe(true);
+    expect(ApiKey.findOne).toHaveBeenCalledTimes(40);
+    // A legitimate customer is still served afterwards.
+    vi.mocked(ApiKey.findOne).mockReturnValueOnce({ populate: async () => ({ _id: 'k', projectId: { _id: 'p', userId: 'u' } }) } as any);
+    (ApiKey as any).updateOne = vi.fn().mockResolvedValue({});
+    const ok = await wrapped(new NextRequest('http://localhost/api/v1/projects', { headers: { authorization: 'Bearer valid' } }), { params: Promise.resolve({}) });
+    expect(ok.status).toBe(200);
+    expect(await ok.json()).toEqual({ ok: true });
+    expect(handler).toHaveBeenCalledOnce();
+    expect(warn.mock.calls.filter(([m]) => String(m).includes('API_TRUSTED_IP_HEADER')).length).toBeLessThanOrEqual(1);
+    warn.mockRestore();
   });
   it('isolates failure buckets by a valid operator-trusted IP header', async () => {
     vi.stubEnv('API_TRUSTED_IP_HEADER', 'x-real-ip');

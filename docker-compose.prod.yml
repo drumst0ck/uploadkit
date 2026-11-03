@@ -7,6 +7,8 @@ services:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/uploadkit?authSource=admin
       - REDIS_URL=redis://redis:6379
+      # Traefik overwrites X-Real-Ip with the real client IP (api is not Cloudflare-proxied)
+      - API_TRUSTED_IP_HEADER=x-real-ip
       - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
       - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
       - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}

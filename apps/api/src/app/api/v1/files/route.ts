@@ -1,19 +1,20 @@
 export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Types } from 'mongoose';
-import { connectDB, File, UsageRecord } from '@uploadkitdev/db';
+import { connectDB, File } from '@uploadkitdev/db';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { DeleteFilesSchema, PaginationSchema } from '@/lib/schemas';
 import { readJson, serializeValidationError, serializeError } from '@/lib/errors';
-import { r2Client, R2_BUCKET } from '@/lib/storage';
+import { deleteStoredFile } from '@/lib/delete-stored-file';
 import { withSignedUrl } from '@/lib/cdn-access';
 
 type BulkDeleteFile = {
   _id: Types.ObjectId;
   key: string;
   size?: number;
+  status?: string;
+  uploadId?: string | null;
 };
 
 // GET /api/v1/files — cursor-paginated list of files for the authenticated project
@@ -67,7 +68,7 @@ async function handleDelete(req: NextRequest, ctx: ApiContext): Promise<NextResp
     key: { $in: requestedKeys },
     projectId: ctx.project._id,
     deletedAt: null,
-  }).select('_id key size').lean() as BulkDeleteFile[];
+  }).select('_id key size status uploadId').lean() as BulkDeleteFile[];
 
   const foundKeys = new Set(files.map((file) => file.key));
   const failures: Array<{ key: string; code: string; message: string }> = requestedKeys
@@ -78,20 +79,28 @@ async function handleDelete(req: NextRequest, ctx: ApiContext): Promise<NextResp
       message: 'File does not exist, is already deleted, or belongs to a different project',
     }));
 
-  const r2Results = await Promise.allSettled(
-    files.map((file) =>
-      r2Client.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: file.key })),
-    ),
+  // Each file is claimed atomically after its storage delete; only claimed files
+  // are counted, so racing bulk/single deletes cannot double-decrement usage.
+  const results = await Promise.allSettled(
+    files.map((file) => deleteStoredFile(file, ctx.project.userId)),
   );
 
   const successIds: Types.ObjectId[] = [];
   let reclaimedBytes = 0;
 
-  r2Results.forEach((result, idx) => {
+  results.forEach((result, idx) => {
     const file = files[idx]!;
     if (result.status === 'fulfilled') {
-      successIds.push(file._id);
-      reclaimedBytes += file.size ?? 0;
+      if (result.value) {
+        successIds.push(file._id);
+        if (file.status === 'UPLOADED') reclaimedBytes += file.size ?? 0;
+      } else {
+        failures.push({
+          key: file.key,
+          code: 'NOT_FOUND',
+          message: 'File does not exist, is already deleted, or belongs to a different project',
+        });
+      }
       return;
     }
 
@@ -102,22 +111,6 @@ async function handleDelete(req: NextRequest, ctx: ApiContext): Promise<NextResp
     });
     console.warn(`[files.bulk-delete] R2 DeleteObject failed for key=${file.key}:`, result.reason);
   });
-
-  if (successIds.length > 0) {
-    await File.updateMany(
-      { _id: { $in: successIds }, projectId: ctx.project._id },
-      { $set: { deletedAt: new Date(), status: 'DELETED' } },
-    );
-
-    if (reclaimedBytes > 0) {
-      const period = new Date().toISOString().slice(0, 7);
-      await UsageRecord.findOneAndUpdate(
-        { userId: ctx.project.userId, period },
-        { $inc: { storageUsed: -reclaimedBytes } },
-        { upsert: true },
-      );
-    }
-  }
 
   const deleted = successIds.length;
   const status = deleted === 0 && failures.length > 0 ? 404 : failures.length > 0 ? 207 : 200;

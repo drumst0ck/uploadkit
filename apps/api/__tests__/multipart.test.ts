@@ -20,6 +20,7 @@ vi.mock('@uploadkitdev/db', () => ({
     create: vi.fn(),
     findOne: vi.fn(),
     findByIdAndUpdate: vi.fn(),
+    findOneAndUpdate: vi.fn(),
     deleteOne: vi.fn(),
   },
   FileRouter: {
@@ -56,6 +57,7 @@ import { POST as abortPOST } from '@/app/api/v1/upload/multipart/abort/route';
 import { ApiKey, Subscription, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
 import { uploadRatelimit } from '@/lib/rate-limit';
 import { r2Client } from '@/lib/storage';
+import { DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 
 const fakeProject = { _id: 'proj-mp', userId: 'user-mp', name: 'Multipart Project' };
 const fakeApiKeyDoc = { _id: 'key-mp', projectId: fakeProject, keyHash: 'hash', revokedAt: null };
@@ -168,6 +170,46 @@ describe('POST /api/v1/upload/multipart/complete', () => {
     expect(body.file.status).toBe('UPLOADED');
     // Verify R2 was called with CompleteMultipartUploadCommand
     expect(r2Client.send).toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/v1/upload/multipart/complete real stored object', () => {
+  const file = { _id: 'file-mp-9', key: 'proj-mp/videos/xyz/video.mp4', name: 'video.mp4', size: MULTIPART_FILE_SIZE, type: 'video/mp4', status: 'UPLOADING', uploadId: 'up-1', projectId: 'proj-mp' };
+  const body = { fileId: 'file-mp-9', uploadId: 'up-1', parts: [{ partNumber: 1, etag: '"e1"' }] };
+  function head(meta: { ContentLength?: number; ContentType?: string }) {
+    vi.mocked(r2Client.send).mockImplementation((async (command: unknown) => (command instanceof HeadObjectCommand ? meta : {})) as any);
+  }
+  const call = () => completePOST(makePost('http://localhost/api/v1/upload/multipart/complete', body), { params: Promise.resolve({}) });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setupAuth();
+    vi.mocked(File.findOne).mockResolvedValue(file as any);
+    vi.mocked(File.findByIdAndUpdate).mockImplementation((async (_id: unknown, update: any) => ({ ...file, ...update.$set })) as any);
+    vi.mocked(File.findOneAndUpdate).mockResolvedValue({ ...file, status: 'DELETED' } as any);
+    vi.mocked(UsageRecord.findOneAndUpdate).mockResolvedValue({ storageUsed: 1, uploads: 1 } as any);
+    vi.mocked(FileRouter.findOne).mockResolvedValue(null);
+  });
+
+  it('records the real stored size in the file and usage', async () => {
+    head({ ContentLength: 12345, ContentType: 'video/mp4' });
+    const res = await call();
+    const json = await res.json();
+    expect(res.status).toBe(200);
+    expect(json.file.size).toBe(12345);
+    expect(File.findByIdAndUpdate).toHaveBeenCalledWith('file-mp-9', { $set: expect.objectContaining({ status: 'UPLOADED', size: 12345 }) }, { new: true });
+    expect(UsageRecord.findOneAndUpdate).toHaveBeenCalledWith(expect.anything(), { $inc: { storageUsed: 12345, uploads: 1 } }, expect.anything());
+  });
+
+  it('rejects an assembled object over the route limit: deletes it and counts nothing', async () => {
+    head({ ContentLength: 9_000_000, ContentType: 'video/mp4' });
+    vi.mocked(FileRouter.findOne).mockResolvedValue({ maxFileSize: 8_000_000, allowedTypes: [] } as any);
+    const res = await call();
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.code).toBe('FILE_TOO_LARGE');
+    expect(vi.mocked(r2Client.send).mock.calls.some(([command]) => command instanceof DeleteObjectCommand)).toBe(true);
+    expect(File.findOneAndUpdate).toHaveBeenCalledWith({ _id: 'file-mp-9', status: 'UPLOADING' }, { $set: expect.objectContaining({ status: 'DELETED' }) });
+    expect(File.findByIdAndUpdate).not.toHaveBeenCalled();
+    expect(UsageRecord.findOneAndUpdate).not.toHaveBeenCalled();
   });
 });
 

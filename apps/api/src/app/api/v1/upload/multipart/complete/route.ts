@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 
 import { withUserQuotaLock } from '@/lib/user-quota';
-import { CompleteMultipartUploadCommand } from '@aws-sdk/client-s3';
+import { CompleteMultipartUploadCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
 import { NotFoundError } from '@uploadkitdev/shared';
@@ -11,8 +11,13 @@ import { MultipartCompleteSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 import { withSignedUrl } from '@/lib/cdn-access';
 import { enqueueWebhook } from '@/lib/qstash';
+import { inspectStoredObject, rejectStoredObject } from '@/lib/stored-object';
 
-async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiContext) {
+async function handler(
+  req: NextRequest,
+  ctx: import('@/lib/with-api-key').ApiContext,
+  deferred: Array<() => Promise<void>>,
+) {
   try {
     await connectDB();
 
@@ -51,12 +56,24 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       }),
     );
 
-    // 4. Update file status to UPLOADED and clear uploadId
+    // 3b. Verify the assembled object: its real size/type are authoritative.
+    const head = await r2Client.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: file.key })) as { ContentLength?: number; ContentType?: string } | undefined;
+    const routeSlugPart = file.key.split('/')[1];
+    const fileRouter = routeSlugPart
+      ? await FileRouter.findOne({ projectId: ctx.project._id, slug: routeSlugPart })
+      : null;
+    const verdict = inspectStoredObject(file, head, fileRouter, ctx.tier);
+    if (!verdict.ok) return rejectStoredObject(file, verdict);
+    const realSize = verdict.size;
+
+    // 4. Update file status to UPLOADED with the real size and clear uploadId
     const updatedFile = await File.findByIdAndUpdate(
       file._id,
       {
         $set: {
           status: 'UPLOADED',
+          size: realSize,
+          type: verdict.type,
           uploadId: null,
           ...(metadata !== undefined ? { metadata } : {}),
         },
@@ -72,35 +89,27 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     const period = new Date().toISOString().slice(0, 7); // YYYY-MM
     await UsageRecord.findOneAndUpdate(
       { userId: ctx.project.userId, period },
-      { $inc: { storageUsed: file.size, uploads: 1 } },
+      { $inc: { storageUsed: realSize, uploads: 1 } },
       { upsert: true, new: true },
     );
 
-    // 6. Persist and enqueue webhook if FileRouter has a webhookUrl
-    // Extract routeSlug from key pattern: {projectId}/{routeSlug}/{nanoid}/{fileName}
-    const routeSlugPart = file.key.split('/')[1];
-    const fileRouter = routeSlugPart
-      ? await FileRouter.findOne({
-          projectId: ctx.project._id,
-          slug: routeSlugPart,
-        })
-      : null;
-
+    // 6. Enqueue the webhook after the quota lock is released (still awaited).
     if (fileRouter?.webhookUrl) {
-      await enqueueWebhook(fileRouter.webhookUrl, {
+      const webhookUrl = fileRouter.webhookUrl;
+      deferred.push(() => enqueueWebhook(webhookUrl, {
         file: {
           id: file._id,
           key: file.key,
           name: file.name,
-          size: file.size,
-          type: file.type,
-          url: withSignedUrl(ctx.project, file).url,
+          size: updatedFile.size,
+          type: updatedFile.type,
+          url: withSignedUrl(ctx.project, updatedFile).url,
           metadata: updatedFile.metadata,
         },
         projectId: ctx.project._id.toString(),
       }, {
         projectId: ctx.project._id.toString(), fileId: file._id.toString(), routeSlug: routeSlugPart!,
-      }).catch((error: unknown) => console.error('[webhook] Unexpected publication failure', error));
+      }));
     }
 
     // 7. Return the same file response shape as single upload complete
@@ -122,4 +131,11 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
   }
 }
 
-export const POST = withApiKey((req, ctx) => withUserQuotaLock(ctx.project.userId, () => handler(req, ctx)), true);
+export const POST = withApiKey(async (req, ctx) => {
+  const deferred: Array<() => Promise<void>> = [];
+  const response = await withUserQuotaLock(ctx.project.userId, () => handler(req, ctx, deferred));
+  for (const task of deferred) {
+    await task().catch((error: unknown) => console.error('[webhook] Unexpected publication failure', error));
+  }
+  return response;
+}, true);

@@ -1,5 +1,6 @@
 import { RateLimiterRedis, RateLimiterMemory } from 'rate-limiter-flexible';
 import Redis from 'ioredis';
+import { UploadKitError } from '@uploadkitdev/shared';
 
 let redisClient: Redis | null = null;
 function getRedis(): Redis | null {
@@ -11,15 +12,41 @@ function getRedis(): Redis | null {
   return redisClient;
 }
 
-/** Shared Redis limiter with a bounded, process-local outage fallback. */
+/** Shared Redis limiter with a bounded, process-local outage fallback.
+ * Production REQUIRES REDIS_URL: silently using per-process memory would multiply
+ * every limit by the replica count and reset it on each deploy, so it fails closed
+ * (503) instead. The check runs on first use rather than at import so `next build`
+ * (NODE_ENV=production, no runtime secrets) keeps working. Dev/test use memory.
+ */
 export function createLimiter(points: number, prefix: string) {
-  const redis = getRedis();
-  const memoryFallback = new RateLimiterMemory({ points, duration: 60, keyPrefix: `${prefix}:fallback` });
-  const limiter = redis
-    ? new RateLimiterRedis({ storeClient: redis, points, duration: 60, keyPrefix: prefix })
-    : new RateLimiterMemory({ points, duration: 60, keyPrefix: prefix });
+  type Backend = {
+    redis: Redis | null;
+    memoryFallback: RateLimiterMemory;
+    limiter: RateLimiterRedis | RateLimiterMemory;
+  };
+  let backend: Backend | undefined;
 
-  async function consume(key: string) {
+  function init(): Backend {
+    if (backend) return backend;
+    const redis = getRedis();
+    if (!redis && process.env.NODE_ENV === 'production') {
+      throw new UploadKitError(
+        'RATE_LIMITER_NOT_CONFIGURED',
+        'REDIS_URL is required in production for rate limiting; refusing to fall back to in-memory limits.',
+        503,
+      );
+    }
+    backend = {
+      redis,
+      memoryFallback: new RateLimiterMemory({ points, duration: 60, keyPrefix: `${prefix}:fallback` }),
+      limiter: redis
+        ? new RateLimiterRedis({ storeClient: redis, points, duration: 60, keyPrefix: prefix })
+        : new RateLimiterMemory({ points, duration: 60, keyPrefix: prefix }),
+    };
+    return backend;
+  }
+
+  async function consume(key: string, { redis, memoryFallback, limiter }: Backend) {
     try {
       return await limiter.consume(key);
     } catch (error) {
@@ -33,8 +60,9 @@ export function createLimiter(points: number, prefix: string) {
 
   return {
     async limit(key: string): Promise<{ success: boolean; reset: number }> {
+      const resolved = init(); // configuration errors must surface, not read as "limited"
       try {
-        const result = await consume(key);
+        const result = await consume(key, resolved);
         return { success: true, reset: Date.now() + (result.msBeforeNext ?? 0) };
       } catch (error) {
         const result = error as { msBeforeNext?: number };
@@ -43,6 +71,7 @@ export function createLimiter(points: number, prefix: string) {
     },
     /** Check an authentication failure bucket without penalizing valid requests. */
     async check(key: string): Promise<{ success: boolean; reset: number }> {
+      const { redis, memoryFallback, limiter } = init();
       let result;
       try {
         result = await limiter.get(key);

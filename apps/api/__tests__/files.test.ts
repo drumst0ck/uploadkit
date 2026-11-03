@@ -130,7 +130,9 @@ describe('DELETE /api/v1/files', () => {
     vi.clearAllMocks();
     setupAuth();
     vi.mocked(r2Client.send).mockResolvedValue({} as any);
-    vi.mocked(File.updateMany).mockResolvedValue({ modifiedCount: 2 } as any);
+    vi.mocked(File.findOneAndUpdate).mockImplementation((async (filter: any) => (
+      { _id: filter._id, status: 'UPLOADED', size: filter._id === 'file-1' ? 1024 : 2048 }
+    )) as any);
     vi.mocked(UsageRecord.findOneAndUpdate).mockResolvedValue({} as any);
   });
 
@@ -138,8 +140,8 @@ describe('DELETE /api/v1/files', () => {
     vi.mocked(File.find).mockReturnValue({
       select: vi.fn().mockReturnThis(),
       lean: vi.fn().mockResolvedValue([
-        { _id: 'file-1', key: 'proj/img/a/photo.jpg', size: 1024 },
-        { _id: 'file-2', key: 'proj/img/b/doc.pdf', size: 2048 },
+        { _id: 'file-1', key: 'proj/img/a/photo.jpg', size: 1024, status: 'UPLOADED' },
+        { _id: 'file-2', key: 'proj/img/b/doc.pdf', size: 2048, status: 'UPLOADED' },
       ]),
     } as any);
 
@@ -159,15 +161,39 @@ describe('DELETE /api/v1/files', () => {
     expect(body.deleted).toBe(2);
     expect(body.failed).toBe(0);
     expect(r2Client.send).toHaveBeenCalledTimes(2);
-    expect(File.updateMany).toHaveBeenCalledWith(
-      { _id: { $in: ['file-1', 'file-2'] }, projectId: 'proj-files' },
+    expect(body.reclaimedBytes).toBe(3072);
+    expect(File.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: 'file-1', status: { $ne: 'DELETED' } },
       expect.objectContaining({ $set: expect.objectContaining({ status: 'DELETED' }) }),
-    );
-    expect(UsageRecord.findOneAndUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 'user-files' }),
-      expect.objectContaining({ $inc: { storageUsed: -3072 } }),
       expect.anything(),
     );
+    const decrements = vi.mocked(UsageRecord.findOneAndUpdate).mock.calls.map((call) => (call[1] as any).$inc.storageUsed);
+    expect(decrements.sort((a, b) => a - b)).toEqual([-2048, -1024]);
+  });
+
+  it('does not double-decrement usage when two bulk deletes race for the same files', async () => {
+    const claimed = new Set<string>();
+    vi.mocked(File.findOneAndUpdate).mockImplementation((async (filter: any) => {
+      if (claimed.has(filter._id)) return null;
+      claimed.add(filter._id);
+      return { _id: filter._id, status: 'UPLOADED', size: 1024 };
+    }) as any);
+    vi.mocked(File.find).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      lean: vi.fn().mockResolvedValue([{ _id: 'file-1', key: 'proj/img/a/photo.jpg', size: 1024, status: 'UPLOADED' }]),
+    } as any);
+    const call = () => BULK_DELETE(new NextRequest('http://localhost/api/v1/files', {
+      method: 'DELETE',
+      headers: { authorization: 'Bearer uk_live_testtoken', 'content-type': 'application/json' },
+      body: JSON.stringify({ keys: ['proj/img/a/photo.jpg'] }),
+    }), { params: Promise.resolve({}) });
+    const results = await Promise.all([call(), call()]);
+    const bodies = await Promise.all(results.map((res) => res.json()));
+    expect(results.map((res) => res.status).sort()).toEqual([200, 404]);
+    expect(bodies.map((body) => body.deleted).sort()).toEqual([0, 1]);
+    expect(bodies.map((body) => body.reclaimedBytes).sort()).toEqual([0, 1024]);
+    expect(UsageRecord.findOneAndUpdate).toHaveBeenCalledOnce();
+    expect(vi.mocked(UsageRecord.findOneAndUpdate).mock.calls[0]![1]).toEqual({ $inc: { storageUsed: -1024 } });
   });
 
   it('reports missing keys without deleting unrelated files', async () => {
@@ -214,7 +240,7 @@ describe('DELETE /api/v1/files/:key', () => {
     vi.clearAllMocks();
     setupAuth();
     vi.mocked(File.findOne).mockResolvedValue(fakeFile as any);
-    vi.mocked(File.findByIdAndUpdate).mockResolvedValue({ ...fakeFile, deletedAt: new Date(), status: 'DELETED' } as any);
+    vi.mocked(File.findOneAndUpdate).mockResolvedValue({ ...fakeFile, status: 'UPLOADED' } as any);
     vi.mocked(r2Client.send).mockResolvedValue({} as any);
     vi.mocked(UsageRecord.findOneAndUpdate).mockResolvedValue({} as any);
   });
@@ -233,9 +259,10 @@ describe('DELETE /api/v1/files/:key', () => {
     // R2 delete called
     expect(r2Client.send).toHaveBeenCalled();
     // DB soft-delete called
-    expect(File.findByIdAndUpdate).toHaveBeenCalledWith(
-      'file-to-delete',
+    expect(File.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: 'file-to-delete', status: { $ne: 'DELETED' } },
       expect.objectContaining({ $set: expect.objectContaining({ status: 'DELETED' }) }),
+      expect.anything(),
     );
   });
 
@@ -250,7 +277,35 @@ describe('DELETE /api/v1/files/:key', () => {
     expect(UsageRecord.findOneAndUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user-files' }),
       expect.objectContaining({ $inc: { storageUsed: -4096 } }),
-      expect.anything(),
     );
+  });
+
+  it('decrements usage once when two deletes race for the same file', async () => {
+    let claimed = false;
+    vi.mocked(File.findOneAndUpdate).mockImplementation((async () => {
+      if (claimed) return null;
+      claimed = true;
+      return { ...fakeFile, status: 'UPLOADED' };
+    }) as any);
+    const call = () => DELETE(new NextRequest('http://localhost/api/v1/files/x', {
+      method: 'DELETE',
+      headers: { authorization: 'Bearer uk_live_testtoken' },
+    }), { params: Promise.resolve({ key: 'proj-files/img/abc/photo.jpg' }) });
+    const results = await Promise.all([call(), call()]);
+    expect(results.map((res) => res.status).sort()).toEqual([200, 404]);
+    const loser = results.find((res) => res.status === 404)!;
+    expect((await loser.json()).error.code).toBe('NOT_FOUND');
+    expect(UsageRecord.findOneAndUpdate).toHaveBeenCalledOnce();
+    expect(vi.mocked(UsageRecord.findOneAndUpdate).mock.calls[0]![1]).toEqual({ $inc: { storageUsed: -4096 } });
+  });
+
+  it('does not touch usage when the file was never completed (UPLOADING)', async () => {
+    vi.mocked(File.findOneAndUpdate).mockResolvedValue({ ...fakeFile, status: 'UPLOADING' } as any);
+    const res = await DELETE(new NextRequest('http://localhost/api/v1/files/x', {
+      method: 'DELETE',
+      headers: { authorization: 'Bearer uk_live_testtoken' },
+    }), { params: Promise.resolve({ key: 'proj-files/img/abc/photo.jpg' }) });
+    expect(res.status).toBe(200);
+    expect(UsageRecord.findOneAndUpdate).not.toHaveBeenCalled();
   });
 });

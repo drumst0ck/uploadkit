@@ -17,6 +17,7 @@ vi.mock('@uploadkitdev/db', () => ({
   },
   Project: {
     find: vi.fn(),
+    findOne: vi.fn(),
     create: vi.fn(),
     countDocuments: vi.fn(),
   },
@@ -37,7 +38,7 @@ vi.mock('@/lib/storage', () => ({
 }));
 
 import { GET, POST } from '@/app/api/v1/projects/route';
-import { ApiKey, Subscription, Project } from '@uploadkitdev/db';
+import { ApiKey, Subscription, Project, FileRouter } from '@uploadkitdev/db';
 import { ratelimit } from '@/lib/rate-limit';
 
 const fakeProject = { _id: 'proj-crud', userId: 'user-crud', name: 'CRUD Project', slug: 'crud-project-abc123' };
@@ -61,11 +62,9 @@ describe('GET /api/v1/projects', () => {
     setupAuth();
   });
 
-  it('returns user projects list', async () => {
-    const projects = [fakeProject, { _id: 'proj-2', userId: 'user-crud', name: 'Project 2', slug: 'project-2-xyz' }];
-    vi.mocked(Project.find).mockReturnValue({
-      lean: vi.fn().mockResolvedValue(projects),
-    } as any);
+  it("lists only the key's own project, never the other projects of the account", async () => {
+    vi.mocked(Project.find).mockReturnValue({ lean: vi.fn().mockResolvedValue([fakeProject]) } as any);
+    vi.mocked(Project.findOne).mockReturnValue({ lean: vi.fn().mockResolvedValue(fakeProject) } as any);
 
     const req = new NextRequest('http://localhost/api/v1/projects', {
       headers: { authorization: 'Bearer uk_live_testtoken' },
@@ -74,10 +73,11 @@ describe('GET /api/v1/projects', () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.projects).toHaveLength(2);
-    // Verify scoped to authenticated user
-    const findCall = vi.mocked(Project.find).mock.calls[0]![0] as unknown as Record<string, unknown>;
-    expect(findCall['userId']).toBe('user-crud');
+    expect(body.projects).toHaveLength(1);
+    expect(body.projects[0]._id).toBe('proj-crud');
+    expect(Project.find).not.toHaveBeenCalled();
+    const scoped = [...vi.mocked(Project.find).mock.calls, ...vi.mocked(Project.findOne).mock.calls].map((call) => call[0] as unknown as Record<string, unknown>);
+    expect(scoped.every((filter) => filter['_id'] === 'proj-crud')).toBe(true);
   });
 });
 
@@ -87,15 +87,8 @@ describe('POST /api/v1/projects', () => {
     setupAuth();
   });
 
-  it('creates project with auto-generated slug', async () => {
-    vi.mocked(Project.countDocuments).mockResolvedValue(0); // under FREE limit of 2
-    vi.mocked(Project.create).mockResolvedValue({
-      _id: 'new-proj-id',
-      name: 'My New Project',
-      slug: 'my-new-project-abc123',
-      userId: 'user-crud',
-    } as any);
-
+  it('rejects project creation with a project key and creates nothing', async () => {
+    vi.mocked(Project.countDocuments).mockResolvedValue(0);
     const req = new NextRequest('http://localhost/api/v1/projects', {
       method: 'POST',
       headers: { authorization: 'Bearer uk_live_testtoken', 'content-type': 'application/json' },
@@ -104,25 +97,9 @@ describe('POST /api/v1/projects', () => {
     const res = await POST(req, { params: Promise.resolve({}) });
     const body = await res.json();
 
-    expect(res.status).toBe(201);
-    expect(body.project).toBeDefined();
-    expect(body.project.name).toBe('My New Project');
-    // Slug is generated dynamically — just verify it's a string
-    expect(typeof body.project.slug).toBe('string');
-  });
-
-  it('returns 403 when user has reached project tier limit', async () => {
-    vi.mocked(Project.countDocuments).mockResolvedValue(2); // FREE tier limit is 2
-
-    const req = new NextRequest('http://localhost/api/v1/projects', {
-      method: 'POST',
-      headers: { authorization: 'Bearer uk_live_testtoken', 'content-type': 'application/json' },
-      body: JSON.stringify({ name: 'One Too Many' }),
-    });
-    const res = await POST(req, { params: Promise.resolve({}) });
-    const body = await res.json();
-
     expect(res.status).toBe(403);
-    expect(body.error.code).toBe('TIER_LIMIT_EXCEEDED');
+    expect(body.error.code).toBe('FORBIDDEN');
+    expect(Project.create).not.toHaveBeenCalled();
+    expect(FileRouter.create).not.toHaveBeenCalled();
   });
 });

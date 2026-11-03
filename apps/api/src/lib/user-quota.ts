@@ -30,7 +30,13 @@ export async function withUserQuotaLock<T>(userId: Types.ObjectId, work: () => P
       try {
         return await work();
       } finally {
-        await ImageTransformLock.deleteOne({ lockKey, owner });
+        // A failed release must not turn finished work into an error: the lease
+        // expires on its own (LEASE_MS), so log and move on.
+        try {
+          await ImageTransformLock.deleteOne({ lockKey, owner });
+        } catch (error) {
+          console.error('[quota] Failed to release quota lock; it will expire by lease', error);
+        }
       }
     }
     await new Promise((resolve) => setTimeout(resolve, 10 * 2 ** attempt));
