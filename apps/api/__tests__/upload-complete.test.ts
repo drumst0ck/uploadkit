@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// Lock contention is covered by audit-quota.test.ts; retain route assertions here.
+vi.mock('@/lib/user-quota', () => ({
+  withUserQuotaLock: async (_userId: unknown, work: () => Promise<unknown>) => work(),
+}));
+
 vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   ApiKey: {
@@ -58,6 +63,7 @@ import { r2Client } from '@/lib/storage';
 
 // Import S3ServiceException for simulating R2 errors
 import { S3ServiceException } from '@aws-sdk/client-s3';
+import { enqueueWebhook } from '@/lib/qstash';
 
 const fakeProject = { _id: 'proj-complete', userId: 'user-complete', name: 'Complete Project' };
 const fakeApiKeyDoc = { _id: 'key-complete', projectId: fakeProject, keyHash: 'hash', revokedAt: null };
@@ -116,6 +122,17 @@ describe('POST /api/v1/upload/complete', () => {
     expect(body.file).toBeDefined();
     expect(body.file.status).toBe('UPLOADED');
     expect(File.findByIdAndUpdate).toHaveBeenCalled();
+  });
+
+  it('does not fail a completed upload when webhook queue admission rejects', async () => {
+    vi.mocked(FileRouter.findOne).mockResolvedValue({ webhookUrl: 'https://example.com/webhook' } as any);
+    vi.mocked(enqueueWebhook).mockRejectedValueOnce(new Error('queue failure'));
+    const req = makePostRequest({ fileId: fakeUploadingFile._id });
+    const res = await POST(req, { params: Promise.resolve({}) });
+    expect(res.status).toBe(200);
+    expect(enqueueWebhook).toHaveBeenCalledWith('https://example.com/webhook', expect.anything(), {
+      projectId: fakeProject._id, fileId: fakeUploadingFile._id, routeSlug: 'images',
+    });
   });
 
   it('returns 404 when file record not found', async () => {

@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// Lock contention and pending reservations are covered by audit-quota.test.ts.
+vi.mock('@/lib/user-quota', () => ({
+  withUserQuotaLock: async (_userId: unknown, work: () => Promise<unknown>) => work(),
+  reservedUploadUsage: async () => ({ storageUsed: 0, uploads: 0 }),
+}));
+
 vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   ApiKey: {

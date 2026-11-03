@@ -1,14 +1,16 @@
 export const runtime = 'nodejs';
 
+import { withUserQuotaLock, reservedUploadUsage } from '@/lib/user-quota';
+import { isTypeAllowed } from '@/lib/upload-types';
 import { nanoid } from 'nanoid';
-import { CreateMultipartUploadCommand, UploadPartCommand } from '@aws-sdk/client-s3';
+import { AbortMultipartUploadCommand, CreateMultipartUploadCommand, UploadPartCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
 import { NotFoundError, TierLimitError } from '@uploadkitdev/shared';
 import { TIER_LIMITS, buildFileCdnUrl } from '@uploadkitdev/shared';
 import { withApiKey } from '@/lib/with-api-key';
-import { serializeError, serializeValidationError } from '@/lib/errors';
+import { readJson, serializeError, serializeValidationError } from '@/lib/errors';
 import { MultipartInitSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET, CDN_URL } from '@/lib/storage';
 import { recordUploadRejection, fileTooLargeReason, quotaReason } from '@/lib/upload-rejections';
@@ -24,7 +26,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     await connectDB();
 
     // 1. Parse and validate request body
-    const parsed = MultipartInitSchema.safeParse(await req.json());
+    const parsed = MultipartInitSchema.safeParse(await readJson(req));
     if (!parsed.success) {
       return serializeValidationError(parsed.error);
     }
@@ -59,8 +61,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
 
     // Validate content type against FileRouter config
     if (
-      fileRouter.allowedTypes.length > 0 &&
-      !fileRouter.allowedTypes.includes(contentType)
+      !isTypeAllowed(fileRouter.allowedTypes, contentType)
     ) {
       await recordUploadRejection(ctx, {
         ...rejection,
@@ -85,13 +86,14 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       userId: ctx.project.userId,
       period,
     });
-    if ((record?.storageUsed ?? 0) + fileSize > TIER_LIMITS[ctx.tier].maxStorageBytes) {
+    const reserved = await reservedUploadUsage(ctx.project.userId);
+    if ((record?.storageUsed ?? 0) + reserved.storageUsed + fileSize > TIER_LIMITS[ctx.tier].maxStorageBytes) {
       await recordUploadRejection(ctx, { ...rejection, code: 'QUOTA_EXCEEDED', reason: quotaReason('storage', ctx) });
       return serializeError(new TierLimitError('storage'));
     }
 
     // Check upload count quota
-    if ((record?.uploads ?? 0) >= TIER_LIMITS[ctx.tier].maxUploadsPerMonth) {
+    if ((record?.uploads ?? 0) + reserved.uploads >= TIER_LIMITS[ctx.tier].maxUploadsPerMonth) {
       await recordUploadRejection(ctx, { ...rejection, code: 'QUOTA_EXCEEDED', reason: quotaReason('uploads', ctx) });
       return serializeError(new TierLimitError('monthly uploads'));
     }
@@ -131,45 +133,55 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       throw new Error('R2 did not return an UploadId for multipart upload');
     }
 
-    // 7. Generate presigned URLs for ALL parts up-front (1 hour expiry for large files)
-    const parts: Array<{ partNumber: number; uploadUrl: string }> = [];
-    for (let partNumber = 1; partNumber <= partCount; partNumber++) {
-      const uploadUrl = await getSignedUrl(
-        r2Client,
-        new UploadPartCommand({
-          Bucket: R2_BUCKET,
-          Key: key,
-          UploadId,
-          PartNumber: partNumber,
-        }),
-        { expiresIn: 3600 }, // 1 hour for large file part uploads
-      );
-      parts.push({ partNumber, uploadUrl });
+    try {
+      // 7. Generate presigned URLs for ALL parts up-front (1 hour expiry for large files)
+      const parts: Array<{ partNumber: number; uploadUrl: string }> = [];
+      for (let partNumber = 1; partNumber <= partCount; partNumber++) {
+        const uploadUrl = await getSignedUrl(
+          r2Client,
+          new UploadPartCommand({
+            Bucket: R2_BUCKET,
+            Key: key,
+            UploadId,
+            PartNumber: partNumber,
+          }),
+          { expiresIn: 3600 }, // 1 hour for large file part uploads
+        );
+        parts.push({ partNumber, uploadUrl });
+      }
+
+      // 8. Persist the reservation before returning any upload URLs.
+      const file = await File.create({
+        key,
+        name: fileName,
+        size: fileSize,
+        type: contentType,
+        url: buildFileCdnUrl(ctx.project, CDN_URL, key),
+        status: 'UPLOADING',
+        uploadId: UploadId,
+        ...(metadata !== undefined ? { metadata } : {}),
+        projectId: ctx.project._id,
+      });
+
+      return NextResponse.json({
+        fileId: file._id.toString(),
+        uploadId: UploadId,
+        key,
+        parts,
+      });
+    } catch (error) {
+      // The cleanup cron cannot discover an upload without a File record.
+      // Cover both URL generation and File.create failures, preserving the cause.
+      try {
+        await r2Client.send(new AbortMultipartUploadCommand({ Bucket: R2_BUCKET, Key: key, UploadId }));
+      } catch (abortError) {
+        console.error('[multipart/init] Failed to abort untracked multipart upload', { key, uploadId: UploadId, abortError });
+      }
+      throw error;
     }
-
-    // 8. Insert File record with UPLOADING status and uploadId for multipart tracking
-    const file = await File.create({
-      key,
-      name: fileName,
-      size: fileSize,
-      type: contentType,
-      url: buildFileCdnUrl(ctx.project, CDN_URL, key),
-      status: 'UPLOADING',
-      uploadId: UploadId,
-      ...(metadata !== undefined ? { metadata } : {}),
-      projectId: ctx.project._id,
-    });
-
-    // 9. Return uploadId and all presigned part URLs up-front
-    return NextResponse.json({
-      fileId: file._id.toString(),
-      uploadId: UploadId,
-      key,
-      parts,
-    });
   } catch (err) {
     return serializeError(err);
   }
 }
 
-export const POST = withApiKey(handler, true);
+export const POST = withApiKey((req, ctx) => withUserQuotaLock(ctx.project.userId, () => handler(req, ctx)), true);

@@ -2,12 +2,16 @@ export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { Types } from 'mongoose';
-import { connectDB, Project, ApiKey } from '@uploadkitdev/db';
+import { connectDB, Project, ApiKey, File, FileRouter } from '@uploadkitdev/db';
 import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
+import { withUserQuotaLock } from '@/lib/user-quota';
+import { deleteStoredFile } from '@/lib/delete-stored-file';
+import { assertProjectScope } from '@/lib/project-scope';
+import { projectResponse } from '@/lib/project-response';
 import { UpdateProjectSchema } from '@/lib/schemas';
 import { syncCdnAccessMarker } from '@/lib/cdn-access';
-import { serializeValidationError, serializeError } from '@/lib/errors';
+import { readJson, serializeValidationError, serializeError } from '@/lib/errors';
 
 // PATCH /api/v1/projects/:id — update project name
 async function handlePatch(
@@ -22,7 +26,7 @@ async function handlePatch(
     throw new NotFoundError('Project', id);
   }
 
-  const body = await req.json() as unknown;
+  const body = await readJson(req) as unknown;
   const parsed = UpdateProjectSchema.safeParse(body);
   if (!parsed.success) {
     return serializeValidationError(parsed.error);
@@ -69,7 +73,7 @@ async function handlePatch(
     throw new NotFoundError('Project', id);
   }
 
-  return NextResponse.json({ project });
+  return NextResponse.json({ project: projectResponse(project) });
 }
 
 // DELETE /api/v1/projects/:id — delete project and revoke all associated API keys
@@ -92,12 +96,17 @@ async function handleDelete(
     throw new NotFoundError('Project', id);
   }
 
-  // Revoke all API keys associated with this project (cascade)
+  // The user quota lock excludes API upload creation/completion during this
+  // cascade. Leave keys active on storage failures so callers can retry.
+  const files = await File.find({ projectId: id, status: { $ne: 'DELETED' } }).lean();
+  for (const file of files) {
+    await deleteStoredFile(file, ctx.project.userId);
+  }
+  await FileRouter.deleteMany({ projectId: id });
   await ApiKey.updateMany(
     { projectId: id },
     { $set: { revokedAt: new Date() } },
   );
-
   await Project.deleteOne({ _id: id });
 
   return NextResponse.json({ ok: true });
@@ -105,6 +114,7 @@ async function handleDelete(
 
 export const PATCH = withApiKey(async (req, ctx, params) => {
   try {
+    assertProjectScope(ctx, params?.['id']);
     return await handlePatch(req, ctx, params ?? {});
   } catch (err) {
     return serializeError(err);
@@ -113,7 +123,8 @@ export const PATCH = withApiKey(async (req, ctx, params) => {
 
 export const DELETE = withApiKey(async (req, ctx, params) => {
   try {
-    return await handleDelete(req, ctx, params ?? {});
+    assertProjectScope(ctx, params?.['id']);
+    return await withUserQuotaLock(ctx.project.userId, () => handleDelete(req, ctx, params ?? {}));
   } catch (err) {
     return serializeError(err);
   }

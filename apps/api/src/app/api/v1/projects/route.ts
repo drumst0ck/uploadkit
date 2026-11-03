@@ -6,8 +6,10 @@ import { connectDB, Project, FileRouter } from '@uploadkitdev/db';
 import { TierLimitError } from '@uploadkitdev/shared';
 import { TIER_LIMITS } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
+import { withUserQuotaLock } from '@/lib/user-quota';
+import { projectResponse } from '@/lib/project-response';
 import { CreateProjectSchema } from '@/lib/schemas';
-import { serializeValidationError, serializeError } from '@/lib/errors';
+import { readJson, serializeValidationError, serializeError } from '@/lib/errors';
 
 // GET /api/v1/projects — list all projects for the authenticated user
 async function handleGet(
@@ -16,7 +18,7 @@ async function handleGet(
 ): Promise<NextResponse> {
   await connectDB();
   const projects = await Project.find({ userId: ctx.project.userId }).lean();
-  return NextResponse.json({ projects });
+  return NextResponse.json({ projects: projects.map(projectResponse) });
 }
 
 // POST /api/v1/projects — create a new project
@@ -24,7 +26,7 @@ async function handlePost(
   req: NextRequest,
   ctx: ApiContext,
 ): Promise<NextResponse> {
-  const body = await req.json() as unknown;
+  const body = await readJson(req) as unknown;
   const parsed = CreateProjectSchema.safeParse(body);
   if (!parsed.success) {
     return serializeValidationError(parsed.error);
@@ -75,7 +77,7 @@ export const GET = withApiKey(async (req, ctx) => {
 
 export const POST = withApiKey(async (req, ctx) => {
   try {
-    return await handlePost(req, ctx);
+    return await withUserQuotaLock(ctx.project.userId, () => handlePost(req, ctx));
   } catch (err) {
     return serializeError(err);
   }

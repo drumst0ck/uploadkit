@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// Parallel project-count admission is covered by audit-quota.test.ts.
+vi.mock('@/lib/user-quota', () => ({
+  withUserQuotaLock: async (_userId: unknown, work: () => Promise<unknown>) => work(),
+}));
+
 vi.mock('@uploadkitdev/db', () => ({
   connectDB: vi.fn().mockResolvedValue(undefined),
   ApiKey: {

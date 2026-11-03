@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { isCronAuthorized } from '@/lib/secure-compare';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { connectDB, User, Subscription, Project, File, UsageRecord } from '@uploadkitdev/db';
+import { connectDB, User, Subscription, Project, File, UsageRecord, ApiKey } from '@uploadkitdev/db';
 import { sendInactiveWarningEmail } from '@uploadkitdev/emails';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 
@@ -14,6 +14,10 @@ export const dynamic = 'force-dynamic';
 //   - 23 days → sends a "cleanup in 7 days" warning email (once per cycle)
 //   - 30 days → permanently deletes their R2 objects + soft-deletes File rows
 //               + decrements UsageRecord.storageUsed for the current period
+//
+// A user is also considered active when any of their projects' API keys was
+// used within the window (ApiKey.lastUsedAt): SDK-only users never log in to
+// the dashboard, so lastLoginAt alone would wrongly mark them inactive.
 //
 // Users with an ACTIVE, PAST_DUE or TRIALING subscription are completely
 // exempt — their data is never touched by this job.
@@ -63,6 +67,19 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     .select('userId')
     .lean();
   const exemptIds = new Set(paying.map((s) => String(s.userId)));
+
+  // SDK-active set — owners of projects with an API key used within the window
+  const usedKeys = await ApiKey.find({ lastUsedAt: { $gte: warnCutoff } })
+    .select('projectId')
+    .lean();
+  const activeProjectIds = [...new Set(usedKeys.map((k) => String(k.projectId)))];
+  const activeProjects =
+    activeProjectIds.length > 0
+      ? await Project.find({ _id: { $in: activeProjectIds } })
+          .select('userId')
+          .lean()
+      : [];
+  for (const p of activeProjects) exemptIds.add(String(p.userId));
 
   const report: CleanupReport = {
     timestamp: now.toISOString(),

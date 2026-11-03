@@ -6,7 +6,7 @@ import { Types } from 'mongoose';
 import { connectDB, File, UsageRecord } from '@uploadkitdev/db';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
 import { DeleteFilesSchema, PaginationSchema } from '@/lib/schemas';
-import { serializeValidationError, serializeError } from '@/lib/errors';
+import { readJson, serializeValidationError, serializeError } from '@/lib/errors';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 import { withSignedUrl } from '@/lib/cdn-access';
 
@@ -54,7 +54,7 @@ async function handleGet(req: NextRequest, ctx: ApiContext): Promise<NextRespons
 
 // DELETE /api/v1/files — bulk delete files by key for the authenticated project
 async function handleDelete(req: NextRequest, ctx: ApiContext): Promise<NextResponse> {
-  const body = await req.json() as unknown;
+  const body = await readJson(req) as unknown;
   const parsed = DeleteFilesSchema.safeParse(body);
   if (!parsed.success) {
     return serializeValidationError(parsed.error);

@@ -1,11 +1,12 @@
 export const runtime = 'nodejs';
 
+import { withUserQuotaLock } from '@/lib/user-quota';
 import { CompleteMultipartUploadCommand } from '@aws-sdk/client-s3';
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, File, FileRouter, UsageRecord } from '@uploadkitdev/db';
 import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey } from '@/lib/with-api-key';
-import { serializeError, serializeValidationError } from '@/lib/errors';
+import { readJson, serializeError, serializeValidationError } from '@/lib/errors';
 import { MultipartCompleteSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 import { withSignedUrl } from '@/lib/cdn-access';
@@ -16,7 +17,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     await connectDB();
 
     // 1. Parse and validate request body
-    const parsed = MultipartCompleteSchema.safeParse(await req.json());
+    const parsed = MultipartCompleteSchema.safeParse(await readJson(req));
     if (!parsed.success) {
       return serializeValidationError(parsed.error);
     }
@@ -75,7 +76,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       { upsert: true, new: true },
     );
 
-    // 6. Enqueue webhook (fire-and-forget) if FileRouter has a webhookUrl
+    // 6. Persist and enqueue webhook if FileRouter has a webhookUrl
     // Extract routeSlug from key pattern: {projectId}/{routeSlug}/{nanoid}/{fileName}
     const routeSlugPart = file.key.split('/')[1];
     const fileRouter = routeSlugPart
@@ -86,7 +87,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
       : null;
 
     if (fileRouter?.webhookUrl) {
-      void enqueueWebhook(fileRouter.webhookUrl, {
+      await enqueueWebhook(fileRouter.webhookUrl, {
         file: {
           id: file._id,
           key: file.key,
@@ -97,7 +98,9 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
           metadata: updatedFile.metadata,
         },
         projectId: ctx.project._id.toString(),
-      });
+      }, {
+        projectId: ctx.project._id.toString(), fileId: file._id.toString(), routeSlug: routeSlugPart!,
+      }).catch((error: unknown) => console.error('[webhook] Unexpected publication failure', error));
     }
 
     // 7. Return the same file response shape as single upload complete
@@ -119,4 +122,4 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
   }
 }
 
-export const POST = withApiKey(handler, true);
+export const POST = withApiKey((req, ctx) => withUserQuotaLock(ctx.project.userId, () => handler(req, ctx)), true);
