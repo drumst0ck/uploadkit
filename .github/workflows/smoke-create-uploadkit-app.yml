@@ -43,6 +43,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # The smoke installs the local SDK tarballs, so build them first.
+      - name: Build SDK and CLI
+        run: pnpm turbo run build --filter=create-uploadkit-app... --filter=@uploadkitdev/react... --filter=@uploadkitdev/next...
+
       - name: Run smoke test
         run: pnpm --filter create-uploadkit-app smoke
 
