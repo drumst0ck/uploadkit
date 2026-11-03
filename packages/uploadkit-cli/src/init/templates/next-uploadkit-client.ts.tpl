@@ -6,9 +6,12 @@ import type { FileRouter } from '@uploadkitdev/next';
  * /api/uploadkit/<slug>. See https://uploadkit.dev/docs for the full API.
  */
 export const ukRouter = {
-  // imageUploader: uploadkit({ image: { maxFileSize: '4MB' } })
-  //   .onUploadComplete(async ({ file }) => {
+  // imageUploader: {
+  //   maxFileSize: '4MB',
+  //   allowedTypes: ['image/*'],
+  //   onUploadComplete: async ({ file }) => {
   //     console.log('uploaded', file);
-  //   }),
+  //   },
+  // },
 } satisfies FileRouter;
 // uploadkit:end

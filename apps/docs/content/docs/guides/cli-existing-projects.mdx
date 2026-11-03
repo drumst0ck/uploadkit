@@ -81,10 +81,12 @@ Grab a free key from [app.uploadkit.dev](https://app.uploadkit.dev).
     **Detection:** `@sveltejs/kit` in `dependencies`.
 
     **Changes:**
-    - Installs `@uploadkitdev/sveltekit` and `@uploadkitdev/core`.
-    - Creates `src/routes/api/uploadkit/[...uploadkit]/+server.ts`.
-    - Creates a typed client at `src/lib/uploadkit.ts` (no React provider —
-      Svelte components consume the client directly).
+    - Installs `@uploadkitdev/next` (framework-agnostic `createUploadKitHandler`)
+      and `@uploadkitdev/core`.
+    - Creates `src/routes/api/uploadkit/[...uploadkit]/+server.ts`, which serves
+      the file router through `createUploadKitHandler`.
+    - Creates the file router at `src/lib/uploadkit.ts` (no React provider —
+      Svelte components call the endpoint with `@uploadkitdev/core`).
     - Appends keys to `.env`.
   </Tab>
   <Tab value="Remix / RR7">
@@ -144,8 +146,8 @@ comments, and re-running `add` for the same component is a no-op.
 | `progress` | `UploadProgressBar` | Per-file progress indicator |
 
 <Callout type="info">
-  `add` is React-only today. SvelteKit component variants will ship when
-  `@uploadkitdev/sveltekit` publishes its component layer.
+  `add` is React-only today. There is no Svelte component package yet; SvelteKit
+  apps upload through the generated endpoint with `@uploadkitdev/core`.
 </Callout>
 
 ### Example
