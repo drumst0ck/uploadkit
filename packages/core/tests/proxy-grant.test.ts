@@ -21,3 +21,16 @@ it('forwards the BYOS grant unchanged and returns the server-authoritative file'
   expect(sent).toEqual({ action: 'upload-complete', key: file.key, uploadToken: 'signed-grant' });
   expect(result).toEqual(file);
 });
+it('reads route config (maxFileCount) from the handler GET and caches it', async () => {
+  const fetch = vi.fn().mockImplementation(async () => Response.json({ maxFileCount: 2 }));
+  vi.stubGlobal('fetch', fetch);
+  const client = new ProxyUploadKitClient({ endpoint: '/api/uploadkit/' });
+  expect(await client.getRouteConfig('media')).toEqual({ maxFileCount: 2 });
+  await client.getRouteConfig('media');
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(fetch.mock.calls[0]![0]).toBe('/api/uploadkit/media');
+});
+it('treats an unreachable or old route config endpoint as no limit', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('nope', { status: 500 })));
+  expect(await new ProxyUploadKitClient({ endpoint: '/api/uploadkit' }).getRouteConfig('media')).toEqual({});
+});

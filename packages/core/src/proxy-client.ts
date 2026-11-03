@@ -6,6 +6,14 @@ export interface ProxyClientConfig {
   endpoint: string;
 }
 
+/** Route config published by the handler GET. Every field is optional. */
+export interface ProxyRouteConfig {
+  maxFileSize?: number;
+  /** Per-selection client-side limit. Absent means no limit. */
+  maxFileCount?: number;
+  allowedTypes?: string[];
+}
+
 export type ProgressGranularity = 'coarse' | 'fine' | 'all';
 
 export interface ProxyUploadOptions {
@@ -31,9 +39,42 @@ export interface ProxyUploadOptions {
  */
 export class ProxyUploadKitClient {
   readonly #endpoint: string;
+  readonly #routeConfigs = new Map<string, Promise<ProxyRouteConfig>>();
 
   constructor(config: ProxyClientConfig) {
     this.#endpoint = config.endpoint.replace(/\/$/, '');
+  }
+
+  /**
+   * Reads the route config from the handler (GET /{endpoint}/{route}).
+   * Cached per route. An old, unreachable or failing endpoint resolves to `{}`
+   * (no limits) and is not cached, so a later call can retry.
+   */
+  getRouteConfig(route: string): Promise<ProxyRouteConfig> {
+    const cached = this.#routeConfigs.get(route);
+    if (cached) return cached;
+    let pending: Promise<ProxyRouteConfig> | undefined;
+    pending = (async (): Promise<ProxyRouteConfig> => {
+      try {
+        const res = await fetch(`${this.#endpoint}/${route}`);
+        if (!res.ok) return {};
+        const body = await res.json() as ProxyRouteConfig;
+        const out: ProxyRouteConfig = {};
+        if (typeof body.maxFileCount === 'number' && body.maxFileCount >= 1) out.maxFileCount = body.maxFileCount;
+        if (typeof body.maxFileSize === 'number') out.maxFileSize = body.maxFileSize;
+        if (Array.isArray(body.allowedTypes)) out.allowedTypes = body.allowedTypes;
+        this.#routeConfigs.set(route, Promise.resolve(out));
+        return out;
+      } catch {
+        return {};
+      } finally {
+        // Only successful reads are kept (replaced above); drop the in-flight entry otherwise.
+        const current = this.#routeConfigs.get(route);
+        if (current === pending) this.#routeConfigs.delete(route);
+      }
+    })();
+    this.#routeConfigs.set(route, pending);
+    return pending;
   }
 
   async upload(options: ProxyUploadOptions): Promise<UploadResult> {

@@ -7,6 +7,7 @@
 import { forwardRef, useCallback, useRef, useState, useEffect } from 'react';
 import type { UploadResult } from '@uploadkitdev/core';
 import { useUploadKitContext } from '../context';
+import { useSelectionGuard } from '../utils/selection-guard';
 import { mergeClass } from '../utils/merge-class';
 import { formatBytes } from '../utils/format-bytes';
 import { useOptionalMotion, useReducedMotionSafe } from '../utils/motion-optional';
@@ -404,8 +405,10 @@ export const UploadAttachmentTray = forwardRef<HTMLDivElement, UploadAttachmentT
       };
     }, []);
 
+    const guardSelection = useSelectionGuard(route, onUploadError);
     const processFiles = useCallback(
       async (incoming: File[]) => {
+        if (!(await guardSelection(incoming))) return;
         // Respect maxFiles — count already-queued entries
         const remaining =
           maxFiles !== undefined ? maxFiles - filesRef.current.length : Infinity;

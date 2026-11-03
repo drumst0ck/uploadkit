@@ -1,6 +1,7 @@
 import { useReducer, useCallback, useRef, useEffect } from 'react';
 import type { UploadResult, ProgressGranularity } from '@uploadkitdev/core';
 import { useUploadKitContext } from './context';
+import { checkMaxFileCount } from './utils/selection-guard';
 
 type UploadExtraOptions = {
   progressGranularity?: ProgressGranularity;
@@ -135,6 +136,24 @@ export function useUploadKit(route: string) {
     [client, route],
   );
 
+  /**
+   * Validates a multi-file selection against the route's maxFileCount
+   * (per-selection, client-side). Over the limit: sets the error state with
+   * code TOO_MANY_FILES and resolves false; call it before upload() and upload
+   * nothing when it resolves false. No limit configured: resolves true.
+   */
+  const checkSelection = useCallback(
+    async (files: File[]): Promise<boolean> => {
+      const error = await checkMaxFileCount(client, route, files.length);
+      if (!error) return true;
+      activeController.current?.abort();
+      activeController.current = null;
+      dispatch({ type: 'ERROR', error });
+      return false;
+    },
+    [client, route],
+  );
+
   const abort = useCallback(() => {
     const controller = activeController.current;
     activeController.current = null;
@@ -146,6 +165,7 @@ export function useUploadKit(route: string) {
 
   return {
     upload,
+    checkSelection,
     abort,
     reset,
     status: state.status,
