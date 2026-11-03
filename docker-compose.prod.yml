@@ -5,8 +5,8 @@ services:
       dockerfile: apps/api/Dockerfile
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/uploadkit?authSource=admin
-      - REDIS_URL=redis://redis:6379
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD}@mongodb:27017/uploadkit?authSource=admin
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
       - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
       - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
@@ -40,7 +40,7 @@ services:
       dockerfile: apps/dashboard/Dockerfile
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/uploadkit?authSource=admin
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD}@mongodb:27017/uploadkit?authSource=admin
       - AUTH_URL=${AUTH_URL:-https://app.uploadkit.dev}
       - AUTH_TRUST_HOST=${AUTH_TRUST_HOST:-true}
       - AUTH_SECRET=${AUTH_SECRET}
@@ -73,6 +73,12 @@ services:
       dockerfile: apps/web/Dockerfile
     environment:
       - NODE_ENV=production
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
     restart: unless-stopped
 
   docs:
@@ -81,10 +87,16 @@ services:
       dockerfile: apps/docs/Dockerfile
     environment:
       - NODE_ENV=production
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
     restart: unless-stopped
 
   mongodb:
-    # Upgrade prerequisite: set FCV 8.3 on MongoDB 8.3 before this image starts.
+    # Production already runs MongoDB 9.0.4 with featureCompatibilityVersion 8.3.
     # Keep FCV 8.3 during burn-in; do not enable FCV 9.0 implicitly.
     # This build handles Ubuntu's kernel version signature without the rseq fallback.
     image: mongo:9.0.4-resolute@sha256:714cc3db1e396e5a464b8443ccde50e53283368809401f53f1997b684ddb5be0
@@ -96,7 +108,18 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f
+    # Password required for every client on the compose network. REDIS_PASSWORD
+    # must be URL-safe (it is embedded in REDIS_URL); use e.g. `openssl rand -hex 24`.
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\""]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     volumes:
       - redis_data:/data
     restart: unless-stopped
