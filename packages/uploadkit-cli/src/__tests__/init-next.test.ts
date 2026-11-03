@@ -72,6 +72,8 @@ describe('initNextApp — fresh run', () => {
     expect(layoutSrc).toContain('uploadkit:start');
     // Provider appears BETWEEN <body> and {children}, not replacing existing structure.
     const bodyOpen = layoutSrc.indexOf('<body');
+    // The provider throws at render time without an endpoint.
+    expect(layoutSrc).toContain('<UploadKitProvider endpoint="/api/uploadkit">');
     const providerOpen = layoutSrc.indexOf('<UploadKitProvider');
     const childrenRef = layoutSrc.indexOf('{children}');
     expect(bodyOpen).toBeLessThan(providerOpen);

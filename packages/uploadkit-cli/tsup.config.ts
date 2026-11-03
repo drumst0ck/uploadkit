@@ -23,6 +23,9 @@ export default defineConfig({
   dts: false,
   splitting: false,
   shims: false,
+  // @uploadkitdev/shared is a private workspace package: inline it so the
+  // published CLI has no runtime dependency on it.
+  noExternal: ['@uploadkitdev/shared'],
   banner: { js: '#!/usr/bin/env node' },
   onSuccess: async () => {
     mkdirSync(dirname(TEMPLATE_DEST), { recursive: true });

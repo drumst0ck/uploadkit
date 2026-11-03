@@ -41,8 +41,10 @@ jobs:
           node-version: 22
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - name: Build uploadkit CLI
-        run: pnpm --filter uploadkit build
+      # The smoke installs the SDK packages from local tarballs, so what is
+      # about to be published is what gets tested (not stale npm `latest`).
+      - name: Build uploadkit CLI and SDK packages
+        run: pnpm turbo run build --filter=uploadkit... --filter=@uploadkitdev/react... --filter=@uploadkitdev/next...
       - name: Smoke - ${{ matrix.framework }}
         # Hard gate: release needs this job, so a failing smoke blocks publish.
         run: pnpm --filter uploadkit smoke ${{ matrix.framework }}
