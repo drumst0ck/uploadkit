@@ -44,7 +44,7 @@ export default async function DashboardLayout({
     slug: p.slug,
   }));
 
-  const isAdmin = isAdminSession(session);
+  const isAdmin = await isAdminSession(session);
 
   // One-shot: non-null only the first time a newly created user gets here.
   const signUp = await consumeSignUpTracking(user.id);

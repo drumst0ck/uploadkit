@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { connectDB, User, Project, File, Subscription } from '@uploadkitdev/db';
+import { escapeRegex } from '../../../../lib/regex';
 import { formatBytes, formatDate } from '../../../../lib/format';
 import {
   Table,
@@ -46,8 +47,8 @@ export default async function AdminUsersPage({
   const filter: Record<string, unknown> = {};
   if (q && q.trim()) {
     filter.$or = [
-      { name: { $regex: q.trim(), $options: 'i' } },
-      { email: { $regex: q.trim(), $options: 'i' } },
+      { name: { $regex: escapeRegex(q.trim()), $options: 'i' } },
+      { email: { $regex: escapeRegex(q.trim()), $options: 'i' } },
     ];
   }
 

@@ -34,8 +34,19 @@ export async function PUT(
 
   const { enabled, retentionDays } = body as { enabled?: boolean; retentionDays?: number };
 
+  const isEnabled = enabled === true;
+  if (
+    isEnabled &&
+    (typeof retentionDays !== 'number' || !Number.isInteger(retentionDays) || retentionDays < 1)
+  ) {
+    return NextResponse.json(
+      { error: 'retentionDays must be an integer of at least 1 when the policy is enabled' },
+      { status: 400 },
+    );
+  }
+
   project.lifecyclePolicy = {
-    enabled: Boolean(enabled),
+    enabled: isEnabled,
     retentionDays: Math.min(3650, Math.max(0, Number(retentionDays) || 0)),
   };
   await project.save();

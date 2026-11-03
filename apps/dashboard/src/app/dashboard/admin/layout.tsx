@@ -21,7 +21,7 @@ export default async function AdminLayout({
   await connectDB();
   const session = await auth();
   if (!session?.user) redirect('/login');
-  if (!isAdminSession(session)) redirect('/dashboard');
+  if (!(await isAdminSession(session))) redirect('/dashboard');
 
   return (
     <div className="space-y-6 sm:space-y-8">

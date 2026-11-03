@@ -1,23 +1,35 @@
 import type { Session } from 'next-auth';
+import { connectDB, User } from '@uploadkitdev/db';
 
-/**
- * Comma-separated list of email addresses granted admin panel access.
- * Set via ADMIN_EMAILS env var. Emails are compared case-insensitively
- * after trimming whitespace.
- */
-function getAdminEmails(): Set<string> {
-  const raw = process.env.ADMIN_EMAILS ?? '';
+function csvSet(raw: string | undefined, lower: boolean): Set<string> {
   return new Set(
-    raw
+    (raw ?? '')
       .split(',')
-      .map((e) => e.trim().toLowerCase())
+      .map((e) => (lower ? e.trim().toLowerCase() : e.trim()))
       .filter(Boolean),
   );
 }
 
-export function isAdminSession(session: Session | null): boolean {
-  if (!session?.user?.email) return false;
-  return getAdminEmails().has(session.user.email.toLowerCase());
+/**
+ * Admin panel access. Either:
+ *  - the user id is in ADMIN_USER_IDS (comma-separated), or
+ *  - the stored account email is in ADMIN_EMAILS AND that email is verified
+ *    (a provider-supplied but unverified address never grants admin).
+ * The check reads the stored user, not the email claim carried by the session.
+ */
+export async function isAdminSession(session: Session | null): Promise<boolean> {
+  const userId = session?.user?.id;
+  if (!userId) return false;
+
+  if (csvSet(process.env.ADMIN_USER_IDS, false).has(userId)) return true;
+
+  const adminEmails = csvSet(process.env.ADMIN_EMAILS, true);
+  if (adminEmails.size === 0) return false;
+
+  await connectDB();
+  const user = await User.findById(userId).select('email emailVerified').lean();
+  if (!user?.email || !user.emailVerified) return false;
+  return adminEmails.has(user.email.trim().toLowerCase());
 }
 
 /**
