@@ -51,6 +51,31 @@ curl https://api.uploadkit.dev/api/v1/projects \
 
 ---
 
+## GET /api/v1/projects/me
+
+Returns the project the API key belongs to and the account plan. Use it to check that a key works before uploading.
+
+```bash
+curl https://api.uploadkit.dev/api/v1/projects/me \
+  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx"
+```
+
+**Response:**
+
+```json
+{
+  "project": {
+    "_id": "65f1a2b3c4d5e6f7a8b9c0d1",
+    "name": "My Application",
+    "slug": "my-application-a1b2c3",
+    "tier": "PRO"
+  },
+  "tier": "PRO"
+}
+```
+
+---
+
 ## POST /api/v1/projects
 
 Project API keys cannot create projects. The request is rejected with `403 FORBIDDEN`; create projects from the [dashboard](/docs/dashboard/projects).
