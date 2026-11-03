@@ -40,7 +40,7 @@ const plans: PlanView[] = PLAN_TIERS.map((t) => ({
   forWhom: FOR[t.slug]!,
   monthly: t.price.monthly,
   yearly: t.price.yearly,
-  cta: t.slug === 'free' ? 'Start free' : 'Start 14-day trial',
+  cta: t.slug === 'free' ? 'Start free' : t.slug === 'pro' ? 'Start 14-day trial' : 'Get Team',
   href: t.ctaHref,
   pick: t.slug === 'pro',
   items: items(t),
@@ -134,8 +134,8 @@ export function Pricing({ standalone = false }: { standalone?: boolean }) {
           editors and delivery from Cloudflare&apos;s network.
         </p>
         <p>
-          <b>No surprises.</b> We email you at 80% of any limit. Upgrades and downgrades apply at once and are prorated. Pro and
-          Team start with a 14-day trial, no card required.
+          <b>No surprises.</b> We email you at 80% of any limit. Upgrades and downgrades apply at once and are prorated. Pro includes a
+          14-day free trial: add a card to start, you are not charged until the trial ends and you can cancel anytime before. Team has no trial.
         </p>
         <p>
           Need more than Team, SSO or a 99.99% SLA? <a className="go" href={ENTERPRISE.ctaHref}>Talk to us about Enterprise</a>

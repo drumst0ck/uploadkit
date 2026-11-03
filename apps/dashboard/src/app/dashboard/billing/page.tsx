@@ -6,7 +6,7 @@ import { createCheckoutSession } from './actions';
 import { Button } from '@uploadkitdev/ui';
 import { ManageBillingButton } from '../../../components/manage-billing-button';
 import { SubscriptionPurchaseTracker } from '../../../components/subscription-purchase-tracker';
-import type { Tier } from '@uploadkitdev/shared';
+import { isTrialEligible, PRO_TRIAL_DAYS, type Tier } from '@uploadkitdev/shared';
 import { parsePlanIntent } from '../../../lib/plan-intent';
 
 export const dynamic = 'force-dynamic';
@@ -68,11 +68,17 @@ interface VerifiedPurchase {
   value: number;
 }
 
-async function getVerifiedPurchase(
+interface VerifiedCheckout {
+  /** Set only when a paid invoice exists; a trial start has no charge to report. */
+  purchase: VerifiedPurchase | null;
+  trial: boolean;
+}
+
+async function getVerifiedCheckout(
   checkoutSessionId: string | undefined,
   userId: string,
   stripeCustomerId: string | undefined,
-): Promise<VerifiedPurchase | null> {
+): Promise<VerifiedCheckout | null> {
   if (!checkoutSessionId || !stripeCustomerId) return null;
 
   try {
@@ -89,14 +95,18 @@ async function getVerifiedPurchase(
 
     if (
       checkoutSession.mode !== 'subscription' ||
-      checkoutSession.payment_status !== 'paid' ||
       checkoutSession.metadata?.userId !== userId ||
       customerId !== stripeCustomerId ||
-      !invoiceId ||
       (plan !== 'PRO' && plan !== 'TEAM')
     ) {
       return null;
     }
+
+    // Trial checkout: card saved, nothing charged yet.
+    if (checkoutSession.payment_status === 'no_payment_required') {
+      return { purchase: null, trial: true };
+    }
+    if (checkoutSession.payment_status !== 'paid' || !invoiceId) return null;
 
     const invoice = await stripe.invoices.retrieve(invoiceId);
     const invoiceCustomerId =
@@ -110,10 +120,13 @@ async function getVerifiedPurchase(
     }
 
     return {
-      conversionId: invoiceId,
-      currency: invoice.currency.toUpperCase(),
-      plan,
-      value: invoice.amount_paid / 100,
+      trial: false,
+      purchase: {
+        conversionId: invoiceId,
+        currency: invoice.currency.toUpperCase(),
+        plan,
+        value: invoice.amount_paid / 100,
+      },
     };
   } catch {
     return null;
@@ -155,17 +168,23 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
   }
 
   const params = await searchParams;
-  const purchase =
+  const checkout =
     params.success === '1'
-      ? await getVerifiedPurchase(
+      ? await getVerifiedCheckout(
           params.session_id,
           session.user.id,
           subscription?.stripeCustomerId,
         )
       : null;
-  const showSuccess = purchase !== null;
+  const purchase = checkout?.purchase ?? null;
+  const showSuccess = checkout !== null;
+  const trialStarted = checkout?.trial === true;
 
   const proPriceId = process.env.STRIPE_PRO_PRICE_ID ?? '';
+  const proYearlyPriceId = process.env.STRIPE_PRO_YEARLY_PRICE_ID ?? '';
+  // Display hint only: the server action re-checks eligibility (incl. Stripe history).
+  const trialEligible = isTrialEligible(subscription, false);
+  const proCta = trialEligible ? `Start ${PRO_TRIAL_DAYS}-day free trial` : 'Upgrade to Pro';
   const teamPriceId = process.env.STRIPE_TEAM_PRICE_ID ?? '';
 
   // Plan chosen on the marketing pricing page (`/login?mode=signup&plan=pro`).
@@ -175,9 +194,9 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
     showSuccess || !planIntent
       ? null
       : planIntent === 'pro' && tier === 'FREE' && proPriceId
-        ? { label: 'Pro', priceId: proPriceId }
+        ? { label: 'Pro', priceId: proPriceId, yearlyPriceId: proYearlyPriceId }
         : planIntent === 'team' && (tier === 'FREE' || tier === 'PRO') && teamPriceId
-          ? { label: 'Team', priceId: teamPriceId }
+          ? { label: 'Team', priceId: teamPriceId, yearlyPriceId: '' }
           : null;
 
   return (
@@ -195,7 +214,9 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       {showSuccess && (
         <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
           <p className="text-sm font-medium text-emerald-400">
-            Subscription activated successfully. Welcome to UploadKit Pro!
+            {trialStarted
+              ? `Your ${PRO_TRIAL_DAYS}-day free trial has started. You won't be charged until it ends, and you can cancel anytime before from Manage Billing.`
+              : 'Subscription activated successfully. Welcome to UploadKit Pro!'}
           </p>
         </div>
       )}
@@ -208,12 +229,25 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               Finish upgrading to {intendedCheckout.label}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              You picked the {intendedCheckout.label} plan. Continue to secure checkout to activate it.
+              {intendedCheckout.label === 'Pro'
+                ? trialEligible
+                  ? `You picked the Pro plan. Start your ${PRO_TRIAL_DAYS}-day free trial: add a card now, you won't be charged until the trial ends, and you can cancel anytime before.`
+                  : 'You picked the Pro plan. Continue to secure checkout to activate it.'
+                : 'You picked the Team plan. Continue to secure checkout to activate it.'}
             </p>
           </div>
-          <form action={createCheckoutSession.bind(null, intendedCheckout.priceId)}>
-            <Button type="submit">Continue to checkout</Button>
-          </form>
+          <div className="flex flex-wrap gap-3">
+            <form action={createCheckoutSession.bind(null, intendedCheckout.priceId)}>
+              <Button type="submit">
+                {intendedCheckout.label === 'Pro' ? `${proCta} · $15/month` : 'Continue to checkout'}
+              </Button>
+            </form>
+            {intendedCheckout.yearlyPriceId && (
+              <form action={createCheckoutSession.bind(null, intendedCheckout.yearlyPriceId)}>
+                <Button type="submit" variant="outline">{proCta} · $144/year</Button>
+              </form>
+            )}
+          </div>
         </div>
       )}
 
@@ -237,14 +271,19 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           {/* Upgrade to Pro — shown for FREE users */}
           {tier === 'FREE' && proPriceId && (
             <form action={createCheckoutSession.bind(null, proPriceId)}>
-              <Button type="submit">Upgrade to Pro</Button>
+              <Button type="submit">{proCta} · $15/month</Button>
+            </form>
+          )}
+          {tier === 'FREE' && proYearlyPriceId && (
+            <form action={createCheckoutSession.bind(null, proYearlyPriceId)}>
+              <Button type="submit" variant="outline">{proCta} · $144/year</Button>
             </form>
           )}
 
           {/* Upgrade to Team — shown for FREE and PRO users */}
           {(tier === 'FREE' || tier === 'PRO') && teamPriceId && (
             <form action={createCheckoutSession.bind(null, teamPriceId)}>
-              <Button type="submit" className="bg-violet-500 shadow-violet-500/20 hover:bg-violet-400 hover:shadow-violet-500/30">Upgrade to Team</Button>
+              <Button type="submit" className="bg-violet-500 shadow-violet-500/20 hover:bg-violet-400 hover:shadow-violet-500/30">Get Team</Button>
             </form>
           )}
 
@@ -253,6 +292,11 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
             <ManageBillingButton />
           )}
         </div>
+        {tier === 'FREE' && trialEligible && (
+          <p className="mt-4 text-xs text-muted-foreground">
+            Pro includes a {PRO_TRIAL_DAYS}-day free trial. A card is required, you are not charged until the trial ends, and you can cancel anytime before.
+          </p>
+        )}
       </div>
 
       {/* Invoice history */}

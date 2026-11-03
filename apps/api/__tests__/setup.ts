@@ -6,6 +6,7 @@ process.env.CRON_SECRET = 'test-cron-secret';
 process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_fake';
 process.env.STRIPE_PRO_PRICE_ID = 'price_pro_fake';
+process.env.STRIPE_PRO_YEARLY_PRICE_ID = 'price_pro_yearly_fake';
 process.env.STRIPE_TEAM_PRICE_ID = 'price_team_fake';
 process.env.STRIPE_ENTERPRISE_PRICE_ID = 'price_enterprise_fake';
 process.env.R2_ACCOUNT_ID = 'test-account-id';

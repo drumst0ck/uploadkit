@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, Subscription, StripeEvent } from '@uploadkitdev/db';
+import { resolveCheckoutPlan } from '@uploadkitdev/shared';
 import { stripe } from '@/lib/stripe';
 import { sendInvoiceEmail } from '@uploadkitdev/emails';
 import { sendXPurchaseConversion } from '@/lib/x-conversions';
@@ -45,8 +46,9 @@ function resolveStripeStatus(stripeStatus: string): {
 // without assigning a tier. Throwing would turn a configuration gap into a
 // 500 that Stripe retries for days.
 function mapPriceToTier(priceId: string): 'PRO' | 'TEAM' | 'ENTERPRISE' | null {
-  if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'PRO';
-  if (priceId === process.env.STRIPE_TEAM_PRICE_ID) return 'TEAM';
+  // Pro monthly and Pro yearly both grant PRO; Team grants TEAM.
+  const plan = resolveCheckoutPlan(priceId, process.env);
+  if (plan) return plan.tier;
   if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) return 'ENTERPRISE';
   console.error('[stripe-webhook] Unknown priceId, event acknowledged without tier change:', priceId);
   return null;
@@ -138,6 +140,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         // (double click / two tabs) must not overwrite stripeSubscriptionId — that would
         // leave the first subscription billing with no reference. Cancel the duplicate.
         const current = await Subscription.findOne({ userId }).lean();
+        // The checkout of a trial leaves the subscription 'trialing' until the first charge.
+        const checkoutStatus = sub.status === 'trialing' ? 'TRIALING' : 'ACTIVE';
         if (
           current?.stripeSubscriptionId &&
           current.stripeSubscriptionId !== sub.id &&
@@ -160,7 +164,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
               stripePriceId: priceId,
               stripeCustomerId: session.customer as string,
               tier,
-              status: 'ACTIVE',
+              status: checkoutStatus,
+              // One trial per account: record the first paid/trial subscription (never overwritten).
+              trialUsedAt: current?.trialUsedAt ?? new Date(),
               ...(periodStart !== undefined ? { currentPeriodStart: periodStart } : {}),
               ...(periodEnd !== undefined ? { currentPeriodEnd: periodEnd } : {}),
               cancelAtPeriodEnd: sub.cancel_at_period_end,
@@ -249,7 +255,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const paidCustomer = await stripe.customers.retrieve(customerId);
         if (paidCustomer && !paidCustomer.deleted) {
           const paidEmail = paidCustomer.email;
-          if (typeof paidEmail === 'string') {
+          // A trial start produces a $0 invoice; only real charges get a receipt.
+          if (typeof paidEmail === 'string' && invoice.amount_paid > 0) {
             void sendInvoiceEmail(paidEmail, {
               userName: paidCustomer.name ?? 'there',
               type: 'paid',
