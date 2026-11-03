@@ -61,7 +61,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build uploadkit CLI
-        run: pnpm --filter uploadkit build
+        run: pnpm turbo run build --filter=uploadkit... --filter=@uploadkitdev/react... --filter=@uploadkitdev/next...
 
       - name: Smoke - ${{ matrix.framework }}
         # NOTE: soft gate until the SDK packages (`@uploadkitdev/next`,
