@@ -483,3 +483,85 @@ export function LifecycleSettings({ slug, initial }: LifecycleSettingsProps) {
     </div>
   );
 }
+
+interface CdnAccessSettingsProps {
+  slug: string;
+  initial: 'public' | 'signed';
+}
+
+export function CdnAccessSettings({ slug, initial }: CdnAccessSettingsProps) {
+  const [access, setAccess] = React.useState<'public' | 'signed'>(initial);
+  const [saving, setSaving] = React.useState(false);
+  const [message, setMessage] = React.useState('');
+  const [error, setError] = React.useState('');
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setMessage('');
+    setError('');
+
+    try {
+      const res = await fetch(`/api/internal/projects/${slug}/cdn-access`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? 'Failed to update CDN access.');
+        return;
+      }
+      setMessage('CDN access saved.');
+    } catch {
+      setError('Network error.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-6">
+      <h2 className="mb-1 text-sm font-medium text-foreground">File access</h2>
+      <p className="mb-5 text-xs text-muted-foreground">
+        Public files are served from permanent URLs. Signed files need a short-lived link: the
+        dashboard and API return URLs that expire after one hour, and the permanent URL stops
+        working. Existing links you already shared will break when you switch to signed.
+      </p>
+
+      <form onSubmit={(e) => { void save(e); }} className="flex flex-col gap-4">
+        <label className="flex items-center gap-2 text-sm text-foreground">
+          <input
+            type="radio"
+            name="cdn-access"
+            checked={access === 'public'}
+            onChange={() => setAccess('public')}
+            className="accent-indigo-500"
+          />
+          Public (default)
+        </label>
+        <label className="flex items-center gap-2 text-sm text-foreground">
+          <input
+            type="radio"
+            name="cdn-access"
+            checked={access === 'signed'}
+            onChange={() => setAccess('signed')}
+            className="accent-indigo-500"
+          />
+          Signed, expiring URLs
+        </label>
+
+        {message && <p className="text-xs text-emerald-400">{message}</p>}
+        {error && <p className="text-xs text-red-400">{error}</p>}
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-fit rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400 disabled:opacity-50"
+        >
+          {saving ? 'Saving…' : 'Save access'}
+        </button>
+      </form>
+    </div>
+  );
+}

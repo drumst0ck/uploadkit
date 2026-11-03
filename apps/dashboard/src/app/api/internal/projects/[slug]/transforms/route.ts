@@ -54,7 +54,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Transformations require a paid plan', upgradeRequired: true }, { status: 403 });
   }
 
-  const { fileId: _fileId, delivery, ...rawTransform } = parsed.data;
+  // Signed projects never get stable public transform URLs (they would bypass signing).
+  const { fileId: _fileId, delivery: requestedDelivery, ...rawTransform } = parsed.data;
+  const delivery = project.cdnAccess === 'signed' ? 'signed' : requestedDelivery;
   const transform = rawTransform as DashboardImageTransform;
   try {
     const result = createDashboardTransformUrl(file.key, transform, delivery);
