@@ -693,6 +693,9 @@ importers:
       '@uploadkitdev/core':
         specifier: workspace:*
         version: link:../core
+      '@uploadkitdev/react':
+        specifier: workspace:*
+        version: link:../react
       nanoid:
         specifier: ^5.1.16
         version: 5.1.16
@@ -703,6 +706,9 @@ importers:
       '@types/express':
         specifier: 5.0.6
         version: 5.0.6
+      '@types/node':
+        specifier: 26.1.0
+        version: 26.1.0
       '@types/react':
         specifier: 19.2.14
         version: 19.2.14
@@ -758,9 +764,6 @@ importers:
       '@uploadkitdev/config':
         specifier: workspace:*
         version: link:../config
-      '@uploadkitdev/next':
-        specifier: workspace:*
-        version: link:../next
       jsdom:
         specifier: ^29.0.2
         version: 29.0.2

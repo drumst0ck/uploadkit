@@ -45,5 +45,5 @@ export function getRouteConfig(
   slug: string
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): RouteConfig<any> | null {
-  return router[slug] ?? null;
+  return Object.prototype.hasOwnProperty.call(router, slug) ? router[slug] ?? null : null;
 }

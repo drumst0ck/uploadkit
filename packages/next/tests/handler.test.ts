@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+afterEach(() => vi.unstubAllGlobals());
 
 // server-only is a no-op in tests — mock it
 vi.mock('server-only', () => ({}));
@@ -85,7 +86,7 @@ describe('createUploadKitHandler', () => {
         },
       } satisfies FileRouter;
 
-      const handler = createUploadKitHandler({ router });
+      const handler = createUploadKitHandler({ router, apiKey: 'test-key' });
       const mockFile = {
         id: 'file-1',
         key: 'images/test.jpg',
@@ -95,9 +96,10 @@ describe('createUploadKitHandler', () => {
         url: 'https://cdn.example.com/test.jpg',
       };
 
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ file: mockFile })));
       const req = makeRequest('POST', 'http://localhost/api/uploadkit/imageUploader', {
         action: 'upload-complete',
-        file: mockFile,
+        fileId: mockFile.id,
       });
       const ctx = makeParams('imageUploader');
 
@@ -139,10 +141,12 @@ describe('createUploadKitHandler', () => {
         },
       } satisfies FileRouter;
 
-      const handler = createUploadKitHandler({ router });
+      const file = { id: 'f1', key: 'k1', name: 'f.jpg', size: 100, type: 'image/jpeg', url: 'https://cdn.test/k1' };
+      const handler = createUploadKitHandler({ router, apiKey: 'test-key' });
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ file })));
       const req = makeRequest('POST', 'http://localhost/api/uploadkit/plainRoute', {
         action: 'upload-complete',
-        file: { id: 'f1', key: 'k1', name: 'f.jpg', size: 100, type: 'image/jpeg', url: 'https://cdn.test/k1' },
+        fileId: file.id,
       });
       const ctx = makeParams('plainRoute');
 

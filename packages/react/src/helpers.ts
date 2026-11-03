@@ -1,5 +1,4 @@
 import type React from 'react';
-import type { FileRouter } from '@uploadkitdev/next';
 import { UploadButton } from './components/upload-button';
 import { UploadDropzone } from './components/upload-dropzone';
 import { UploadModal } from './components/upload-modal';
@@ -30,7 +29,9 @@ import type { UploadModalProps } from './components/upload-modal';
  * The TypeScript assertion is safe — at runtime UploadButton/Dropzone/Modal accept any
  * string route; type narrowing is purely a compile-time constraint.
  */
-export function generateReactHelpers<TRouter extends FileRouter>() {
+// Only route keys are needed here. A structural constraint keeps this package
+// independent of the server SDK (which forwards to this factory).
+export function generateReactHelpers<TRouter extends Record<string, unknown>>() {
   // Narrow the route prop to the literal keys of TRouter while keeping all other props.
   type TypedButtonProps = Omit<UploadButtonProps, 'route'> & { route: keyof TRouter & string };
   type TypedDropzoneProps = Omit<UploadDropzoneProps, 'route'> & { route: keyof TRouter & string };

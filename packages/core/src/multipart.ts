@@ -58,6 +58,11 @@ export async function multipartUpload(
   let completedParts = 0;
 
   const etags: Array<{ partNumber: number; etag: string }> = [];
+  const partsController = new AbortController();
+  const abortParts = () => partsController.abort();
+  signal?.addEventListener('abort', abortParts, { once: true });
+  if (signal?.aborted) abortParts();
+  let completionStarted = false;
 
   try {
     // Step 2: Upload parts in batches of CONCURRENCY=3
@@ -75,7 +80,10 @@ export async function multipartUpload(
           const end = Math.min(start + PART_SIZE, file.size);
           const partBlob = file.slice(start, end);
 
-          const etag = await xhrPutPart(part.uploadUrl, partBlob, file.type, signal);
+          const etag = await withRetry(
+            () => xhrPutPart(part.uploadUrl, partBlob, file.type, partsController.signal),
+            { maxRetries, signal: partsController.signal },
+          );
 
           completedParts++;
           if (onProgress) {
@@ -89,6 +97,9 @@ export async function multipartUpload(
       etags.push(...batchResults);
     }
 
+    // Once completion is dispatched, failure may only mean the response was lost.
+    // Never abort an upload which the server may already have committed.
+    completionStarted = true;
     // Step 3: Complete multipart upload — assemble all parts
     const completeResponse = await withRetry(
       () =>
@@ -112,16 +123,21 @@ export async function multipartUpload(
 
     return completeResponse.file;
   } catch (err) {
-    // Pitfall 3: Always abort multipart on failure to avoid orphaned uploads in R2
-    try {
-      await fetchApi(baseUrl, config.apiKey, '/api/v1/upload/multipart/abort', {
-        method: 'POST',
-        body: { fileId, uploadId },
-      });
-    } catch {
-      // Abort failure is non-fatal — log but don't mask original error
+    // Stop in-flight XHRs (and prevent retries) before storage cleanup.
+    partsController.abort();
+    if (!completionStarted) {
+      try {
+        await fetchApi(baseUrl, config.apiKey, '/api/v1/upload/multipart/abort', {
+          method: 'POST',
+          body: { fileId, uploadId },
+        });
+      } catch {
+        // Cleanup must not mask the original error.
+      }
     }
     throw err;
+  } finally {
+    signal?.removeEventListener('abort', abortParts);
   }
 }
 
@@ -139,15 +155,18 @@ function xhrPutPart(
   return new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
+    const onAbort = () => xhr.abort();
+    const cleanup = () => signal?.removeEventListener('abort', onAbort);
     if (signal) {
       if (signal.aborted) {
         reject(new UploadKitError('UPLOAD_ABORTED', 'Upload was aborted', 0));
         return;
       }
-      signal.addEventListener('abort', () => xhr.abort());
+      signal.addEventListener('abort', onAbort, { once: true });
     }
 
     xhr.onload = () => {
+      cleanup();
       if (xhr.status >= 200 && xhr.status < 300) {
         // Pitfall 2: ETag is required for multipart complete assembly
         const etag = xhr.getResponseHeader('ETag');
@@ -174,15 +193,22 @@ function xhrPutPart(
     };
 
     xhr.onerror = () => {
+      cleanup();
       reject(new UploadKitError('NETWORK_ERROR', 'Network error during part upload', 0));
     };
 
     xhr.onabort = () => {
+      cleanup();
       reject(new UploadKitError('UPLOAD_ABORTED', 'Part upload was aborted', 0));
     };
 
-    xhr.open('PUT', url);
-    xhr.setRequestHeader('Content-Type', contentType);
-    xhr.send(part);
+    try {
+      xhr.open('PUT', url);
+      xhr.setRequestHeader('Content-Type', contentType);
+      xhr.send(part);
+    } catch (err) {
+      cleanup();
+      reject(err);
+    }
   });
 }

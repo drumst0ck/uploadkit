@@ -8,6 +8,7 @@ import { createUploadKitHandler } from '../handler';
  * Mount like:
  * ```ts
  * import { createExpressHandler } from '@uploadkitdev/next/express';
+ * app.use(express.json()); // Required before mounting the handler
  * app.all('/api/uploadkit/{*path}', createExpressHandler({ router, apiKey }));  // Express v5
  * app.all('/api/uploadkit/*', createExpressHandler({ router, apiKey }));        // Express v4
  * ```
@@ -26,6 +27,15 @@ export function createExpressHandler<TRouter extends FileRouter>(
     }
 
     const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
+    if (hasBody && (req.body === undefined || req.body === null || typeof req.body !== 'object')) {
+      res.status(400);
+      res.setHeader('Content-Type', 'application/json');
+      res.send(JSON.stringify({ error: { code: 'INVALID_BODY', message: 'A parsed JSON body is required. Mount express.json() before the UploadKit handler.' } }));
+      return;
+    }
+    // Parsed JSON is reserialized, so the original wire framing is no longer valid.
+    headers.delete('content-length');
+    headers.delete('transfer-encoding');
     const webReq = new Request(url, {
       method: req.method,
       headers,
