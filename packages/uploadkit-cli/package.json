@@ -41,10 +41,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "prebuild": "pnpm --filter @uploadkitdev/shared build",
     "build": "tsup",
     "dev": "tsup --watch",
-    "pretypecheck": "pnpm --filter @uploadkitdev/shared build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
