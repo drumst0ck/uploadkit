@@ -22,7 +22,7 @@ const REL_ENV = '.env';
 // Canonical SDK specifiers for SvelteKit. No React provider — SvelteKit users
 // wire UploadKit into their own components via the Svelte UploadKit SDK when
 // released. Until then, the core client gives them a typed server handler.
-const PKGS = ['@uploadkitdev/core@latest'];
+const PKGS = ['@uploadkitdev/next@latest', '@uploadkitdev/core@latest'];
 
 const TEMPLATE_DIR = resolve(fileURLToPath(import.meta.url), '..', 'templates');
 
@@ -50,7 +50,7 @@ async function writeIfAbsent(
  * SvelteKit has no React provider surface, so we do NOT touch any `.svelte`
  * file. Instead we:
  *   1. Create `src/routes/api/uploadkit/[...uploadkit]/+server.ts`
- *   2. Create `src/lib/uploadkit.ts` server client
+ *   2. Create `src/lib/uploadkit.ts` file router (`ukRouter`)
  *   3. Merge `.env` with `UPLOADKIT_API_KEY=uk_test_placeholder`
  *   4. Install `@uploadkitdev/core`
  *

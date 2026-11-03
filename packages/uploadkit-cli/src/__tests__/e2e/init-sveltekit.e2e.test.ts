@@ -38,12 +38,12 @@ describe.sequential('e2e: uploadkit init (sveltekit)', () => {
     expect(routeSrc).toContain('uploadkit:start');
     expect(routeSrc).toContain('RequestHandler');
 
-    // Client stub wires @uploadkitdev/core (no React in Svelte-land).
+    // Client stub defines the file router consumed by the route handler.
     const clientPath = join(root, 'src', 'lib', 'uploadkit.ts');
     expect(existsSync(clientPath)).toBe(true);
     const clientSrc = readFileSync(clientPath, 'utf8');
-    expect(clientSrc).toContain('createUploadKit');
-    expect(clientSrc).toContain('@uploadkitdev/core');
+    expect(clientSrc).toContain('ukRouter');
+    expect(clientSrc).toContain('@uploadkitdev/next');
 
     // Env file uses the un-prefixed key — SvelteKit exposes PUBLIC_ explicitly,
     // so secret keys stay un-prefixed and server-only.

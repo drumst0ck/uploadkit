@@ -11,7 +11,7 @@
  *   2. Runs the BUILT uploadkit CLI against the scaffolded project:
  *        node <repo>/packages/uploadkit-cli/dist/index.js init --yes --skip-install
  *   3. Installs deps inside the scaffolded project (`pnpm install
- *      --ignore-workspace --prefer-offline`) to give the wired-in SDK
+ *      --ignore-workspace`) to give the wired-in SDK
  *      dependencies a real `node_modules` to resolve against.
  *   4. Runs the scaffolded project's TypeScript check + build. The exact
  *      commands differ per starter (Next/Remix/Vite use `tsc --noEmit` + `build`;
@@ -30,7 +30,15 @@
  * Linux-only by design (D-10). Windows CI deferred.
  */
 import { execa, type Options as ExecaOptions } from 'execa';
-import { mkdtempSync, rmSync, existsSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  existsSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -120,7 +128,7 @@ async function scaffold(framework: Framework, tmpRoot: string): Promise<string> 
     case 'sveltekit':
       // `sv create` is the current SvelteKit scaffolder (replaces the old
       // `create-svelte`). `--template minimal --types ts --no-add-ons
-      // --install none` produces the same skeleton the docs recommend without
+      // --no-install` produces the same skeleton the docs recommend without
       // prompts or extra add-on confusion.
       await run(
         'npx',
@@ -134,15 +142,14 @@ async function scaffold(framework: Framework, tmpRoot: string): Promise<string> 
           '--types',
           'ts',
           '--no-add-ons',
-          '--install',
-          'none',
+          '--no-install',
         ],
         { cwd: tmpRoot },
       );
       break;
     case 'remix':
       // React Router 7 (successor to Remix). `create-react-router` is the
-      // official scaffolder. `--no-install --no-git --yes` keeps it
+      // official scaffolder. `--no-install --no-git-init --yes` keeps it
       // non-interactive; we install ourselves after `uploadkit init`.
       await run(
         'npx',
@@ -151,7 +158,7 @@ async function scaffold(framework: Framework, tmpRoot: string): Promise<string> 
           'create-react-router@latest',
           PROJECT_NAME,
           '--no-install',
-          '--no-git',
+          '--no-git-init',
           '--yes',
         ],
         { cwd: tmpRoot },
@@ -206,7 +213,72 @@ async function runUploadkitInit(projectDir: string): Promise<void> {
  * (which would resolve `@uploadkitdev/*` from `packages/` and hide publish
  * bugs). We want the CI leg to see the published surface.
  */
-async function installAndBuild(framework: Framework, projectDir: string): Promise<void> {
+// `uploadkit init --skip-install` only prints the `add` command, it does not
+// touch package.json, so the smoke adds the SDK packages the CLI reports.
+// They are installed from tarballs of the LOCAL built workspace packages
+// (what is about to be published), not from npm `latest`, which can be stale.
+const SDK_PACKAGES: Record<Framework, string[]> = {
+  'next-app': ['@uploadkitdev/next', '@uploadkitdev/react'],
+  sveltekit: ['@uploadkitdev/next', '@uploadkitdev/core'],
+  remix: ['@uploadkitdev/react', '@uploadkitdev/core'],
+  'vite-react': ['@uploadkitdev/react'],
+};
+
+const WORKSPACE_DIRS: Record<string, string> = {
+  '@uploadkitdev/core': 'core',
+  '@uploadkitdev/react': 'react',
+  '@uploadkitdev/next': 'next',
+};
+
+/**
+ * `pnpm pack` the built workspace packages (rewrites `workspace:*` ranges to
+ * real versions) and return name -> absolute tarball path.
+ */
+async function packSdk(tmpRoot: string): Promise<Record<string, string>> {
+  const dest = join(tmpRoot, '_tarballs');
+  mkdirSync(dest, { recursive: true });
+  const out: Record<string, string> = {};
+  for (const [name, dir] of Object.entries(WORKSPACE_DIRS)) {
+    const pkgDir = resolve(repoRoot, 'packages', dir);
+    if (!existsSync(join(pkgDir, 'dist'))) {
+      throw new Error(
+        `${name} is not built (${pkgDir}/dist missing). Run: pnpm turbo run build --filter=@uploadkitdev/react... --filter=@uploadkitdev/next...`,
+      );
+    }
+    const before = new Set(readdirSync(dest));
+    await run('pnpm', ['pack', '--pack-destination', dest], { cwd: pkgDir });
+    const created = readdirSync(dest).filter((f) => !before.has(f) && f.endsWith('.tgz'));
+    if (created.length !== 1) throw new Error(`Expected one tarball for ${name}, got ${created.join(',')}`);
+    out[name] = join(dest, created[0]!);
+  }
+  return out;
+}
+
+/**
+ * Point the scaffolded project at the local tarballs: direct deps use
+ * `file:` specs and `pnpm.overrides` forces the same tarballs for transitive
+ * `@uploadkitdev/*` dependencies (e.g. next -> react), so nothing resolves to
+ * the registry copy.
+ */
+function wireLocalSdk(framework: Framework, projectDir: string, tarballs: Record<string, string>): void {
+  const pkgPath = join(projectDir, 'package.json');
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as Record<string, unknown> & {
+    dependencies?: Record<string, string>;
+    pnpm?: { overrides?: Record<string, string> };
+  };
+  pkg.dependencies = pkg.dependencies ?? {};
+  for (const name of SDK_PACKAGES[framework]) pkg.dependencies[name] = `file:${tarballs[name]}`;
+  pkg.pnpm = pkg.pnpm ?? {};
+  pkg.pnpm.overrides = pkg.pnpm.overrides ?? {};
+  for (const [name, tgz] of Object.entries(tarballs)) pkg.pnpm.overrides[name] = `file:${tgz}`;
+  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+}
+
+async function installAndBuild(
+  framework: Framework,
+  projectDir: string,
+  tarballs: Record<string, string>,
+): Promise<void> {
   // `packageManager` field can be missing or pinned to a version not present
   // on the runner. Bypass Corepack's version check so we always use the pnpm
   // that pnpm/action-setup@v4 just installed.
@@ -214,14 +286,16 @@ async function installAndBuild(framework: Framework, projectDir: string): Promis
 
   // SvelteKit's `sync` generates `.svelte-kit/tsconfig.json` (needed by
   // svelte-check) and requires node_modules present first — so install first.
-  await run(
-    'pnpm',
-    ['install', '--ignore-workspace', '--prefer-offline', '--no-frozen-lockfile'],
-    { cwd: projectDir, env },
-  );
+  wireLocalSdk(framework, projectDir, tarballs);
+  await run('pnpm', ['install', '--ignore-workspace', '--no-frozen-lockfile'], {
+    cwd: projectDir,
+    env,
+  });
 
   switch (framework) {
     case 'next-app':
+      // Next 16 declares global route types (e.g. LayoutProps) via typegen.
+      await run('pnpm', ['exec', 'next', 'typegen'], { cwd: projectDir, env });
       await run('pnpm', ['exec', 'tsc', '--noEmit'], { cwd: projectDir, env });
       await run('pnpm', ['exec', 'next', 'build'], { cwd: projectDir, env });
       break;
@@ -264,10 +338,11 @@ async function smokeOne(framework: Framework): Promise<void> {
   const tmpRoot = mkdtempSync(join(tmpdir(), `uploadkit-cli-smoke-${framework}-`));
   log(`[${framework}] tmp root: ${tmpRoot}`);
   try {
+    const tarballs = await packSdk(tmpRoot);
     const projectDir = await scaffold(framework, tmpRoot);
     seedPlaceholderEnv(framework, projectDir);
     await runUploadkitInit(projectDir);
-    await installAndBuild(framework, projectDir);
+    await installAndBuild(framework, projectDir, tarballs);
     const ms = Date.now() - t0;
     log(`[${framework}] OK in ${Math.round(ms / 1000)}s`);
   } finally {

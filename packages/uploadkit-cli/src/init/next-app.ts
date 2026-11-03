@@ -146,7 +146,7 @@ export const initNextApp: InitImpl = async (ctx, getSession) => {
     });
     const wrapped = wrapChildrenOf(withImport, {
       parentTag: 'body',
-      wrapperOpen: `<${PROVIDER_LOCAL}>`,
+      wrapperOpen: `<${PROVIDER_LOCAL} endpoint="/api/uploadkit">`,
       wrapperClose: `</${PROVIDER_LOCAL}>`,
     });
     if (wrapped !== existingLayout) {

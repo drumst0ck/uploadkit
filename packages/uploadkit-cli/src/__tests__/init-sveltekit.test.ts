@@ -66,8 +66,8 @@ describe('initSvelteKit — fresh run', () => {
     const clientPath = join(root, 'src', 'lib', 'uploadkit.ts');
     expect(existsSync(clientPath)).toBe(true);
     const clientSrc = readFileSync(clientPath, 'utf8');
-    expect(clientSrc).toContain('createUploadKit');
-    expect(clientSrc).toContain('@uploadkitdev/core');
+    expect(clientSrc).toContain('ukRouter');
+    expect(clientSrc).toContain('@uploadkitdev/next');
 
     // .env (not .env.local — Vite-based, but plan says .env)
     const envPath = join(root, '.env');
@@ -92,10 +92,13 @@ describe('initSvelteKit — fresh run', () => {
     expect(actions['src/routes/+layout.svelte']).toBeUndefined();
   });
 
-  it('reports installed packages (core only, no React)', async () => {
+  it('reports installed packages (next handler + core, no React provider)', async () => {
     const session = createBackupSession(root, { timestamp: '2026-04-15T01-00-01Z' });
     const result = await initSvelteKit(makeCtx(root), () => session);
-    expect(result.installed).toEqual(['@uploadkitdev/core@latest']);
+    expect(result.installed).toEqual([
+      '@uploadkitdev/next@latest',
+      '@uploadkitdev/core@latest',
+    ]);
     // Must NOT pull in @uploadkitdev/react — no provider in Svelte.
     expect(result.installed.some((p) => p.includes('react'))).toBe(false);
   });
@@ -144,5 +147,44 @@ describe('initSvelteKit — idempotency (second run)', () => {
     expect(after).toEqual(before);
 
     expect(existsSync(s2.dir)).toBe(false);
+  });
+});
+
+describe('sveltekit templates — only use exported APIs', () => {
+  const TEMPLATES = resolve(dirname(new URL(import.meta.url).pathname), '..', 'init', 'templates');
+  const NEXT_INDEX = resolve(
+    dirname(new URL(import.meta.url).pathname),
+    '..', '..', '..', 'next', 'src', 'index.ts',
+  );
+
+  function exportedNames(src: string): Set<string> {
+    const names = new Set<string>();
+    for (const m of src.matchAll(/export\s+(?:type\s+)?\{([^}]+)\}/g)) {
+      for (const part of m[1]!.split(',')) {
+        const n = part.trim().split(/\s+as\s+/).pop();
+        if (n) names.add(n);
+      }
+    }
+    return names;
+  }
+
+  it('imports from @uploadkitdev/next only names the package exports', () => {
+    const exported = exportedNames(readFileSync(NEXT_INDEX, 'utf8'));
+    for (const tpl of ['sveltekit-server.ts.tpl', 'sveltekit-client.ts.tpl']) {
+      const src = readFileSync(join(TEMPLATES, tpl), 'utf8');
+      for (const m of src.matchAll(/import\s+(?:type\s+)?\{([^}]+)\}\s+from\s+'@uploadkitdev\/next'/g)) {
+        for (const part of m[1]!.split(',')) {
+          const name = part.trim().replace(/^type\s+/, '').split(/\s+as\s+/)[0]!;
+          expect(exported.has(name), `${tpl} imports "${name}" which @uploadkitdev/next does not export`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('server template does not call removed/nonexistent client methods or $lib', () => {
+    const src = readFileSync(join(TEMPLATES, 'sveltekit-server.ts.tpl'), 'utf8');
+    expect(src).not.toMatch(/\.handle\(/);
+    expect(src).not.toContain('$lib');
+    expect(src).toContain('createUploadKitHandler');
   });
 });
