@@ -84,7 +84,7 @@ export async function runPrompts(parsed: ParsedFlags): Promise<ResolvedOptions> 
 
   // --- project name ---
   let name: string | undefined = parsed.positional;
-  if (!name) {
+  if (name === undefined) {
     if (parsed.yes) {
       name = DEFAULT_NAME;
     } else {
@@ -106,7 +106,15 @@ export async function runPrompts(parsed: ParsedFlags): Promise<ResolvedOptions> 
       name = ensureNotCancelled(answer) as string;
     }
   }
+  const problem = validateProjectName(name);
+  if (problem) throw new Error(problem);
   const sanitized = sanitizeName(name);
+  const sanitizedProblem = validateProjectName(sanitized);
+  if (sanitizedProblem) throw new Error(sanitizedProblem);
+  const projectDir = path.resolve(process.cwd(), sanitized);
+  if (dirHasConflict(projectDir, parsed.force)) {
+    throw new Error(`Directory "${sanitized}" already exists and is not empty (use --force to override)`);
+  }
 
   // --- template ---
   let template: TemplateId | undefined = parsed.template;
@@ -184,8 +192,6 @@ export async function runPrompts(parsed: ParsedFlags): Promise<ResolvedOptions> 
     });
     gitInit = ensureNotCancelled(answer) as boolean;
   }
-
-  const projectDir = path.resolve(process.cwd(), sanitized);
 
   return {
     name: sanitized,

@@ -239,6 +239,10 @@ function textResult(text: string) {
   return { content: [{ type: 'text' as const, text }] };
 }
 
+function errorResult(text: string) {
+  return { ...textResult(text), isError: true };
+}
+
 function jsonResult(value: unknown) {
   return textResult(JSON.stringify(value, null, 2));
 }
@@ -301,7 +305,11 @@ export function registerTools(server: Server): void {
             '@uploadkitdev/react',
             '@uploadkitdev/next',
           ];
-        return textResult(installCommand(pm, pkgs));
+        try {
+          return textResult(installCommand(pm, pkgs));
+        } catch (error) {
+          return errorResult(error instanceof Error ? error.message : 'Invalid install command arguments');
+        }
       }
 
       case 'scaffold_route_handler': {
@@ -367,15 +375,31 @@ export function registerTools(server: Server): void {
         };
         const baseUrl = (process.env['UPLOADKIT_API_URL'] ?? 'https://api.uploadkit.dev')
           .replace(/\/+$/, '');
-        const response = await fetch(`${baseUrl}/api/v1/transforms/image`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-        const body = await response.json() as unknown;
+        const signal = AbortSignal.timeout(30_000);
+        let response: Response;
+        try {
+          response = await fetch(`${baseUrl}/api/v1/transforms/image`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            signal,
+          });
+        } catch {
+          return errorResult(signal.aborted
+            ? 'UploadKit transform timed out after 30 seconds.'
+            : 'UploadKit transform request failed. Check the API URL and network connection.');
+        }
+        let body: unknown;
+        try {
+          body = await response.json();
+        } catch {
+          return errorResult(signal.aborted
+            ? 'UploadKit transform timed out after 30 seconds.'
+            : `UploadKit transform failed (${response.status}): invalid JSON response.`);
+        }
         if (!response.ok) {
           return textResult(`UploadKit transform failed (${response.status}): ${JSON.stringify(body)}`);
         }

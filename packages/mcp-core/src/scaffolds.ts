@@ -7,6 +7,13 @@ export function installCommand(
   deps: string[],
   dev = false,
 ): string {
+  if (!['pnpm', 'npm', 'yarn', 'bun'].includes(pm)) {
+    throw new Error('Unsupported package manager');
+  }
+  if (!Array.isArray(deps) || deps.length === 0 ||
+      deps.some((dep) => typeof dep !== 'string' || dep.trim() !== dep || !/^@uploadkitdev\/[a-z-]+$/.test(dep))) {
+    throw new Error('Packages must be @uploadkitdev/ package names containing lowercase letters and hyphens only');
+  }
   const list = deps.join(' ');
   const devFlag = dev ? ' -D' : '';
   switch (pm) {
@@ -136,9 +143,8 @@ export const { GET, POST } = createUploadKitHandler({
   if (provider === 'gcs') {
     return {
       env: `# .env.local
-GCS_PROJECT_ID=...
-GCS_CLIENT_EMAIL=...
-GCS_PRIVATE_KEY=...
+GCS_ACCESS_KEY_ID=...
+GCS_SECRET_ACCESS_KEY=...
 GCS_BUCKET=your-bucket`,
       handler: `import { createUploadKitHandler, type FileRouter } from '@uploadkitdev/next';
 import { createGCSStorage } from '@uploadkitdev/next/byos';
@@ -148,14 +154,15 @@ const router = { media: { maxFileSize: '8MB', maxFileCount: 4, allowedTypes: ['i
 export const { GET, POST } = createUploadKitHandler({
   router,
   storage: createGCSStorage({
-    projectId: process.env.GCS_PROJECT_ID!,
-    clientEmail: process.env.GCS_CLIENT_EMAIL!,
-    privateKey: process.env.GCS_PRIVATE_KEY!.replace(/\\\\n/g, '\\n'),
+    region: 'auto',
+    endpoint: 'https://storage.googleapis.com',
+    accessKeyId: process.env.GCS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.GCS_SECRET_ACCESS_KEY!,
     bucket: process.env.GCS_BUCKET!,
   }),
 });`,
       notes:
-        'GCS is S3-compatible via the HMAC interop mode. Escape newlines in GCS_PRIVATE_KEY when storing as an env var.',
+        'GCS uses S3-compatible HMAC interoperability credentials, not a service-account private key. Create an HMAC access key and secret in Cloud Storage and configure bucket CORS for your domain.',
     };
   }
   // b2
@@ -178,11 +185,10 @@ export const { GET, POST } = createUploadKitHandler({
     accessKeyId: process.env.B2_ACCESS_KEY_ID!,
     secretAccessKey: process.env.B2_SECRET_ACCESS_KEY!,
     bucket: process.env.B2_BUCKET!,
-    forcePathStyle: true,
   }),
 });`,
     notes:
-      'Backblaze B2 is S3-compatible — reuse createS3Storage with the B2 endpoint. forcePathStyle is required.',
+      'Backblaze B2 is S3-compatible — reuse createS3Storage with the B2 endpoint. The SDK configures path-style access internally.',
   };
 }
 
