@@ -35,7 +35,7 @@ import type { FileRouter } from '@uploadkitdev/next';
 const router = {
   imageUploader: {
     maxFileSize: '4MB',       // string with unit: '512KB', '4MB', '100MB'
-    maxFileCount: 1,          // max files per request (default: 1)
+    maxFileCount: 1,          // max files per selection, enforced by the React SDK (no limit if omitted)
     allowedTypes: ['image/*'], // MIME type patterns — glob-style
   },
 
@@ -63,10 +63,18 @@ export const { GET, POST } = createUploadKitHandler({ router });
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `maxFileSize` | `string \| number` | tier limit | Maximum file size. String units: `KB`, `MB`, `GB`. Number is bytes. The more restrictive of this value and your tier limit applies. |
-| `maxFileCount` | `number` | `1` | How many files can be uploaded in a single request. |
+| `maxFileCount` | `number` | no limit | Maximum number of files in a single selection or upload batch. Enforced client-side by `@uploadkitdev/react` (see below). |
 | `allowedTypes` | `string[]` | `['*/*']` | Accepted MIME types. Supports glob-style patterns like `image/*` or exact types like `application/pdf`. |
 | `middleware` | `(ctx) => TMiddleware` | — | Async function that runs server-side before the upload is authorized. Throw to reject. Return value is passed to `onUploadComplete`. |
 | `onUploadComplete` | `(args) => void` | — | Async callback that runs server-side after the file is stored in R2/S3. |
+
+### `maxFileCount` is a per-selection client-side limit
+
+`maxFileCount` is published to the browser by the handler's `GET` route config. The React components (`UploadDropzone`, its variants, and every multi-file component) and `useUploadKit().checkSelection(files)` read it and reject a selection with more files than the limit. Nothing from the rejected selection is uploaded, and the error reaches your `onUploadError` callback (or the hook's `error` state) with code `TOO_MANY_FILES` and a message naming the limit. When `maxFileCount` is omitted there is no limit.
+
+<Callout type="warn">
+  This is a UX guard for one selection, not a server-side security quota. It does not cap how many files a user uploads over time, across several selections, or by calling your endpoint directly. Enforce lifetime or per-user quotas in `middleware()` and with your plan limits.
+</Callout>
 
 ## Middleware
 

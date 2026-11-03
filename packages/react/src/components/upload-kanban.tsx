@@ -5,6 +5,7 @@
 import { forwardRef, useCallback, useRef, useState } from 'react';
 import type { UploadResult } from '@uploadkitdev/core';
 import { useUploadKitContext } from '../context';
+import { useSelectionGuard } from '../utils/selection-guard';
 import { useDragState } from '../hooks/use-drag-state';
 import { mergeClass } from '../utils/merge-class';
 import { formatBytes } from '../utils/format-bytes';
@@ -114,8 +115,10 @@ export const UploadKanban = forwardRef<HTMLDivElement, UploadKanbanProps>(
 
     // ── Upload logic ────────────────────────────────────────────────────────
 
+    const guardSelection = useSelectionGuard(route, onUploadError);
     const processFiles = useCallback(
       async (incoming: File[]) => {
+        if (!(await guardSelection(incoming))) return;
         const trimmed = maxFiles !== undefined ? incoming.slice(0, maxFiles) : incoming;
         const accepted: FileEntry[] = [];
 

@@ -61,7 +61,7 @@ export const { GET, POST } = createUploadKitHandler({
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `maxFileSize` | `string \| number` | — | Maximum file size. String format: `'4MB'`, `'512KB'`, `'1GB'`. Numbers are treated as bytes. Server enforces this limit authoritatively. |
-| `maxFileCount` | `number` | — | Maximum number of files per upload session. Only enforced server-side when using `UploadDropzone` or multi-file APIs. |
+| `maxFileCount` | `number` | — | Maximum number of files per selection. Enforced client-side by the React SDK (`TOO_MANY_FILES`), not a server-side quota. No limit when omitted. |
 | `allowedTypes` | `string[]` | — | Accepted MIME types. Supports wildcards: `'image/*'` accepts all image types. `'application/pdf'` accepts only PDFs. |
 | `middleware` | `(ctx: { req: Request }) => Promise<TMiddleware> \| TMiddleware` | — | Async function that receives the raw `Request` and returns metadata. Throw an error to reject the upload. |
 | `onUploadComplete` | `(args: { file: UploadedFile; metadata: TMiddleware }) => Promise<unknown> \| unknown` | — | Called after the file is successfully uploaded to storage. Receives the file record and the metadata returned by `middleware`. |
