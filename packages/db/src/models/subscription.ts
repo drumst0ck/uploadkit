@@ -12,6 +12,8 @@ export interface ISubscription extends Document {
   currentPeriodStart?: Date;
   currentPeriodEnd?: Date;
   cancelAtPeriodEnd: boolean;
+  /** Set when the account's one-time Pro trial starts (or on first paid subscription). */
+  trialUsedAt?: Date;
   imageTransformLimit?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -36,6 +38,7 @@ const subscriptionSchema = new Schema<ISubscription>(
     currentPeriodStart: { type: Date },
     currentPeriodEnd: { type: Date },
     cancelAtPeriodEnd: { type: Boolean, default: false },
+    trialUsedAt: { type: Date },
     imageTransformLimit: { type: Number, min: 0 },
   },
   { timestamps: true },

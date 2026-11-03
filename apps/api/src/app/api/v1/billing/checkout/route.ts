@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { checkoutTrialParams, isTrialEligible, resolveCheckoutPlan } from '@uploadkitdev/shared';
 import { connectDB, Subscription, User } from '@uploadkitdev/db';
 import { stripe } from '../../../../../lib/stripe';
 import { requireInternalSecret } from '../../../../../lib/secure-compare';
@@ -38,12 +39,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const { userId, priceId, twclid } = parsed.data;
 
     // T-07-02: Validate priceId against known values — reject unknown prices
-    const validPriceIds = [
-      process.env.STRIPE_PRO_PRICE_ID,
-      process.env.STRIPE_TEAM_PRICE_ID,
-    ].filter(Boolean);
-
-    if (!validPriceIds.includes(priceId)) {
+    const plan = resolveCheckoutPlan(priceId, process.env);
+    if (!plan) {
       return NextResponse.json(
         { error: { type: 'invalid_request', code: 'INVALID_PRICE', message: 'Unknown price ID' } },
         { status: 400 },
@@ -104,7 +101,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const appUrl = getAppUrl();
-    const tier = priceId === process.env.STRIPE_PRO_PRICE_ID ? 'PRO' : 'TEAM';
+    const tier = plan.tier;
+
+    // One trial per account: local flag/history plus the Stripe customer's history.
+    let eligible = false;
+    if (tier === 'PRO') {
+      const history = existing?.stripeCustomerId
+        ? await stripe.subscriptions.list({ customer: existing.stripeCustomerId, status: 'all', limit: 1 })
+        : { data: [] };
+      eligible = isTrialEligible(existing, history.data.length > 0);
+    }
+    const trial = checkoutTrialParams(plan, eligible);
     const attributionMetadata = twclid ? { xTwclid: twclid } : {};
 
     const session = await stripe.checkout.sessions.create({
@@ -113,8 +120,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${appUrl}/dashboard/billing?success=1&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/dashboard/billing`,
+      ...trial.topLevel,
       metadata: { userId, tier, ...attributionMetadata },
-      subscription_data: { metadata: { userId, tier, ...attributionMetadata } },
+      subscription_data: { metadata: { userId, tier, ...attributionMetadata }, ...trial.subscriptionData },
     });
 
     return NextResponse.json({ url: session.url }, { status: 200 });

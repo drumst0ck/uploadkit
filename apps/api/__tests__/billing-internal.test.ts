@@ -15,6 +15,7 @@ vi.mock('@uploadkitdev/db', () => ({
 vi.mock('@/lib/stripe', () => ({
   stripe: {
     customers: { create: vi.fn().mockResolvedValue({ id: 'cus_new' }) },
+    subscriptions: { list: vi.fn().mockResolvedValue({ data: [] }) },
     checkout: { sessions: { create: vi.fn().mockResolvedValue({ url: 'https://stripe/checkout' }) } },
     billingPortal: { sessions: { create: vi.fn().mockResolvedValue({ url: 'https://stripe/portal' }) } },
   },
