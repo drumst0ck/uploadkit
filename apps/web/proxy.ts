@@ -16,13 +16,18 @@ export function proxy(request: NextRequest): NextResponse {
   const isUploadKitDomain =
     hostname === 'uploadkit.dev' || hostname.endsWith('.uploadkit.dev');
 
+  // https directly or behind a TLS-terminating proxy
+  const isHttps =
+    request.nextUrl.protocol === 'https:' ||
+    request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim() === 'https';
+
   response.cookies.set(X_CLICK_ID_COOKIE, twclid, {
     ...(isUploadKitDomain ? { domain: '.uploadkit.dev' } : {}),
     httpOnly: true,
     maxAge: NINETY_DAYS_SECONDS,
     path: '/',
     sameSite: 'lax',
-    secure: isUploadKitDomain,
+    secure: isUploadKitDomain || isHttps,
   });
 
   return response;

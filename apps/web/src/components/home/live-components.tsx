@@ -5,7 +5,7 @@
 // in the browser. This is the same approach the existing landing showcase uses.
 
 import '@uploadkitdev/react/styles.css'
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   FileList,
   ProxyUploadKitClient,
@@ -16,6 +16,7 @@ import {
   UploadProgressBar,
 } from '@uploadkitdev/react'
 import type { UploadResult } from '@uploadkitdev/react'
+import { revokeDropped } from '@/lib/object-urls'
 
 class DemoClient extends ProxyUploadKitClient {
   constructor() {
@@ -70,8 +71,16 @@ function Lab({ name, text, children }: { name: string; text: string; children: R
 export function LiveComponents() {
   const client = useMemo(() => new DemoClient(), [])
   const [files, setFiles] = useState(SEED)
-  const add = useCallback((r: UploadResult[]) => setFiles((f) => [...r, ...f].slice(0, 5)), [])
-  const remove = useCallback((key: string) => setFiles((f) => f.filter((x) => x.key !== key)), [])
+  // Object URLs created by the demo upload are released as soon as a file leaves the list.
+  const latest = useRef(files)
+  const commit = useCallback((next: UploadResult[]) => {
+    revokeDropped(latest.current, next)
+    latest.current = next
+    setFiles(next)
+  }, [])
+  useEffect(() => () => revokeDropped(latest.current, []), [])
+  const add = useCallback((r: UploadResult[]) => commit([...r, ...latest.current].slice(0, 5)), [commit])
+  const remove = useCallback((key: string) => commit(latest.current.filter((x) => x.key !== key)), [commit])
 
   return (
     <UploadKitProvider client={client}>
