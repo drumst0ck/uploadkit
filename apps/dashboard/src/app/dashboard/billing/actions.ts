@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { auth } from '../../../../auth';
+import { checkoutTrialParams, isTrialEligible, resolveCheckoutPlan } from '@uploadkitdev/shared';
 import { connectDB, Subscription, User } from '@uploadkitdev/db';
 import { stripe } from '../../../lib/stripe';
 import { getAppUrl } from '../../../lib/app-url';
@@ -29,12 +30,8 @@ export async function createCheckoutSession(priceId: string): Promise<never> {
     cookieTwclid && X_CLICK_ID_PATTERN.test(cookieTwclid) ? cookieTwclid : undefined;
 
   // T-07-02: Validate priceId against known values
-  const validPriceIds = [
-    process.env.STRIPE_PRO_PRICE_ID,
-    process.env.STRIPE_TEAM_PRICE_ID,
-  ].filter(Boolean);
-
-  if (!validPriceIds.includes(priceId)) {
+  const plan = resolveCheckoutPlan(priceId, process.env);
+  if (!plan) {
     throw new Error('Invalid price ID');
   }
 
@@ -86,7 +83,17 @@ export async function createCheckoutSession(priceId: string): Promise<never> {
       : (await Subscription.findOne({ userId }))?.stripeCustomerId ?? customer.id;
   }
 
-  const tier = priceId === process.env.STRIPE_PRO_PRICE_ID ? 'PRO' : 'TEAM';
+  const tier = plan.tier;
+
+  // One trial per account: local flag/history plus the Stripe customer's history.
+  let eligible = false;
+  if (tier === 'PRO') {
+    const history = existing?.stripeCustomerId
+      ? await stripe.subscriptions.list({ customer: existing.stripeCustomerId, status: 'all', limit: 1 })
+      : { data: [] };
+    eligible = isTrialEligible(existing, history.data.length > 0);
+  }
+  const trial = checkoutTrialParams(plan, eligible);
   const attributionMetadata = twclid ? { xTwclid: twclid } : {};
 
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -95,8 +102,9 @@ export async function createCheckoutSession(priceId: string): Promise<never> {
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${appUrl}/dashboard/billing?success=1&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/dashboard/billing`,
+    ...trial.topLevel,
     metadata: { userId, tier, ...attributionMetadata },
-    subscription_data: { metadata: { userId, tier, ...attributionMetadata } },
+    subscription_data: { metadata: { userId, tier, ...attributionMetadata }, ...trial.subscriptionData },
   });
 
   if (!checkoutSession.url) {
