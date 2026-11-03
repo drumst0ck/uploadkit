@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '../../../../../auth';
 import { connectDB, UsageRecord, File, Project } from '@uploadkitdev/db';
+import { withSignedUrl } from '../../../../lib/cdn-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +25,7 @@ export async function GET() {
   thirtyDaysAgo.setDate(now.getDate() - 30);
 
   // Get user's project IDs to scope file queries (IFile uses projectId, not userId directly)
-  const userProjects = await Project.find({ userId }).select('_id').lean();
+  const userProjects = await Project.find({ userId }).select('_id cdnAccess').lean();
   const projectIds = userProjects.map((p) => p._id);
 
   const [usage, totalFiles, todayUploads, recentFiles, chartData] =
@@ -73,7 +74,10 @@ export async function GET() {
     bandwidth: usage?.bandwidth ?? 0,
     todayUploads,
     totalFiles,
-    recentFiles,
+    // Signed projects get freshly signed URLs
+    recentFiles: recentFiles.map((file) =>
+      withSignedUrl(userProjects.find((p) => String(p._id) === String(file.projectId)) ?? {}, file),
+    ),
     chartData: chartData.map((d) => ({ date: d._id, uploads: d.uploads })),
   });
 }

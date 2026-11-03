@@ -1,6 +1,6 @@
 ---
 title: Projects Endpoints
-description: Create, list, update, and delete projects via the REST API.
+description: Read, update, and delete the project your API key belongs to via the REST API.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
@@ -24,7 +24,7 @@ Projects are the top-level resource in UploadKit. Each project has its own API k
 
 ## GET /api/v1/projects
 
-List all projects belonging to the authenticated account.
+Returns the project the API key belongs to (as a one-element list). API keys are scoped to a single project, so other projects of the same account are never listed.
 
 **curl example:**
 
@@ -53,41 +53,13 @@ curl https://api.uploadkit.dev/api/v1/projects \
 
 ## POST /api/v1/projects
 
-Create a new project. A default file router (slug: `default`) is created automatically so the project is ready to accept uploads.
-
-**Request body:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Human-readable project name (1–100 characters) |
-
-**curl example:**
-
-```bash
-curl -X POST https://api.uploadkit.dev/api/v1/projects \
-  -H "Authorization: Bearer uk_live_xxxxxxxxxxxxxxxxxxxxx" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "My New Application"
-  }'
-```
-
-**Response:** `{ "project": { ... } }` with the created project and HTTP `201 Created`.
+Project API keys cannot create projects. The request is rejected with `403 FORBIDDEN`; create projects from the [dashboard](/docs/dashboard/projects).
 
 **Error cases:**
 
 | Code | HTTP | Cause |
 |------|------|-------|
-| `TIER_LIMIT_EXCEEDED` | 403 | Project limit for your tier has been reached |
-
-Project limits by tier:
-
-| Tier | Max projects |
-|------|-------------|
-| Free | 2 |
-| Pro | 10 |
-| Team | 50 |
-| Enterprise | Unlimited |
+| `FORBIDDEN` | 403 | Any call with a project API key |
 
 ---
 

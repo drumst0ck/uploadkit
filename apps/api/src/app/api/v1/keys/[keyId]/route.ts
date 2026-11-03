@@ -5,6 +5,7 @@ import { Types } from 'mongoose';
 import { connectDB, ApiKey, Project } from '@uploadkitdev/db';
 import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
+import { assertProjectScope } from '@/lib/project-scope';
 import { serializeError } from '@/lib/errors';
 
 // DELETE /api/v1/keys/:keyId — revoke an API key
@@ -26,6 +27,8 @@ async function handleDelete(
   if (!apiKey) {
     throw new NotFoundError('ApiKey', keyId);
   }
+
+  assertProjectScope(ctx, apiKey.projectId, 'ApiKey', keyId);
 
   // T-03-14: verify the key's project belongs to the authenticated user
   const project = await Project.findOne({

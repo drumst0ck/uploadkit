@@ -1,11 +1,12 @@
 export const runtime = 'nodejs';
 
+import { withUserQuotaLock } from '@/lib/user-quota';
 import { AbortMultipartUploadCommand } from '@aws-sdk/client-s3';
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, File } from '@uploadkitdev/db';
 import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey } from '@/lib/with-api-key';
-import { serializeError, serializeValidationError } from '@/lib/errors';
+import { readJson, serializeError, serializeValidationError } from '@/lib/errors';
 import { MultipartAbortSchema } from '@/lib/schemas';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
 
@@ -14,7 +15,7 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
     await connectDB();
 
     // 1. Parse and validate request body
-    const parsed = MultipartAbortSchema.safeParse(await req.json());
+    const parsed = MultipartAbortSchema.safeParse(await readJson(req));
     if (!parsed.success) {
       return serializeValidationError(parsed.error);
     }
@@ -52,4 +53,4 @@ async function handler(req: NextRequest, ctx: import('@/lib/with-api-key').ApiCo
   }
 }
 
-export const POST = withApiKey(handler, true);
+export const POST = withApiKey((req, ctx) => withUserQuotaLock(ctx.project.userId, () => handler(req, ctx)), true);

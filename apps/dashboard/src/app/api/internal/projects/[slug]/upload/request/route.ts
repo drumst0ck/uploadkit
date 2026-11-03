@@ -10,6 +10,7 @@ import { auth } from '../../../../../../../../auth';
 import { Project } from '@uploadkitdev/db';
 import { generatePresignedPutUrl } from '@/lib/presign';
 import { CDN_URL } from '@/lib/storage';
+import { withSignedUrl } from '@/lib/cdn-access';
 
 const UploadRequestBody = z.object({
   fileName: z.string().min(1).max(255),
@@ -108,6 +109,6 @@ export async function POST(
     fileId: file._id.toString(),
     uploadUrl,
     key,
-    cdnUrl: file.url,
+    cdnUrl: withSignedUrl(project, { key, url: file.url }).url,
   });
 }

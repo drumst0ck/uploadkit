@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '../../../../../../auth';
 import { connectDB, File, ImageTransformation, Project, Subscription, UsageRecord } from '@uploadkitdev/db';
 import { TIER_LIMITS, type Tier } from '@uploadkitdev/shared';
+import { withSignedUrl } from '../../../../../lib/cdn-access';
 import { ImageTransformStudio } from '../../../../../components/image-transform-studio';
 
 export const dynamic = 'force-dynamic';
@@ -18,7 +19,7 @@ export default async function TransformationsPage({
   const { slug } = await params;
   await connectDB();
   const period = new Date().toISOString().slice(0, 7);
-  const project = await Project.findOne({ slug, userId: session.user.id }).select('_id').lean();
+  const project = await Project.findOne({ slug, userId: session.user.id }).select('_id cdnAccess').lean();
   const requestedFile = (await searchParams).file;
   const [subscription, usage, transformations] = await Promise.all([
     Subscription.findOne({ userId: session.user.id }).select('tier imageTransformLimit').lean(),
@@ -71,7 +72,7 @@ export default async function TransformationsPage({
           key: initialFile.key,
           size: initialFile.size,
           type: initialFile.type,
-          url: initialFile.url,
+          url: withSignedUrl(project ?? {}, initialFile).url,
           status: initialFile.status,
           projectId: String(initialFile.projectId),
           createdAt: initialFile.createdAt.toISOString(),

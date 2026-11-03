@@ -3,6 +3,7 @@ import express from 'express';
 import { createUploadKit } from '@uploadkitdev/core';
 import { createExpressHandler } from '@uploadkitdev/next/express';
 import type { FileRouter } from '@uploadkitdev/next';
+import { requireAdminToken } from './auth';
 
 const app = express();
 app.use(express.json());
@@ -10,6 +11,14 @@ app.use(express.json());
 // Validate required env vars at startup
 if (!process.env.UPLOADKIT_API_KEY) {
   console.error('ERROR: UPLOADKIT_API_KEY is required. Copy .env.example to .env and fill in your key.');
+  process.exit(1);
+}
+
+// File list/delete run with your API key, so they require this bearer token.
+// Fail closed: refuse to start without it instead of exposing them anonymously.
+const adminToken = process.env.EXAMPLE_ADMIN_TOKEN;
+if (!adminToken || adminToken.length < 16) {
+  console.error('ERROR: EXAMPLE_ADMIN_TOKEN (min 16 chars) is required to protect /files. Generate one with: openssl rand -hex 24');
   process.exit(1);
 }
 
@@ -26,7 +35,7 @@ const uploadRouter = {
     maxFileSize: '50MB',
     maxFileCount: 10,
     middleware: async ({ req: _req }) => {
-      // Add auth or context here in a real app
+      // Anonymous in this demo: add real user auth here before deploying, or anyone can upload with your key
       return { source: 'express-api-example' };
     },
     onUploadComplete: async ({ file, metadata }) => {
@@ -43,7 +52,7 @@ app.all('/api/uploadkit/{*path}', createExpressHandler({
 }));
 
 // List files — server-side call to UploadKit API using the core client
-app.get('/files', async (_req, res) => {
+app.get('/files', requireAdminToken(adminToken), async (_req, res) => {
   try {
     const result = await uk.listFiles({ limit: 20 });
     res.json(result);
@@ -54,7 +63,7 @@ app.get('/files', async (_req, res) => {
 });
 
 // Delete file by storage key — note: key may contain slashes, use encodeURIComponent on client
-app.delete('/files/{*key}', async (req, res) => {
+app.delete('/files/{*key}', requireAdminToken(adminToken), async (req, res) => {
   try {
     const key = req.params.key;
     if (!key) {
@@ -75,7 +84,9 @@ app.get('/health', (_req, res) => {
 });
 
 const PORT = process.env.PORT ?? 3012;
-app.listen(PORT, () => {
-  console.log(`UploadKit Express API running on http://localhost:${PORT}`);
-  console.log('Endpoints: GET /files | DELETE /files/:key | GET/POST /api/uploadkit/*');
+// Bind to loopback by default; set HOST=0.0.0.0 only behind your own auth/proxy.
+const HOST = process.env.HOST ?? '127.0.0.1';
+app.listen(Number(PORT), HOST, () => {
+  console.log(`UploadKit Express API running on http://${HOST}:${PORT}`);
+  console.log('Endpoints: GET /files | DELETE /files/:key (Bearer token) | GET/POST /api/uploadkit/*');
 });

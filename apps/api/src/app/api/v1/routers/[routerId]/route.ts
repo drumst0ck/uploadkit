@@ -5,8 +5,9 @@ import { Types } from 'mongoose';
 import { connectDB, FileRouter, Project } from '@uploadkitdev/db';
 import { NotFoundError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
+import { assertProjectScope } from '@/lib/project-scope';
 import { UpdateFileRouterSchema } from '@/lib/schemas';
-import { serializeValidationError, serializeError } from '@/lib/errors';
+import { readJson, serializeValidationError, serializeError } from '@/lib/errors';
 
 // PATCH /api/v1/routers/:routerId — update file router config
 async function handlePatch(
@@ -20,7 +21,7 @@ async function handlePatch(
     throw new NotFoundError('FileRouter', routerId);
   }
 
-  const body = await req.json() as unknown;
+  const body = await readJson(req) as unknown;
   const parsed = UpdateFileRouterSchema.safeParse(body);
   if (!parsed.success) {
     return serializeValidationError(parsed.error);
@@ -34,6 +35,7 @@ async function handlePatch(
     throw new NotFoundError('FileRouter', routerId);
   }
 
+  assertProjectScope(ctx, router.projectId, 'FileRouter', routerId);
   const project = await Project.findOne({
     _id: router.projectId,
     userId: ctx.project.userId,
@@ -71,6 +73,7 @@ async function handleDelete(
     throw new NotFoundError('FileRouter', routerId);
   }
 
+  assertProjectScope(ctx, router.projectId, 'FileRouter', routerId);
   const project = await Project.findOne({
     _id: router.projectId,
     userId: ctx.project.userId,

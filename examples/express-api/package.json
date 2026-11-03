@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "test": "tsx --test src/auth.test.ts"
   },
   "dependencies": {
     "@uploadkitdev/core": "workspace:*",

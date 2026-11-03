@@ -12,6 +12,7 @@ export { ImageTransformation } from './models/image-transformation';
 export { ImageTransformLock } from './models/image-transform-lock';
 export { TeamMember } from './models/team-member';
 export { StripeEvent } from './models/stripe-event';
+export { OAuthStateNonce } from './models/oauth-state-nonce';
 export { WebhookDelivery } from './models/webhook-delivery';
 export { UploadRejection, UPLOAD_REJECTION_TTL_SECONDS } from './models/upload-rejection';
 export { encryptSecret, decryptSecret } from './lib/crypto';
@@ -27,6 +28,7 @@ export type {
   CustomCdnStatus,
 } from './models/project';
 export type { ITeamMember, TeamMemberRole, TeamMemberStatus } from './models/team-member';
+export type { IOAuthStateNonce } from './models/oauth-state-nonce';
 export type { IStripeEvent, StripeEventStatus } from './models/stripe-event';
 export type { IWebhookDelivery, WebhookDeliveryStatus } from './models/webhook-delivery';
 export type { IApiKey } from './models/api-key';

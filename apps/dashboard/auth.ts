@@ -11,7 +11,8 @@ import {
 } from '@uploadkitdev/db';
 import { nanoid } from 'nanoid';
 import { markSignUpPending, recordSignUpMethod } from './src/lib/sign-up-tracking';
-import { sendWelcomeEmail } from '@uploadkitdev/emails';
+import { resolveAuthRedirect } from './src/lib/safe-redirect';
+import { sendWelcomeEmailSafe } from './src/lib/welcome-email';
 
 declare module 'next-auth' {
   interface Session {
@@ -65,10 +66,7 @@ const result: NextAuthResult = NextAuth(async () => {
 
         // EMAIL-01: Send welcome email (fire-and-forget, D-08)
         if (user.email) {
-          void sendWelcomeEmail(user.email, {
-            userName: user.name ?? 'there',
-            loginUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.uploadkit.dev'}/dashboard`,
-          });
+          void sendWelcomeEmailSafe(user.email, user.name ?? 'there');
         }
       },
       // Runs right after createUser for new accounts: record the provider.
@@ -107,10 +105,8 @@ const result: NextAuthResult = NextAuth(async () => {
       },
       async redirect({ url, baseUrl }) {
         // D-06: after login, redirect to /dashboard
-        // Security: only allow same-origin redirects (T-02-03)
-        if (url.startsWith(baseUrl)) return url;
-        if (url.startsWith('/')) return `${baseUrl}${url}`;
-        return `${baseUrl}/dashboard`;
+        // Security: only allow same-origin redirects (T-02-03), compared by parsed origin
+        return resolveAuthRedirect(url, baseUrl);
       },
     },
   };

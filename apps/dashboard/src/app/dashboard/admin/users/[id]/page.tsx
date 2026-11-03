@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { connectDB, User, Project, File, Subscription, UsageRecord, ApiKey, Account } from '@uploadkitdev/db';
+import { getUserFileStats } from '../../../../../lib/admin-stats';
 import { formatBytes, formatDate } from '../../../../../lib/format';
 import { Badge } from '@uploadkitdev/ui';
 import {
@@ -52,13 +53,12 @@ export default async function AdminUserDetailPage({ params }: Props) {
     }).sort({ createdAt: -1 }).limit(50).lean(),
   ]);
 
-  const filesByProject = new Map<string, number>();
-  let totalFileSize = 0;
-  for (const f of files) {
-    const pid = String(f.projectId);
-    filesByProject.set(pid, (filesByProject.get(pid) ?? 0) + 1);
-    totalFileSize += f.size;
-  }
+  // Totals come from an aggregate; `files` above is only the 50 most recent, for display.
+  const {
+    total: totalFileCount,
+    totalSize: totalFileSize,
+    byProject: filesByProject,
+  } = await getUserFileStats(projects.map((p) => p._id));
 
   const accountAge = Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24));
   const daysSinceLastLogin = user.lastLoginAt
@@ -117,7 +117,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Files</p>
-            <p className="text-lg font-semibold text-foreground">{files.length}</p>
+            <p className="text-lg font-semibold text-foreground">{totalFileCount}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Storage</p>

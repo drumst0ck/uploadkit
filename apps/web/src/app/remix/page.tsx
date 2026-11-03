@@ -78,8 +78,16 @@ const INSTALL = 'pnpm add @uploadkitdev/react @uploadkitdev/core'
 
 const ACTION = `import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { getUser } from '~/session.server';
 
+// Never expose this endpoint without authentication: it hands out write access to your bucket.
+// Implement getUser() with your own session lookup (cookie session, Auth.js, ...).
 export async function action({ request }: { request: Request }) {
+  const user = await getUser(request);
+  if (!user) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   if (request.method !== 'POST') {
     return Response.json(
       { error: 'Method not allowed' },
@@ -110,7 +118,7 @@ export async function action({ request }: { request: Request }) {
   const url = await getSignedUrl(
     client,
     new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET!,
+      Bucket: process.env.R2_BUCKET_NAME!,
       Key: key,
       ContentType: raw.contentType,
     }),

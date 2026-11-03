@@ -1,68 +1,22 @@
 export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { nanoid } from 'nanoid';
-import { connectDB, Project, FileRouter } from '@uploadkitdev/db';
-import { TierLimitError } from '@uploadkitdev/shared';
-import { TIER_LIMITS } from '@uploadkitdev/shared';
+import { connectDB, Project } from '@uploadkitdev/db';
+import { UploadKitError } from '@uploadkitdev/shared';
 import { withApiKey, type ApiContext } from '@/lib/with-api-key';
-import { CreateProjectSchema } from '@/lib/schemas';
-import { serializeValidationError, serializeError } from '@/lib/errors';
+import { projectResponse } from '@/lib/project-response';
+import { serializeError } from '@/lib/errors';
 
-// GET /api/v1/projects — list all projects for the authenticated user
+// GET /api/v1/projects — a project key only sees its own project. Listing every
+// project of the account is an account-level operation (dashboard session), not
+// something a project-scoped credential may do.
 async function handleGet(
   _req: NextRequest,
   ctx: ApiContext,
 ): Promise<NextResponse> {
   await connectDB();
-  const projects = await Project.find({ userId: ctx.project.userId }).lean();
-  return NextResponse.json({ projects });
-}
-
-// POST /api/v1/projects — create a new project
-async function handlePost(
-  req: NextRequest,
-  ctx: ApiContext,
-): Promise<NextResponse> {
-  const body = await req.json() as unknown;
-  const parsed = CreateProjectSchema.safeParse(body);
-  if (!parsed.success) {
-    return serializeValidationError(parsed.error);
-  }
-
-  await connectDB();
-
-  // Enforce tier limit on project count
-  const projectCount = await Project.countDocuments({ userId: ctx.project.userId });
-  if (projectCount >= TIER_LIMITS[ctx.tier].maxProjects) {
-    return serializeError(new TierLimitError('projects'));
-  }
-
-  // Generate a URL-safe slug from name + random suffix
-  const slug =
-    parsed.data.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') +
-    '-' +
-    nanoid(6);
-
-  const project = await Project.create({
-    name: parsed.data.name,
-    slug,
-    userId: ctx.project.userId,
-  });
-
-  // Create default FileRouter so user can upload immediately
-  await FileRouter.create({
-    slug: 'default',
-    projectId: project._id,
-    maxFileSize: 52428800, // 50MB
-    maxFileCount: 100,
-    allowedTypes: ['*/*'],
-  });
-
-  return NextResponse.json({ project }, { status: 201 });
+  const project = await Project.findOne({ _id: ctx.project._id, userId: ctx.project.userId }).lean();
+  return NextResponse.json({ projects: project ? [projectResponse(project)] : [] });
 }
 
 export const GET = withApiKey(async (req, ctx) => {
@@ -73,10 +27,10 @@ export const GET = withApiKey(async (req, ctx) => {
   }
 });
 
-export const POST = withApiKey(async (req, ctx) => {
-  try {
-    return await handlePost(req, ctx);
-  } catch (err) {
-    return serializeError(err);
-  }
-});
+// POST /api/v1/projects — creating projects needs account-level authority that a
+// project API key does not have. Create projects from the dashboard.
+export const POST = withApiKey(async () => serializeError(new UploadKitError(
+  'FORBIDDEN',
+  'Project API keys cannot create projects. Create projects from the dashboard.',
+  403,
+)));

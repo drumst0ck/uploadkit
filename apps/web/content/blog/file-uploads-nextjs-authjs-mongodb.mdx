@@ -162,7 +162,7 @@ export async function POST(req: Request) {
   const url = await getSignedUrl(
     r2,
     new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET!,
+      Bucket: process.env.R2_BUCKET_NAME!,
       Key: key,
       ContentType: contentType,
       ContentLength: size,

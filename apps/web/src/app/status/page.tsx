@@ -1,27 +1,43 @@
 import type { Metadata } from 'next';
 import { SiteShell } from '@/components/site/shell';
+import {
+  checkPlatform,
+  overallState,
+  type ComponentState,
+} from '@/lib/status';
 
 export const metadata: Metadata = {
   title: 'Status — UploadKit',
-  description: 'UploadKit platform status and uptime.',
+  description: 'Live UploadKit platform status: API, database, dashboard and CDN.',
 };
 
-const SERVICES = [
-  { name: 'API (api.uploadkit.dev)', status: 'operational', uptime: '99.98%' },
-  { name: 'Dashboard (app.uploadkit.dev)', status: 'operational', uptime: '99.99%' },
-  { name: 'CDN (cdn.uploadkit.dev)', status: 'operational', uptime: '99.97%' },
-  { name: 'Image Transforms', status: 'operational', uptime: '99.95%' },
-  { name: 'Webhooks (QStash)', status: 'operational', uptime: '99.96%' },
-] as const;
+// Checks run server-side and the page is regenerated at most once per minute.
+export const revalidate = 60; // must be a literal; keep equal to REVALIDATE_SECONDS
 
-export default function StatusPage() {
+const HEADLINE: Record<ComponentState, string> = {
+  operational: 'All systems operational',
+  outage: 'Some systems are having problems',
+  unknown: 'Status partially unavailable',
+};
+
+const LABEL: Record<ComponentState, string> = {
+  operational: 'operational',
+  outage: 'outage',
+  unknown: 'unknown',
+};
+
+export default async function StatusPage() {
+  const { components, checkedAt } = await checkPlatform();
+  const overall = overallState(components);
+
   return (
     <SiteShell>
       <section className="page-head" aria-labelledby="status-title">
-        <h1 className="page-title enter" id="status-title">All systems operational</h1>
+        <h1 className="page-title enter" id="status-title">{HEADLINE[overall]}</h1>
         <div className="col">
           <p className="lead enter" style={{ '--i': 1 } as React.CSSProperties}>
-            Real-time status for UploadKit services. Enterprise SLA: 99.99% on Team+ plans.
+            Results of live checks, refreshed about every minute. Last checked{' '}
+            <time dateTime={checkedAt}>{new Date(checkedAt).toUTCString()}</time>.
           </p>
         </div>
       </section>
@@ -29,11 +45,13 @@ export default function StatusPage() {
       <section aria-label="Services">
         <div className="wide" style={{ maxWidth: 760 }}>
           <ul className="rows">
-            {SERVICES.map((service) => (
-              <li key={service.name}>
-                <span>{service.name}</span>
+            {components.map((component) => (
+              <li key={component.id}>
+                <span>{component.name}</span>
                 <span className="soft small">
-                  {service.uptime} 30d · <span className="ok">{service.status}</span>
+                  <span className={component.state === 'operational' ? 'ok' : undefined}>
+                    {LABEL[component.state]}
+                  </span>
                 </span>
               </li>
             ))}

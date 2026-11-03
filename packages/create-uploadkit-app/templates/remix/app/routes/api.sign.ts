@@ -25,7 +25,7 @@ function isSignBody(value: unknown): value is SignBody {
  *   - R2_ACCOUNT_ID
  *   - R2_ACCESS_KEY_ID
  *   - R2_SECRET_ACCESS_KEY
- *   - R2_BUCKET
+ *   - R2_BUCKET_NAME (R2_BUCKET is still read for older projects)
  *
  * If any are missing, the action returns 503 with a configuration hint so
  * `pnpm dev` still boots on a fresh scaffold and the remediation surfaces on
@@ -50,13 +50,13 @@ export async function action({ request }: { request: Request }) {
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-  const bucket = process.env.R2_BUCKET;
+  const bucket = process.env.R2_BUCKET_NAME ?? process.env.R2_BUCKET;
 
   if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
     return Response.json(
       {
         error:
-          'Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET in .env.local',
+          'Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME in .env.local',
       },
       { status: 503 },
     );

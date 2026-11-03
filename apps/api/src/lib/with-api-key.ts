@@ -5,6 +5,7 @@ import type { IApiKey, IProject } from '@uploadkitdev/db';
 import { UnauthorizedError, RateLimitError } from '@uploadkitdev/shared';
 import type { Tier } from '@uploadkitdev/shared';
 import { ratelimit, transformRatelimit, uploadRatelimit } from './rate-limit';
+import { checkAuthenticationRate, recordAuthenticationFailure } from './auth-rate-limit';
 import { serializeError } from './errors';
 
 export interface ApiContext {
@@ -37,13 +38,17 @@ export function withApiKey(handler: Handler, rateLimitProfile: boolean | 'transf
     segmentData: { params: Promise<Record<string, string | string[]>> },
   ): Promise<NextResponse> => {
     try {
+      // Bound random-token attempts before any token-specific bucket or DB lookup.
+      await checkAuthenticationRate(req);
       // 1. Extract Bearer token
       const authHeader = req.headers.get('authorization');
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        await recordAuthenticationFailure(req);
         return serializeError(new UnauthorizedError());
       }
       const token = authHeader.slice(7).trim();
       if (!token) {
+        await recordAuthenticationFailure(req);
         return serializeError(new UnauthorizedError());
       }
 
@@ -67,7 +72,8 @@ export function withApiKey(handler: Handler, rateLimitProfile: boolean | 'transf
         projectId: IProject;
       }>('projectId');
 
-      if (!apiKeyDoc) {
+      if (!apiKeyDoc || !apiKeyDoc.projectId) {
+        await recordAuthenticationFailure(req);
         return serializeError(new UnauthorizedError());
       }
 
@@ -75,7 +81,7 @@ export function withApiKey(handler: Handler, rateLimitProfile: boolean | 'transf
       void ApiKey.updateOne(
         { _id: apiKeyDoc._id },
         { $set: { lastUsedAt: new Date() } },
-      );
+      ).catch((error: unknown) => console.error('[api-key] Failed to record last usage', error));
 
       const project = apiKeyDoc.projectId as unknown as IProject;
       // Cast populated doc back to IApiKey — at runtime projectId is the populated object,
@@ -91,7 +97,7 @@ export function withApiKey(handler: Handler, rateLimitProfile: boolean | 'transf
       // 6. Await segment params for Next.js App Router compatibility
       const params = await segmentData.params;
 
-      return handler(
+      return await handler(
         req,
         {
           apiKey,

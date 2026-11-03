@@ -30,6 +30,9 @@ export async function GET(
   // since: ISO timestamp — defaults to 24h ago on the client, but accept it here
   const sinceParam = url.searchParams.get('since');
   const since = sinceParam ? new Date(sinceParam) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+  if (Number.isNaN(since.getTime())) {
+    return NextResponse.json({ error: 'since must be a valid ISO date' }, { status: 400 });
+  }
 
   // status: UPLOADING | UPLOADED | FAILED
   const statusParam = url.searchParams.get('status');

@@ -67,7 +67,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request);
   const list = await r2.send(
     new ListObjectsV2Command({
-      Bucket: process.env.R2_BUCKET!,
+      Bucket: process.env.R2_BUCKET_NAME!,
       Prefix: `u/${user.id}/`,
       MaxKeys: 50,
     }),
@@ -99,7 +99,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const url = await getSignedUrl(
     r2,
     new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET!,
+      Bucket: process.env.R2_BUCKET_NAME!,
       Key: key,
       ContentType: contentType,
       ContentLength: size,
