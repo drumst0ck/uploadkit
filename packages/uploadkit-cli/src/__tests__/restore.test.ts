@@ -6,9 +6,12 @@ import {
   rmSync,
   existsSync,
   mkdirSync,
+  symlinkSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { readManifests } from '../backup/restore-manifest.js';
+import type { BackupManifest } from '../backup/types.js';
 import { createBackupSession } from '../backup/backup.js';
 import { applyRestore } from '../restore/apply.js';
 
@@ -62,6 +65,78 @@ describe('applyRestore', () => {
     return { manifest, modifiedPath, createdPath };
   }
 
+  it.each(['../sentinel.txt', '..\\sentinel.txt'])(
+    'rejects unsafe target %s before changing any file', async (relativePath) => {
+      const project = join(root, 'project');
+      mkdirSync(project);
+      writeFileSync(join(root, 'sentinel.txt'), 'outside');
+      writeFileSync(join(project, 'keep.txt'), 'inside');
+      const manifest: BackupManifest = {
+        root: project, timestamp: 'session',
+        entries: [
+          { action: 'create', relativePath },
+          { action: 'create', relativePath: 'keep.txt' },
+        ],
+      };
+      await expect(applyRestore(manifest, { yes: true })).rejects.toThrow(/unsafe|outside|path/i);
+      expect(readFileSync(join(root, 'sentinel.txt'), 'utf8')).toBe('outside');
+      expect(readFileSync(join(project, 'keep.txt'), 'utf8')).toBe('inside');
+    },
+  );
+
+  it.each(['target', 'backup', 'dangling'] as const)('rejects %s symlink escapes', async (kind) => {
+    const project = join(root, 'project');
+    const session = join(project, '.uploadkit-backup', 'session');
+    const outside = join(root, 'outside');
+    mkdirSync(session, { recursive: true });
+    mkdirSync(outside);
+    writeFileSync(join(outside, 'file.txt'), 'outside');
+    if (kind === 'backup') {
+      symlinkSync(outside, join(session, 'link'));
+    } else {
+      symlinkSync(kind === 'dangling' ? join(outside, 'missing') : outside, join(project, 'link'));
+    }
+    const manifest: BackupManifest = {
+      root: project, timestamp: 'session', entries: [kind === 'backup'
+        ? { action: 'modify', relativePath: 'target.txt', backupPath: 'link/file.txt' }
+        : { action: 'create', relativePath: 'link/file.txt' }],
+    };
+    await expect(applyRestore(manifest, { yes: true })).rejects.toThrow(/outside|unsafe/i);
+    expect(readFileSync(join(outside, 'file.txt'), 'utf8')).toBe('outside');
+  });
+
+  it.each(['absolute', 'windows', 'empty'] as const)('rejects %s target paths', async (kind) => {
+    const manifest: BackupManifest = {
+      root, timestamp: 'session', entries: [{ action: 'create', relativePath:
+        kind === 'absolute' ? join(root, 'file.txt') : kind === 'windows' ? 'C:\\outside\\file.txt' : '' }],
+    };
+    await expect(applyRestore(manifest, { yes: true })).rejects.toThrow(/path/i);
+  });
+
+  it('rejects backup paths outside the session', async () => {
+    writeFileSync(join(root, 'secret.txt'), 'outside backup');
+    const manifest: BackupManifest = {
+      root, timestamp: 'session', entries: [
+        { action: 'modify', relativePath: 'target.txt', backupPath: '../../secret.txt' },
+      ],
+    };
+    await expect(applyRestore(manifest, { yes: true })).rejects.toThrow(/unsafe|outside|path/i);
+  });
+
+  it('ignores manifests that redirect root or session outside the selected project', async () => {
+    for (const [folder, overrides] of [
+      ['fake-root', { root: join(root, 'elsewhere') }],
+      ['fake-session', { timestamp: '../../elsewhere' }],
+    ] as const) {
+      const session = join(root, '.uploadkit-backup', folder);
+      mkdirSync(session, { recursive: true });
+      writeFileSync(join(session, 'manifest.json'), JSON.stringify({
+        root, timestamp: folder, entries: [], ...overrides,
+      }));
+    }
+    expect(await readManifests(root)).toEqual([]);
+  });
+
   it('restores a modified file and deletes a created file', async () => {
     const { manifest, modifiedPath, createdPath } = await seedSession();
 
@@ -105,6 +180,20 @@ describe('applyRestore', () => {
     expect(result.restored).toContain(modifiedPath);
     // The prompt should NOT have been invoked in --yes mode.
     expect(clack.confirm).not.toHaveBeenCalled();
+  });
+
+  it('restores retained preflight bytes instead of reopening backups after prompts', async () => {
+    const clack = await import('@clack/prompts');
+    const { manifest, modifiedPath } = await seedSession();
+    const entry = manifest.entries.find((entry) => entry.action === 'modify')!;
+    const backupPath = join(root, '.uploadkit-backup', manifest.timestamp, entry.backupPath!);
+    vi.mocked(clack.confirm).mockImplementationOnce(async () => {
+      writeFileSync(backupPath, 'CHANGED_AFTER_PREFLIGHT\n');
+      return true;
+    });
+    await applyRestore(manifest);
+    expect(readFileSync(modifiedPath, 'utf8')).toBe('ORIGINAL_CONTENT\n');
+    expect(readFileSync(backupPath, 'utf8')).toBe('CHANGED_AFTER_PREFLIGHT\n');
   });
 
   it('prompts on drift when --yes is NOT set and skips when the user declines', async () => {

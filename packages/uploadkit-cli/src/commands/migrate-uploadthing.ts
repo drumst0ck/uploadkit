@@ -24,19 +24,19 @@ export async function run(_parsed: ParsedArgs): Promise<number> {
   const secret = envContent.match(/UPLOADTHING_SECRET=(.+)/)?.[1]?.trim();
   const appId = envContent.match(/UPLOADTHING_APP_ID=(.+)/)?.[1]?.trim();
 
-  const snippet = `import { createUploadKitHandler, createFileRouter } from '@uploadkitdev/next';
+  const snippet = `import { createUploadKitHandler, type FileRouter } from '@uploadkitdev/next';
 
 // Migrated from UploadThing (appId: ${appId ?? 'unknown'})
 // 1. Create a project at https://app.uploadkit.dev
 // 2. Replace the API key below
 // 3. Map your UploadThing routes in fileRouter
 
-export const fileRouter = createFileRouter({
+export const fileRouter = {
   default: {
     maxFileSize: '4MB',
     maxFileCount: 1,
   },
-});
+} satisfies FileRouter;
 
 export const { GET, POST } = createUploadKitHandler({
   router: fileRouter,
@@ -45,7 +45,16 @@ export const { GET, POST } = createUploadKitHandler({
 `;
 
   await mkdir(dirname(outPath), { recursive: true });
-  await writeFile(outPath, snippet, 'utf8');
+  try {
+    // Exclusive creation also protects against a file appearing after a check.
+    await writeFile(outPath, snippet, { encoding: 'utf8', flag: 'wx' });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+    process.stderr.write(
+      `${pc.red('error')} lib/uploadkit.ts already exists — keeping your file. Move it aside before migrating.\n`,
+    );
+    return 1;
+  }
 
   process.stdout.write(
     `${pc.green('✓')} Wrote ${pc.cyan('lib/uploadkit.ts')}\n` +

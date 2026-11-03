@@ -1,9 +1,10 @@
 import { mkdir, rename } from 'node:fs/promises';
-import { dirname, join, relative, resolve } from 'node:path';
+import { dirname, relative } from 'node:path';
 import pc from 'picocolors';
 import type { ParsedArgs } from '../args.js';
 import { readManifests } from '../backup/restore-manifest.js';
 import { applyRestore } from '../restore/apply.js';
+import { preflightArchive } from '../restore/archive.js';
 import { pickSession } from '../restore/prompt.js';
 
 /**
@@ -13,7 +14,8 @@ import { pickSession } from '../restore/prompt.js';
  *  1. List manifests in `.uploadkit-backup/`. If none, exit 0 with message.
  *  2. If `--timestamp <iso>` is passed, pick that manifest (or exit 1).
  *  3. Otherwise prompt the user to choose.
- *  4. Replay the manifest via `applyRestore` and print a summary.
+ *  4. Preflight --latest archive paths and all required backup contents.
+ *  5. Replay the manifest via `applyRestore`, archive, and print a summary.
  */
 export async function run(parsed: ParsedArgs): Promise<number> {
   const cwd = process.cwd();
@@ -60,6 +62,9 @@ export async function run(parsed: ParsedArgs): Promise<number> {
   }
 
   try {
+    // Reject known archive hazards before applyRestore can mutate any file.
+    // Keep this outside the post-restore non-fatal archive-error handler.
+    const archive = parsed.flags.latest ? await preflightArchive(chosen, cwd) : null;
     const result = await applyRestore(chosen, { yes: parsed.flags.yes });
 
     // When `--latest` was used, move the applied session dir into
@@ -67,11 +72,8 @@ export async function run(parsed: ParsedArgs): Promise<number> {
     // run walks down the stack instead of restoring the same session
     // forever. `readManifests` does not descend into `.applied/`, so the
     // audit trail is preserved without cluttering future pickers.
-    if (parsed.flags.latest) {
-      const absRoot = resolve(chosen.root);
-      const backupRoot = join(absRoot, '.uploadkit-backup');
-      const from = join(backupRoot, chosen.timestamp);
-      const to = join(backupRoot, '.applied', chosen.timestamp);
+    if (archive) {
+      const { from, to } = archive;
       try {
         await mkdir(dirname(to), { recursive: true });
         await rename(from, to);
