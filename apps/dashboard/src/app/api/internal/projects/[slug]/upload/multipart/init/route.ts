@@ -10,9 +10,8 @@ import { connectDB, File, Project, Subscription, UsageRecord } from '@uploadkitd
 import { TIER_LIMITS, type Tier, buildFileCdnUrl } from '@uploadkitdev/shared';
 import { auth } from '../../../../../../../../../auth';
 import { r2Client, R2_BUCKET, CDN_URL } from '@/lib/storage';
+import { MAX_PARTS, MIN_MULTIPART_SIZE, expectedPartCount, partLength } from '@/lib/multipart';
 
-const PART_SIZE = 5 * 1024 * 1024; // 5 MiB
-const MIN_MULTIPART_SIZE = 10 * 1024 * 1024; // 10 MiB
 
 const MultipartInitBody = z.object({
   fileName: z.string().min(1).max(255),
@@ -87,7 +86,10 @@ export async function POST(
 
   const safeName = fileName.replace(/\.\.\//g, '').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 255);
   const key = `${project._id.toString()}/dashboard/${nanoid()}/${safeName}`;
-  const partCount = Math.ceil(fileSize / PART_SIZE);
+  const partCount = expectedPartCount(fileSize);
+  if (partCount > MAX_PARTS) {
+    return NextResponse.json({ error: 'File too large for multipart upload' }, { status: 413 });
+  }
 
   const { UploadId } = await r2Client.send(
     new CreateMultipartUploadCommand({
@@ -109,6 +111,8 @@ export async function POST(
         Key: key,
         UploadId,
         PartNumber: partNumber,
+        // Locked in the signature: the parts can only add up to the declared size.
+        ContentLength: partLength(fileSize, partNumber),
       }),
       { expiresIn: 3600 },
     );

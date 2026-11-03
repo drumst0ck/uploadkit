@@ -1,13 +1,19 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { CompleteMultipartUploadCommand } from '@aws-sdk/client-s3';
+import {
+  CompleteMultipartUploadCommand,
+  DeleteObjectCommand,
+  HeadObjectCommand,
+} from '@aws-sdk/client-s3';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 import { connectDB, File, Project, UsageRecord } from '@uploadkitdev/db';
 import { auth } from '../../../../../../../../../auth';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
+import { MAX_PARTS, expectedPartCount } from '@/lib/multipart';
+import { withSignedUrl } from '@/lib/cdn-access';
 
 const MultipartCompleteBody = z.object({
   fileId: z.string().min(1),
@@ -19,7 +25,8 @@ const MultipartCompleteBody = z.object({
         etag: z.string().min(1),
       }),
     )
-    .min(1),
+    .min(1)
+    .max(MAX_PARTS),
 });
 
 export async function POST(
@@ -65,6 +72,13 @@ export async function POST(
     return NextResponse.json({ error: 'File not found' }, { status: 404 });
   }
 
+  if (parts.length !== expectedPartCount(file.size)) {
+    return NextResponse.json(
+      { error: 'Part count does not match the declared file size' },
+      { status: 400 },
+    );
+  }
+
   await r2Client.send(
     new CompleteMultipartUploadCommand({
       Bucket: R2_BUCKET,
@@ -76,8 +90,25 @@ export async function POST(
     }),
   );
 
-  const updatedFile = await File.findByIdAndUpdate(
-    file._id,
+  // Verify the assembled object really has the declared size before counting it.
+  const head = await r2Client.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: file.key }));
+  if (head.ContentLength !== file.size) {
+    await r2Client
+      .send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: file.key }))
+      .catch((err) => console.warn('[multipart.complete] failed to delete mismatched object', err));
+    await File.findOneAndUpdate(
+      { _id: file._id, projectId: project._id, status: 'UPLOADING' },
+      { $set: { status: 'FAILED', uploadId: null } },
+    );
+    return NextResponse.json(
+      { error: 'Stored file size does not match the declared size.' },
+      { status: 422 },
+    );
+  }
+
+  // Atomic UPLOADING -> UPLOADED so concurrent completes count usage once.
+  const updatedFile = await File.findOneAndUpdate(
+    { _id: file._id, projectId: project._id, status: 'UPLOADING' },
     { $set: { status: 'UPLOADED', uploadId: null } },
     { new: true },
   );
@@ -99,7 +130,7 @@ export async function POST(
       name: updatedFile.name,
       size: updatedFile.size,
       type: updatedFile.type,
-      url: updatedFile.url,
+      url: withSignedUrl(project, { key: updatedFile.key, url: updatedFile.url }).url,
       status: updatedFile.status,
       metadata: updatedFile.metadata,
       createdAt: updatedFile.createdAt,

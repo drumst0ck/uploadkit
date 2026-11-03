@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import { connectDB, File, Project, UsageRecord } from '@uploadkitdev/db';
 import { auth } from '../../../../../../../../auth';
 import { r2Client, R2_BUCKET } from '@/lib/storage';
+import { withSignedUrl } from '@/lib/cdn-access';
 
 const UploadCompleteBody = z.object({
   fileId: z.string().min(1),
@@ -57,8 +58,9 @@ export async function POST(
   }
 
   // Verify upload landed in R2 — catch both 403 and 404 (Pitfall 4)
+  let head: { ContentLength?: number | undefined };
   try {
-    await r2Client.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: file.key }));
+    head = await r2Client.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: file.key }));
   } catch (err) {
     if (
       err instanceof S3ServiceException &&
@@ -72,9 +74,19 @@ export async function POST(
     throw err;
   }
 
-  // Flip to UPLOADED
-  const updatedFile = await File.findByIdAndUpdate(
-    file._id,
+  // The presigned PUT locks Content-Length, but confirm the stored size anyway
+  // so quota accounting always matches what is really in the bucket.
+  if (typeof head.ContentLength === 'number' && head.ContentLength !== file.size) {
+    return NextResponse.json(
+      { error: 'Stored file size does not match the declared size.' },
+      { status: 422 },
+    );
+  }
+
+  // Flip to UPLOADED atomically: only the request that wins the UPLOADING ->
+  // UPLOADED transition counts usage, so concurrent completes cannot double-count.
+  const updatedFile = await File.findOneAndUpdate(
+    { _id: file._id, projectId: project._id, status: 'UPLOADING' },
     { $set: { status: 'UPLOADED' } },
     { new: true },
   );
@@ -97,7 +109,7 @@ export async function POST(
       name: updatedFile.name,
       size: updatedFile.size,
       type: updatedFile.type,
-      url: updatedFile.url,
+      url: withSignedUrl(project, { key: updatedFile.key, url: updatedFile.url }).url,
       status: updatedFile.status,
       metadata: updatedFile.metadata,
       createdAt: updatedFile.createdAt,
