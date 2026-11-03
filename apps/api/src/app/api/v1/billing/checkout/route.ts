@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { checkoutTrialParams, isTrialEligible, resolveCheckoutPlan } from '@uploadkitdev/shared';
+import { cancelStaleSubscription, checkoutTrialParams, isTrialEligible, resolveCheckoutPlan } from '@uploadkitdev/shared';
 import { connectDB, Subscription, User } from '@uploadkitdev/db';
 import { stripe } from '../../../../../lib/stripe';
 import { requireInternalSecret } from '../../../../../lib/secure-compare';
@@ -68,6 +68,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         },
         { status: 409 },
       );
+    }
+
+    // A previous subscription that no longer grants access (unpaid / incomplete, row downgraded
+    // to FREE) would keep dunning the customer next to the new one: cancel it first. Never
+    // throws; Stripe's live status is re-checked so an active/trialing one is never canceled.
+    if (existing?.stripeSubscriptionId && existing.tier === 'FREE') {
+      await cancelStaleSubscription(stripe.subscriptions, existing.stripeSubscriptionId, console);
     }
 
     // Lazy Stripe Customer provisioning, race-safe:
