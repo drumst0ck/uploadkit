@@ -6,7 +6,7 @@
  * 2. For each template [next, sveltekit, remix, vite]:
  *      a. Scaffold into os.tmpdir()/cka-smoke-<rand>/demo by running the built
  *         CLI directly: `node packages/create-uploadkit-app/dist/index.js ...`
- *      b. `pnpm install --prefer-offline --ignore-workspace`
+ *      b. `pnpm install --ignore-workspace` with the local SDK tarballs
  *      c. `pnpm build`
  *      d. Time the scaffold step; fail if >90s
  * 3. Print a summary table, exit non-zero on any failure.
@@ -22,7 +22,7 @@
  *     `npm pack --dry-run` check.
  */
 import { execa } from 'execa';
-import { mkdtempSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,6 +33,15 @@ const repoRoot = resolve(pkgRoot, '..', '..');
 const cliEntry = resolve(pkgRoot, 'dist', 'index.js');
 
 const TEMPLATES = ['next', 'sveltekit', 'remix', 'vite'];
+
+// The SDK the templates depend on is tested as it is about to be published:
+// local `pnpm pack` tarballs, never the registry copy (which may lag behind or
+// reference versions that are not published yet).
+const SDK_DIRS = {
+  '@uploadkitdev/core': 'core',
+  '@uploadkitdev/react': 'react',
+  '@uploadkitdev/next': 'next',
+};
 const MAX_SCAFFOLD_MS = 90_000;
 
 function log(msg) {
@@ -66,7 +75,39 @@ async function buildCli() {
   return cliEntry;
 }
 
-async function scaffoldAndBuild(template) {
+async function packSdk(dest) {
+  mkdirSync(dest, { recursive: true });
+  const out = {};
+  for (const [name, dir] of Object.entries(SDK_DIRS)) {
+    const pkgDir = resolve(repoRoot, 'packages', dir);
+    if (!existsSync(join(pkgDir, 'dist'))) {
+      throw new Error(`${name} is not built (${pkgDir}/dist missing). Run: pnpm turbo build`);
+    }
+    const before = new Set(readdirSync(dest));
+    await run('pnpm', ['pack', '--pack-destination', dest], { cwd: pkgDir, silent: true });
+    const created = readdirSync(dest).filter((f) => !before.has(f) && f.endsWith('.tgz'));
+    if (created.length !== 1) throw new Error(`Expected one tarball for ${name}, got ${created.join(',')}`);
+    out[name] = join(dest, created[0]);
+  }
+  return out;
+}
+
+/** Force every @uploadkitdev/* dependency (direct or transitive) to the local tarballs. */
+function wireLocalSdk(projectDir, tarballs) {
+  const pkgPath = join(projectDir, 'package.json');
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+  for (const field of ['dependencies', 'devDependencies']) {
+    for (const name of Object.keys(pkg[field] ?? {})) {
+      if (tarballs[name]) pkg[field][name] = `file:${tarballs[name]}`;
+    }
+  }
+  pkg.pnpm = pkg.pnpm ?? {};
+  pkg.pnpm.overrides = pkg.pnpm.overrides ?? {};
+  for (const [name, tgz] of Object.entries(tarballs)) pkg.pnpm.overrides[name] = `file:${tgz}`;
+  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+}
+
+async function scaffoldAndBuild(template, tarballs) {
   const tmpRoot = mkdtempSync(join(tmpdir(), 'cka-smoke-'));
   // The CLI resolves the positional arg as a *project name* against `cwd`
   // (see prompts.ts → `path.resolve(process.cwd(), sanitized)`), so we pass
@@ -107,9 +148,10 @@ async function scaffoldAndBuild(template) {
       );
     }
 
+    wireLocalSdk(projectDir, tarballs);
     log(`[${template}] pnpm install...`);
     const t1 = Date.now();
-    await run('pnpm', ['install', '--prefer-offline', '--ignore-workspace'], {
+    await run('pnpm', ['install', '--ignore-workspace', '--no-frozen-lockfile'], {
       cwd: projectDir,
     });
     result.installMs = Date.now() - t1;
@@ -137,9 +179,17 @@ async function main() {
   await buildCli();
   log(`CLI entry: ${cliEntry}`);
 
+  const tarballDir = mkdtempSync(join(tmpdir(), 'cka-sdk-'));
+  const tarballs = await packSdk(tarballDir);
+  log(`Local SDK tarballs: ${Object.values(tarballs).join(', ')}`);
+
   const results = [];
-  for (const template of TEMPLATES) {
-    results.push(await scaffoldAndBuild(template));
+  try {
+    for (const template of TEMPLATES) {
+      results.push(await scaffoldAndBuild(template, tarballs));
+    }
+  } finally {
+    rmSync(tarballDir, { recursive: true, force: true });
   }
 
   // Summary
