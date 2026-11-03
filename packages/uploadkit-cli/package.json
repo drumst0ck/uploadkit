@@ -1,7 +1,7 @@
 {
   "name": "uploadkit",
   "version": "0.1.0",
-  "description": "Install UploadKit into an existing project — init, add, restore.",
+  "description": "Install UploadKit into an existing project \u2014 init, add, restore.",
   "license": "MIT",
   "author": "Drumst0ck",
   "homepage": "https://uploadkit.dev",
@@ -41,10 +41,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "prebuild": "pnpm --filter @uploadkitdev/shared build",
     "build": "tsup",
     "dev": "tsup --watch",
-    "pretypecheck": "pnpm --filter @uploadkitdev/shared build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
