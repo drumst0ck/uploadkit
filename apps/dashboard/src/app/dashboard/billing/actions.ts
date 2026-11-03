@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { auth } from '../../../../auth';
-import { checkoutTrialParams, isTrialEligible, resolveCheckoutPlan } from '@uploadkitdev/shared';
+import { cancelStaleSubscription, checkoutTrialParams, isTrialEligible, resolveCheckoutPlan } from '@uploadkitdev/shared';
 import { connectDB, Subscription, User } from '@uploadkitdev/db';
 import { stripe } from '../../../lib/stripe';
 import { getAppUrl } from '../../../lib/app-url';
@@ -53,6 +53,13 @@ export async function createCheckoutSession(priceId: string): Promise<never> {
       return_url: `${appUrl}/dashboard/billing`,
     });
     redirect(portal.url);
+  }
+
+  // A previous subscription that no longer grants access (unpaid / incomplete, row downgraded
+  // to FREE) would keep dunning the customer next to the new one: cancel it first. Never
+  // throws; Stripe's live status is re-checked so an active/trialing one is never canceled.
+  if (existing?.stripeSubscriptionId && existing.tier === 'FREE') {
+    await cancelStaleSubscription(stripe.subscriptions, existing.stripeSubscriptionId, console);
   }
 
   // Lazy Stripe Customer provisioning, race-safe (double click / two tabs):

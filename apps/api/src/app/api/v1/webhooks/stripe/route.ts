@@ -4,7 +4,7 @@ export const runtime = 'nodejs';
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { connectDB, Subscription, StripeEvent } from '@uploadkitdev/db';
-import { resolveCheckoutPlan } from '@uploadkitdev/shared';
+import { cancelStaleSubscription, resolveCheckoutPlan } from '@uploadkitdev/shared';
 import { stripe } from '@/lib/stripe';
 import { sendInvoiceEmail } from '@uploadkitdev/emails';
 import { sendXPurchaseConversion } from '@/lib/x-conversions';
@@ -175,6 +175,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           { upsert: true, new: true },
         );
 
+        // The row used to point at another subscription that the duplicate guard above let
+        // through (not live): once the new one is saved, the old one only keeps dunning the
+        // customer. cancelStaleSubscription re-reads Stripe and cancels only unpaid,
+        // incomplete, past_due or paused subscriptions; a failure here is only logged.
+        if (current?.stripeSubscriptionId && current.stripeSubscriptionId !== sub.id) {
+          await cancelStaleSubscription(stripe.subscriptions, current.stripeSubscriptionId, console);
+        }
+
         console.info(`[stripe-webhook] checkout.session.completed: userId=${userId} tier=${tier}`);
         break;
       }
@@ -266,27 +274,63 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             });
           }
 
-          if (
-            invoice.billing_reason === 'subscription_create' &&
-            invoice.amount_paid > 0
-          ) {
-            const subscriptionMetadata =
-              invoice.parent?.type === 'subscription_details'
-                ? invoice.parent.subscription_details?.metadata
-                : null;
-            const paidAt = invoice.status_transitions.paid_at ?? invoice.created;
+          const parentDetails =
+            invoice.parent?.type === 'subscription_details' ? invoice.parent.subscription_details : null;
+          const subscriptionMetadata = parentDetails?.metadata;
+          const rawSub = parentDetails?.subscription;
+          const invoiceSubId = typeof rawSub === 'string' ? rawSub : rawSub?.id;
+          const reason = invoice.billing_reason;
 
-            await sendXPurchaseConversion({
-              conversionId: invoice.id,
-              conversionTime: new Date(paidAt * 1000).toISOString(),
+          if (invoice.amount_paid > 0 && (reason === 'subscription_create' || reason === 'subscription_cycle')) {
+            const paidAt = invoice.status_transitions.paid_at ?? invoice.created;
+            const paidAtDate = new Date(paidAt * 1000);
+            const conversion = {
+              conversionId: invoice.id as string,
+              conversionTime: paidAtDate.toISOString(),
               currency: invoice.currency,
               value: invoice.amount_paid / 100,
               ...(paidEmail ? { email: paidEmail } : {}),
-              ...(subscriptionMetadata?.xTwclid
-                ? { twclid: subscriptionMetadata.xTwclid }
-                : {}),
+              ...(subscriptionMetadata?.xTwclid ? { twclid: subscriptionMetadata.xTwclid } : {}),
               ...(subscriptionMetadata?.tier ? { plan: subscriptionMetadata.tier } : {}),
-            });
+            };
+
+            if (reason === 'subscription_create') {
+              // Purchase without a trial: the first invoice is the paid one.
+              await sendXPurchaseConversion(conversion);
+              if (invoiceSubId) {
+                await Subscription.findOneAndUpdate(
+                  { stripeSubscriptionId: invoiceSubId },
+                  { $set: { firstPaidAt: paidAtDate } },
+                );
+              }
+            } else if (invoiceSubId) {
+              // First real charge after a trial arrives as 'subscription_cycle'. Only the
+              // first paid invoice of a subscription may convert: firstPaidAt is claimed
+              // atomically, and later renewals find it set and skip without calling Stripe.
+              const pending = await Subscription.findOne({
+                stripeSubscriptionId: invoiceSubId,
+                firstPaidAt: { $exists: false },
+              }).lean();
+              if (pending) {
+                const stripeSub = await stripe.subscriptions.retrieve(invoiceSubId);
+                const claimed = await Subscription.findOneAndUpdate(
+                  { stripeSubscriptionId: invoiceSubId, firstPaidAt: { $exists: false } },
+                  { $set: { firstPaidAt: paidAtDate } },
+                );
+                if (claimed && (stripeSub.trial_end ?? stripeSub.trial_start)) {
+                  try {
+                    await sendXPurchaseConversion(conversion);
+                  } catch (err) {
+                    // Release the claim so Stripe's retry of this event can send it.
+                    await Subscription.findOneAndUpdate(
+                      { stripeSubscriptionId: invoiceSubId },
+                      { $unset: { firstPaidAt: '' } },
+                    );
+                    throw err;
+                  }
+                }
+              }
+            }
           }
         }
 

@@ -29,6 +29,7 @@ import { POST } from '@/app/api/v1/webhooks/stripe/route';
 import { Subscription } from '@uploadkitdev/db';
 import { stripe } from '@/lib/stripe';
 import { sendInvoiceEmail } from '@uploadkitdev/emails';
+import { sendXPurchaseConversion } from '@/lib/x-conversions';
 
 let seq = 0;
 async function send(type: string, object: object) {
@@ -78,6 +79,12 @@ describe('trial start via checkout.session.completed', () => {
       expect(lastSet().trialUsedAt).toBeInstanceOf(Date);
     });
   }
+
+  it('Team yearly active checkout: TEAM + ACTIVE, no trial', async () => {
+    vi.mocked(stripe.subscriptions.retrieve).mockResolvedValue(stripeSub('active', 'price_team_yearly_fake') as never);
+    await send('checkout.session.completed', { customer: 'cus_1', subscription: 'sub_1', metadata: { userId: 'u1' } });
+    expect(lastSet()).toMatchObject({ tier: 'TEAM', status: 'ACTIVE', stripePriceId: 'price_team_yearly_fake' });
+  });
 
   it('non-trial active checkout: ACTIVE, still records trialUsedAt so no later trial is offered', async () => {
     vi.mocked(stripe.subscriptions.retrieve).mockResolvedValue(stripeSub('active', 'price_team_fake') as never);
@@ -154,5 +161,165 @@ describe('subscription lifecycle after trial and during dunning (S6)', () => {
         $unset: { stripeSubscriptionId: '', stripePriceId: '' },
       },
     );
+  });
+});
+
+describe('X purchase conversion after a Pro trial (T15)', () => {
+  const CLAIM_FILTER = { stripeSubscriptionId: 'sub_1', firstPaidAt: { $exists: false } };
+  const invoice = (over: Record<string, unknown> = {}) => ({
+    id: 'in_cycle1',
+    customer: 'cus_1',
+    amount_paid: 1500,
+    currency: 'usd',
+    created: now,
+    billing_reason: 'subscription_cycle',
+    status_transitions: { paid_at: now },
+    parent: {
+      type: 'subscription_details',
+      subscription_details: { subscription: 'sub_1', metadata: { userId: 'u1', tier: 'PRO', xTwclid: 'tw1' } },
+    },
+    ...over,
+  });
+  const unconverted = () =>
+    vi.mocked(Subscription.findOne).mockReturnValue({ lean: () => Promise.resolve({ stripeSubscriptionId: 'sub_1' }) } as never);
+  const claims = () =>
+    vi.mocked(Subscription.findOneAndUpdate).mock.calls.filter(
+      (c) => (c[1] as { $set?: Record<string, unknown> }).$set?.['firstPaidAt'] !== undefined,
+    );
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(Subscription.findOneAndUpdate).mockResolvedValue({} as never);
+    vi.mocked(stripe.customers.retrieve).mockResolvedValue({ deleted: false, email: 'a@b.co', name: 'A' } as never);
+    vi.mocked(stripe.subscriptions.retrieve).mockResolvedValue({ id: 'sub_1', trial_start: now - 100, trial_end: now - 1 } as never);
+    unconverted();
+  });
+
+  it('first paid cycle invoice of a trial subscription sends the conversion and records firstPaidAt atomically', async () => {
+    await send('invoice.paid', invoice());
+    expect(stripe.subscriptions.retrieve).toHaveBeenCalledWith('sub_1');
+    expect(claims()).toHaveLength(1);
+    expect(claims()[0]![0]).toEqual(CLAIM_FILTER);
+    expect((claims()[0]![1] as { $set: { firstPaidAt: unknown } }).$set.firstPaidAt).toEqual(new Date(now * 1000));
+    expect(sendXPurchaseConversion).toHaveBeenCalledTimes(1);
+    expect(sendXPurchaseConversion).toHaveBeenCalledWith({
+      conversionId: 'in_cycle1',
+      conversionTime: new Date(now * 1000).toISOString(),
+      currency: 'usd',
+      value: 15,
+      email: 'a@b.co',
+      twclid: 'tw1',
+      plan: 'PRO',
+    });
+  });
+
+  it('later renewals (firstPaidAt already recorded) do not fire and do not call Stripe', async () => {
+    vi.mocked(Subscription.findOne).mockReturnValue({ lean: () => Promise.resolve(null) } as never);
+    await send('invoice.paid', invoice({ id: 'in_cycle2' }));
+    expect(sendXPurchaseConversion).not.toHaveBeenCalled();
+    expect(stripe.subscriptions.retrieve).not.toHaveBeenCalled();
+  });
+
+  it('losing the atomic claim (concurrent delivery) does not send', async () => {
+    vi.mocked(Subscription.findOneAndUpdate).mockImplementation(((f: object) =>
+      Promise.resolve('firstPaidAt' in f ? null : {})) as never);
+    await send('invoice.paid', invoice());
+    expect(sendXPurchaseConversion).not.toHaveBeenCalled();
+  });
+
+  it('a subscription that never trialed gets firstPaidAt recorded but no conversion from a renewal', async () => {
+    vi.mocked(stripe.subscriptions.retrieve).mockResolvedValue({ id: 'sub_1', trial_start: null, trial_end: null } as never);
+    await send('invoice.paid', invoice());
+    expect(sendXPurchaseConversion).not.toHaveBeenCalled();
+    expect(claims()).toHaveLength(1);
+  });
+
+  it('a $0 cycle invoice never converts', async () => {
+    await send('invoice.paid', invoice({ amount_paid: 0 }));
+    expect(sendXPurchaseConversion).not.toHaveBeenCalled();
+    expect(claims()).toHaveLength(0);
+  });
+
+  it('non-trial purchase (subscription_create, paid) keeps firing and records firstPaidAt', async () => {
+    await send('invoice.paid', invoice({ id: 'in_create', billing_reason: 'subscription_create' }));
+    expect(sendXPurchaseConversion).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sendXPurchaseConversion).mock.calls[0]![0]).toMatchObject({ conversionId: 'in_create', value: 15 });
+    expect(claims()).toHaveLength(1);
+  });
+
+  it('release of the claim when sending throws, so the Stripe retry can send', async () => {
+    vi.mocked(sendXPurchaseConversion).mockRejectedValueOnce(new Error('x down'));
+    vi.mocked(stripe.webhooks.constructEvent).mockReturnValue({ id: 'evt_td_fail', type: 'invoice.paid', data: { object: invoice() } } as never);
+    const res = await POST(
+      new NextRequest('http://localhost/api/v1/webhooks/stripe', { method: 'POST', headers: { 'stripe-signature': 'sig' }, body: '{}' }),
+    );
+    expect(res.status).toBe(500);
+    expect(Subscription.findOneAndUpdate).toHaveBeenLastCalledWith(
+      { stripeSubscriptionId: 'sub_1' },
+      { $unset: { firstPaidAt: '' } },
+    );
+  });
+});
+
+describe('stale unpaid subscription replaced via checkout.session.completed (T16)', () => {
+  const session = { customer: 'cus_1', subscription: 'sub_new', metadata: { userId: 'u1' } };
+  const newSub = { ...stripeSub('active', 'price_pro_fake'), id: 'sub_new' };
+  const current = (over: object) =>
+    vi.mocked(Subscription.findOne).mockReturnValue({
+      lean: () => Promise.resolve({ stripeSubscriptionId: 'sub_old', tier: 'FREE', status: 'PAST_DUE', ...over }),
+    } as never);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(Subscription.findOneAndUpdate).mockResolvedValue({} as never);
+    vi.mocked(stripe.subscriptions.cancel).mockResolvedValue({} as never);
+    vi.mocked(stripe.subscriptions.retrieve).mockImplementation((async (id: string) =>
+      id === 'sub_new' ? newSub : { id, status: 'unpaid' }) as never);
+  });
+
+  it('stores the new subscription and cancels the old unpaid one', async () => {
+    current({});
+    await send('checkout.session.completed', session);
+    expect(lastSet()).toMatchObject({ stripeSubscriptionId: 'sub_new', tier: 'PRO', status: 'ACTIVE' });
+    expect(stripe.subscriptions.cancel).toHaveBeenCalledTimes(1);
+    expect(stripe.subscriptions.cancel).toHaveBeenCalledWith('sub_old');
+  });
+
+  it('a failed cancel is logged and does not lose the new subscription (event still succeeds)', async () => {
+    current({});
+    vi.mocked(stripe.subscriptions.cancel).mockRejectedValue(new Error('stripe down'));
+    await send('checkout.session.completed', session);
+    expect(lastSet()).toMatchObject({ stripeSubscriptionId: 'sub_new' });
+  });
+
+  it('same subscription id: nothing canceled', async () => {
+    current({ stripeSubscriptionId: 'sub_new' });
+    await send('checkout.session.completed', session);
+    expect(stripe.subscriptions.cancel).not.toHaveBeenCalled();
+  });
+
+  it('live old subscription: the NEW duplicate is canceled, old is untouched', async () => {
+    current({ tier: 'PRO', status: 'ACTIVE' });
+    await send('checkout.session.completed', session);
+    expect(stripe.subscriptions.cancel).toHaveBeenCalledTimes(1);
+    expect(stripe.subscriptions.cancel).toHaveBeenCalledWith('sub_new');
+  });
+
+  it('old past_due subscription of a paid tier is canceled once the new one is saved', async () => {
+    current({ tier: 'PRO', status: 'PAST_DUE' });
+    vi.mocked(stripe.subscriptions.retrieve).mockImplementation((async (id: string) =>
+      id === 'sub_new' ? newSub : { id, status: 'past_due' }) as never);
+    await send('checkout.session.completed', session);
+    expect(lastSet()).toMatchObject({ stripeSubscriptionId: 'sub_new', tier: 'PRO', status: 'ACTIVE' });
+    expect(stripe.subscriptions.cancel).toHaveBeenCalledTimes(1);
+    expect(stripe.subscriptions.cancel).toHaveBeenCalledWith('sub_old');
+  });
+
+  it('old subscription that Stripe reports as active again is not canceled', async () => {
+    current({ tier: 'PRO', status: 'PAST_DUE' });
+    vi.mocked(stripe.subscriptions.retrieve).mockImplementation((async (id: string) =>
+      id === 'sub_new' ? newSub : { id, status: 'active' }) as never);
+    await send('checkout.session.completed', session);
+    expect(stripe.subscriptions.cancel).not.toHaveBeenCalledWith('sub_old');
   });
 });

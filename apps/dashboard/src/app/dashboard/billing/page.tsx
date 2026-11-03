@@ -186,6 +186,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
   const trialEligible = isTrialEligible(subscription, false);
   const proCta = trialEligible ? `Start ${PRO_TRIAL_DAYS}-day free trial` : 'Upgrade to Pro';
   const teamPriceId = process.env.STRIPE_TEAM_PRICE_ID ?? '';
+  const teamYearlyPriceId = process.env.STRIPE_TEAM_YEARLY_PRICE_ID ?? '';
 
   // Plan chosen on the marketing pricing page (`/login?mode=signup&plan=pro`).
   // Offer that checkout first, but only when it is still an upgrade for this user.
@@ -196,7 +197,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
       : planIntent === 'pro' && tier === 'FREE' && proPriceId
         ? { label: 'Pro', priceId: proPriceId, yearlyPriceId: proYearlyPriceId }
         : planIntent === 'team' && (tier === 'FREE' || tier === 'PRO') && teamPriceId
-          ? { label: 'Team', priceId: teamPriceId, yearlyPriceId: '' }
+          ? { label: 'Team', priceId: teamPriceId, yearlyPriceId: teamYearlyPriceId }
           : null;
 
   return (
@@ -239,12 +240,14 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           <div className="flex flex-wrap gap-3">
             <form action={createCheckoutSession.bind(null, intendedCheckout.priceId)}>
               <Button type="submit">
-                {intendedCheckout.label === 'Pro' ? `${proCta} · $15/month` : 'Continue to checkout'}
+                {intendedCheckout.label === 'Pro' ? `${proCta} · $15/month` : 'Get Team · $35/month'}
               </Button>
             </form>
             {intendedCheckout.yearlyPriceId && (
               <form action={createCheckoutSession.bind(null, intendedCheckout.yearlyPriceId)}>
-                <Button type="submit" variant="outline">{proCta} · $144/year</Button>
+                <Button type="submit" variant="outline">
+                  {intendedCheckout.label === 'Pro' ? `${proCta} · $144/year` : 'Get Team · $336/year'}
+                </Button>
               </form>
             )}
           </div>
@@ -283,7 +286,12 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           {/* Upgrade to Team — shown for FREE and PRO users */}
           {(tier === 'FREE' || tier === 'PRO') && teamPriceId && (
             <form action={createCheckoutSession.bind(null, teamPriceId)}>
-              <Button type="submit" className="bg-violet-500 shadow-violet-500/20 hover:bg-violet-400 hover:shadow-violet-500/30">Get Team</Button>
+              <Button type="submit" className="bg-violet-500 shadow-violet-500/20 hover:bg-violet-400 hover:shadow-violet-500/30">Get Team · $35/month</Button>
+            </form>
+          )}
+          {(tier === 'FREE' || tier === 'PRO') && teamYearlyPriceId && (
+            <form action={createCheckoutSession.bind(null, teamYearlyPriceId)}>
+              <Button type="submit" variant="outline">Get Team · $336/year</Button>
             </form>
           )}
 

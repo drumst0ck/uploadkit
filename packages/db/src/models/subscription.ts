@@ -14,6 +14,8 @@ export interface ISubscription extends Document {
   cancelAtPeriodEnd: boolean;
   /** Set when the account's one-time Pro trial starts (or on first paid subscription). */
   trialUsedAt?: Date;
+  /** First paid invoice time; claimed atomically so the X purchase conversion fires once. */
+  firstPaidAt?: Date;
   imageTransformLimit?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -39,6 +41,7 @@ const subscriptionSchema = new Schema<ISubscription>(
     currentPeriodEnd: { type: Date },
     cancelAtPeriodEnd: { type: Boolean, default: false },
     trialUsedAt: { type: Date },
+    firstPaidAt: { type: Date },
     imageTransformLimit: { type: Number, min: 0 },
   },
   { timestamps: true },
