@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Document, type Types } from 'mongoose';
 
-export type WebhookDeliveryStatus = 'success' | 'failed' | 'pending';
+export type WebhookDeliveryStatus = 'success' | 'failed' | 'pending' | 'published';
 
 export interface IWebhookDelivery extends Document {
   projectId: Types.ObjectId;
@@ -22,7 +22,7 @@ const webhookDeliverySchema = new Schema<IWebhookDelivery>(
     fileId: { type: Schema.Types.ObjectId, ref: 'File', required: true, index: true },
     routeSlug: { type: String, required: true },
     webhookUrl: { type: String, required: true },
-    status: { type: String, enum: ['success', 'failed', 'pending'], default: 'pending' },
+    status: { type: String, enum: ['success', 'failed', 'pending', 'published'], default: 'pending' },
     httpStatus: { type: Number },
     errorMessage: { type: String },
     payload: { type: Schema.Types.Mixed, required: true },
@@ -32,6 +32,8 @@ const webhookDeliverySchema = new Schema<IWebhookDelivery>(
 );
 
 webhookDeliverySchema.index({ projectId: 1, attemptedAt: -1 });
+// Delivery records are operational history: expire them after 30 days.
+webhookDeliverySchema.index({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
 
 export const WebhookDelivery =
   (mongoose.models['WebhookDelivery'] as mongoose.Model<IWebhookDelivery>) ??
