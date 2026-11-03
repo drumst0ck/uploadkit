@@ -1,6 +1,7 @@
 import { forwardRef, useRef, useCallback, useState } from 'react';
 import type { UploadResult, ProgressGranularity } from '@uploadkitdev/core';
 import { useUploadKitContext } from '../context';
+import { useSelectionGuard } from '../utils/selection-guard';
 import { useDragState } from '../hooks/use-drag-state';
 import { useAutoDismiss } from '../hooks/use-auto-dismiss';
 import { mergeClass } from '../utils/merge-class';
@@ -240,8 +241,10 @@ export const UploadDropzone = forwardRef<HTMLDivElement, UploadDropzoneProps>(
     );
 
     // Validates incoming files and either stages them (manual) or uploads immediately (auto).
+    const guardSelection = useSelectionGuard(route, onUploadError);
     const processFiles = useCallback(
       async (incoming: File[]) => {
+        if (!(await guardSelection(incoming))) return;
         if (disabled) return;
 
         // Apply maxFiles limit

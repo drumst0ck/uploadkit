@@ -65,7 +65,7 @@ type RouteConfig<TMiddleware extends Record<string, unknown> = Record<string, un
 | Property | Type | Description |
 |----------|------|-------------|
 | `maxFileSize` | `string \| number` | Maximum file size. String: `'4MB'`, `'512KB'`, `'1GB'`. Number: bytes. |
-| `maxFileCount` | `number` | Maximum number of files per upload session. |
+| `maxFileCount` | `number` | Maximum number of files per selection. Client-side limit enforced by `@uploadkitdev/react`, not a server quota. |
 | `allowedTypes` | `string[]` | Accepted MIME types. Wildcards supported: `'image/*'`. |
 | `middleware` | `function` | Runs before upload. Receives `{ req: Request }`. Return metadata or throw to reject. |
 | `onUploadComplete` | `function` | Runs after successful upload. Receives `{ file: UploadedFile; metadata }`. |

@@ -158,3 +158,11 @@ describe('createUploadKitHandler', () => {
     });
   });
 });
+
+describe('GET route config maxFileCount (published to the SDK)', () => {
+  it('omits maxFileCount when the route does not set one (no limit)', async () => {
+    const handler = createUploadKitHandler({ router: { open: { allowedTypes: ['image/png'] } } });
+    const res = await handler.GET(makeRequest('GET', 'http://localhost/api/uploadkit/open'), makeParams('open'));
+    expect((await res.json()).maxFileCount).toBeUndefined();
+  });
+});

@@ -160,6 +160,10 @@ The `storage` config in `createUploadKitHandler` is processed at request time on
 - Never trust client-supplied metadata for authorization decisions
 - Return only the data you need in middleware — it flows to `onUploadComplete` and is logged
 
+**Image delivery:**
+- Public transform URLs (`/p/...`) never expire by design. For private images, switch the project's CDN access to signed in the dashboard project settings: the CDN then refuses `/p/` and serves only expiring signed URLs. See [Image transformations](/docs/core-concepts/image-transformations).
+
 **File validation:**
 - Rely on `allowedTypes` for server-side MIME enforcement — don't do client-side-only validation
+- `maxFileCount` is a per-selection client-side limit, not a server quota; enforce quotas in `middleware()`
 - Set `maxFileSize` explicitly on every route — the default is your tier's maximum
