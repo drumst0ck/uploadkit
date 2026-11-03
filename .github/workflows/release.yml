@@ -124,3 +124,6 @@ jobs:
           # which is rate-limited and does NOT trigger downstream workflows.
           GITHUB_TOKEN: ${{ secrets.CHANGESETS_TOKEN || secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # setup-node's registry-url points npm at its own .npmrc, which reads
+          # NODE_AUTH_TOKEN; without it npm ignores NPM_TOKEN and only tries OIDC.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
