@@ -20,6 +20,7 @@ export default async function TeamPage() {
   const initialMembers = [
     {
       _id: 'owner',
+      isOwner: true,
       email: session.user.email ?? 'you@example.com',
       role: 'admin' as const,
       status: 'active' as const,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '../../../../../../../auth';
-import { connectDB, Project } from '@uploadkitdev/db';
+import { connectDB, Project, OAuthStateNonce } from '@uploadkitdev/db';
 import {
   applyCdnValidationRecords,
   exchangeCloudflareOAuthCode,
@@ -67,6 +67,17 @@ export async function GET(req: NextRequest) {
 
   if (state.userId !== session.user.id) {
     return NextResponse.json({ error: 'OAuth state does not match current user' }, { status: 403 });
+  }
+
+  // Single use: a replayed callback URL (same state) is rejected.
+  await connectDB();
+  try {
+    await OAuthStateNonce.create({ nonce: state.nonce, expiresAt: new Date(state.exp) });
+  } catch (err) {
+    if (typeof err === 'object' && err !== null && 'code' in err && (err as { code: unknown }).code === 11000) {
+      return NextResponse.json({ error: 'OAuth state was already used' }, { status: 400 });
+    }
+    throw err;
   }
 
   const oauthConfig = getCloudflareOAuthConfig();

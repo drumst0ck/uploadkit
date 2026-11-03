@@ -4,8 +4,11 @@ import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { auth } from '../../../../../../../auth';
 import { connectDB, Project, File, UsageRecord } from '@uploadkitdev/db';
 import { r2Client, R2_BUCKET } from '../../../../../../lib/storage';
+import { withSignedUrl } from '../../../../../../lib/cdn-access';
 
 export const dynamic = 'force-dynamic';
+
+const MAX_BULK_DELETE = 500;
 
 // GET /api/internal/projects/[slug]/files
 // Cursor-based pagination, search by name, filter by MIME type prefix
@@ -73,7 +76,10 @@ export async function GET(
   const lastFile = resultFiles[resultFiles.length - 1];
   const nextCursor = hasMore && lastFile ? String(lastFile._id) : null;
 
-  return NextResponse.json({ files: resultFiles, nextCursor, hasMore, totalCount });
+  // Signed projects: every URL handed to the browser is freshly signed.
+  const signedFiles = resultFiles.map((file) => withSignedUrl(project, file));
+
+  return NextResponse.json({ files: signedFiles, nextCursor, hasMore, totalCount });
 }
 
 // DELETE /api/internal/projects/[slug]/files
@@ -104,7 +110,7 @@ export async function DELETE(
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const fileIds: string[] =
+  const rawIds: string[] =
     body !== null &&
     typeof body === 'object' &&
     'fileIds' in body &&
@@ -114,8 +120,17 @@ export async function DELETE(
         )
       : [];
 
+  // Duplicates would make the ownership length check below fail with a bogus 403.
+  const fileIds = Array.from(new Set(rawIds));
+
   if (fileIds.length === 0) {
     return NextResponse.json({ error: 'No file IDs provided' }, { status: 400 });
+  }
+  if (fileIds.length > MAX_BULK_DELETE) {
+    return NextResponse.json(
+      { error: `At most ${MAX_BULK_DELETE} files can be deleted at once` },
+      { status: 400 },
+    );
   }
 
   // T-06-11: validate ALL fileIds belong to the authenticated user's project
@@ -153,15 +168,13 @@ export async function DELETE(
 
   // Only soft-delete the DB rows whose R2 object was successfully removed —
   // leaves failing ones intact so the user can retry.
-  const successIds: mongoose.Types.ObjectId[] = [];
-  let reclaimedBytes = 0;
+  const succeeded: typeof ownedFiles = [];
   const failures: { id: string; key: string }[] = [];
 
   r2Results.forEach((result, idx) => {
     const file = ownedFiles[idx]!;
     if (result.status === 'fulfilled') {
-      successIds.push(file._id);
-      reclaimedBytes += file.size ?? 0;
+      succeeded.push(file);
     } else {
       failures.push({ id: String(file._id), key: file.key });
       console.warn(
@@ -171,18 +184,28 @@ export async function DELETE(
     }
   });
 
-  if (successIds.length === 0) {
+  if (succeeded.length === 0) {
     return NextResponse.json(
       { error: 'Failed to delete files from storage', failures },
       { status: 502 },
     );
   }
 
-  // Soft-delete DB rows + mark status DELETED (mirrors public v1 API)
-  await File.updateMany(
-    { _id: { $in: successIds }, projectId: project._id },
-    { $set: { deletedAt: new Date(), status: 'DELETED' } },
-  );
+  // Soft-delete DB rows + mark status DELETED (mirrors public v1 API). Each row
+  // is claimed atomically (deletedAt: null) so a concurrent delete of the same
+  // file cannot reclaim its bytes twice, and only files that were UPLOADED
+  // (the only state counted in storageUsed) give bytes back.
+  let deletedCount = 0;
+  let reclaimedBytes = 0;
+  for (const file of succeeded) {
+    const claimed = await File.findOneAndUpdate(
+      { _id: file._id, projectId: project._id, deletedAt: null },
+      { $set: { deletedAt: new Date(), status: 'DELETED' } },
+    );
+    if (!claimed) continue;
+    deletedCount += 1;
+    if (claimed.status === 'UPLOADED') reclaimedBytes += claimed.size ?? 0;
+  }
 
   // Decrement storage usage for the current period (atomic $inc)
   if (reclaimedBytes > 0) {
@@ -192,10 +215,15 @@ export async function DELETE(
       { $inc: { storageUsed: -reclaimedBytes } },
       { upsert: true },
     );
+    // Never leave a negative counter (e.g. the file was counted in an earlier period).
+    await UsageRecord.updateOne(
+      { userId: project.userId, period, storageUsed: { $lt: 0 } },
+      { $set: { storageUsed: 0 } },
+    );
   }
 
   return NextResponse.json({
-    deleted: successIds.length,
+    deleted: deletedCount,
     failed: failures.length,
     reclaimedBytes,
   });

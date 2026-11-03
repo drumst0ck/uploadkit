@@ -7,6 +7,7 @@ import type { Tier } from '@uploadkitdev/shared';
 import { NewProjectButton } from '../../components/overview/new-project-button';
 import { CopyUrlButton } from '../../components/overview/copy-url-button';
 import { MeterRow, MiniLine } from '../../components/overview/meter';
+import { withSignedUrl } from '../../lib/cdn-access';
 import { formatBytes, formatNumber, formatRelative } from '../../lib/format';
 
 // Force dynamic rendering — auth() and connectDB() require runtime env vars
@@ -38,7 +39,7 @@ export default async function DashboardPage() {
   const periodLabel = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   // IFile links files via projectId, not userId directly
-  const projects = await Project.find({ userId }).select('name slug').sort({ createdAt: 1 }).lean();
+  const projects = await Project.find({ userId }).select('name slug cdnAccess').sort({ createdAt: 1 }).lean();
   const projectIds = projects.map((p) => p._id);
   const projectById = new Map(projects.map((p) => [String(p._id), p]));
 
@@ -242,7 +243,7 @@ export default async function DashboardPage() {
                             <td className="text-muted-foreground">{formatRelative(file.createdAt, now)}</td>
                             <td>
                               {file.status === 'UPLOADED' ? (
-                                <CopyUrlButton url={file.url} name={file.name} />
+                                <CopyUrlButton url={withSignedUrl(project ?? {}, file).url} name={file.name} />
                               ) : null}
                             </td>
                           </tr>

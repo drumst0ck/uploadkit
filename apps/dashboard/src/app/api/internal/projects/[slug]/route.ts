@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { nanoid } from 'nanoid';
 import { auth } from '../../../../../../auth';
-import { connectDB, Project, ApiKey, File, FileRouter } from '@uploadkitdev/db';
-import { deleteR2Objects } from '../../../../../lib/r2-delete';
+import { connectDB, Project, ApiKey, FileRouter } from '@uploadkitdev/db';
+import { deleteProjectFilesInBatches } from '../../../../../lib/delete-files';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,8 +29,8 @@ export async function GET(
 }
 
 // PUT /api/internal/projects/[slug]
-// Renames the project. Re-derives slug server-side. Validates name 1-50 chars.
-// T-06-19: userId from session only, slug re-derived server-side.
+// Renames the project (display name only; the slug stays stable). Validates name 1-50 chars.
+// T-06-19: userId from session only.
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
@@ -74,15 +73,9 @@ export async function PUT(
     return NextResponse.json({ error: 'Project not found' }, { status: 404 });
   }
 
-  // T-06-19: re-derive slug server-side from new name + nanoid for uniqueness
-  const baseSlug = name
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
-  const newSlug = `${baseSlug || 'project'}-${nanoid(6)}`;
-
+  // The slug is part of dashboard URLs and bookmarks: renaming changes the
+  // display name only and keeps the slug stable.
   project.name = name;
-  project.slug = newSlug;
   await project.save();
 
   return NextResponse.json({ name: project.name, slug: project.slug });
@@ -119,30 +112,19 @@ export async function DELETE(
     timestamp: new Date().toISOString(),
   });
 
-  const files = await File.find({ projectId }).select('key').lean();
-  const { failures } = await deleteR2Objects(
-    files.map((file) => file.key).filter((key): key is string => typeof key === 'string'),
-  );
+  const filesResult = await deleteProjectFilesInBatches([projectId]);
 
-  if (failures.length > 0) {
-    failures.forEach((failure) => {
-      console.warn(
-        `[project-deletion] R2 DeleteObject failed for key=${failure.key}:`,
-        failure.reason,
-      );
-    });
-
+  if (!filesResult.ok) {
     return NextResponse.json(
       {
         error: 'Failed to delete project files from storage',
-        failed: failures.length,
+        failed: filesResult.failed,
       },
       { status: 502 },
     );
   }
 
-  // Cascade delete: files → API keys → file routers → project
-  await File.deleteMany({ projectId });
+  // Cascade delete: files (already removed in batches above) → API keys → file routers → project
   await ApiKey.deleteMany({ projectId });
   await FileRouter.deleteMany({ projectId });
   await Project.deleteOne({ _id: projectId });

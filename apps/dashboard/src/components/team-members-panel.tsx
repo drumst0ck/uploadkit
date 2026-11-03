@@ -11,6 +11,7 @@ interface TeamMember {
   role: 'admin' | 'member';
   status: 'pending' | 'active';
   invitedAt: string;
+  isOwner?: boolean;
 }
 
 interface TeamMembersPanelProps {
@@ -26,7 +27,9 @@ export function TeamMembersPanel({ tier, initialMembers }: TeamMembersPanelProps
   const [loading, setLoading] = React.useState(false);
 
   const limit = getTeamMemberLimit(tier);
-  const atLimit = members.length >= limit;
+  // The owner entry is not a seat: invitees may fill `limit` seats.
+  const invitedCount = members.filter((m) => !m.isOwner).length;
+  const atLimit = invitedCount >= limit;
 
   async function invite(e: React.FormEvent) {
     e.preventDefault();
@@ -65,7 +68,7 @@ export function TeamMembersPanel({ tier, initialMembers }: TeamMembersPanelProps
           <div>
             <h2 className="text-sm font-medium text-foreground">Team members</h2>
             <p className="text-xs text-muted-foreground">
-              {members.length} / {limit === Infinity ? '∞' : limit} seats used
+              {invitedCount} / {limit === Infinity ? '∞' : limit} seats used
             </p>
           </div>
         </div>
@@ -79,7 +82,7 @@ export function TeamMembersPanel({ tier, initialMembers }: TeamMembersPanelProps
                   {member.role} · {member.status}
                 </p>
               </div>
-              {member._id !== 'owner' && (member.status !== 'active' || members.length > 1) ? (
+              {!member.isOwner ? (
                 <button
                   type="button"
                   onClick={() => { void removeMember(member._id); }}

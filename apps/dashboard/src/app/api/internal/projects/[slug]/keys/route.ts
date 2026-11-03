@@ -4,6 +4,10 @@ import { nanoid } from 'nanoid';
 import { auth } from '../../../../../../../auth';
 import { connectDB, Project, ApiKey } from '@uploadkitdev/db';
 import mongoose from 'mongoose';
+import { TIER_LIMITS } from '@uploadkitdev/shared';
+import { getUserTier } from '../../../../../../lib/tier';
+
+const MAX_KEY_NAME_LENGTH = 64;
 
 export const dynamic = 'force-dynamic';
 
@@ -72,6 +76,22 @@ export async function POST(
     typeof (body as { name: unknown }).name === 'string'
       ? (body as { name: string }).name.trim()
       : 'Default';
+
+  if (name.length > MAX_KEY_NAME_LENGTH) {
+    return NextResponse.json(
+      { error: `Key name must be at most ${MAX_KEY_NAME_LENGTH} characters` },
+      { status: 400 },
+    );
+  }
+
+  const maxKeys = TIER_LIMITS[await getUserTier(session.user.id)].maxApiKeys;
+  const activeKeys = await ApiKey.countDocuments({ projectId: project._id, revokedAt: null });
+  if (activeKeys >= maxKeys) {
+    return NextResponse.json(
+      { error: `API key limit reached for your plan (${maxKeys})` },
+      { status: 403 },
+    );
+  }
 
   // Generate full key: uk_live_ + 32 random chars
   const fullKey = `uk_live_${nanoid(32)}`;

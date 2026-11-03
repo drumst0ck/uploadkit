@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth, signIn } from '../../../auth';
 import { Logo } from '../../components/logo';
 import { parsePlanIntent, postLoginRedirect } from '../../lib/plan-intent';
+import { parseInviteCallback } from '../../lib/safe-redirect';
 
 // Force dynamic rendering — auth() reads the session cookie at runtime;
 // static prerendering would always see an unauthenticated state.
@@ -12,6 +13,9 @@ export const dynamic = 'force-dynamic';
 // The `plan` form field is client-controlled: it is re-validated here and only
 // mapped to a fixed internal path (see lib/plan-intent.ts).
 function redirectFromForm(formData: FormData): string {
+  // Only the team-invite accept link may carry a callback (strict whitelist).
+  const invite = parseInviteCallback(formData.get('callbackUrl'));
+  if (invite) return invite;
   return postLoginRedirect(parsePlanIntent(formData.get('plan')));
 }
 
@@ -51,7 +55,7 @@ function getErrorMessage(error: string | undefined): string | null {
 // ─── Page component ───────────────────────────────────────────────────────────
 
 interface LoginPageProps {
-  searchParams: Promise<{ mode?: string; error?: string; plan?: string }>;
+  searchParams: Promise<{ mode?: string; error?: string; plan?: string; callbackUrl?: string }>;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -60,7 +64,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const plan = parsePlanIntent(params.plan);
 
   const session = await auth();
-  if (session?.user) redirect(postLoginRedirect(plan));
+  const invite = parseInviteCallback(params.callbackUrl);
+  if (session?.user) redirect(invite ?? postLoginRedirect(plan));
 
   const isSignUp = params.mode === 'signup';
   const errorMessage = getErrorMessage(params.error);
@@ -97,6 +102,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="mt-10 flex flex-col gap-3">
           <form action={signInWithGitHub}>
             {plan && <input type="hidden" name="plan" value={plan} />}
+            {invite && <input type="hidden" name="callbackUrl" value={invite} />}
             <button type="submit" className={secondary}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
@@ -107,6 +113,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           <form action={signInWithGoogle}>
             {plan && <input type="hidden" name="plan" value={plan} />}
+            {invite && <input type="hidden" name="callbackUrl" value={invite} />}
             <button type="submit" className={secondary}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -121,6 +128,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
         <form action={signInWithEmail} className="mt-10 flex flex-col gap-3">
           {plan && <input type="hidden" name="plan" value={plan} />}
+            {invite && <input type="hidden" name="callbackUrl" value={invite} />}
           <label htmlFor="email" className="text-sm text-muted-foreground">
             Or get a sign-in link by email
           </label>

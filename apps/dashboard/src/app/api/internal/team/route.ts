@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomBytes } from 'node:crypto';
 import { auth } from '../../../../../auth';
-import { connectDB, TeamMember } from '@uploadkitdev/db';
+import { connectDB, TeamMember, type ITeamMember } from '@uploadkitdev/db';
 import { getUserTier } from '../../../../lib/tier';
 import { getTeamMemberLimit } from '@uploadkitdev/shared';
+import { sendTeamInviteEmail } from '@uploadkitdev/emails';
+import { getAppUrl } from '../../../../lib/app-url';
+import { createInviteToken, INVITE_TTL_MS } from '../../../../lib/team-invites';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,8 +16,10 @@ export async function GET() {
   }
 
   await connectDB();
+  // Never expose invite token material (hash included) to the client.
   const members = await TeamMember.find({ ownerUserId: session.user.id })
     .sort({ createdAt: 1 })
+    .select('-inviteTokenHash -inviteToken')
     .lean();
 
   return NextResponse.json({ members });
@@ -62,22 +66,62 @@ export async function POST(req: NextRequest) {
 
   await connectDB();
 
-  const count = await TeamMember.countDocuments({ ownerUserId: session.user.id });
-  if (count >= limit) {
-    return NextResponse.json({ error: 'Team member limit reached' }, { status: 403 });
-  }
+  // Invitees may fill `limit` seats (the owner is not counted), as sold on the pricing page.
+  const maxInvitees = limit;
+  const ownerUserId = session.user.id;
 
-  const existing = await TeamMember.findOne({ ownerUserId: session.user.id, email });
+  const existing = await TeamMember.findOne({ ownerUserId, email });
+  const { token, tokenHash, expiresAt } = createInviteToken();
+  let member: ITeamMember;
+
   if (existing) {
-    return NextResponse.json({ error: 'Member already invited' }, { status: 409 });
+    const expired =
+      existing.status === 'pending' &&
+      (!existing.inviteExpiresAt || existing.inviteExpiresAt.getTime() <= Date.now());
+    if (!expired) {
+      return NextResponse.json({ error: 'Member already invited' }, { status: 409 });
+    }
+    // Expired pending invite: rotate the token and resend (seat already held).
+    const rotated = await TeamMember.findOneAndUpdate(
+      { _id: existing._id, status: 'pending' },
+      { $set: { inviteTokenHash: tokenHash, inviteExpiresAt: expiresAt, role, invitedAt: new Date() } },
+      { new: true },
+    );
+    if (!rotated) return NextResponse.json({ error: 'Member already invited' }, { status: 409 });
+    member = rotated;
+  } else {
+    if ((await TeamMember.countDocuments({ ownerUserId })) >= maxInvitees) {
+      return NextResponse.json({ error: 'Team member limit reached' }, { status: 403 });
+    }
+    try {
+      member = await TeamMember.create({
+        ownerUserId,
+        email,
+        role,
+        status: 'pending',
+        inviteTokenHash: tokenHash,
+        inviteExpiresAt: expiresAt,
+      });
+    } catch (err) {
+      if (typeof err === 'object' && err !== null && 'code' in err && err.code === 11000) {
+        return NextResponse.json({ error: 'Member already invited' }, { status: 409 });
+      }
+      throw err;
+    }
+    // Race-safe seat check: the pre-check above can be passed by concurrent
+    // requests, so re-count after inserting and give the seat back if over.
+    if ((await TeamMember.countDocuments({ ownerUserId })) > maxInvitees) {
+      await TeamMember.deleteOne({ _id: member._id, ownerUserId });
+      return NextResponse.json({ error: 'Team member limit reached' }, { status: 403 });
+    }
   }
 
-  const member = await TeamMember.create({
-    ownerUserId: session.user.id,
-    email,
+  const acceptUrl = `${getAppUrl()}/dashboard/team/accept?token=${encodeURIComponent(token)}`;
+  await sendTeamInviteEmail(email, {
+    inviterName: session.user.name ?? session.user.email,
     role,
-    status: 'pending',
-    inviteToken: randomBytes(24).toString('hex'),
+    acceptUrl,
+    expiresInDays: Math.round(INVITE_TTL_MS / 86_400_000),
   });
 
   return NextResponse.json({

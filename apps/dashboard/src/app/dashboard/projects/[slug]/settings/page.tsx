@@ -3,6 +3,7 @@ import { auth } from '../../../../../../auth';
 import { connectDB, Project } from '@uploadkitdev/db';
 import { ProjectSettingsForm } from '../../../../../components/project-settings-form';
 import {
+  CdnAccessSettings,
   CustomDomainSettings,
   LifecycleSettings,
   SelfHostedSdkCard,
@@ -54,6 +55,8 @@ export default async function ProjectSettingsPage({ params }: ProjectSettingsPag
         fallbackOrigin={cfConfig?.fallbackOrigin ?? null}
         cloudflareOAuthConfigured={isCloudflareOAuthConfigured()}
       />
+
+      <CdnAccessSettings slug={project.slug} initial={project.cdnAccess ?? 'public'} />
 
       <LifecycleSettings
         slug={project.slug}
