@@ -255,7 +255,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const paidCustomer = await stripe.customers.retrieve(customerId);
         if (paidCustomer && !paidCustomer.deleted) {
           const paidEmail = paidCustomer.email;
-          if (typeof paidEmail === 'string') {
+          // A trial start produces a $0 invoice; only real charges get a receipt.
+          if (typeof paidEmail === 'string' && invoice.amount_paid > 0) {
             void sendInvoiceEmail(paidEmail, {
               userName: paidCustomer.name ?? 'there',
               type: 'paid',

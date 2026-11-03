@@ -28,6 +28,7 @@ vi.mock('@/lib/x-conversions', () => ({ sendXPurchaseConversion: vi.fn().mockRes
 import { POST } from '@/app/api/v1/webhooks/stripe/route';
 import { Subscription } from '@uploadkitdev/db';
 import { stripe } from '@/lib/stripe';
+import { sendInvoiceEmail } from '@uploadkitdev/emails';
 
 let seq = 0;
 async function send(type: string, object: object) {
@@ -124,6 +125,15 @@ describe('subscription lifecycle after trial and during dunning (S6)', () => {
       { stripeCustomerId: 'cus_1', status: 'PAST_DUE' },
       { $set: { status: 'ACTIVE' } },
     );
+  });
+
+  it('a $0 trial-start invoice sends no payment-received email; a real charge does', async () => {
+    vi.mocked(stripe.customers.retrieve).mockResolvedValue({ deleted: false, email: 'a@b.co', name: 'A' } as never);
+    await send('invoice.paid', { customer: 'cus_1', amount_paid: 0, created: now, status_transitions: {} });
+    expect(sendInvoiceEmail).not.toHaveBeenCalled();
+    await send('invoice.paid', { customer: 'cus_1', amount_paid: 1500, created: now, status_transitions: {} });
+    expect(sendInvoiceEmail).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sendInvoiceEmail).mock.calls[0]![1]).toMatchObject({ type: 'paid', amount: '$15.00' });
   });
 
   it('invoice.payment_failed only flags PAST_DUE (tier untouched during retries)', async () => {
