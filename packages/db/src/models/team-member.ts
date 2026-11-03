@@ -9,7 +9,9 @@ export interface ITeamMember extends Document {
   memberUserId?: Types.ObjectId;
   role: TeamMemberRole;
   status: TeamMemberStatus;
-  inviteToken?: string;
+  /** SHA-256 hex of the emailed invite token; the raw token is never stored. */
+  inviteTokenHash?: string;
+  inviteExpiresAt?: Date;
   invitedAt: Date;
   acceptedAt?: Date;
   createdAt: Date;
@@ -23,7 +25,8 @@ const teamMemberSchema = new Schema<ITeamMember>(
     memberUserId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     role: { type: String, enum: ['admin', 'member'], default: 'member' },
     status: { type: String, enum: ['pending', 'active'], default: 'pending' },
-    inviteToken: { type: String, sparse: true, unique: true },
+    inviteTokenHash: { type: String, sparse: true, unique: true },
+    inviteExpiresAt: { type: Date },
     invitedAt: { type: Date, default: Date.now },
     acceptedAt: { type: Date },
   },
