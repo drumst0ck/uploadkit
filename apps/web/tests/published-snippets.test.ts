@@ -24,4 +24,12 @@ describe('BYOS snippets use one set of env names', () => {
       expect(s, f).not.toMatch(/R2_BUCKET\b(?!_)/);
     }
   });
+
+  it.each([
+    'sveltekit/src/routes/api/sign/+server.ts',
+    'remix/app/routes/api.sign.ts',
+  ])('the %s template the page copies reads R2_BUCKET_NAME', (p) => {
+    const s = src(`../../packages/create-uploadkit-app/templates/${p}`);
+    expect(s).toMatch(/R2_BUCKET_NAME/);
+  });
 });

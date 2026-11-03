@@ -11,16 +11,24 @@ const GOOGLE_HOSTS = [
   'https://*.analytics.google.com',
   'https://*.doubleclick.net',
 ];
-const X_HOSTS = ['https://static.ads-twitter.com', 'https://analytics.twitter.com', 'https://t.co'];
+const X_HOSTS = [
+  'https://static.ads-twitter.com',
+  'https://ads-twitter.com',
+  'https://ads-api.twitter.com',
+  'https://analytics.twitter.com',
+  'https://t.co',
+];
+// GA4 Google signals and Ads conversion beacons.
+const GOOGLE_ADS_HOSTS = ['https://www.google.com', 'https://www.googleadservices.com'];
 
 export function buildCsp(isDev = false): string {
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
-    'script-src': ["'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : []), ...GOOGLE_HOSTS, ...X_HOSTS],
+    'script-src': ["'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : []), ...GOOGLE_HOSTS, ...GOOGLE_ADS_HOSTS, ...X_HOSTS],
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'blob:', 'https:'],
     'font-src': ["'self'", 'data:'],
-    'connect-src': ["'self'", 'https://api.uploadkit.dev', ...GOOGLE_HOSTS, ...X_HOSTS],
+    'connect-src': ["'self'", 'https://api.uploadkit.dev', ...GOOGLE_HOSTS, ...GOOGLE_ADS_HOSTS, ...X_HOSTS],
     'frame-src': ['https://www.googletagmanager.com'],
     'media-src': ["'self'", 'https:', 'blob:'],
     'object-src': ["'none'"],
