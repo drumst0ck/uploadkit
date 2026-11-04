@@ -103,8 +103,8 @@ export function Uploads() {
     <>
       <UploadButton
         route="imageUploader"
-        onUploadComplete={(files) => {
-          console.log('Files uploaded:', files.map((f) => f.url));
+        onUploadComplete={(result) => {
+          console.log('File uploaded:', result.url);
         }}
         onUploadError={(error) => {
           alert(\`Upload failed: \${error.message}\`);
