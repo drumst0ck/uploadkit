@@ -19,7 +19,7 @@ export interface CompareConfig {
   related: { label: string; href: string; description?: string }[]
 }
 
-export const CHECKED = 'checked October 2026'
+export const CHECKED = 'last checked 4 November 2026'
 
 export const QUICKSTART_INSTALL = 'npm install @uploadkitdev/next @uploadkitdev/react'
 
@@ -87,7 +87,7 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         feature: 'Storage and bandwidth model',
         us: 'Fixed plan limits for storage, monthly bandwidth and uploads',
-        them: 'Pay for storage used; unlimited uploads and downloads, no bandwidth or seat charges',
+        them: 'Pay for storage used; unlimited uploads and downloads; no bandwidth charge is listed',
         note: 'UploadThing has no bandwidth cap. UploadKit Free caps bandwidth at 2 GB per month.',
       },
       {
@@ -98,7 +98,7 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         feature: 'Own bucket support',
         us: 'Yes, self-hosted: pass a storage adapter (S3, R2, MinIO). UploadKit Cloud stores files on UploadKit’s managed R2 and CDN.',
-        them: 'Files are stored on UploadThing’s managed infrastructure',
+        them: 'Not listed on the pricing page we checked',
       },
       {
         feature: 'Open-source SDK and components',
@@ -173,7 +173,7 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         question: 'How does UploadThing pricing compare to UploadKit?',
         answer:
-          'UploadThing Free is $0 with 2 GB of storage; $10/mo gives 100 GB, and usage-based starts at $25/mo with 250 GB then $0.08/GB, with no bandwidth charges (checked October 2026). UploadKit is $0 Free, $15/mo Pro and $35/mo Team, with storage, bandwidth and upload limits per plan.',
+          'UploadThing Free is $0 with 2 GB of storage; $10/mo gives 100 GB, and usage-based starts at $25/mo with 250 GB then $0.08/GB, with no bandwidth charges (last checked 4 November 2026). UploadKit is $0 Free, $15/mo Pro and $35/mo Team, with storage, bandwidth and upload limits per plan.',
         link: { label: 'UploadKit pricing', href: '/pricing' },
       },
       {
@@ -218,18 +218,18 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         feature: 'Pricing entry point',
         us: 'Free at $0; Pro $15/mo',
-        them: 'Free at $0 (personal use only); Pro $66/mo',
+        them: 'Free at $0 (personal use only); Pro $66/mo billed yearly ($79/mo billed monthly)',
       },
       {
         feature: 'Free plan',
         us: '5 GB storage, 2 GB bandwidth per month, 1,000 uploads per month, 2 projects',
-        them: '1,000 operations per month, personal use only',
+        them: '1,000 operations, 1 GB storage and 5 GB traffic per month, personal use only',
       },
       {
         feature: 'Storage and bandwidth model',
         us: 'Fixed plan limits for storage, monthly bandwidth and uploads',
         them: 'Operations plus included storage and traffic. Pro: 5,000 operations, 10 GB storage, 25 GB traffic, then $0.35/GB',
-        note: 'Business is $166/mo with 50,000 operations.',
+        note: 'Business is $166/mo billed yearly ($199/mo monthly) with 50,000 operations.',
       },
       {
         feature: 'Max file size',
@@ -240,7 +240,7 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         feature: 'Own bucket support',
         us: 'Yes, self-hosted: storage adapter for S3, R2 or MinIO',
-        them: '“Connect AWS S3 Storage” is listed on Enterprise',
+        them: 'Pro and Business list copying uploads and backup to an S3 bucket; “connect AWS S3 storage” is listed on Enterprise only',
       },
       {
         feature: 'Open-source SDK and components',
@@ -275,7 +275,7 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         title: 'You want a lower paid entry price',
         description:
-          'UploadKit Pro is $15/mo with 100 GB storage, 200 GB bandwidth and 512 MB files. Uploadcare Pro is $66/mo with 10 GB storage and 25 GB traffic included.',
+          'UploadKit Pro is $15/mo with 100 GB storage, 200 GB bandwidth and 512 MB files. Uploadcare Pro is $66/mo billed yearly ($79/mo monthly) with 10 GB storage and 25 GB traffic included.',
       },
       {
         title: 'You need to use the free plan commercially',
@@ -290,7 +290,7 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         title: 'You want your own bucket without an enterprise contract',
         description:
-          'Self-hosted UploadKit takes a storage adapter for S3, R2 or MinIO. Uploadcare lists its S3 connection on the Enterprise plan.',
+          'Self-hosted UploadKit takes a storage adapter for S3, R2 or MinIO. Uploadcare lists connecting your own AWS S3 storage on the Enterprise plan.',
       },
     ],
     migrationTitle: 'Moving from Uploadcare to UploadKit',
@@ -307,13 +307,13 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         question: 'How much does Uploadcare cost compared to UploadKit?',
         answer:
-          'Uploadcare Pro is $66/mo and Business is $166/mo (checked October 2026). UploadKit Pro is $15/mo and Team is $35/mo, with different included limits, so compare against your own usage.',
+          'Uploadcare Pro is $66/mo and Business is $166/mo when billed yearly ($79 and $199 monthly) (last checked 4 November 2026). UploadKit Pro is $15/mo and Team is $35/mo, with different included limits, so compare against your own usage.',
         link: { label: 'UploadKit pricing', href: '/pricing' },
       },
       {
         question: 'Can I use Uploadcare’s free plan for a business?',
         answer:
-          'Uploadcare lists its Free plan as personal use only (checked October 2026). Check their current terms before relying on it for a commercial product.',
+          'Uploadcare lists its Free plan as personal use only (last checked 4 November 2026). Check their current terms before relying on it for a commercial product.',
       },
       {
         question: 'Does UploadKit support my own S3 bucket?',
@@ -371,8 +371,8 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         feature: 'Own bucket support',
         us: 'Yes, self-hosted: storage adapter for S3, R2 or MinIO',
-        them: 'Yes: uploads to your own Amazon S3, GCS or Azure on all plans',
-        note: 'Both support customer buckets. Filestack covers more providers.',
+        them: 'Upload to Amazon S3, Google Cloud Storage and Azure is listed on all plans; by default files go to a Filestack-managed S3 bucket, and Storage Aliases are listed only on Scale and Enterprise',
+        note: 'Both support customer buckets. Filestack lists more providers.',
       },
       {
         feature: 'Open-source SDK and components',
@@ -442,7 +442,7 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         question: 'How much does Filestack cost?',
         answer:
-          'Filestack Start is $69/mo, Grow is $199/mo and Scale is $379/mo; the Free plan has 500 uploads and 1 GB storage (checked October 2026). UploadKit Pro is $15/mo and Team is $35/mo.',
+          'Filestack Start is $69/mo, Grow is $199/mo and Scale is $379/mo; the Free plan has 500 uploads and 1 GB storage (last checked 4 November 2026). UploadKit Pro is $15/mo and Team is $35/mo.',
         link: { label: 'UploadKit pricing', href: '/pricing' },
       },
       {
@@ -489,7 +489,7 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         feature: 'Max file size',
         us: 'Free 4 MB, Pro 512 MB, Team 5 GB',
-        them: 'Basic 500 MB, Plus 5 GB, Advanced 100 GB',
+        them: 'Pricing page lists 500 MB, 5 GB and 100 GB max upload size, in plan order (the page does not label them)',
       },
       {
         feature: 'Own bucket support',
@@ -518,7 +518,7 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         title: 'You upload very large files',
         description:
-          'Bytescale Advanced lists a 100 GB max upload and Plus lists 5 GB. UploadKit tops out at 5 GB on Team.',
+          'Bytescale’s pricing page lists max upload sizes of up to 100 GB on its largest plan. UploadKit tops out at 5 GB on Team.',
       },
       {
         title: 'You use DigitalOcean Spaces or Google Storage',
@@ -556,13 +556,13 @@ export const COMPARISONS: Record<CompareConfig['slug'], CompareConfig> = {
       {
         question: 'How much does Bytescale cost?',
         answer:
-          'Basic is $7/mo, Plus is $35/mo and Advanced is $195/mo (checked October 2026). UploadKit is free to start, with Pro at $15/mo and Team at $35/mo.',
+          'Basic is $7/mo, Plus is $35/mo and Advanced is $195/mo (last checked 4 November 2026). UploadKit is free to start, with Pro at $15/mo and Team at $35/mo.',
         link: { label: 'UploadKit pricing', href: '/pricing' },
       },
       {
         question: 'Does Bytescale have a free plan?',
         answer:
-          'The pricing page we checked lists paid plans with a free trial and no free-forever plan (checked October 2026). UploadKit Free is permanent with 5 GB storage.',
+          'The pricing page we checked lists paid plans with a free trial and no free-forever plan (last checked 4 November 2026). UploadKit Free is permanent with 5 GB storage.',
       },
       {
         question: 'Do both support my own S3 or R2 bucket?',
