@@ -88,6 +88,8 @@ Grab a free key from [app.uploadkit.dev](https://app.uploadkit.dev).
     - Creates the file router at `src/lib/uploadkit.ts` (no React provider —
       Svelte components call the endpoint with `@uploadkitdev/core`).
     - Appends keys to `.env`.
+
+    More on the SvelteKit setup: [SvelteKit file uploads](https://uploadkit.dev/sveltekit).
   </Tab>
   <Tab value="Remix / RR7">
     **Detection:** `@remix-run/*` or `@react-router/dev` in `dependencies`.
@@ -97,6 +99,8 @@ Grab a free key from [app.uploadkit.dev](https://app.uploadkit.dev).
     - Creates `app/routes/api.uploadkit.$.tsx` with `action` + `loader`.
     - Wraps children in `app/root.tsx` with `<UploadKitProvider>`.
     - Appends keys to `.env`.
+
+    More on the Remix and React Router setup: [Remix file uploads](https://uploadkit.dev/remix).
   </Tab>
   <Tab value="Vite + React">
     **Detection:** `vite` + `react` in `dependencies`.

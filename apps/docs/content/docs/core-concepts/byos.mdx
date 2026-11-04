@@ -21,6 +21,8 @@ Pick one path per deployment — they are not mixed inside a single Cloud projec
 
 In managed Cloud mode, files go to UploadKit's infrastructure. In BYOS mode, they go to your bucket — but the developer experience is identical. The same `UploadButton`, `UploadDropzone`, and `useUploadKit` work in both modes. Your frontend code never changes.
 
+The product-level summary of this approach is on [bring your own S3 or R2 storage](https://uploadkit.dev/byos).
+
 ## Setup
 
 Configure BYOS in `createUploadKitHandler` by passing a `storage` object with your bucket credentials:
