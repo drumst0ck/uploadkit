@@ -99,6 +99,10 @@ export const { GET, POST } = createUploadKitHandler({ router });
   The `satisfies FileRouter` pattern (not a type annotation) preserves the literal route name strings. This is what enables end-to-end TypeScript on the client — the `route` prop is typed to `"imageUploader" | "documentUploader" | "avatarUploader"`.
 </Callout>
 
+<Callout>
+  `npx uploadkit init` sets up the same thing for you: it writes the handler to `app/api/uploadkit/[...uploadkit]/route.ts` (under `src/` if your project uses it), keeps the router in `lib/uploadkit.ts`, creates `.env.local` and wraps your root layout with the provider.
+</Callout>
+
 ## Environment variables
 
 Add your API key to `.env.local`:
@@ -142,17 +146,19 @@ UploadKit ships three ready-made upload components. Use whichever fits your UI:
 
 ### UploadButton
 
-A single button that opens the system file picker:
+A single button that opens the system file picker. Its `onUploadComplete` receives one result (`result.url`); `UploadDropzone` and `UploadModal` receive an array. These pages pass callbacks as props, so they must be Client Components (`'use client'`):
 
 ```tsx title="app/profile/page.tsx"
+'use client';
+
 import { UploadButton } from '@uploadkitdev/react';
 
 export default function ProfilePage() {
   return (
     <UploadButton
       route="imageUploader"
-      onUploadComplete={(files) => {
-        console.log('Files uploaded:', files.map((f) => f.url));
+      onUploadComplete={(result) => {
+        console.log('File uploaded:', result.url);
       }}
       onUploadError={(error) => {
         alert(`Upload failed: ${error.message}`);
@@ -167,6 +173,8 @@ export default function ProfilePage() {
 A drag-and-drop zone with a file picker fallback:
 
 ```tsx title="app/documents/page.tsx"
+'use client';
+
 import { UploadDropzone } from '@uploadkitdev/react';
 
 export default function DocumentsPage() {

@@ -24,14 +24,16 @@ export const CHECKED = 'last checked 4 November 2026'
 export const QUICKSTART_INSTALL = 'npm install @uploadkitdev/next @uploadkitdev/react'
 
 // From apps/docs/content/docs/getting-started/nextjs.mdx
-export const QUICKSTART_COMPONENT = `import { UploadButton } from '@uploadkitdev/react';
+export const QUICKSTART_COMPONENT = `'use client';
+
+import { UploadButton } from '@uploadkitdev/react';
 
 export default function ProfilePage() {
   return (
     <UploadButton
       route="imageUploader"
-      onUploadComplete={(files) => {
-        console.log('Files uploaded:', files.map((f) => f.url));
+      onUploadComplete={(result) => {
+        console.log('File uploaded:', result.url);
       }}
       onUploadError={(error) => {
         alert(\`Upload failed: \${error.message}\`);
