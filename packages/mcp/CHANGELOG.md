@@ -1,5 +1,11 @@
 # @uploadkitdev/mcp
 
+## 0.6.1
+
+### Patch Changes
+
+- Refresh bundled docs index to match latest content on docs.uploadkit.dev.
+
 ## 0.6.0
 
 ### Minor Changes
